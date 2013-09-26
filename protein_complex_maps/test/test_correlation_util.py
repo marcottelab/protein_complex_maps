@@ -11,23 +11,23 @@ class CorrelationTest(unittest.TestCase):
 
 	def setUp(self,):
 
-		self.data_matrix = np.arange(50).reshape(5,10)
-		#print self.data_matrix
+		self.data_matrix = np.arange(40).reshape(4,10)
 
 		self.array1 = np.array([1,9,2,8,3,7,4,6,5,0])
+		self.data_matrix = np.vstack([self.data_matrix, self.array1])
+
+		#print self.data_matrix
 
 	def testMatrix(self, ):
-		scores, pvals = cu.correlation_distribution(self.data_matrix)
+		scores = cu.correlation_distribution(self.data_matrix)
 		assert( scores[0] == 1.0 )
-		assert( pvals[0] == 0.0 )
 		assert( len(scores) == 10 )
 
 
 	def testArrayVMatrix(self,):
-		scores, pvals = cu.correlation_distribution(self.data_matrix, self.array1)
+		scores = cu.correlation_distribution(self.data_matrix, 4)
 		assert( scores[0] == -0.15151515151515152 )
-		assert( pvals[0] == 0.67606517599785354 )
-		assert( len(scores) == 5 )
+		assert( len(scores) == 4 )
 		
 
 

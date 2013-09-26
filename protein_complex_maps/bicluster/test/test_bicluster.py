@@ -20,8 +20,8 @@ class BiclusterTest(unittest.TestCase):
 		self.bicluster1.add_column(2)
 
 	def testAdd(self, ):
-		assert( self.bicluster1.rows == set([1]) )
-		assert( self.bicluster1.cols == set([2]) )
+		assert( self.bicluster1.rows() == set([1]) )
+		assert( self.bicluster1.columns() == set([2]) )
 
 
 	def testSubMatrix(self,):

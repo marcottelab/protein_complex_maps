@@ -1,24 +1,28 @@
 from scipy.stats.stats import pearsonr
+import numpy as np
 
-def correlation_distribution(matrix, array_in=None):
-	score_distribution = []
-	pval_distribution = []
+def correlation_distribution(matrix, index=None, nans=0):
 
-	for i, row in enumerate(matrix):
-		#kdrew: if an array was passed in, compute correlation of all rows in matrix to array
-		if array_in != None:
-			score, pval = pearsonr(array_in, row)
-			score_distribution.append(score)
-			pval_distribution.append(pval)
+	corrcoefMat = np.corrcoef(matrix)
+	#print corrcoefMat
+	if index == None:
+		#kdrew: gets indices of upper triangle (w/o diagonal) and returns values in a list
+		score_distribution = corrcoefMat[np.triu_indices(len(corrcoefMat),1)].tolist()
 
-		#kdrew: if no array is passed in, compute correlation of all rows in matrix to all other rows
-		else:
-			for j, row2 in enumerate(matrix[i+1:]):
-				print i, row, j, row2
-				score, pval = pearsonr(row, row2)
-				score_distribution.append(score)
-				pval_distribution.append(pval)
+	else:
+		#kdrew: return the correlation scores of the row identified by index to all other rows, do not include to itself
+		score_distribution = np.delete(corrcoefMat[index],index)
 
-	return score_distribution, pval_distribution
+	#print score_distribution
+
+	if nans != None:
+		nan_list = np.isnan(score_distribution)
+		#print nan_list
+		try:
+			score_distribution[nan_list] = nans
+		except TypeError:
+			pass
+
+	return score_distribution
 
 
