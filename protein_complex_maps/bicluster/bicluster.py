@@ -21,10 +21,10 @@ class Bicluster(object):
 		self.__cols.remove(col_index)
 
 	def rows(self, ):
-		return self.__rows
+		return list(self.__rows)
 
 	def columns(self, ):
-		return self.__cols
+		return list(self.__cols)
 
 	#kdrew: returns submatrix defined by the bicluster
 	#kdrew: without_indices creates the submatrix without the row specified by given indices

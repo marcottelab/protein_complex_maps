@@ -2,9 +2,10 @@
 import numpy as np
 import protein_complex_maps.correlation_util as cu
 import protein_complex_maps.bicluster.bicluster as bc
+import protein_complex_maps.feature_generator as fg
 from scipy.stats import ks_2samp
 
-sample_filename = "/Users/kdrew/data/bborgeson/protein_complex_maps/sample_data/Hs_hekN_1108_psome_exosc_randos.txt"
+sample_filename = "/home/kdrew/data/protein_complex_maps/sample_data/Hs_hekN_1108_psome_exosc_randos.txt"
 
 sample_file = open(sample_filename, 'rb')
 #kdrew: eat header
@@ -71,7 +72,7 @@ for index, i in enumerate(bicluster1.rows()):
 	rand_submat = rand_bicluster1.get_submatrix( clean_data_matrix )
 	print "random bicluster submatrix with row %s:" % (i,)
 	print rand_submat
-	rand_submatWO = rand_bicluster1.get_submatrix( clean_data_matrix, without_rows=[i])
+	rand_submatWO = rand_bicluster1.get_submatrix( clean_data_matrix, without_rows=[i] )
 
 	randbc_corrDistWO = cu.correlation_distribution( rand_submatWO )
 	print randbc_corrDistWO
@@ -95,6 +96,9 @@ for index, i in enumerate(bicluster1.rows()):
 
 	rand_bicluster1.remove_row(i)
 
+
+featuregen = fg.FeatureGenerator(bicluster1, clean_data_matrix)
+featuregen.correlation_feature_row()
 
 
 
