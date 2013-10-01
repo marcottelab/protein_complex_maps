@@ -3,8 +3,9 @@ import numpy as np
 import protein_complex_maps.correlation_util as cu
 import protein_complex_maps.bicluster.bicluster as bc
 import pandas as pd
+import statsmodels.api as sm
 
-#kdrew: this class is for generating the features of bicluster rows and columns and then creating the logistic regression model
+#kdrew: this class is for generating the features of bicluster rows and columns for creating the logistic regression model
 
 class FeatureGenerator(object):
 	#kdrew: define labels in pandas dataframe
@@ -46,6 +47,22 @@ class FeatureGenerator(object):
 	def get_column_feature_matrix(self, ):
 		return self.__column_feature_matrix
 
+	def create_logistic_regression(self, feature_matrix, training_cols):
+		print feature_matrix
+		print training_cols
+		data = feature_matrix[training_cols]
+		print "data: %s" % (data,)
+		data['intercept'] = 1.0
+		print "data: %s" % (data,)
+		#kdrew: assumption label_header is 0, probably not(?)
+		train_cols = data.columns[ data.columns != self.label_header ]
+		print "train_cols: %s" % (train_cols,)
+		logit = sm.Logit(data[self.label_header], data[train_cols])
+		print logit
+		result = logit.fit()
+		print result
+		return logit, result
+
 	#kdrew: function to calculate the correlation feature for all columns in and out of bicluster, 
 	#kdrew: creates a dataframe of features per bicluster column
 	def correlation_feature_column(self, ):
@@ -54,14 +71,15 @@ class FeatureGenerator(object):
 		self.__column_feature_matrix[self.corr_gain_bc_header] = float('nan')
 		self.__column_feature_matrix[self.corr_gain_rand_header] = float('nan')
 
-		print self.__column_feature_matrix
+		#print self.__column_feature_matrix
 
 		#kdrew: first do columns in bicluster and then do columns in random bicluster
 
 		#kdrew: index is the index in the bicluster, i is the index (column number) in the complete data matrix
 		for index, i in enumerate(self.__bicluster.columns()):
 
-			print "index: %s, i: %s" % (index, i)
+			#kdrew: think about removing a column from rand column bicluster to keep number of columns the same between rand and bc
+			#print "index: %s, i: %s" % (index, i)
 			corr_gain, rand_corr_gain = self.correlation_feature_column_by_index( self.__bicluster, self.__rand_column_bicluster, index, i )
 
 			#kdrew: this is kinda ugly but this is how you update values in a pandas dataframe
@@ -71,6 +89,7 @@ class FeatureGenerator(object):
 
 		for index, i in enumerate(self.__rand_column_bicluster.columns()):
 
+			#kdrew: think about adding a column from rand column bicluster to keep number of columns the same between rand and bc
 			rand_corr_gain, bc_corr_gain = self.correlation_feature_column_by_index( self.__rand_column_bicluster, self.__bicluster, index, i )
 
 			#kdrew: this is kinda ugly but this is how you update values in a pandas dataframe
@@ -78,7 +97,7 @@ class FeatureGenerator(object):
 			self.__column_feature_matrix.loc[ self.__column_feature_matrix[self.column_header]==i, self.corr_gain_bc_header ] = bc_corr_gain
 			self.__column_feature_matrix.loc[ self.__column_feature_matrix[self.column_header]==i, self.corr_gain_rand_header ] = rand_corr_gain
 
-		print self.__column_feature_matrix
+		#print self.__column_feature_matrix
 
 
 	#kdrew: function to calculate the correlation feature for all rows in and out of bicluster, 
@@ -149,17 +168,17 @@ class FeatureGenerator(object):
 			bc2_corrDist_with_i = cu.correlation_distribution( bc2_submat )
 			bicluster2.remove_column( i )
 
-			print "corrDist.mean(): %s" % (corrDist.mean(), )
-			print "corrDist_without_i.mean(): %s" %(corrDist_without_i.mean(), )
-			print "bc2_corrDist_with_i.mean(): %s" % (bc2_corrDist_with_i.mean(), )
-			print "bc2_corrDist.mean(): %s" % (bc2_corrDist.mean(), )
-			print ""
+			#print "corrDist.mean(): %s" % (corrDist.mean(), )
+			#print "corrDist_without_i.mean(): %s" %(corrDist_without_i.mean(), )
+			#print "bc2_corrDist_with_i.mean(): %s" % (bc2_corrDist_with_i.mean(), )
+			#print "bc2_corrDist.mean(): %s" % (bc2_corrDist.mean(), )
 
 			corr_gain = corrDist.mean() - corrDist_without_i.mean()
 			bc2_corr_gain = bc2_corrDist_with_i.mean() - bc2_corrDist.mean()
 
-			print "corr_gain: %s" % (corr_gain,)
-			print "bc2_corr_gain: %s" % (bc2_corr_gain,)
+			#print "corr_gain: %s" % (corr_gain,)
+			#print "bc2_corr_gain: %s" % (bc2_corr_gain,)
+			#print ""
 			
 			return corr_gain, bc2_corr_gain
 

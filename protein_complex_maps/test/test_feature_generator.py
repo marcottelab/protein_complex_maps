@@ -11,13 +11,18 @@ import numpy as np
 class FeatureGeneratorTest(unittest.TestCase):
 
 	def setUp(self,):
+		np.random.seed(120)
 		print ""
 		print np.array([1, 2, 2, 1, 1, 2, 3, 4, 5, 6, 1, 1, 2, 1, 2, 3, 4, 5, 6, 7, 2, 1, 1, 2, 3, 4, 5, 6, 7, 8, 1, 1, 1, 2, 4, 5, 6, 7, 8, 9]).reshape(4,10)
 		self.feature_obj = fg.FeatureGenerator(bc.Bicluster(rows=[0,1],cols=[0,1,2,3]) ,np.array([1, 2, 2, 1, 1, 2, 3, 4, 5, 6, 1, 1, 2, 1, 2, 3, 4, 5, 6, 7, 2, 1, 1, 2, 3, 4, 5, 6, 7, 8, 1, 1, 1, 2, 4, 5, 6, 7, 8, 9]).reshape(4,10), seed=123 )
 
+		self.logreg_feature_obj = fg.FeatureGenerator(bc.Bicluster(rows=[0,1,7],cols=[0,1,2,3]) ,np.array(np.random.random_integers(1,10,80)).reshape(8,10), seed=123 )
+		print np.array(np.random.random_integers(1,10,80)).reshape(8,10)
+
 	def testRowCorrelationFeatures(self, ):
 		self.feature_obj.correlation_feature_row()
 		featmat = self.feature_obj.get_row_feature_matrix()
+		print featmat
 
 		np.testing.assert_almost_equal( featmat['corr_mean_bc'][0], 0.57735026919 )
 		np.testing.assert_almost_equal( featmat['corr_mean_bc'][1], 0.57735026919 )
@@ -61,6 +66,18 @@ class FeatureGeneratorTest(unittest.TestCase):
 
 		np.testing.assert_almost_equal( featmat['corr_gain_bc'][7], 0.0350221665062)
 		np.testing.assert_almost_equal( featmat['corr_gain_rand'][7], 0.0)
+
+	def testLogRegression(self, ):
+		self.logreg_feature_obj.correlation_feature_row()
+		featmat = self.logreg_feature_obj.get_row_feature_matrix()
+		print featmat
+		test_columns = ['label','corr_mean_bc','corr_mean_rand']
+		row_logreg, row_logit_result = self.logreg_feature_obj.create_logistic_regression(featmat, test_columns)
+		print row_logit_result.summary()
+		print featmat
+		#row_logreg.predict(
+
+
 if __name__ == "__main__":
 	unittest.main()
 
