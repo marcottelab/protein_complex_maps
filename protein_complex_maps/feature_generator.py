@@ -80,7 +80,10 @@ class FeatureGenerator(object):
 
 			#kdrew: think about removing a column from rand column bicluster to keep number of columns the same between rand and bc
 			#print "index: %s, i: %s" % (index, i)
-			corr_gain, rand_corr_gain = self.correlation_feature_column_by_index( self.__bicluster, self.__rand_column_bicluster, index, i )
+			corr_gain = self.correlation_feature_column_by_index( self.__bicluster, i )
+			self.__rand_column_bicluster.add_column(i)
+			rand_corr_gain = self.correlation_feature_column_by_index( self.__rand_column_bicluster, i )
+			self.__rand_column_bicluster.remove_column(i)
 
 			#kdrew: this is kinda ugly but this is how you update values in a pandas dataframe
 			#kdrew: find location (loc) by conditional: all rows where column_header == i and column is corr_mean_ratio_header
@@ -90,7 +93,10 @@ class FeatureGenerator(object):
 		for index, i in enumerate(self.__rand_column_bicluster.columns()):
 
 			#kdrew: think about adding a column from rand column bicluster to keep number of columns the same between rand and bc
-			rand_corr_gain, bc_corr_gain = self.correlation_feature_column_by_index( self.__rand_column_bicluster, self.__bicluster, index, i )
+			rand_corr_gain = self.correlation_feature_column_by_index( self.__rand_column_bicluster, i )
+			self.__bicluster.add_column(i)
+			bc_corr_gain = self.correlation_feature_column_by_index( self.__bicluster, i )
+			self.__bicluster.remove_column(i)
 
 			#kdrew: this is kinda ugly but this is how you update values in a pandas dataframe
 			#kdrew: find location (loc) by conditional: all columns where column_header == i and column is corr_mean_ratio_header
@@ -114,12 +120,13 @@ class FeatureGenerator(object):
 		#kdrew: index is the index in the bicluster, i is the index (row number) in the complete data matrix
 		for index, i in enumerate(self.__bicluster.rows()):
 
-			corr_mean, rand_corr_mean = self.correlation_feature_row_by_index( self.__bicluster, self.__rand_row_bicluster, index, i )
-			#print corrDistIndex.mean()
-			#print bc2_corrDistIndex.mean()
-			corr_mean_ratio = corr_mean/rand_corr_mean
-			#print corr_mean_ratio
+			corr_mean = self.correlation_feature_row_by_index( self.__bicluster, i )
+			#kdrew: temporarily add row i, remove after calculation
+			self.__rand_row_bicluster.add_row(i)
+			rand_corr_mean = self.correlation_feature_row_by_index( self.__rand_row_bicluster, i )
+			self.__rand_row_bicluster.remove_row(i)
 
+			corr_mean_ratio = corr_mean/rand_corr_mean
 
 			#kdrew: this is kinda ugly but this is how you update values in a pandas dataframe
 			#kdrew: find location (loc) by conditional: all rows where row_header == i and column is corr_mean_ratio_header
@@ -129,7 +136,11 @@ class FeatureGenerator(object):
 
 		for index, i in enumerate(self.__rand_row_bicluster.rows()):
 
-			rand_corr_mean, bc_corr_mean = self.correlation_feature_row_by_index( self.__rand_row_bicluster, self.__bicluster, index, i )
+			rand_corr_mean = self.correlation_feature_row_by_index( self.__rand_row_bicluster, i )
+			#kdrew: temporarily add row i, remove after calculation
+			self.__bicluster.add_row(i)
+			bc_corr_mean = self.correlation_feature_row_by_index( self.__bicluster, i )
+			self.__bicluster.remove_row(i)
 
 			rand_corr_mean_ratio = bc_corr_mean/rand_corr_mean
 
@@ -143,7 +154,7 @@ class FeatureGenerator(object):
 
 	#kdrew: when calling this on columns in bicluster, bicluster1 = bicluster, bicluster2 = random bicluster
 	#kdrew: switch them when calling on columns from random bicluster
-	def correlation_feature_column_by_index( self, bicluster1, bicluster2, index, i ):
+	def correlation_feature_column_by_index( self, bicluster1, i ):
 
 			#kdrew: get portion of full data matrix that corresponds to the bicluster
 			submat = bicluster1.get_submatrix( self.__data_matrix )
@@ -158,57 +169,24 @@ class FeatureGenerator(object):
 
 			#kdrew: re-add column i to bicluster
 			bicluster1.add_column( i )
-			bc2_submat = bicluster2.get_submatrix( self.__data_matrix )
-			#kdrew: calculate correlation of all rows in bicluster2
-			bc2_corrDist = cu.correlation_distribution( bc2_submat )
-
-			#kdrew: temporarily add column to bicluster2, so we can calculate correlation, remove later
-			bicluster2.add_column( i )
-			bc2_submat = bicluster2.get_submatrix( self.__data_matrix )
-			bc2_corrDist_with_i = cu.correlation_distribution( bc2_submat )
-			bicluster2.remove_column( i )
-
-			#print "corrDist.mean(): %s" % (corrDist.mean(), )
-			#print "corrDist_without_i.mean(): %s" %(corrDist_without_i.mean(), )
-			#print "bc2_corrDist_with_i.mean(): %s" % (bc2_corrDist_with_i.mean(), )
-			#print "bc2_corrDist.mean(): %s" % (bc2_corrDist.mean(), )
 
 			corr_gain = corrDist.mean() - corrDist_without_i.mean()
-			bc2_corr_gain = bc2_corrDist_with_i.mean() - bc2_corrDist.mean()
 
-			#print "corr_gain: %s" % (corr_gain,)
-			#print "bc2_corr_gain: %s" % (bc2_corr_gain,)
-			#print ""
-			
-			return corr_gain, bc2_corr_gain
-
+			return corr_gain
 
 
 	#kdrew: when calling this on rows in bicluster, bicluster1 = bicluster, bicluster2 = random bicluster
 	#kdrew: switch them when calling on rows from random bicluster
-	def correlation_feature_row_by_index( self, bicluster1, bicluster2, index, i ):
+	def correlation_feature_row_by_index( self, bicluster1, i ):
 
 			#kdrew: get portion of full data matrix that corresponds to the bicluster
 			submat = bicluster1.get_submatrix( self.__data_matrix )
 
+			index = list(bicluster1.rows()).index(i)
+
 			#kdrew: calculate correlation of single row vs all other rows
 			corrDistIndex = cu.correlation_distribution( submat, index )
 
-			#kdrew: temporarily add row to random bicluster, so we can calculate correlation, remove later
-			bicluster2.add_row(i)
-
-			#kdrew: get portion of full matrix that corresponds to random bicluster
-			bicluster2_submat = bicluster2.get_submatrix( self.__data_matrix )
-
-			#kdrew: find index of row number in random bicluster
-			#kdrew: ****this makes me a little nervous because we are getting the index from a set which is not ordered****
-			bc2_index = list(bicluster2.rows()).index(i)
-
-			#kdrew: calculate correlation of single row vs all other rows in random bicluster
-			bc2_corrDistIndex =  cu.correlation_distribution( bicluster2_submat, bc2_index )
-
-			bicluster2.remove_row(i)
-
-			return corrDistIndex.mean(), bc2_corrDistIndex.mean()
+			return corrDistIndex.mean()
 
 
