@@ -40,6 +40,11 @@ class FeatureGenerator(object):
 		column_negatives[self.label_header] = 0
 		self.__column_feature_matrix = pd.concat([column_positives,column_negatives], ignore_index=True)
 
+	def get_rand_row_bicluster(self,):
+		return self.__rand_row_bicluster
+
+	def get_rand_column_bicluster(self,):
+		return self.__rand_column_bicluster
 
 	def get_row_feature_matrix(self,):
 		return self.__row_feature_matrix
@@ -57,6 +62,7 @@ class FeatureGenerator(object):
 		#kdrew: assumption label_header is 0, probably not(?)
 		train_cols = data.columns[ data.columns != self.label_header ]
 		print "train_cols: %s" % (train_cols,)
+		print "data[train_cols]: %s" % (data[train_cols])
 		logit = sm.Logit(data[self.label_header], data[train_cols])
 		print logit
 		result = logit.fit()
@@ -152,8 +158,7 @@ class FeatureGenerator(object):
 
 		#print self.__row_feature_matrix
 
-	#kdrew: when calling this on columns in bicluster, bicluster1 = bicluster, bicluster2 = random bicluster
-	#kdrew: switch them when calling on columns from random bicluster
+	#kdrew: calculate correlation gain when column i in a part of bicluster as oppose to without
 	def correlation_feature_column_by_index( self, bicluster1, i ):
 
 			#kdrew: get portion of full data matrix that corresponds to the bicluster
@@ -175,13 +180,13 @@ class FeatureGenerator(object):
 			return corr_gain
 
 
-	#kdrew: when calling this on rows in bicluster, bicluster1 = bicluster, bicluster2 = random bicluster
-	#kdrew: switch them when calling on rows from random bicluster
+	#kdrew: calculate mean correlation of row i vs the remaining bicluster 
 	def correlation_feature_row_by_index( self, bicluster1, i ):
 
 			#kdrew: get portion of full data matrix that corresponds to the bicluster
 			submat = bicluster1.get_submatrix( self.__data_matrix )
 
+			#kdrew: CAUTION: getting index from unordered set (i.e. bicluster rows)
 			index = list(bicluster1.rows()).index(i)
 
 			#kdrew: calculate correlation of single row vs all other rows
