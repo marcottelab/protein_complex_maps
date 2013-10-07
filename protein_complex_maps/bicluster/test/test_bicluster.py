@@ -20,8 +20,8 @@ class BiclusterTest(unittest.TestCase):
 		self.bicluster1.add_column(2)
 
 	def testAdd(self, ):
-		assert( self.bicluster1.rows() == set([1]) )
-		assert( self.bicluster1.columns() == set([2]) )
+		assert( self.bicluster1.rows() == [1] )
+		assert( self.bicluster1.columns() == [2] )
 
 
 	def testSubMatrix(self,):
@@ -30,7 +30,7 @@ class BiclusterTest(unittest.TestCase):
 
 		submat = self.bicluster2.get_submatrix(self.data_matrix)
 		#print submat
-		submat_comp = np.array([0,3,5,8,40,43,35,38]).reshape(4,2)
+		submat_comp = np.array([0,3,5,8,35,38,40,43]).reshape(4,2)
 		#print submat_comp
 		assert( submat[0,0] == submat_comp[0,0] )
 		assert( submat[0,1] == submat_comp[0,1] )
@@ -44,7 +44,7 @@ class BiclusterTest(unittest.TestCase):
 	def testSubMatrixWO(self,):
 		submat = self.bicluster2.get_submatrix(self.data_matrix, without_rows=[1])
 		#print submat
-		submat_comp = np.array([0,3,5,8,40,43,35,38]).reshape(4,2)
+		submat_comp = np.array([0,3,5,8,35,38,40,43]).reshape(4,2)
 		#print submat_comp
 		assert( submat[0,0] == submat_comp[0,0] )
 		assert( submat[0,1] == submat_comp[0,1] )
@@ -55,7 +55,7 @@ class BiclusterTest(unittest.TestCase):
 
 		submat = self.bicluster2.get_submatrix(self.data_matrix, without_cols=[0])
 		#print submat
-		submat_comp = np.array([0,3,5,8,40,43,35,38]).reshape(4,2)
+		submat_comp = np.array([0,3,5,8,35,38,40,43]).reshape(4,2)
 		#print submat_comp
 		assert( submat[0,0] == submat_comp[0,1] )
 		assert( submat[1,0] == submat_comp[1,1] )
@@ -72,10 +72,10 @@ class BiclusterTest(unittest.TestCase):
 
 	def testRandOutsideRowsCols(self,):
 		rand_rows = self.bicluster2.get_random_outside_rows(self.data_matrix,seed=0)
-		assert( rand_rows == [9,5,3,2] )
+		assert( rand_rows == [2,3,5,9] )
 
 		rand_cols = self.bicluster2.get_random_outside_cols(self.data_matrix,seed=0)
-		assert( rand_cols == [4,2] )
+		assert( rand_cols == [2,4] )
 
 if __name__ == "__main__":
 	unittest.main()
