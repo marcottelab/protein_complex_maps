@@ -30,6 +30,13 @@ class CorrelationTest(unittest.TestCase):
 		assert( len(scores) == 4 )
 		
 
+	def testTvalueCorrelation(self,):
+		scores = cu.correlation_distribution(self.data_matrix)
+		tvalues = cu.tvalue_correlation(scores, 10)
+		assert( tvalues[0] == 0.0 )
+		np.testing.assert_almost_equal( tvalues[3], -0.433554984762 )
+
+
 
 if __name__ == "__main__":
 	unittest.main()
