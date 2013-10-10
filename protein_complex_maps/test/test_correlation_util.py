@@ -20,6 +20,7 @@ class CorrelationTest(unittest.TestCase):
 
 	def testMatrix(self, ):
 		scores = cu.correlation_distribution(self.data_matrix)
+		#print scores
 		assert( scores[0] == 1.0 )
 		assert( len(scores) == 10 )
 
@@ -32,9 +33,31 @@ class CorrelationTest(unittest.TestCase):
 
 	def testTvalueCorrelation(self,):
 		scores = cu.correlation_distribution(self.data_matrix)
+		#print "ttc scores: %s" % (scores,)
 		tvalues = cu.tvalue_correlation(scores, 10)
-		assert( tvalues[0] == 0.0 )
+		#print "ttc tvalues: %s" % (tvalues,)
+		np.testing.assert_almost_equal( tvalues[0], 19999.9998053 )
 		np.testing.assert_almost_equal( tvalues[3], -0.433554984762 )
+
+	def testPoissonCorrelation(self,):
+
+		np.random.seed(12345)
+		mat1 = np.array([1,2,3,4,5,6,7,8,9,10]).reshape(2,5)
+		mat2 = np.array([10,20,30,40,50,60,70,80,90,100]).reshape(2,5)
+		#print mat1
+		#print mat2
+
+		scores, tvalues = cu.poisson_correlation_distribution(mat1, iterations=1000, poisson_module = np.random.poisson)
+		#print "tpc scores: %s" % (scores,)
+		#print "tpc tvalues: %s" % (tvalues,)
+		np.testing.assert_almost_equal( scores[0], 0.30374264 )
+		np.testing.assert_almost_equal( tvalues[0], 0.91128502 )
+
+		scores, tvalues = cu.poisson_correlation_distribution(mat2, iterations=1000, poisson_module = np.random.poisson)
+		#print "tpc scores: %s" % (scores,)
+		#print "tpc tvalues: %s" % (tvalues,)
+		np.testing.assert_almost_equal( scores[0], 0.84185242 )
+		np.testing.assert_almost_equal( tvalues[0], 4.0016898 )
 
 
 
