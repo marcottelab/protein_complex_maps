@@ -172,7 +172,7 @@ class NormalizationTest(unittest.TestCase):
 
 	def testPoisson(self,):
 		np.random.seed(124)
-		data_matrix_poisson = nu.poisson_noise(self.data_matrix, poisson_module=np.random.poisson)		
+		data_matrix_poisson = nu.sample_noise(self.data_matrix, sample_module=np.random.poisson)		
 		#print data_matrix_poisson
 		#kdrew: added poisson noise
 		#[[0 0 0 0 0 0 0 0 0 0]

@@ -80,9 +80,13 @@ class Bicluster(object):
 		if seed != None:
 			self.random_module.seed(seed)
 		outside_rows = self.get_outside_rows(matrix) - set(without_rows)
+		random_sample_size = len(self.__rows)
 		#print outside_rows
+		#kdrew: when there are not enough outside_rows to sample from, just take all of them (not optimal but it is what we have)
+		if len(self.__rows) > len(outside_rows):
+			random_sample_size = len(outside_rows)
 		#kdrew: return a list of random rows the size of the bicluster rows
-		random_rows = self.random_module.sample(outside_rows,len(self.__rows))
+		random_rows = self.random_module.sample( outside_rows, random_sample_size )
 		#print random_rows
 		random_rows.sort()
 		return random_rows
@@ -92,9 +96,13 @@ class Bicluster(object):
 		if seed != None:
 			self.random_module.seed(seed)
 		outside_cols = self.get_outside_cols(matrix) - set(without_cols)
+		random_sample_size = len(self.__cols)
 		#print outside_cols
+		#kdrew: when there are not enough outside_rows to sample from, just take all of them (not optimal but it is what we have)
+		if len(self.__cols) > len(outside_cols):
+			random_sample_size = len(outside_cols)
 		#kdrew: return a list of random cols the size of the bicluster cols
-		random_cols = self.random_module.sample(outside_cols,len(self.__cols))
+		random_cols = self.random_module.sample( outside_cols, random_sample_size )
 		#print random_cols
 		random_cols.sort()
 		return random_cols

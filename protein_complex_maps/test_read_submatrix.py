@@ -10,9 +10,17 @@ import statsmodels.tools.sm_exceptions
 import protein_complex_maps.plots.plot_bicluster as pb
 import protein_complex_maps.normalization_util as nu
 
+
+
 r.seed(123456)
 np.random.seed(1234)
 sample_filename = "/home/kdrew/data/protein_complex_maps/sample_data/Hs_hekN_1108_psome_exosc_randos.txt"
+
+sample_iterations = 100
+
+def normal_sigma1(mu):
+   return np.random.normal(mu,1.0)
+	
 
 sample_file = open(sample_filename, 'rb')
 #kdrew: eat header
@@ -139,7 +147,7 @@ numRows, numCols = clean_data_matrix.shape
 print numRows, numCols
 
 #kdrew: probably should test for some convergence
-for i in xrange(1,200):
+for i in xrange(1,2000):
 	print "iteration: %s" % (i,)
 
 	random_row = np.random.random_integers(0, numRows-1)
@@ -183,8 +191,8 @@ for i in xrange(1,200):
 		tvalue_corr_with_row = cu.tvalue_correlation(corr_with_row, len(bicluster1.columns()))
 		#mean_tvalue_corr_with_row = tvalue_corr_with_row.mean()
 
-		poisson_corr_with_row, poisson_tvalue_corr_with_row = cu.poisson_correlation_distribution(bicluster1.get_submatrix(clean_data_matrix), noise_constant=1.0/clean_data_matrix.shape[1], poisson_module = np.random.poisson)
-		mean_tvalue_corr_with_row = poisson_tvalue_corr_with_row.mean()
+		normal_corr_with_row, normal_tvalue_corr_with_row = cu.sample_correlation_distribution(bicluster1.get_submatrix(clean_data_matrix), noise_constant=1.0/clean_data_matrix.shape[1], sample_module = normal_sigma1, iterations=sample_iterations)
+		mean_tvalue_corr_with_row = normal_tvalue_corr_with_row.mean()
 
 		bicluster1.remove_row(random_row)
 		corr_without_row = cu.correlation_distribution(bicluster1.get_submatrix(clean_data_matrix))
@@ -192,10 +200,9 @@ for i in xrange(1,200):
 		tvalue_corr_without_row = cu.tvalue_correlation(corr_without_row, len(bicluster1.columns()))
 		#mean_tvalue_corr_without_row = tvalue_corr_without_row.mean()
 
-		poisson_corr_without_row, poisson_tvalue_corr_without_row = cu.poisson_correlation_distribution(bicluster1.get_submatrix(clean_data_matrix), noise_constant=1.0/clean_data_matrix.shape[1], poisson_module = np.random.poisson)
-		mean_tvalue_corr_without_row = poisson_tvalue_corr_without_row.mean()
-
-
+		normal_corr_without_row, normal_tvalue_corr_without_row = cu.sample_correlation_distribution(bicluster1.get_submatrix(clean_data_matrix), noise_constant=1.0/clean_data_matrix.shape[1], sample_module = normal_sigma1, iterations=sample_iterations)
+		mean_tvalue_corr_without_row = normal_tvalue_corr_without_row.mean()
+		bicluster1.add_row(random_row)
 
 		#kdrew: I was first using mean correlation as a metric to add or remove a row, now using tvalues
 		#if(mean_corr_with_row >= mean_corr_without_row):
@@ -204,10 +211,10 @@ for i in xrange(1,200):
 			#kdrew: if no, use logistic regression to predict membership value: x
 			#kdrew: p(drop|x) = math.e**(-(1-x)/T)
 
-			bicluster1.add_row(random_row)
 		else:
 			#kdrew: if yes, remove row
 			print "row decreases total correlation, automatically remove"
+			bicluster1.remove_row(random_row)
 
 	else:
 		#kdrew: if row is outside bicluster, test if it increases total mean correlation, 
@@ -218,8 +225,8 @@ for i in xrange(1,200):
 		tvalue_corr_without_row = cu.tvalue_correlation(corr_without_row, len(bicluster1.columns()))
 		#mean_tvalue_corr_without_row = tvalue_corr_without_row.mean()
 
-		poisson_corr_without_row, poisson_tvalue_corr_without_row = cu.poisson_correlation_distribution(bicluster1.get_submatrix(clean_data_matrix), noise_constant=1.0/clean_data_matrix.shape[1], poisson_module = np.random.poisson)
-		mean_tvalue_corr_without_row = poisson_tvalue_corr_without_row.mean()
+		normal_corr_without_row, normal_tvalue_corr_without_row = cu.sample_correlation_distribution(bicluster1.get_submatrix(clean_data_matrix), noise_constant=1.0/clean_data_matrix.shape[1], sample_module = normal_sigma1, iterations=sample_iterations)
+		mean_tvalue_corr_without_row = normal_tvalue_corr_without_row.mean()
 
 		bicluster1.add_row(random_row)
 		corr_with_row = cu.correlation_distribution(bicluster1.get_submatrix(clean_data_matrix))
@@ -228,8 +235,9 @@ for i in xrange(1,200):
 		tvalue_corr_with_row = cu.tvalue_correlation(corr_with_row, len(bicluster1.columns()))
 		#mean_tvalue_corr_with_row = tvalue_corr_with_row.mean()
 
-		poisson_corr_with_row, poisson_tvalue_corr_with_row = cu.poisson_correlation_distribution(bicluster1.get_submatrix(clean_data_matrix), noise_constant=1.0/clean_data_matrix.shape[1], poisson_module = np.random.poisson)
-		mean_tvalue_corr_with_row = poisson_tvalue_corr_with_row.mean()
+		normal_corr_with_row, normal_tvalue_corr_with_row = cu.sample_correlation_distribution(bicluster1.get_submatrix(clean_data_matrix), noise_constant=1.0/clean_data_matrix.shape[1], sample_module = normal_sigma1, iterations=sample_iterations)
+		mean_tvalue_corr_with_row = normal_tvalue_corr_with_row.mean()
+		bicluster1.remove_row(random_row)
 
 
 		print mean_corr_with_row, mean_corr_without_row
@@ -238,12 +246,11 @@ for i in xrange(1,200):
 		if(mean_tvalue_corr_with_row > mean_tvalue_corr_without_row):
 			#kdrew: if yes, add row
 			print "row increases total correlation, automatically add"
+			bicluster1.add_row(random_row)
 		else:
 			print "row does not increase total correlation, test to add"
 			#kdrew: if no, use logistic regression to predict membership value: x
 			#kdrew: p(add|x) = math.e**(-x/T)
-
-			bicluster1.remove_row(random_row)
 
 	#kdrew: check to make sure random column is not all zeros across the rows of the bicluster, if so remove or do not add
 	if np.all(bicluster1.get_column(clean_data_matrix, random_column) == 0):
@@ -260,8 +267,8 @@ for i in xrange(1,200):
 		tvalue_corr_with_column = cu.tvalue_correlation(corr_with_column, len(bicluster1.columns()))
 		#mean_tvalue_corr_with_column = tvalue_corr_with_column.mean()
 
-		poisson_corr_with_column, poisson_tvalue_corr_with_column = cu.poisson_correlation_distribution(bicluster1.get_submatrix(clean_data_matrix), noise_constant=1.0/clean_data_matrix.shape[1], poisson_module = np.random.poisson)
-		mean_tvalue_corr_with_column = poisson_tvalue_corr_with_column.mean()
+		normal_corr_with_column, normal_tvalue_corr_with_column = cu.sample_correlation_distribution(bicluster1.get_submatrix(clean_data_matrix), noise_constant=1.0/clean_data_matrix.shape[1], sample_module = normal_sigma1, iterations=sample_iterations)
+		mean_tvalue_corr_with_column = normal_tvalue_corr_with_column.mean()
 
 		bicluster1.remove_column(random_column)
 		corr_without_column = cu.correlation_distribution(bicluster1.get_submatrix(clean_data_matrix))
@@ -269,8 +276,9 @@ for i in xrange(1,200):
 		tvalue_corr_without_column = cu.tvalue_correlation(corr_without_column, len(bicluster1.columns()))
 		#mean_tvalue_corr_without_column = tvalue_corr_without_column.mean()
 
-		poisson_corr_without_column, poisson_tvalue_corr_without_column = cu.poisson_correlation_distribution(bicluster1.get_submatrix(clean_data_matrix), noise_constant=1.0/clean_data_matrix.shape[1], poisson_module = np.random.poisson)
-		mean_tvalue_corr_without_column = poisson_tvalue_corr_without_column.mean()
+		normal_corr_without_column, normal_tvalue_corr_without_column = cu.sample_correlation_distribution(bicluster1.get_submatrix(clean_data_matrix), noise_constant=1.0/clean_data_matrix.shape[1], sample_module = normal_sigma1, iterations=sample_iterations)
+		mean_tvalue_corr_without_column = normal_tvalue_corr_without_column.mean()
+		bicluster1.add_column(random_column)
 
 		#if(mean_corr_with_column >= mean_corr_without_column ):
 		if(mean_tvalue_corr_with_column >= mean_tvalue_corr_without_column ):
@@ -278,10 +286,10 @@ for i in xrange(1,200):
 			#kdrew: if no, use logistic regression to predict membership value: x
 			#kdrew: p(drop|x) = math.e**(-(1-x)/T)
 
-			bicluster1.add_column(random_column)
 		else:
 			#kdrew: if yes, remove column
 			print "column decreases total correlation, automatically remove"
+			bicluster1.remove_column(random_column)
 
 	else:
 		#kdrew: if column is outside bicluster, test if it increases total mean correlation, 
@@ -291,8 +299,8 @@ for i in xrange(1,200):
 		tvalue_corr_without_column = cu.tvalue_correlation(corr_without_column, len(bicluster1.columns()))
 		#mean_tvalue_corr_without_column = tvalue_corr_without_column.mean()
 
-		poisson_corr_without_column, poisson_tvalue_corr_without_column = cu.poisson_correlation_distribution(bicluster1.get_submatrix(clean_data_matrix), noise_constant=1.0/clean_data_matrix.shape[1], poisson_module = np.random.poisson)
-		mean_tvalue_corr_without_column = poisson_tvalue_corr_without_column.mean()
+		normal_corr_without_column, normal_tvalue_corr_without_column = cu.sample_correlation_distribution(bicluster1.get_submatrix(clean_data_matrix), noise_constant=1.0/clean_data_matrix.shape[1], sample_module = normal_sigma1, iterations=sample_iterations)
+		mean_tvalue_corr_without_column = normal_tvalue_corr_without_column.mean()
 
 		bicluster1.add_column(random_column)
 		corr_with_column = cu.correlation_distribution(bicluster1.get_submatrix(clean_data_matrix))
@@ -300,30 +308,39 @@ for i in xrange(1,200):
 		tvalue_corr_with_column = cu.tvalue_correlation(corr_with_column, len(bicluster1.columns()))
 		#mean_tvalue_corr_with_column = tvalue_corr_with_column.mean()
 
-		poisson_corr_with_column, poisson_tvalue_corr_with_column = cu.poisson_correlation_distribution(bicluster1.get_submatrix(clean_data_matrix), noise_constant=1.0/clean_data_matrix.shape[1], poisson_module = np.random.poisson)
-		mean_tvalue_corr_with_column = poisson_tvalue_corr_with_column.mean()
+		normal_corr_with_column, normal_tvalue_corr_with_column = cu.sample_correlation_distribution(bicluster1.get_submatrix(clean_data_matrix), noise_constant=1.0/clean_data_matrix.shape[1], sample_module = normal_sigma1, iterations=sample_iterations)
+		mean_tvalue_corr_with_column = normal_tvalue_corr_with_column.mean()
+		bicluster1.remove_column(random_column)
 
 		print mean_corr_with_column, mean_corr_without_column
 		#if(mean_corr_with_column > mean_corr_without_column):
 		if(mean_tvalue_corr_with_column > mean_tvalue_corr_without_column):
 			#kdrew: if yes, add column
 			print "column increases total correlation, automatically add"
+			bicluster1.add_column(random_column)
 		else:
 			print "column does not increase total correlation, test to add"
 			#kdrew: if no, use logistic regression to predict membership value: x
 			#kdrew: p(add|x) = math.e**(-x/T)
 
-			bicluster1.remove_column(random_column)
 
 print bicluster1.rows()
 print bicluster1.columns()
 print bicluster1.get_submatrix(clean_data_matrix)
 
-bc_poisson_corr, bc_poisson_tvalue_corr = cu.poisson_correlation_distribution(bicluster1.get_submatrix(clean_data_matrix), noise_constant=1.0/clean_data_matrix.shape[1], poisson_module = np.random.poisson)
-print "bicluster poisson_corr.mean: %s poisson_tvalue_corr.mean: %s" % (bc_poisson_corr.mean(), bc_poisson_tvalue_corr.mean())
+bc_normal_corr, bc_normal_tvalue_corr = cu.sample_correlation_distribution(bicluster1.get_submatrix(clean_data_matrix), noise_constant=1.0/clean_data_matrix.shape[1], sample_module = normal_sigma1, iterations=sample_iterations)
+print "bicluster normal_corr.mean: %s normal_tvalue_corr.mean: %s" % (bc_normal_corr.mean(), bc_normal_tvalue_corr.mean())
 
-whole_poisson_corr, whole_poisson_tvalue_corr = cu.poisson_correlation_distribution(clean_data_matrix, noise_constant=1.0/clean_data_matrix.shape[1], poisson_module = np.random.poisson)
-print "whole matrix poisson_corr.mean: %s poisson_tvalue_corr.mean: %s" % (whole_poisson_corr.mean(), whole_poisson_tvalue_corr.mean())
+whole_normal_corr, whole_normal_tvalue_corr = cu.sample_correlation_distribution(clean_data_matrix, noise_constant=1.0/clean_data_matrix.shape[1], sample_module = normal_sigma1, iterations=sample_iterations)
+print "whole matrix normal_corr.mean: %s normal_tvalue_corr.mean: %s" % (whole_normal_corr.mean(), whole_normal_tvalue_corr.mean())
+
+bc_corr = cu.correlation_distribution(bicluster1.get_submatrix(clean_data_matrix))
+bc_tvalue = cu.tvalue_correlation(bc_corr, len(bicluster1.columns()))
+print "bicluster matrix corr.mean: %s tvalue_corr.mean: %s" % (bc_corr.mean(), bc_tvalue.mean())
+
+whole_corr = cu.correlation_distribution(clean_data_matrix)
+whole_tvalue = cu.tvalue_correlation(whole_corr, clean_data_matrix.shape[1])
+print "whole matrix corr.mean: %s tvalue_corr.mean: %s" % (whole_corr.mean(), whole_tvalue.mean())
 
 pb.plot_bicluster(clean_data_matrix, bicluster1)
 

@@ -63,24 +63,28 @@ def tvalue_correlation(ar, n):
 	tvalue_vectorized = np.vectorize(tvalue)
 	return tvalue_vectorized(ar, n)
 
-def poisson_correlation_distribution(matrix, noise_constant=0.0, normalize=False, index=None, iterations=1000, poisson_module=None):
+#kdrew: adding poisson noise might not be the right thing to do here,
+#kdrew: essentially we are adding greater variance to larger values
+#kdrew: this penalizes larger values too much
+def sample_correlation_distribution(matrix, noise_constant=0.0, normalize=False, index=None, iterations=1000, sample_module=None):
 
 	scores_total = None
 	tvalues_total = None
 	for i in xrange(iterations):
 		noise_mat = nu.add_noise(matrix, noise_constant)
 		#print "noise_mat: %s" % (noise_mat,)
-		poisson_mat = nu.poisson_noise(noise_mat, poisson_module=poisson_module)	
-		#print "poisson_mat: %s" % (poisson_mat,)
+		sample_mat = nu.sample_noise(noise_mat, sample_module=sample_module)	
+		#print "sample_mat: %s" % (sample_mat,)
 
 		if normalize:
 			#kdrew: TODO: here we are only normalizing over the bicluster and not the whole data_matrix, should we be normalizing across the whole? probably
-			poisson_mat = nu.normalize_over_rows(poisson_mat)
+			sample_mat = nu.normalize_over_rows(sample_mat)
 
-		scores = correlation_distribution(poisson_mat, index=index)
+		scores = correlation_distribution(sample_mat, index=index)
 		#print "scores: %s" % (scores,)
 		#kdrew: the length parameter is the number of columns in input matrix
 		tvalues = tvalue_correlation( scores, matrix.shape[1] )
+		#print "tvalues: %s" % (tvalues,)
 
 		if scores_total == None:
 			scores_total = scores

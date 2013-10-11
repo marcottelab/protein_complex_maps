@@ -39,18 +39,18 @@ def add_noise(data_matrix, noise_constant):
 	return C
 
 
-#kdrew: add in poisson noise to data
-#kdrew: lambda parameter is the data_matrix[i,j] value
-#kdrew: ability to pass in poisson_module which allows user to set seed, default is unseeded np.random.poisson
-def poisson_noise(data_matrix, poisson_module=None):
-	poisson_vectorized = None
-	if poisson_module == None:
-		poisson_vectorized = np.vectorize(np.random.poisson)
+#kdrew: add in noise to data
+#kdrew: default poisson and lambda parameter is the data_matrix[i,j] value
+#kdrew: ability to pass in sample_module which allows user to set seed and sampling model, default is unseeded np.random.poisson
+def sample_noise(data_matrix, sample_module=None):
+	sample_vectorized = None
+	if sample_module == None:
+		sample_vectorized = np.vectorize(np.random.poisson)
 	else:
-		poisson_vectorized = np.vectorize(poisson_module)
+		sample_vectorized = np.vectorize(sample_module)
 
-	poisson_mat = poisson_vectorized(data_matrix)
+	sample_mat = sample_vectorized(data_matrix)
 
-	return poisson_mat
+	return sample_mat
 
 	
