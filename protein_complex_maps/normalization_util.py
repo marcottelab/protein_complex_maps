@@ -1,5 +1,7 @@
+
 #import math as m
 import numpy as np
+import math as m
 
 #kdrew: this function removes rows and columns that are all zero
 #kdrew: WARNING this removes rows and columns which will invalidate biclusters, only use prior to creating bicluster objects
@@ -21,6 +23,7 @@ def normalize_over_columns(data_matrix):
 #kdrew: converts cells to frequencies where whole column sums to one
 def normalize_over_rows(data_matrix):
 	return np.nan_to_num( data_matrix / np.sum(data_matrix,0) )
+
 
 #kdrew: adds constant noise over whole matrix, 1.0/M where M = number of columns
 def add_noise_over_columns(data_matrix):
@@ -53,4 +56,20 @@ def sample_noise(data_matrix, sample_module=None):
 
 	return sample_mat
 
+
+def log_transform(data_matrix, base=m.e):
+	log_vec = np.vectorize(m.log)
+	return log_vec(data_matrix, base)
 	
+def exp_transform(data_matrix):
+	exp_vec = np.vectorize(m.exp)
+	return exp_vec(data_matrix)
+	
+#kdrew: function scales all values to be above 1.0
+#kdrew: find min value and multiplies all values 1/min
+def min_to_one_scale(data_matrix):
+	min = np.min(data_matrix)
+	return data_matrix/(1.0*min)
+
+
+

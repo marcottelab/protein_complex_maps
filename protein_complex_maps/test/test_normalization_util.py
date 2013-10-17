@@ -170,6 +170,19 @@ class NormalizationTest(unittest.TestCase):
 		assert( data_matrix_column_noise[4,8] == 3.0 )
 		assert( data_matrix_column_noise[7,8] == 7.0 )
 
+
+	def testMinToOne(self,):
+		data_matrix_column_noise = nu.add_noise_over_columns(self.data_matrix)
+		print data_matrix_column_noise
+		data_matrix_normalized = nu.normalize_over_rows(data_matrix_column_noise)
+		print data_matrix_normalized
+		data_matrix_mintoone = nu.min_to_one_scale(data_matrix_normalized)
+		print data_matrix_mintoone
+		print data_matrix_mintoone[0,0]
+		np.testing.assert_almost_equal( data_matrix_mintoone[0,0], 15.7 )
+		np.testing.assert_almost_equal( data_matrix_mintoone[1,8], 1.0 )
+		np.testing.assert_almost_equal( data_matrix_mintoone[2,8], 50.0 )
+
 	def testPoisson(self,):
 		np.random.seed(124)
 		data_matrix_poisson = nu.sample_noise(self.data_matrix, sample_module=np.random.poisson)		
