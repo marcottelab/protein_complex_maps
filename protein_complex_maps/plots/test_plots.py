@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 from scipy.stats.stats import pearsonr
 
 
-sample_filename = "/Users/kdrew/data/bborgeson/protein_complex_maps/sample_data/Hs_hekN_1108_psome_exosc_randos.txt"
+sample_filename = "/home/kdrew/data/protein_complex_maps/sample_data/Hs_hekN_1108_psome_exosc_randos.txt"
+#sample_filename = "/Users/kdrew/data/bborgeson/protein_complex_maps/sample_data/Hs_hekN_1108_psome_exosc_randos.txt"
 #sample_filename = "/Users/kdrew/data/bborgeson/protein_complex_maps/sample_data/Hs_helaN_ph_hcw120_2_psome_exosc_randos.txt"
 #sample_filename = "/Users/kdrew/data/bborgeson/protein_complex_maps/sample_data/Hs_helaN_ph_hcw120_2_psome.txt"
 
@@ -14,36 +15,54 @@ proteosome_ids = ["ENSG00000128789","ENSG00000163636","ENSG00000013275","ENSG000
 exosome_ids = ["ENSG00000135698","ENSG00000178896","ENSG00000130713","ENSG00000123737","ENSG00000083520","ENSG00000120699","ENSG00000075914","ENSG00000223496","ENSG00000107371","ENSG00000171311","ENSG00000171824","ENSG00000077348"]
 
 # example data
-mu = 100 # mean of distribution
-sigma = 15 # standard deviation of distribution
-x = mu + sigma * np.random.randn(10000)
+#mu = 100 # mean of distribution
+#sigma = 15 # standard deviation of distribution
+#x = mu + sigma * np.random.randn(10000)
 
 sample_file = open(sample_filename,'rb')
 #kdrew: eat header
 line = sample_file.readline()
 data = []
+#for line in sample_file.readlines():
+#	#print line
+#	line_data = line.split()
+#	#line_array = map(float,line_data)
+#	print line_data
+#	data.append(line_data)
+
+name_list = []
+
 for line in sample_file.readlines():
 	#print line
 	line_data = line.split()
-	#line_array = map(float,line_data)
-	print line_data
-	data.append(line_data)
+	line_array = map(float,line_data[2:])
+	name_list.append(line_data[0])
+	print line_array
+	data.append(line_array)
+							
 
 print len(data)
+
 
 data_subplots = []
 f, data_subplots = plt.subplots(len(data),1,sharex='col')
 
+max_value = np.max(data)
+print max_value
+
 for i, data_row in enumerate(data):
 	barcolor = "green"
-	if data_row[0] in proteosome_ids:
+	if name_list[i] in proteosome_ids:
 		barcolor = "red"
-	if data_row[0] in exosome_ids:
+	if name_list[i] in exosome_ids:
 		barcolor = "blue"
 
-	data_subplots[i].bar(np.arange(len(data_row[2:])), map(float,data_row[2:]), align='center', facecolor=barcolor, alpha=0.5 )
+	#data_subplots[i].bar(np.arange(len(data_row[2:])), map(float,data_row[2:]), align='center', facecolor=barcolor, alpha=0.5 )
+	data_subplots[i].bar(np.arange(len(data_row)), data_row, align='center', facecolor=barcolor, alpha=0.5 )
 	data_subplots[i].axes.set_yticklabels([],visible=False)
-	data_subplots[i].set_ylabel(data_row[0],rotation='horizontal', color=barcolor)
+	#data_subplots[i].set_ylabel("%s:%s" % (i, data_row[0]),rotation='horizontal', color=barcolor)
+	data_subplots[i].set_ylabel("%s" % (i,),rotation='horizontal', color=barcolor)
+	data_subplots[i].axes.set_ylim(0,max_value)
 
 
 corr_dict = dict()
