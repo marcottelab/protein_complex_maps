@@ -49,6 +49,12 @@ class Bicluster(object):
 
 		print sorted_rows
 		print sorted_cols
+
+		if len(sorted_rows) == 0:
+			return np.matrix([]).reshape(0,1)
+		if len(sorted_cols) == 0:
+			return np.matrix([]).reshape(1,0)
+
 		return matrix[np.ix_(sorted_rows, sorted_cols)]
 
 	#kdrew: get single row with columns defined in bicluster

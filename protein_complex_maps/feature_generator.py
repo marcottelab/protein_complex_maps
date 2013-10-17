@@ -207,8 +207,8 @@ class FeatureGenerator(object):
 
 			#kdrew: cannot calculate correlation gain if there is only 1 column
 			if len(bicluster1.columns()) == 1:
-				#kdrew: I am not sure really what to return here, I guess 1.0 would be total gain?
-				return 1.0
+				#kdrew: TODO: I am not sure really what to return here, I guess 1.0 would be total gain? and tvalue cannot be calculated
+				return (1.0,0.0)
 
 			#kdrew: remove column i from bicluster, regenerate submat
 			bicluster1.remove_column( i )
