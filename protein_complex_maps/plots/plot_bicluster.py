@@ -5,9 +5,11 @@ import matplotlib.pyplot as plt
 
 
 
-def plot_bicluster(data_set, bicluster1):
+def plot_bicluster(data_set, bicluster1, ylim_max=True):
 	data_subplots = []
 	f, data_subplots = plt.subplots(len(data_set),1,sharex='col')
+
+	max_value = np.max(data_set)
 
 	for i, data_row in enumerate(data_set):
 		in_barcolor = "0.5"
@@ -30,5 +32,8 @@ def plot_bicluster(data_set, bicluster1):
 
 		data_subplots[i].axes.set_yticklabels([],visible=False)
 		data_subplots[i].set_ylabel(i,rotation='horizontal', color=in_barcolor)
+
+		if ylim_max:
+			data_subplots[i].axes.set_ylim(0,max_value)
 
 	plt.show()
