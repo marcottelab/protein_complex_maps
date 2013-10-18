@@ -389,12 +389,14 @@ print clean_data_matrix
 
 
 bcgen = bg.BiclusterGenerator(random_module=np.random)
-bicluster1 = bcgen.generator(clean_data_matrix)
+for i in xrange(1,100):
+	bicluster1 = bcgen.generator(clean_data_matrix)
 
+	print bicluster1.rows()
+	print bicluster1.columns()
+	print bicluster1.get_submatrix(clean_data_matrix)
 
-print bicluster1.rows()
-print bicluster1.columns()
-print bicluster1.get_submatrix(clean_data_matrix)
+	pb.plot_bicluster(clean_data_matrix, bicluster1, savefilename="/home/kdrew/public_html/test/bicluster%s_plot.pdf" % (i))
 
 #bc_normal_corr, bc_normal_tvalue_corr = cu.sample_correlation_distribution(bicluster1.get_submatrix(clean_data_matrix), noise_constant=1.0/clean_data_matrix.shape[1], sample_module = normal_sigma1, iterations=sample_iterations)
 #print "bicluster normal_corr.mean: %s normal_tvalue_corr.mean: %s" % (bc_normal_corr.mean(), bc_normal_tvalue_corr.mean())
@@ -410,7 +412,7 @@ print bicluster1.get_submatrix(clean_data_matrix)
 #whole_tvalue = cu.tvalue_correlation(whole_corr, clean_data_matrix.shape[1])
 #print "whole matrix corr.mean: %s tvalue_corr.mean: %s" % (whole_corr.mean(), whole_tvalue.mean())
 
-pb.plot_bicluster(clean_data_matrix, bicluster1)
+
 
 
 
