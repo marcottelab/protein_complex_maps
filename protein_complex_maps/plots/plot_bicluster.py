@@ -1,11 +1,25 @@
 
 import numpy as np
+import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.mlab as mlab
 import matplotlib.pyplot as plt
 
 
+def plot_score_distribution(distribution_dict, score=None, savefilename=None):
 
-def plot_bicluster(data_set, bicluster1, ylim_max=True):
+	f, data_subplots = plt.subplots(len(distribution_dict.keys()),1)
+	for i, t in enumerate(distribution_dict.keys()):
+		data_subplots[i].hist( distribution_dict[t], bins=50 )
+		data_subplots[i].set_ylabel(t,rotation='horizontal')
+
+	if savefilename is None:
+		plt.show()
+	else:
+		plt.savefig(savefilename)
+
+
+def plot_bicluster(data_set, bicluster1, ylim_max=True, savefilename=None):
 	data_subplots = []
 	f, data_subplots = plt.subplots(len(data_set),1,sharex='col')
 
@@ -36,4 +50,9 @@ def plot_bicluster(data_set, bicluster1, ylim_max=True):
 		if ylim_max:
 			data_subplots[i].axes.set_ylim(0,max_value)
 
-	plt.show()
+	if savefilename is None:
+		plt.show()
+	else:
+		plt.savefig(savefilename)
+
+
