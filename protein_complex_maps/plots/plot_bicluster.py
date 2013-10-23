@@ -5,9 +5,14 @@ mpl.use('Agg')
 import matplotlib.mlab as mlab
 import matplotlib.pyplot as plt
 
+import multiprocessing as mp
+
 
 def plot_score_distribution(distribution_dict, score=None, savefilename=None):
+	p = mp.Process(target=plot_score_distribution_worker, args=(distribution_dict, score, savefilename))
+	p.start()
 
+def plot_score_distribution_worker(distribution_dict, score=None, savefilename=None):
 	f, data_subplots = plt.subplots(len(distribution_dict.keys()),1)
 	for i, t in enumerate(distribution_dict.keys()):
 		data_subplots[i].hist( distribution_dict[t], bins=50 )
@@ -19,7 +24,12 @@ def plot_score_distribution(distribution_dict, score=None, savefilename=None):
 		plt.savefig(savefilename)
 
 
-def plot_bicluster(data_set, bicluster1, ylim_max=True, savefilename=None):
+#kdrew: wrapper function which spawns processor so plotting does not slow up driver script
+def plot_bicluster(data_set, bicluster1, ylim_max=False, savefilename=None):
+	p = mp.Process(target=plot_bicluster_worker, args=(data_set, bicluster1, ylim_max, savefilename))
+	p.start()
+
+def plot_bicluster_worker(data_set, bicluster1, ylim_max=False, savefilename=None):
 	data_subplots = []
 	f, data_subplots = plt.subplots(len(data_set),1,sharex='col')
 

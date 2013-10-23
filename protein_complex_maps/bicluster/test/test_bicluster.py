@@ -77,6 +77,25 @@ class BiclusterTest(unittest.TestCase):
 		rand_cols = self.bicluster2.get_random_outside_cols(self.data_matrix,seed=0)
 		assert( rand_cols == [2,4] )
 
+	def testScale(self,):
+		print self.bicluster2
+		print self.data_matrix
+		dmat = self.bicluster2.scale(self.data_matrix,100)
+		print dmat
+
+		assert( dmat[0,0] == 0 )
+		assert( dmat[1,0] == 500 )
+		assert( dmat[2,0] == 10 )
+		assert( dmat[7,0] == 3500 )
+		assert( dmat[8,0] == 4000 )
+		assert( dmat[0,3] == 300 )
+		assert( dmat[1,3] == 800 )
+		assert( dmat[2,3] == 13 )
+		assert( dmat[7,3] == 3800 )
+		assert( dmat[8,3] == 4300 )
+		
+		
+
 if __name__ == "__main__":
 	unittest.main()
 

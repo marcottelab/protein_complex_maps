@@ -180,7 +180,7 @@ class MonteCarlo(object):
 
 		self.__iterations += 1
 
-		print self.__current_bicluster.rows()
+		#print self.__current_bicluster.rows()
 		#kdrew: return copy of current bicluster
 		return bc.Bicluster(rows=self.__current_bicluster.rows(), cols=self.__current_bicluster.columns(), random_module=self.__random_module)
 

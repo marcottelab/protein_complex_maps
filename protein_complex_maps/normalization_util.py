@@ -71,5 +71,3 @@ def min_to_one_scale(data_matrix):
 	min = np.min(data_matrix)
 	return data_matrix/(1.0*min)
 
-
-

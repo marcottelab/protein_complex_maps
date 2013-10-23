@@ -17,6 +17,9 @@ class Bicluster(object):
 		else:
 			self.random_module = random_module
 
+	def __str__(self,):
+		return "Bicluster: \nrows: %s \ncolumns: %s" % (self.__rows, self.__cols)
+ 
 	def add_row(self, row_index):
 		self.__rows.add(row_index)
 
@@ -112,4 +115,20 @@ class Bicluster(object):
 		#print random_cols
 		random_cols.sort()
 		return random_cols
+
+
+	#kdrew: scale bicluster submatrix in full matrix
+	def scale(self, matrix, scale_factor):
+
+		sorted_rows = list(self.__rows)
+		sorted_rows.sort()
+		sorted_cols = list(self.__cols)
+		sorted_cols.sort()
+
+		if len(sorted_rows) == 0 or len(sorted_cols) == 0:
+			return matrix
+        
+		matrix[np.ix_(sorted_rows, sorted_cols)] = matrix[np.ix_(sorted_rows, sorted_cols)] * scale_factor
+
+		return matrix
 

@@ -27,13 +27,14 @@ import protein_complex_maps.bicluster_generator as bg
 
 r.seed(123456)
 np.random.seed(1234)
-sample_filename = "/home/kdrew/data/protein_complex_maps/sample_data/Hs_hekN_1108_psome_exosc_randos.txt"
+#sample_filename = "/home/kdrew/data/protein_complex_maps/sample_data/Hs_hekN_1108_psome_exosc_randos.txt"
+sample_filename = "/home/kdrew/data/protein_complex_maps/sample_data/Hs_helaN_ph_hcw120_2_psome_exosc_randos.txt"
 
 sample_iterations = 100
 
-#kdrew: this may be unnecessary because the default sigma is 1.0
-def normal_sigma1(mu):
-   return np.random.normal(mu,1.0)
+##kdrew: this may be unnecessary because the default sigma is 1.0
+#def normal_sigma1(mu):
+#   return np.random.normal(mu,1.0)
 	
 
 sample_file = open(sample_filename, 'rb')
@@ -388,15 +389,30 @@ print clean_data_matrix
 #
 
 
-bcgen = bg.BiclusterGenerator(random_module=np.random)
-for i in xrange(1,100):
-	bicluster1 = bcgen.generator(clean_data_matrix)
+#kdrew: scale cells of bicluster in full matrix so we don't repeatidly generate the same biclusters
+scale_factor = 0.75
+working_data_matrix = clean_data_matrix
 
+bcgen = bg.BiclusterGenerator(iterations=2500, random_module=np.random)
+for i in xrange(1,100):
+	bicluster1 = bcgen.generator(working_data_matrix)
+
+	print "bicluster%s" % (i,)
 	print bicluster1.rows()
 	print bicluster1.columns()
-	print bicluster1.get_submatrix(clean_data_matrix)
+	#print bicluster1.get_submatrix(working_data_matrix)
+
+	#kdrew: not sure if evaluating on the clean_data_matrix is okay because the bicluster was optimized on the working_data_matrix
+	eval_dict = bcgen.evaluate( clean_data_matrix, len(bcgen.biclusters)-1 )
+	for t in eval_dict.keys():
+		print "random %s, mean: %s, std: %s, zscore: %s" % ( t, eval_dict[t]['mean'], eval_dict[t]['std'], eval_dict[t]['zscore'] )
 
 	pb.plot_bicluster(clean_data_matrix, bicluster1, savefilename="/home/kdrew/public_html/test/bicluster%s_plot.pdf" % (i))
+
+	#kdrew: this value is a little arbitrary but only scale "converged" biclusters, there probably is a better way to set this or evaluate this
+	if eval_dict['all']['zscore'] > 100:
+		print "bicluster converged, scaling"
+		working_data_matrix = bicluster1.scale(working_data_matrix, scale_factor)
 
 #bc_normal_corr, bc_normal_tvalue_corr = cu.sample_correlation_distribution(bicluster1.get_submatrix(clean_data_matrix), noise_constant=1.0/clean_data_matrix.shape[1], sample_module = normal_sigma1, iterations=sample_iterations)
 #print "bicluster normal_corr.mean: %s normal_tvalue_corr.mean: %s" % (bc_normal_corr.mean(), bc_normal_tvalue_corr.mean())

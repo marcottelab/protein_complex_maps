@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 from scipy.stats.stats import pearsonr
 
 
-sample_filename = "/home/kdrew/data/protein_complex_maps/sample_data/Hs_hekN_1108_psome_exosc_randos.txt"
+#sample_filename = "/home/kdrew/data/protein_complex_maps/sample_data/Hs_hekN_1108_psome_exosc_randos.txt"
+sample_filename = "/home/kdrew/data/protein_complex_maps/sample_data/Hs_helaN_ph_hcw120_2_psome_exosc_randos.txt"
 #sample_filename = "/Users/kdrew/data/bborgeson/protein_complex_maps/sample_data/Hs_hekN_1108_psome_exosc_randos.txt"
 #sample_filename = "/Users/kdrew/data/bborgeson/protein_complex_maps/sample_data/Hs_helaN_ph_hcw120_2_psome_exosc_randos.txt"
 #sample_filename = "/Users/kdrew/data/bborgeson/protein_complex_maps/sample_data/Hs_helaN_ph_hcw120_2_psome.txt"
@@ -62,7 +63,7 @@ for i, data_row in enumerate(data):
 	data_subplots[i].axes.set_yticklabels([],visible=False)
 	#data_subplots[i].set_ylabel("%s:%s" % (i, data_row[0]),rotation='horizontal', color=barcolor)
 	data_subplots[i].set_ylabel("%s" % (i,),rotation='horizontal', color=barcolor)
-	data_subplots[i].axes.set_ylim(0,max_value)
+	#data_subplots[i].axes.set_ylim(0,max_value)
 
 
 corr_dict = dict()

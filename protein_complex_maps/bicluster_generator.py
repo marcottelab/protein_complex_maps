@@ -8,7 +8,7 @@ import protein_complex_maps.random_sampling_util as rsu
 #kdrew: this class is used for seeding, generating, and evaluating biclusters
 class BiclusterGenerator(object):
 
-	def __init__( self, iterations=1000, random_module=None ): 
+	def __init__( self, iterations=1000, starting_temperature = 0.00000001, random_module=None ): 
 
 		if random_module == None:
 			try:
@@ -21,8 +21,7 @@ class BiclusterGenerator(object):
 			self.random_module = random_module
 
 
-		self.starting_temperature = 0.00000001
-		self.montecarlo = mc.MonteCarlo(multiple_dot, temp=self.starting_temperature, random_module=random_module)
+		self.starting_temperature = starting_temperature
 		self.iterations = iterations
 		self.biclusters = []
 
@@ -54,6 +53,8 @@ class BiclusterGenerator(object):
 			#kdrew: copy seed bicluster to working bicluster
 			bicluster1 = bc.Bicluster(rows=seed_bicluster.rows(), cols=seed_bicluster.columns(), random_module=self.random_module)
 		
+		#kdrew: create montecarlo object, should pass in function instead of hard coding multidot
+		montecarlo = mc.MonteCarlo(multiple_dot, temp=self.starting_temperature, random_module=self.random_module)
 
 		numRows, numCols = data_matrix.shape
 		print numRows, numCols
@@ -66,39 +67,41 @@ class BiclusterGenerator(object):
 			random_row = self.random_module.random_integers(0, numRows-1)
 			random_column = self.random_module.random_integers(0, numCols-1)
 
-			print "bicluster matrix: %s" % (bicluster1.get_submatrix(data_matrix))
+			#print "bicluster matrix: %s" % (bicluster1.get_submatrix(data_matrix))
 
 			if random_row in bicluster1.rows():
 				print "row %s in bicluster" % (random_row,)
 				bicluster1.remove_row(random_row)
-				bicluster1 = self.montecarlo.boltzmann(data_matrix, bicluster1)
+				bicluster1 = montecarlo.boltzmann(data_matrix, bicluster1)
 
 			else:
 				print "row %s out of bicluster" % (random_row,)
 				bicluster1.add_row(random_row)
-				bicluster1 = self.montecarlo.boltzmann(data_matrix, bicluster1)
+				bicluster1 = montecarlo.boltzmann(data_matrix, bicluster1)
 
 			if random_column in bicluster1.columns():
 				print "column %s in bicluster" % (random_column,)
 				bicluster1.remove_column(random_column)
-				bicluster1 = self.montecarlo.boltzmann(data_matrix, bicluster1)
+				bicluster1 = montecarlo.boltzmann(data_matrix, bicluster1)
 
 			else:
 				print "column %s out of bicluster" % (random_column,)
 				bicluster1.add_column(random_column)
-				bicluster1 = self.montecarlo.boltzmann(data_matrix, bicluster1)
+				bicluster1 = montecarlo.boltzmann(data_matrix, bicluster1)
+
+			#kdrew: test here for convergence or anneal
 
 
-			print self.montecarlo.result_history()
-			print self.montecarlo.score_history()
-			print self.montecarlo.score_diff_history()
+		#kdrew: add lowscore bicluster to set of biclusters
+		self.biclusters.append(montecarlo.lowscore_bicluster())
 
-		self.biclusters.append(self.montecarlo.lowscore_bicluster())
+		#self.evaluate(data_matrix, len(self.biclusters)-1)
 
-
-		self.evaluate(data_matrix, len(self.biclusters)-1)
+		print montecarlo.result_history()
+		print montecarlo.score_history()
+		print montecarlo.score_diff_history()
 		
-		return self.montecarlo.lowscore_bicluster()
+		return montecarlo.lowscore_bicluster()
 
 
 	#kdrew: calculates # of std away given bicluster score is from mean of randomly sampled biclusters 
@@ -109,12 +112,17 @@ class BiclusterGenerator(object):
 		lcb_rows = self.biclusters[bc_index].rows()
 		lcb_columns = self.biclusters[bc_index].columns()
 		dist_dict = rsu.random_sampling_score_distribution( data_matrix, su.multiple_dot, rows=lcb_rows, columns=lcb_columns, sample_module = self.random_module )
+
+		return_dict = {}
 		for t in dist_dict.keys():
 			zscore = abs(dist_dict[t].mean() - score)/dist_dict[t].std()
-			print "random %s, mean: %s, std: %s, zscore: %s" % (t, dist_dict[t].mean(), dist_dict[t].std(), zscore)
+			return_dict[t] = {'mean':dist_dict[t].mean(), 'std':dist_dict[t].std(), 'zscore':zscore}
+			#print "random %s, mean: %s, std: %s, zscore: %s" % (t, dist_dict[t].mean(), dist_dict[t].std(), zscore)
 
 		if plot:
 			pb.plot_score_distribution(dist_dict, score=score, savefilename="/home/kdrew/public_html/test/bicluster_randomscore_plot.pdf")
+
+		return return_dict
 
 def multiple_dot(data_matrix, bicluster):
 	return -1.0*su.multiple_dot(bicluster.get_submatrix(data_matrix))
