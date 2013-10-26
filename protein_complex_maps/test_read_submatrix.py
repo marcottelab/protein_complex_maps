@@ -27,8 +27,8 @@ import protein_complex_maps.bicluster_generator as bg
 
 r.seed(123456)
 np.random.seed(1234)
-#sample_filename = "/home/kdrew/data/protein_complex_maps/sample_data/Hs_hekN_1108_psome_exosc_randos.txt"
-sample_filename = "/home/kdrew/data/protein_complex_maps/sample_data/Hs_helaN_ph_hcw120_2_psome_exosc_randos.txt"
+sample_filename1 = "/home/kdrew/data/protein_complex_maps/sample_data/Hs_hekN_1108_psome_exosc_randos.txt"
+sample_filename2 = "/home/kdrew/data/protein_complex_maps/sample_data/Hs_helaN_ph_hcw120_2_psome_exosc_randos.txt"
 
 sample_iterations = 100
 
@@ -37,9 +37,11 @@ sample_iterations = 100
 #   return np.random.normal(mu,1.0)
 	
 
-sample_file = open(sample_filename, 'rb')
+sample_file1 = open(sample_filename1, 'rb')
+sample_file2 = open(sample_filename2, 'rb')
 
-data_matrix, name_list = rd.read_datafile(sample_file)
+data_matrix1, name_list1 = rd.read_datafile(sample_file1)
+data_matrix2, name_list2 = rd.read_datafile(sample_file2)
 
 ##kdrew: eat header
 #line = sample_file.readline()
@@ -62,16 +64,30 @@ data_matrix, name_list = rd.read_datafile(sample_file)
 
 #kdrew: remove columns with all zeros
 #clean_data_matrix = data_matrix.compress(~np.array(np.all(data_matrix[:]==0,axis=0))[0],axis=1)
-clean_data_matrix_pre_normalized = nu.remove_zero(data_matrix)
-print clean_data_matrix_pre_normalized
+clean_data_matrix_pre_normalized1 = nu.remove_zero(data_matrix1)
+clean_data_matrix_pre_normalized2 = nu.remove_zero(data_matrix2)
+#print clean_data_matrix_pre_normalized1
 ##kdrew: remove columns with all zeros
 #self.__clean_data_matrix = self.__data_matrix.compress(~np.array(np.all(self.__data_matrix[:]==0,axis=0))[0],axis=1)
 
-clean_data_matrix_noised = nu.add_noise_over_columns(clean_data_matrix_pre_normalized)
+#print "percentile1: %s" % (np.percentile(clean_data_matrix_pre_normalized1,75),)
+#print "percentile2: %s" % (np.percentile(clean_data_matrix_pre_normalized2,75),)
+
+#clean_data_matrix_binary1 = nu.binary(clean_data_matrix_pre_normalized1, np.percentile(clean_data_matrix_pre_normalized1,75) )
+#clean_data_matrix_binary2 = nu.binary(clean_data_matrix_pre_normalized2, np.percentile(clean_data_matrix_pre_normalized2,75) )
+
+clean_data_matrix_binary1 = nu.binary(clean_data_matrix_pre_normalized1, 1 )
+clean_data_matrix_binary2 = nu.binary(clean_data_matrix_pre_normalized2, 1 )
+
+#clean_data_matrix_noised1 = nu.add_noise_over_columns(clean_data_matrix_pre_normalized1)
+#clean_data_matrix_noised2 = nu.add_noise_over_columns(clean_data_matrix_pre_normalized2)
+clean_data_matrix_noised1 = nu.add_noise_over_columns(clean_data_matrix_binary1)
+clean_data_matrix_noised2 = nu.add_noise_over_columns(clean_data_matrix_binary2)
 
 #kdrew: normalize where whole column adds to 1.0
 #clean_data_matrix = nu.normalize_over_rows(clean_data_matrix_noised)
-clean_data_matrix = clean_data_matrix_noised
+clean_data_matrix, name_list = rd.concat_data_matrix( clean_data_matrix_noised1, name_list1, clean_data_matrix_noised2, name_list2)
+#clean_data_matrix, name_list = rd.concat_data_matrix( clean_data_matrix_binary1, name_list1, clean_data_matrix_binary2, name_list2)
 print clean_data_matrix
 
 #clean_data_matrix = nu.min_to_one_scale(clean_data_matrix)
@@ -393,7 +409,7 @@ print clean_data_matrix
 scale_factor = 0.75
 working_data_matrix = clean_data_matrix
 
-bcgen = bg.BiclusterGenerator(iterations=2500, random_module=np.random)
+bcgen = bg.BiclusterGenerator(su.multiple_dot_neg, iterations=2500, random_module=np.random)
 for i in xrange(1,100):
 	bicluster1 = bcgen.generator(working_data_matrix)
 

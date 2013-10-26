@@ -20,6 +20,8 @@ def multiple_dot(matrix):
 
 	return total_sum/(matrix.shape[1] * matrix.shape[0])
 
+def multiple_dot_neg(matrix):
+	return -1.0*multiple_dot(matrix)
 
 def sum_cells(matrix):
 	#kdrew: if there are no rows or no columns, return large negative number (i.e. bad score)
@@ -40,4 +42,12 @@ def sum_cells(matrix):
 	#print "total_sum: %s" % (total_sum,)
 	return total_sum/(matrix.shape[1] * matrix.shape[0])
 
+
+def zscore(matrix, full_data_matrix, score_function, randsamp):
+	#kdrew: get the mean and std of random biclusters the same size as input matrix
+	mean, std = randsamp.score_mean_std_all( full_data_matrix, matrix.shape[0], matrix.shape[1] )
+	score = score_function(matrix)
+	zscore = abs(mean - score)/std
+
+	return zscore
 

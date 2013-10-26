@@ -107,7 +107,8 @@ class MonteCarlo(object):
 
 	def boltzmann(self, data_matrix, trial_bicluster):
 
-		trial_score = self.__scorefunction(data_matrix, trial_bicluster)
+		#trial_score = self.__scorefunction(data_matrix, trial_bicluster)
+		trial_score = self.__scorefunction(trial_bicluster.get_submatrix(data_matrix))
 
 		if self.__current_score == None:
 			score_diff = float('inf')
