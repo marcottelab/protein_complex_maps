@@ -12,6 +12,7 @@ import protein_complex_maps.normalization_util as nu
 import protein_complex_maps.score_util as su
 import protein_complex_maps.read_data as rd
 import protein_complex_maps.bicluster_generator as bg
+import protein_complex_maps.random_sampling_util as rsu
 
 
 #kdrew: there are several ways to massage these data
@@ -76,17 +77,26 @@ clean_data_matrix_pre_normalized2 = nu.remove_zero(data_matrix2)
 #clean_data_matrix_binary1 = nu.binary(clean_data_matrix_pre_normalized1, np.percentile(clean_data_matrix_pre_normalized1,75) )
 #clean_data_matrix_binary2 = nu.binary(clean_data_matrix_pre_normalized2, np.percentile(clean_data_matrix_pre_normalized2,75) )
 
-clean_data_matrix_binary1 = nu.binary(clean_data_matrix_pre_normalized1, 1 )
-clean_data_matrix_binary2 = nu.binary(clean_data_matrix_pre_normalized2, 1 )
+#clean_data_matrix_binary1 = nu.binary(clean_data_matrix_pre_normalized1, 1 )
+#clean_data_matrix_binary2 = nu.binary(clean_data_matrix_pre_normalized2, 1 )
 
-#clean_data_matrix_noised1 = nu.add_noise_over_columns(clean_data_matrix_pre_normalized1)
-#clean_data_matrix_noised2 = nu.add_noise_over_columns(clean_data_matrix_pre_normalized2)
-clean_data_matrix_noised1 = nu.add_noise_over_columns(clean_data_matrix_binary1)
-clean_data_matrix_noised2 = nu.add_noise_over_columns(clean_data_matrix_binary2)
+clean_data_matrix_noised1 = nu.add_noise_over_columns(clean_data_matrix_pre_normalized1)
+clean_data_matrix_noised2 = nu.add_noise_over_columns(clean_data_matrix_pre_normalized2)
+
+clean_data_matrix_normalized1 = nu.normalize_over_columns(clean_data_matrix_noised1)
+clean_data_matrix_normalized2 = nu.normalize_over_columns(clean_data_matrix_noised2)
+
+clean_data_matrix_scaled1 = nu.min_to_one_scale(clean_data_matrix_normalized1)
+clean_data_matrix_scaled2 = nu.min_to_one_scale(clean_data_matrix_normalized2)
+
+#clean_data_matrix_noised1 = nu.add_noise_over_columns(clean_data_matrix_binary1)
+#clean_data_matrix_noised2 = nu.add_noise_over_columns(clean_data_matrix_binary2)
 
 #kdrew: normalize where whole column adds to 1.0
 #clean_data_matrix = nu.normalize_over_rows(clean_data_matrix_noised)
-clean_data_matrix, name_list = rd.concat_data_matrix( clean_data_matrix_noised1, name_list1, clean_data_matrix_noised2, name_list2)
+#clean_data_matrix, name_list = rd.concat_data_matrix( clean_data_matrix_pre_normalized1, name_list1, clean_data_matrix_pre_normalized2, name_list2)
+clean_data_matrix, name_list = rd.concat_data_matrix( clean_data_matrix_scaled1, name_list1, clean_data_matrix_scaled2, name_list2)
+#clean_data_matrix, name_list = rd.concat_data_matrix( clean_data_matrix_noised1, name_list1, clean_data_matrix_noised2, name_list2)
 #clean_data_matrix, name_list = rd.concat_data_matrix( clean_data_matrix_binary1, name_list1, clean_data_matrix_binary2, name_list2)
 print clean_data_matrix
 
@@ -409,7 +419,10 @@ print clean_data_matrix
 scale_factor = 0.75
 working_data_matrix = clean_data_matrix
 
-bcgen = bg.BiclusterGenerator(su.multiple_dot_neg, iterations=2500, random_module=np.random)
+rsscore_obj = rsu.RandomSamplingScore(clean_data_matrix, su.multiple_dot_neg, sample_module=np.random)
+
+#bcgen = bg.BiclusterGenerator(su.multiple_dot_neg, iterations=2500, random_module=np.random)
+bcgen = bg.BiclusterGenerator(rsscore_obj.zscore_all_neg, iterations=2500, random_module=np.random)
 for i in xrange(1,100):
 	bicluster1 = bcgen.generator(working_data_matrix)
 
