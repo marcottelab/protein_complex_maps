@@ -30,8 +30,10 @@ class BiclusterGenerator(object):
 
 		total_rows, total_columns = data_matrix.shape
 
-		random_number_of_rows = self.random_module.random_integers(0,data_matrix.shape[0]-1)
-		random_number_of_columns = self.random_module.random_integers(0,data_matrix.shape[1]-1)
+		#random_number_of_rows = self.random_module.random_integers(0,data_matrix.shape[0]-1)
+		#random_number_of_columns = self.random_module.random_integers(0,data_matrix.shape[1]-1)
+		random_number_of_rows = 1
+		random_number_of_columns = 1
 
 		random_rows = self.random_module.choice(xrange(0,total_rows), random_number_of_rows, replace=False)
 		random_columns = self.random_module.choice(xrange(0,total_columns), random_number_of_columns, replace=False)
@@ -108,6 +110,8 @@ class BiclusterGenerator(object):
 	#kdrew: calculates # of std away given bicluster score is from mean of randomly sampled biclusters 
 	def evaluate(self, data_matrix, bc_index, plot=False): 
 
+		return_dict = {}
+
 		score = self.score_function( self.biclusters[bc_index].get_submatrix(data_matrix) )
 
 		lcb_rows = self.biclusters[bc_index].rows()
@@ -116,19 +120,24 @@ class BiclusterGenerator(object):
 		randsamp = rsu.RandomSampling(self.score_function, sample_module = self.random_module ) 
 
 		all_distribution = randsamp.random_sampling_score_distribution_all( data_matrix, numrows=len(lcb_rows), numcolumns=len(lcb_columns)) 
-		columns_distribution = randsamp.random_sampling_score_distribution_columns( data_matrix, rows=lcb_rows, columns=lcb_columns) 
-		rows_distribution = randsamp.random_sampling_score_distribution_rows( data_matrix, rows=lcb_rows, columns=lcb_columns) 
-
-		return_dict = {}
 
 		all_zscore = abs(all_distribution.mean() - score)/all_distribution.std()
 		return_dict['all'] = {'mean':all_distribution.mean(), 'std':all_distribution.std(), 'zscore':all_zscore}
 
-		columns_zscore = abs(columns_distribution.mean() - score)/columns_distribution.std()
-		return_dict['columns'] = {'mean':columns_distribution.mean(), 'std':columns_distribution.std(), 'zscore':columns_zscore}
+		try:
+			columns_distribution = randsamp.random_sampling_score_distribution_columns( data_matrix, rows=lcb_rows, columns=lcb_columns) 
+			columns_zscore = abs(columns_distribution.mean() - score)/columns_distribution.std()
+			return_dict['columns'] = {'mean':columns_distribution.mean(), 'std':columns_distribution.std(), 'zscore':columns_zscore}
+		except:
+			pass
 
-		rows_zscore = abs(rows_distribution.mean() - score)/rows_distribution.std()
-		return_dict['rows'] = {'mean':rows_distribution.mean(), 'std':rows_distribution.std(), 'zscore':rows_zscore}
+		try:
+			rows_distribution = randsamp.random_sampling_score_distribution_rows( data_matrix, rows=lcb_rows, columns=lcb_columns) 
+			rows_zscore = abs(rows_distribution.mean() - score)/rows_distribution.std()
+			return_dict['rows'] = {'mean':rows_distribution.mean(), 'std':rows_distribution.std(), 'zscore':rows_zscore}
+		except:
+			pass
+
 		#print "random %s, mean: %s, std: %s, zscore: %s" % (t, dist_dict[t].mean(), dist_dict[t].std(), zscore)
 
 		#if plot:
