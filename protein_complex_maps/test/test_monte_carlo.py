@@ -7,8 +7,8 @@ import protein_complex_maps.monte_carlo as mc
 import protein_complex_maps.bicluster.bicluster as bc
 import numpy as np
 
-def score_func(data_matrix, bicluster):
-	return -1.0*len(bicluster.rows())
+def score_func(matrix):
+	return -1.0*matrix.shape[0]
 
 class MonteCarloTest(unittest.TestCase):
 

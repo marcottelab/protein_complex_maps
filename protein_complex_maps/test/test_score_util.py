@@ -20,7 +20,7 @@ class ScoreTest(unittest.TestCase):
 		print self.data_matrix
 
 	def testMultipleDot(self, ):
-		score = su.multiple_dot(self.data_matrix)
+		score = su.multiple_dot_per_unit(self.data_matrix)
 		print score
 		#assert( score == 72033.3 ) #kdrew: divided by number of columns
 		assert( score == 18008.325 ) #kdrew: divided by number of columns and rows

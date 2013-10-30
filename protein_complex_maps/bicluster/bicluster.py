@@ -20,6 +20,13 @@ class Bicluster(object):
 	def __str__(self,):
 		return "Bicluster: \nrows: %s \ncolumns: %s" % (self.__rows, self.__cols)
  
+ 	def print_submatrix(self, data_matrix):
+		submat = self.get_submatrix(data_matrix)
+		print self.columns()
+		rows = self.rows()
+		for i, row in enumerate(submat):
+			print "%s : %s " % (rows[i], np.round(np.array(row)[0],5).tolist() )
+
 	def add_row(self, row_index):
 		self.__rows.add(row_index)
 
@@ -50,8 +57,8 @@ class Bicluster(object):
 		sorted_cols = list(self.__cols-set(without_cols))
 		sorted_cols.sort()
 
-		print sorted_rows
-		print sorted_cols
+		#print sorted_rows
+		#print sorted_cols
 
 		if len(sorted_rows) == 0:
 			return np.matrix([]).reshape(0,1)
