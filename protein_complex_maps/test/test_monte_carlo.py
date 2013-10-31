@@ -30,12 +30,21 @@ class MonteCarloTest(unittest.TestCase):
 		print self.montecarlo.score_diff_history()
 		print ""
 
+		assert(self.montecarlo.iterations() == 1)
+		assert(self.montecarlo.accept_rate() == 1.0)
+		assert(self.montecarlo.current_score() == -2.0)
+
 		bclust = self.montecarlo.boltzmann(self.data_matrix, self.bicluster1)
 		print "bclust: %s" % bclust.rows()
 		print self.montecarlo.result_history()
 		print self.montecarlo.score_history()
 		print self.montecarlo.score_diff_history()
 		print ""
+
+		assert(self.montecarlo.iterations() == 2)
+		assert(self.montecarlo.accept_rate() == 0.5)
+		assert(self.montecarlo.current_score() == -2.0)
+
 
 		self.bicluster1.add_row(3)
 		bclust = self.montecarlo.boltzmann(self.data_matrix, self.bicluster1)
@@ -45,6 +54,10 @@ class MonteCarloTest(unittest.TestCase):
 		print self.montecarlo.score_diff_history()
 		print ""
 
+		assert(self.montecarlo.iterations() == 3)
+		assert(self.montecarlo.accept_rate() == 2.0/3)
+		assert(self.montecarlo.current_score() == -3.0)
+
 		self.bicluster1.remove_row(3)
 		bclust = self.montecarlo.boltzmann(self.data_matrix, self.bicluster1)
 		print "bclust: %s" % bclust.rows()
@@ -53,6 +66,10 @@ class MonteCarloTest(unittest.TestCase):
 		print self.montecarlo.score_diff_history()
 		print ""
 
+		assert(self.montecarlo.iterations() == 4)
+		assert(self.montecarlo.accept_rate() == 2.0/4)
+		assert(self.montecarlo.current_score() == -3.0)
+
 		self.montecarlo.temp(1000.0)
 		bclust = self.montecarlo.boltzmann(self.data_matrix, self.bicluster1)
 		print bclust.rows()
@@ -60,6 +77,10 @@ class MonteCarloTest(unittest.TestCase):
 		print self.montecarlo.score_history()
 		print self.montecarlo.score_diff_history()
 		print ""
+
+		assert(self.montecarlo.iterations() == 5)
+		assert(self.montecarlo.accept_rate() == 3.0/5)
+		assert(self.montecarlo.current_score() == -2.0)
 
 		#assert( score == 18008.325 ) #kdrew: divided by number of columns and rows
 

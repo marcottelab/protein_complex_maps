@@ -6,6 +6,7 @@ class MonteCarlo(object):
 
 	def __init__( self, scorefunction, temp, random_module=None ):
 		self.__scorefunction = scorefunction
+		self.__starting_temp = temp
 		self.__temp = temp
 
 		self.__low_scoring_bicluster = None
@@ -39,6 +40,8 @@ class MonteCarlo(object):
 
 
 	def reset(self, ):
+
+		self.__temp = self.__starting_temp
 		self.__low_scoring_bicluster = None
 		self.__low_score = None
 		self.__current_bicluster = None
@@ -57,10 +60,12 @@ class MonteCarlo(object):
 		self.__iterations = 0 
 		self.__iterations_since_last_accept = 0
 
-	def temp(self,):
-		return self.__temp
+	def reset_temp(self,):
+		self.__temp = self.__starting_temp
 
-	def temp(self, temp):
+	def temp(self, temp=None):
+		if temp == None:
+			return self.__temp
 		self.__temp = temp
 
 	def lowscore_bicluster(self,):
@@ -77,6 +82,9 @@ class MonteCarlo(object):
 
 	def accept_rate(self,):
 		return 1.0*self.__accepts/self.__iterations
+
+	def iterations(self, ):
+		return self.__iterations
 	
 	def iterations_since_last_accept(self,):
 		return self.__iterations_since_last_accept

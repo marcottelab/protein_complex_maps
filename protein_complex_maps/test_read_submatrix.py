@@ -13,6 +13,7 @@ import protein_complex_maps.score_util as su
 import protein_complex_maps.read_data as rd
 import protein_complex_maps.bicluster_generator as bg
 import protein_complex_maps.random_sampling_util as rsu
+import protein_complex_maps.annealer as anl
 
 
 #kdrew: there are several ways to massage these data
@@ -422,7 +423,10 @@ working_data_matrix = clean_data_matrix
 rsscore_obj = rsu.RandomSamplingScore(clean_data_matrix, su.multiple_dot_neg, sample_module=np.random)
 
 #bcgen = bg.BiclusterGenerator(su.multiple_dot_neg, iterations=2500, random_module=np.random)
-bcgen = bg.BiclusterGenerator(rsscore_obj.zscore_all_neg, iterations=2500, random_module=np.random)
+bcgen = bg.BiclusterGenerator(rsscore_obj.zscore_all_neg, iterations=2500, starting_temperature = 0.00000001, random_module=np.random)
+ratequench_annealer = anl.RateQuenchAnnealer( bcgen.get_montecarlo(), quench_iteration=2400 )
+bcgen.set_annealer(ratequench_annealer)
+
 for i in xrange(1,100):
 	bicluster1 = bcgen.generator(working_data_matrix)
 

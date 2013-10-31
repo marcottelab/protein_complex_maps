@@ -3,12 +3,13 @@ import protein_complex_maps.plots.plot_bicluster as pb
 import protein_complex_maps.bicluster.bicluster as bc
 import protein_complex_maps.score_util as su
 import protein_complex_maps.monte_carlo as mc
+import protein_complex_maps.annealer as anl
 import protein_complex_maps.random_sampling_util as rsu
 
 #kdrew: this class is used for seeding, generating, and evaluating biclusters
 class BiclusterGenerator(object):
 
-	def __init__( self, score_function, iterations=1000, starting_temperature = 0.00000001, random_module=None ): 
+	def __init__( self, score_function, iterations=1000, starting_temperature = 10.0, random_module=None ): 
 
 		if random_module == None:
 			try:
@@ -25,6 +26,16 @@ class BiclusterGenerator(object):
 		self.iterations = iterations
 		self.biclusters = []
 		self.score_function = score_function
+
+		#kdrew: create montecarlo object 
+		self.montecarlo = mc.MonteCarlo(self.score_function, temp=self.starting_temperature, random_module=self.random_module)
+		self.annealer = None
+
+	def get_montecarlo(self,):
+		return self.montecarlo
+
+	def set_annealer(self,annealer):
+		self.annealer = annealer
 
 	def random_seed(self, data_matrix):
 
@@ -56,8 +67,11 @@ class BiclusterGenerator(object):
 			#kdrew: copy seed bicluster to working bicluster
 			bicluster1 = bc.Bicluster(rows=seed_bicluster.rows(), cols=seed_bicluster.columns(), random_module=self.random_module)
 		
-		#kdrew: create montecarlo object 
-		montecarlo = mc.MonteCarlo(self.score_function, temp=self.starting_temperature, random_module=self.random_module)
+		self.montecarlo.reset()
+		#kdrew: if no annealer is specified use default annealer
+		if self.annealer == None:
+			self.annealer = anl.Annealer(self.montecarlo) 
+
 
 		numRows, numCols = data_matrix.shape
 		print numRows, numCols
@@ -75,36 +89,37 @@ class BiclusterGenerator(object):
 			if random_row in bicluster1.rows():
 				print "row %s in bicluster" % (random_row,)
 				bicluster1.remove_row(random_row)
-				bicluster1 = montecarlo.boltzmann(data_matrix, bicluster1)
+				bicluster1 = self.montecarlo.boltzmann(data_matrix, bicluster1)
 
 			else:
 				print "row %s out of bicluster" % (random_row,)
 				bicluster1.add_row(random_row)
-				bicluster1 = montecarlo.boltzmann(data_matrix, bicluster1)
+				bicluster1 = self.montecarlo.boltzmann(data_matrix, bicluster1)
 
 			if random_column in bicluster1.columns():
 				print "column %s in bicluster" % (random_column,)
 				bicluster1.remove_column(random_column)
-				bicluster1 = montecarlo.boltzmann(data_matrix, bicluster1)
+				bicluster1 = self.montecarlo.boltzmann(data_matrix, bicluster1)
 
 			else:
 				print "column %s out of bicluster" % (random_column,)
 				bicluster1.add_column(random_column)
-				bicluster1 = montecarlo.boltzmann(data_matrix, bicluster1)
+				bicluster1 = self.montecarlo.boltzmann(data_matrix, bicluster1)
 
 			#kdrew: test here for convergence or anneal
+			self.annealer.anneal()
 
 
 		#kdrew: add lowscore bicluster to set of biclusters
-		self.biclusters.append(montecarlo.lowscore_bicluster())
+		self.biclusters.append(self.montecarlo.lowscore_bicluster())
 
 		#self.evaluate(data_matrix, len(self.biclusters)-1)
 
-		print montecarlo.result_history()
-		print montecarlo.score_history()
-		print montecarlo.score_diff_history()
+		print self.montecarlo.result_history()
+		print self.montecarlo.score_history()
+		print self.montecarlo.score_diff_history()
 		
-		return montecarlo.lowscore_bicluster()
+		return self.montecarlo.lowscore_bicluster()
 
 
 	#kdrew: calculates # of std away given bicluster score is from mean of randomly sampled biclusters 
