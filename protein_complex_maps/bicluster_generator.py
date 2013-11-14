@@ -1,10 +1,13 @@
 
+import logging
 import protein_complex_maps.plots.plot_bicluster as pb
 import protein_complex_maps.bicluster.bicluster as bc
 import protein_complex_maps.score_util as su
 import protein_complex_maps.monte_carlo as mc
 import protein_complex_maps.annealer as anl
 import protein_complex_maps.random_sampling_util as rsu
+
+logging.basicConfig(level = logging.DEBUG,format='%(asctime)s %(levelname)s %(message)s')
 
 #kdrew: this class is used for seeding, generating, and evaluating biclusters
 class BiclusterGenerator(object):
@@ -65,7 +68,7 @@ class BiclusterGenerator(object):
 			bicluster1 = self.random_seed(data_matrix)
 		else:
 			#kdrew: copy seed bicluster to working bicluster
-			bicluster1 = bc.Bicluster(rows=seed_bicluster.rows(), cols=seed_bicluster.columns(), random_module=self.random_module)
+			bicluster1 = bc.Bicluster(rows=seed_bicluster.rows()[:], cols=seed_bicluster.columns()[:], random_module=self.random_module)
 		
 		self.montecarlo.reset()
 		#kdrew: if no annealer is specified use default annealer
@@ -74,11 +77,11 @@ class BiclusterGenerator(object):
 
 
 		numRows, numCols = data_matrix.shape
-		print numRows, numCols
+		#print numRows, numCols
 
 		#kdrew: probably should test for some convergence
 		for i in xrange( 1, self.iterations ):
-			print "iteration: %s" % (i,)
+			logging.debug("iteration: %s" % (i,))
 
 			#kdrew: randomly pick row or column (inside or outside of bicluster)
 			random_row = self.random_module.random_integers(0, numRows-1)
@@ -87,22 +90,22 @@ class BiclusterGenerator(object):
 			#print "bicluster matrix: %s" % (bicluster1.get_submatrix(data_matrix))
 
 			if random_row in bicluster1.rows():
-				print "row %s in bicluster" % (random_row,)
+				logging.debug("row %s in bicluster" % (random_row,))
 				bicluster1.remove_row(random_row)
 				bicluster1 = self.montecarlo.boltzmann(data_matrix, bicluster1)
 
 			else:
-				print "row %s out of bicluster" % (random_row,)
+				logging.debug("row %s out of bicluster" % (random_row,))
 				bicluster1.add_row(random_row)
 				bicluster1 = self.montecarlo.boltzmann(data_matrix, bicluster1)
 
 			if random_column in bicluster1.columns():
-				print "column %s in bicluster" % (random_column,)
+				logging.debug("column %s in bicluster" % (random_column,))
 				bicluster1.remove_column(random_column)
 				bicluster1 = self.montecarlo.boltzmann(data_matrix, bicluster1)
 
 			else:
-				print "column %s out of bicluster" % (random_column,)
+				logging.debug("column %s out of bicluster" % (random_column,))
 				bicluster1.add_column(random_column)
 				bicluster1 = self.montecarlo.boltzmann(data_matrix, bicluster1)
 
@@ -115,9 +118,9 @@ class BiclusterGenerator(object):
 
 		#self.evaluate(data_matrix, len(self.biclusters)-1)
 
-		print self.montecarlo.result_history()
-		print self.montecarlo.score_history()
-		print self.montecarlo.score_diff_history()
+		logging.debug(self.montecarlo.result_history())
+		#logging.debug(self.montecarlo.score_history())
+		#logging.debug(self.montecarlo.score_diff_history())
 		
 		return self.montecarlo.lowscore_bicluster()
 

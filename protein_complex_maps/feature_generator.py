@@ -26,8 +26,8 @@ class FeatureGenerator(object):
 	def __init__(self, bicluster, data_matrix, seed=None):
 		self.__bicluster = bicluster
 		self.__data_matrix = data_matrix
-		self.__rand_row_bicluster = bc.Bicluster(rows=self.__bicluster.get_random_outside_rows(self.__data_matrix,seed=seed), cols=self.__bicluster.columns() )
-		self.__rand_column_bicluster = bc.Bicluster( rows=self.__bicluster.rows(), cols=self.__bicluster.get_random_outside_cols(self.__data_matrix, seed=seed ) )
+		self.__rand_row_bicluster = bc.Bicluster(rows=self.__bicluster.get_random_outside_rows(self.__data_matrix,seed=seed)[:], cols=self.__bicluster.columns()[:] )
+		self.__rand_column_bicluster = bc.Bicluster( rows=self.__bicluster.rows()[:], cols=self.__bicluster.get_random_outside_cols(self.__data_matrix, seed=seed )[:] )
 
 		#kdrew: create a dataframe of positive and negative items to feed into regression
 		row_positives = pd.DataFrame( self.__bicluster.rows(), columns=[self.row_header]) 

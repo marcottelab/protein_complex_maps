@@ -1,5 +1,6 @@
 
 import sys
+import logging
 import numpy as np
 import random as r
 import protein_complex_maps.correlation_util as cu
@@ -15,6 +16,7 @@ import protein_complex_maps.bicluster_generator as bg
 import protein_complex_maps.random_sampling_util as rsu
 import protein_complex_maps.annealer as anl
 
+logging.basicConfig(level = logging.DEBUG,format='%(asctime)s %(levelname)s %(message)s')
 
 #kdrew: there are several ways to massage these data
 # remove columns with all zeros
@@ -99,7 +101,7 @@ clean_data_matrix_scaled2 = nu.min_to_one_scale(clean_data_matrix_normalized2)
 clean_data_matrix, name_list = rd.concat_data_matrix( clean_data_matrix_scaled1, name_list1, clean_data_matrix_scaled2, name_list2)
 #clean_data_matrix, name_list = rd.concat_data_matrix( clean_data_matrix_noised1, name_list1, clean_data_matrix_noised2, name_list2)
 #clean_data_matrix, name_list = rd.concat_data_matrix( clean_data_matrix_binary1, name_list1, clean_data_matrix_binary2, name_list2)
-print clean_data_matrix
+logging.debug(clean_data_matrix)
 
 #clean_data_matrix = nu.min_to_one_scale(clean_data_matrix)
 #print clean_data_matrix
@@ -424,27 +426,27 @@ rsscore_obj = rsu.RandomSamplingScore(clean_data_matrix, su.multiple_dot_neg, sa
 
 #bcgen = bg.BiclusterGenerator(su.multiple_dot_neg, iterations=2500, random_module=np.random)
 bcgen = bg.BiclusterGenerator(rsscore_obj.zscore_all_neg, iterations=2500, starting_temperature = 0.00000001, random_module=np.random)
-ratequench_annealer = anl.RateQuenchAnnealer( bcgen.get_montecarlo(), quench_iteration=2400 )
+ratequench_annealer = anl.RateQuenchAnnealer( bcgen.get_montecarlo(), quench_iteration=2400, scale=0.9, rate=0.3, recent_iterations=10, adjust_scale=True )
 bcgen.set_annealer(ratequench_annealer)
 
 for i in xrange(1,100):
 	bicluster1 = bcgen.generator(working_data_matrix)
 
-	print "bicluster%s" % (i,)
-	print bicluster1.rows()
-	print bicluster1.columns()
+	logging.info("bicluster%s" % (i,))
+	logging.info(bicluster1.rows())
+	logging.info(bicluster1.columns())
 	#print bicluster1.get_submatrix(working_data_matrix)
 
 	#kdrew: not sure if evaluating on the clean_data_matrix is okay because the bicluster was optimized on the working_data_matrix
 	eval_dict = bcgen.evaluate( clean_data_matrix, len(bcgen.biclusters)-1 )
 	for t in eval_dict.keys():
-		print "random %s, mean: %s, std: %s, zscore: %s" % ( t, eval_dict[t]['mean'], eval_dict[t]['std'], eval_dict[t]['zscore'] )
+		logging.info("random %s, mean: %s, std: %s, zscore: %s" % ( t, eval_dict[t]['mean'], eval_dict[t]['std'], eval_dict[t]['zscore'] ))
 
 	pb.plot_bicluster(clean_data_matrix, bicluster1, savefilename="/home/kdrew/public_html/test/bicluster%s_plot.pdf" % (i))
 
 	#kdrew: this value is a little arbitrary but only scale "converged" biclusters, there probably is a better way to set this or evaluate this
 	if eval_dict['all']['zscore'] > 100:
-		print "bicluster converged, scaling"
+		logging.debug("bicluster converged, scaling")
 		working_data_matrix = bicluster1.scale(working_data_matrix, scale_factor)
 
 #bc_normal_corr, bc_normal_tvalue_corr = cu.sample_correlation_distribution(bicluster1.get_submatrix(clean_data_matrix), noise_constant=1.0/clean_data_matrix.shape[1], sample_module = normal_sigma1, iterations=sample_iterations)
