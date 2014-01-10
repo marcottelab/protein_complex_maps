@@ -1,7 +1,51 @@
+
 import logging
 import numpy as np
 
+import protein_complex_maps.normalization_util as nu
+
 logging.basicConfig(level = logging.DEBUG,format='%(asctime)s %(levelname)s %(message)s')
+
+class MSDataSet(object):
+
+	def __init__( self ):
+		self.__master_data_matrix = None
+		self.__master_name_list = None
+
+	def load_file( self, file_handle, header=False, normalize=False):
+		
+		data_matrix1, name_list1 = read_datafile(file_handle, header=header)
+		if normalize:
+			data_matrix1 = nu.normalize_over_columns(data_matrix1)
+		if self.__master_data_matrix == None:
+			self.__master_data_matrix = data_matrix1
+			self.__master_name_list = name_list1
+		else:
+			self.__master_data_matrix, self.__master_name_list = concat_data_matrix( self.__master_data_matrix, self.__master_name_list, data_matrix1, name_list1)
+
+	def get_data_matrix( self, names=None, remove_zero=False ):
+		#print "get_data_matrix"
+		#print self.__master_data_matrix
+
+		if names != None:
+			rows = []
+			for name in names:
+				print "name: %s, index: %s" % (name, self.__master_name_list.index(name))
+				rows.append(self.__master_name_list.index(name))
+
+			cols = range(0,self.__master_data_matrix.shape[1])
+			submatrix = self.__master_data_matrix[np.ix_(rows, cols)]
+
+			#kdrew: only remove zero columns
+			if remove_zero:
+				submatrix = nu.remove_zero(submatrix, zero_rows=False, zero_columns=True)
+
+			return submatrix
+
+		if remove_zero:
+			return nu.remove_zero(self.__master_data_matrix, zero_rows=False, zero_columns=True)
+
+		return self.__master_data_matrix
 
 def read_datafile(fhandle, header=True):
 	if header:

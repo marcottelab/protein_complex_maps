@@ -21,6 +21,8 @@ class ReadDataTest(unittest.TestCase):
 		sample_file2 = open(sample_filename2, 'rb')
 		self.data_matrix2, self.name_list2 = rd.read_datafile(sample_file2)
 
+		self.sample_file = open(sample_filename, 'rb')
+		self.sample_file2 = open(sample_filename2, 'rb')
 		print self.data_matrix2
 
 	def testRead(self,):
@@ -52,6 +54,19 @@ class ReadDataTest(unittest.TestCase):
 		index2 = c_nlist.index('ENSG00000100519')
 		assert(c_dmat[np.ix_([index2],[3])] == 105.0)
 		assert(c_dmat[np.ix_([index2],[7])] == 0.0)
+
+	def testMsDataSet(self,):
+		msds = rd.MSDataSet()
+		msds.load_file(self.sample_file, header=True)
+		msds.load_file(self.sample_file2, header=True)
+
+		fulldm = msds.get_data_matrix()
+		print "get_data_matrix"
+		print fulldm
+
+		partdm = msds.get_data_matrix(names=["ENSG00000072110","ENSG00000075914","ENSG00000087191"])
+		print "get_data_matrix"
+		print partdm
 
 if __name__ == "__main__":
 	unittest.main()
