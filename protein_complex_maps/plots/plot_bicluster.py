@@ -49,7 +49,8 @@ def plot_bicluster_worker(data_set, bicluster1, ylim_max=False, savefilename=Non
 
 		data_array_out_cols[np.ix_(bicluster1.columns())] = 0
 
-		data_array_in_cols[np.ix_(list(cols - set(bicluster1.columns())))] = 0
+		if len(list(cols - set(bicluster1.columns()))) != 0:
+			data_array_in_cols[np.ix_(list(cols - set(bicluster1.columns())))] = 0
 
 		data_subplots[i].bar(np.arange(len(data_array_in_cols)), map(float,data_array_in_cols), align='center', facecolor=in_barcolor, alpha=0.5 )
 		data_subplots[i].bar(np.arange(len(data_array_out_cols)), map(float,data_array_out_cols), align='center', facecolor=out_barcolor, alpha=0.5 )

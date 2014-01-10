@@ -5,6 +5,7 @@ import protein_complex_maps.normalization_util as nu
 import protein_complex_maps.score_util as su
 import protein_complex_maps.read_data as rd
 import protein_complex_maps.random_sampling_util as rsu
+import protein_complex_maps.plots.plot_bicluster as pb
 
 
 
@@ -46,6 +47,12 @@ mdpu_randsamp = rsu.RandomSampling( su.multiple_dot_per_unit, sample_module = np
 proteasome_lid_bicluster_compact = bc.Bicluster(rows = [25,34,37,40,48,32,61], cols = [41,123], random_module=np.random)
 proteasome_lid_bicluster = bc.Bicluster(rows = [25,34,37,40,48,32,61], cols = [40,41,42,122,123], random_module=np.random)
 proteasome_lid_bicluster_w_common_column = bc.Bicluster(rows = [25,34,37,40,48,32,61], cols = [40,41,42,122,123,133,134,135], random_module=np.random)
+proteasome_lid_bicluster_background = bc.Bicluster(rows = [3,4,6,7,8,25,34,37,40,48,32,61], cols = [40,41,42,122,123,133,134,135], random_module=np.random)
+
+proteasome_lid_bicluster_submatrix = bc.Bicluster(rows = [5,6,7,8,9,10,11], cols = [0,1,2,3,4], random_module=np.random)
+
+#pb.plot_bicluster(clean_data_matrix, proteasome_lid_bicluster, savefilename="/home/kdrew/public_html/test/bicluster_proteasome_lid_plot.pdf" )
+pb.plot_bicluster(proteasome_lid_bicluster_background.get_submatrix(clean_data_matrix), proteasome_lid_bicluster_submatrix, savefilename="/home/kdrew/public_html/test/bicluster_proteasome_lid_plot.pdf" )
 
 print "\n"
 

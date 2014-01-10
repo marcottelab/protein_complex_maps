@@ -12,7 +12,7 @@ def read_datafile(fhandle, header=True):
 	name_list = []
 
 	for line in fhandle.readlines():
-		#print line
+		print line
 		line_data = line.split()
 		name_list.append(line_data[0])
 		line_array = map(float,line_data[2:])
