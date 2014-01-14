@@ -3,6 +3,7 @@ import logging
 import numpy as np
 
 import protein_complex_maps.normalization_util as nu
+import protein_complex_maps.protein_util as pu
 
 logging.basicConfig(level = logging.DEBUG,format='%(asctime)s %(levelname)s %(message)s')
 
@@ -11,6 +12,7 @@ class MSDataSet(object):
 	def __init__( self ):
 		self.__master_data_matrix = None
 		self.__master_name_list = None
+		self.__id_dict = dict()
 
 	def load_file( self, file_handle, header=False, normalize=False):
 		
@@ -22,6 +24,22 @@ class MSDataSet(object):
 			self.__master_name_list = name_list1
 		else:
 			self.__master_data_matrix, self.__master_name_list = concat_data_matrix( self.__master_data_matrix, self.__master_name_list, data_matrix1, name_list1)
+
+	def map_ids( self, from_id, to_id):
+		#kdrew: map master_name_list from current db_id to db_id
+		#kdrew: update master_name_list and current db_id
+		protids_map = pu.map_protein_ids( self.__master_name_list, from_id, to_id )
+		for protid in protids_map:
+			i = self.__master_name_list.index(protid)
+			for mapped_id in protids_map[protid]:
+				self.__id_dict[mapped_id] = i
+		
+		#return self.__id_dict
+
+	def get_id_dict( self ):
+		return self.__id_dict
+
+
 
 	def get_data_matrix( self, names=None, remove_zero=False ):
 		#print "get_data_matrix"

@@ -67,6 +67,13 @@ class ReadDataTest(unittest.TestCase):
 		partdm = msds.get_data_matrix(names=["ENSG00000072110","ENSG00000075914","ENSG00000087191"])
 		print "get_data_matrix"
 		print partdm
+		assert(partdm.shape[0] == 3)
+
+		msds.map_ids("ENSEMBL_ID", "ACC")
+		mapped_ids = msds.get_id_dict()
+		assert(mapped_ids["Q15024"] == 9)
+		assert(mapped_ids["G3V380"] == 11)
+		assert(mapped_ids["J3QRR3"] == 6)
 
 if __name__ == "__main__":
 	unittest.main()
