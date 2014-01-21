@@ -11,7 +11,9 @@ class MSDataSet(object):
 
 	def __init__( self ):
 		self.__master_data_matrix = None
+		#kdrew: holds original ids read from file and used to link other files read in, ordered by matrix rows
 		self.__master_name_list = None
+		#kdrew: holds mapping of protein ids to matrix indices, includes ids from master_name_list
 		self.__id_dict = dict()
 
 	def load_file( self, file_handle, header=False, normalize=False):
@@ -24,6 +26,10 @@ class MSDataSet(object):
 			self.__master_name_list = name_list1
 		else:
 			self.__master_data_matrix, self.__master_name_list = concat_data_matrix( self.__master_data_matrix, self.__master_name_list, data_matrix1, name_list1)
+
+		#kdrew: updating id_dict with current name list
+		for i, name in enumerate(self.__master_name_list):
+			self.__id_dict[name] = i
 
 	def map_ids( self, from_id, to_id):
 		#kdrew: map master_name_list from current db_id to db_id
@@ -39,31 +45,36 @@ class MSDataSet(object):
 	def get_id_dict( self ):
 		return self.__id_dict
 
+	#def get_data_matrix( self, names=None, remove_zero=False ):
 
-
-	def get_data_matrix( self, names=None, remove_zero=False ):
+	def get_data_matrix( self, remove_zero=False ):
 		#print "get_data_matrix"
 		#print self.__master_data_matrix
 
-		if names != None:
-			rows = []
-			for name in names:
-				print "name: %s, index: %s" % (name, self.__master_name_list.index(name))
-				rows.append(self.__master_name_list.index(name))
-
-			cols = range(0,self.__master_data_matrix.shape[1])
-			submatrix = self.__master_data_matrix[np.ix_(rows, cols)]
-
-			#kdrew: only remove zero columns
-			if remove_zero:
-				submatrix = nu.remove_zero(submatrix, zero_rows=False, zero_columns=True)
-
-			return submatrix
-
+		##kdrew: might want to return new msds object because can no longer map protein ids to indices of new matrix
+		#if names != None:
+		#	rows = []
+		#	for name in names:
+		#		#print "name: %s, index: %s" % (name, self.__master_name_list.index(name))
+		#		rows.append(self.__id_dict[name]))
+        #
+		#	cols = range(0,self.__master_data_matrix.shape[1])
+		#	submatrix = self.__master_data_matrix[np.ix_(rows, cols)]
+        #
+		#	#kdrew: only remove zero columns
+		#	if remove_zero:
+		#		submatrix = nu.remove_zero(submatrix, zero_rows=False, zero_columns=True)
+        #
+		#	return submatrix
+        
 		if remove_zero:
 			return nu.remove_zero(self.__master_data_matrix, zero_rows=False, zero_columns=True)
 
 		return self.__master_data_matrix
+
+	def set_data_matrix( self, data_matrix ):
+		self.__master_data_matrix = data_matrix
+
 
 def read_datafile(fhandle, header=True):
 	if header:
