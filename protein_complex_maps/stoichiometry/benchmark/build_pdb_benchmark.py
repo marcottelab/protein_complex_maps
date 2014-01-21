@@ -27,8 +27,13 @@ def main():
 		if pdb_complete:
 			ms_complete.add(id)
 
+	ms_complete_pdbs = dict()
 	for i in ms_complete:
 		print i, pdbs[i]
+		ms_complete_pdbs[i] = pdbs[i]
+
+
+	cPickle.dump( ms_complete_pdbs, open("ms_complete_pdbs.p", "wb"))
 
 	sec_ms_complete = set()
 
@@ -41,8 +46,12 @@ def main():
 			sec_ms_complete.add(i)
 	
 	print "\n"
+	sec_ms_complete_pdbs = dict()
 	for i in sec_ms_complete:
 		print i, pdbs[i]
+		sec_ms_complete_pdbs[i] = pdbs[i]
+
+	cPickle.dump( sec_ms_complete_pdbs, open("sec_ms_complete_pdbs.p", "wb"))
 
 	print len(ms_complete)
 	print len(sec_ms_complete)
