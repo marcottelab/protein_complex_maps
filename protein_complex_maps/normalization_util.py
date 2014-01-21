@@ -2,6 +2,7 @@
 #import math as m
 import numpy as np
 import math as m
+import protein_complex_maps.protein_util as pu
 
 #kdrew: this function removes rows and columns that are all zero
 #kdrew: WARNING this removes rows and columns which will invalidate biclusters, only use prior to creating bicluster objects
@@ -82,3 +83,21 @@ def binary(data_matrix, threshold, present=1, absent=0):
 
 	return data_matrix
 
+#kdrew: normalizes by protein length, if no length available make NAN
+def normalize_length(data_matrix, id_dict, initialize=np.nan):
+	length_array = np.repeat(initialize, data_matrix.shape[0])
+	for id in id_dict.keys():
+ 		length = pu.get_length_uniprot(id)
+		print length
+		if length != None:
+			length_array[id_dict[id]] = length
+
+	print data_matrix
+	#kdrew: transpose to do division
+	data_matrix = data_matrix.T/length_array
+
+	print data_matrix.T
+	#kdrew: "retranspose" to get data matrix back into form
+	return data_matrix.T
+
+	

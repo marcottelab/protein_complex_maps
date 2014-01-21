@@ -207,6 +207,17 @@ class NormalizationTest(unittest.TestCase):
 		assert( data_matrix_poisson[4,8] == 2.0 )
 		assert( data_matrix_poisson[7,8] == 9.0 )
 
+	def testLength(self,):
+		
+		id_dict = dict()
+		id_dict['Q9Y6G5'] = 2
+		id_dict['Q9UBI1'] = 4
+		dm_length = nu.normalize_length(self.data_matrix, id_dict)
+		print dm_length
+		print dm_length[0,0]
+		assert( np.isnan(dm_length[0,0]) )
+		np.testing.assert_almost_equal( dm_length[2,5], 0.01930693 )
+
 
 if __name__ == "__main__":
 	unittest.main()
