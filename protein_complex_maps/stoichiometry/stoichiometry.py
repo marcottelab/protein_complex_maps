@@ -20,6 +20,11 @@ class Stoichiometries(list):
 		for i in l:
 			self.append(i)
 
+	def slim(self, number):
+		l=[ x for x in self if len(x) == number]
+		stoichiometries_slim = Stoichiometries(l=l)
+		return stoichiometries_slim
+
 	def read_stoichiometries(self, file_handle):
 
 		read_list = []
@@ -41,6 +46,7 @@ class Stoichiometries(list):
 			read_list.append(stoich)
 
 		for stoich in read_list:
+			print stoich
 			permut_set = set()
 			for permut in it.permutations(stoich.values(), len(stoich)):
 				permut_set.add(permut)
