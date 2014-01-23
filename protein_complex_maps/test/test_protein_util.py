@@ -11,12 +11,13 @@ class ProteinUtilTest(unittest.TestCase):
 
 	def setUp(self,):
 
-		self.protein_id = "Q6N089"
+		self.protein_id = ["Q6N089","Q53HL2"]
 
 	def testLength(self,):
 		
 		length = pu.get_length_uniprot(self.protein_id)
-		assert( length == 472 )
+		assert( length["Q6N089"] == 472 )
+		assert( length["Q53HL2"] == 280 )
 
 if __name__ == "__main__":
 	unittest.main()
