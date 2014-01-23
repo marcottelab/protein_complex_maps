@@ -3,15 +3,33 @@
 
 import urllib, urllib2 
 
+ACC_QUERY_LENGTH = 500
+
+##kdrew: queries uniprot for protein sequence length
+#def get_length_uniprot( protein_id ):
+#	length_dict = dict()
+#	report_query = "http://www.uniprot.org/uniprot/?format=tab&query=accession:%s&columns=id,length" % (protein_id,)
+#	f = urllib2.urlopen(report_query)
+#	for line in f.readlines():
+#		if protein_id == line.split()[0]:
+#			return int(line.split()[1])
+#	return None
+
 #kdrew: queries uniprot for protein sequence length
-def get_length_uniprot( protein_id ):
+def get_length_uniprot( protein_ids ):
 	length_dict = dict()
-	report_query = "http://www.uniprot.org/uniprot/?format=tab&query=accession:%s&columns=id,length" % (protein_id,)
-	f = urllib2.urlopen(report_query)
-	for line in f.readlines():
-		if protein_id == line.split()[0]:
-			return int(line.split()[1])
-	return None
+	#kdrew: break up query into chunks so as not to get 414 error
+	for i in xrange( (len(protein_ids)/ACC_QUERY_LENGTH)+1 ):
+		start_splice = i*ACC_QUERY_LENGTH
+		stop_splice = (i+1)*ACC_QUERY_LENGTH
+		report_query = "http://www.uniprot.org/uniprot/?format=tab&query=accession:(%s)&columns=id,length" % ("+or+".join(protein_ids[start_splice:stop_splice]),)
+		#print report_query
+		f = urllib2.urlopen(report_query)
+		for line in f.readlines():
+			if line.split()[0] in protein_ids:
+				length_dict[line.split()[0]] = int(line.split()[1])
+
+	return length_dict
 
 
 #kdrew: uses uniprot webservice to map ids

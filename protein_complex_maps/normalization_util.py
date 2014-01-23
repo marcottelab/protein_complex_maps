@@ -72,6 +72,16 @@ def min_to_one_scale(data_matrix):
 	min = np.min(data_matrix)
 	return data_matrix/(1.0*min)
 
+#kdrew: if values are below threshold, entry is marked 0
+def threshold(data_matrix, threshold, absent=0):
+	below_threshold = data_matrix < threshold
+
+	data_matrix[below_threshold] = absent
+
+	print "number below_threshold %s" % (len(below_threshold),)
+
+	return data_matrix
+
 
 #kdrew: if values are above threshold, entry is marked present (1) otherwise absent (0)
 def binary(data_matrix, threshold, present=1, absent=0):
@@ -86,11 +96,13 @@ def binary(data_matrix, threshold, present=1, absent=0):
 #kdrew: normalizes by protein length, if no length available make NAN
 def normalize_length(data_matrix, id_dict, initialize=np.nan):
 	length_array = np.repeat(initialize, data_matrix.shape[0])
+
+	length_dict = pu.get_length_uniprot(id_dict.keys())
 	for id in id_dict.keys():
- 		length = pu.get_length_uniprot(id)
-		print length
-		if length != None:
-			length_array[id_dict[id]] = length
+		try:
+			length_array[id_dict[id]] = length_dict[id]
+		except KeyError:
+			continue
 
 	print data_matrix
 	#kdrew: transpose to do division
