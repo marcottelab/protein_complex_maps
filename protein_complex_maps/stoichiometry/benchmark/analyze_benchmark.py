@@ -12,7 +12,8 @@ import protein_complex_maps.protein_util as pu
 mscpdbs = cPickle.load(open("/home/kdrew/scripts/protein_complex_maps/protein_complex_maps/stoichiometry/benchmark/ms_complete_pdbs.p", "rb"))
 
 #kdrew: pickle comes from protein_complex_maps.stoichiometry.benchmark.compute_benchmark_probs.py
-mscpdbs_results = cPickle.load(open("/home/kdrew/scripts/protein_complex_maps/protein_complex_maps/stoichiometry/benchmark/HS_ms2_elutions_msds_ms_complete_pdbs_results.p", "rb"))
+#mscpdbs_results = cPickle.load(open("/home/kdrew/scripts/protein_complex_maps/protein_complex_maps/stoichiometry/benchmark/HS_ms2_elutions_msds_ms_complete_pdbs_results.p", "rb"))
+mscpdbs_results = cPickle.load(open("/home/kdrew/scripts/protein_complex_maps/protein_complex_maps/stoichiometry/benchmark/HS_ms2_elutions_msds_lenNormal_mean_ratio_true_ms_complete_pdbs_results.p", "rb"))
 
 #print mscpdbs_results
 #print mscpdbs
@@ -20,10 +21,12 @@ mscpdbs_results = cPickle.load(open("/home/kdrew/scripts/protein_complex_maps/pr
 score = 0
 top_ten = 0
 top_one = 0
+count = 0
 for pdb_id in mscpdbs_results:
 	sorted_results = sorted(mscpdbs_results[pdb_id][0].iteritems(), key=operator.itemgetter(1))
 	sorted_results.reverse()
 	if mscpdbs_results[pdb_id][1] > 10:
+		count += 1
 		print pdb_id
 		print "true: %s" % (mscpdbs[pdb_id],)
 		print "lengths: %s" % (pu.get_length_uniprot( mscpdbs[pdb_id].keys() ))
@@ -36,7 +39,8 @@ for pdb_id in mscpdbs_results:
 		top_rank = None
 		for rank, pred in enumerate(sorted_results):
 			stoich = ast.literal_eval(pred[0])
-			print "rank: %s, stoich: %s, score: %s" % (rank, stoich, pred[1])
+			if rank < 10:
+				print "rank: %s, stoich: %s, score: %s" % (rank, stoich, pred[1])
 			matched_all = True
 			for comb in it.combinations(stoich.keys(),2):
 				true_ratio = 1.0*true_map[comb[0]]/true_map[comb[1]]
@@ -58,5 +62,6 @@ for pdb_id in mscpdbs_results:
 print "score: %s" % (score,)
 print "top_ten: %s" % (top_ten,)
 print "top_one: %s" % (top_one,)
+print "count: %s" % (count,)
 
 
