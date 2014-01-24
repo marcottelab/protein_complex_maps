@@ -71,6 +71,8 @@ def relative_stoichiometry_probability( stoichiometry, prior, msds, prot_ids, sc
 		print "number of data points between %s and %s : %s" % (prot_ids[pair[0]], prot_ids[pair[1]], len(ratios), )
 		num_data_points += len(ratios)
 		if mean_ratio:
+			#kdrew: set scale to be the ratio's standard deviation
+			pair_norm = norm(loc=pair_logratio, scale=ratios.std())
 			log_probability = log_probability + np.log(pair_norm.pdf(ratios.mean()))
 		else:
 			for r in ratios:
