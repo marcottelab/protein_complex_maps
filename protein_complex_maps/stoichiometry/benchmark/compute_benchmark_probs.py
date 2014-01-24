@@ -43,7 +43,7 @@ def main():
 		else:
 			print "benchmark ids are NOT in msds"
 
-	cPickle.dump(results_dict, open("./HS_ms2_elutions_msds_lenNormal_ms_complete_pdbs_results.p", "wb"))
+	cPickle.dump(results_dict, open("./HS_ms2_elutions_msds_lenNormal_mean_ratio_true_ms_complete_pdbs_results.p", "wb"))
 
 if __name__ == "__main__":
 	main()

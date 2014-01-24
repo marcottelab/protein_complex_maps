@@ -57,7 +57,7 @@ def calculate_ratio(msds, protein_id1, protein_id2, log_transform=True):
 #prot_ids['B'] = "uniprot_id2"
 #prot_ids['C'] = "uniprot_id3"
 
-def relative_stoichiometry_probability( stoichiometry, prior, msds, prot_ids, scale=1.0 ):
+def relative_stoichiometry_probability( stoichiometry, prior, msds, prot_ids, scale=1.0, mean_ratio=True ):
 	num_data_points = 0
 	log_probability = np.log(prior)
 	#print "prior log_probability: %s" % (log_probability,)
@@ -70,10 +70,13 @@ def relative_stoichiometry_probability( stoichiometry, prior, msds, prot_ids, sc
 		ratios = calculate_ratio( msds, prot_ids[pair[0]], prot_ids[pair[1]] )
 		print "number of data points between %s and %s : %s" % (prot_ids[pair[0]], prot_ids[pair[1]], len(ratios), )
 		num_data_points += len(ratios)
-		for r in ratios:
-			#print "r: %s : %s : %s" % (r,pair_norm.pdf(r), np.log(pair_norm.pdf(r)),)
-			log_probability = log_probability + np.log(pair_norm.pdf(r))
-			#print "updated log_probability: %s" % (log_probability,)
+		if mean_ratio:
+			log_probability = log_probability + np.log(pair_norm.pdf(ratios.mean()))
+		else:
+			for r in ratios:
+				#print "r: %s : %s : %s" % (r,pair_norm.pdf(r), np.log(pair_norm.pdf(r)),)
+				log_probability = log_probability + np.log(pair_norm.pdf(r))
+				#print "updated log_probability: %s" % (log_probability,)
 
 	#print stoichiometry, log_probability
 	return log_probability, num_data_points
