@@ -3,6 +3,7 @@
 # Unit tests for new clustering analysis functionality
 
 import unittest
+import protein_complex_maps.read_data as rd
 import protein_complex_maps.normalization_util as nu
 import numpy as np
 
@@ -217,6 +218,22 @@ class NormalizationTest(unittest.TestCase):
 		print dm_length[0,0]
 		assert( np.isnan(dm_length[0,0]) )
 		np.testing.assert_almost_equal( dm_length[2,5], 0.01930693 )
+
+	def testPeptide(self, ):
+
+		sample_filename2 = "./test_data2.txt"
+		sample_file2 = open(sample_filename2, 'rb')
+		msds = rd.MSDataSet()
+		msds.load_file(sample_file2, header=True)
+
+		peptide_filename = "./Hs_test.pepDict"
+		peptide_file = open(peptide_filename)
+
+		dm_peptide = nu.normalize_peptide_count(msds.get_data_matrix(), msds.get_id_dict(), peptide_file)
+		
+		print dm_peptide
+		np.testing.assert_almost_equal( dm_peptide[4,3], 0.450261780104712) #kdrew: 86.0/191
+		np.testing.assert_almost_equal( dm_peptide[5,2], 0.03333333333333333) #kdrew: 2.0/60
 
 
 if __name__ == "__main__":
