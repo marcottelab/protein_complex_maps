@@ -113,29 +113,37 @@ def normalize_length(data_matrix, id_dict, initialize=np.nan):
 	return data_matrix.T
 
 	
-def normalize_peptide_count(data_matrix, id_dict, peptide_file, ignore_nonunique=True, initialize=np.nan):
+def normalize_peptide_count(data_matrix, id_dict, peptide_file, peptide_counts=False, ignore_nonunique=True, initialize=np.nan):
 
 	peptide_array = np.repeat(initialize, data_matrix.shape[0])
 
-	#kdrew: count all the peptides for all the ids in id_dict
 	peptide_dict = dict()
-	for line in peptide_file.readlines():
-		#kdrew: ignore non-unique peptides
-		if line.count('|') and ignore_nonunique:
-			#print "ignore line"
-			continue
+	if peptide_counts:
+		for line in peptide_file.readlines():
+			key = line.split()[1] 
+			count = int(line.split()[0])
+			print key, count
+			peptide_dict[key] = count
 
-		#print line
-		#kdrew: count all lines that have protein id in them
-		for key in id_dict.keys():
-			if key in line:
-				try:
-					peptide_dict[key] += 1
-				except KeyError:
-					peptide_dict[key] = 1
+	else:
+		#kdrew: count all the peptides for all the ids in id_dict
+		for line in peptide_file.readlines():
+			#kdrew: ignore non-unique peptides
+			if line.count('|') and ignore_nonunique:
+				#print "ignore line"
+				continue
 
-	print id_dict.keys()
-	print peptide_dict
+			#print line
+			#kdrew: count all lines that have protein id in them
+			for key in id_dict.keys():
+				if key in line:
+					try:
+						peptide_dict[key] += 1
+					except KeyError:
+						peptide_dict[key] = 1
+
+	#print id_dict.keys()
+	#print peptide_dict
 
 	#kdrew: 
 	for key in peptide_dict.keys():
