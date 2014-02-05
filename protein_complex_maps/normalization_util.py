@@ -113,3 +113,54 @@ def normalize_length(data_matrix, id_dict, initialize=np.nan):
 	return data_matrix.T
 
 	
+def normalize_peptide_count(data_matrix, id_dict, peptide_file, peptide_counts=False, ignore_nonunique=True, initialize=np.nan):
+
+	peptide_array = np.repeat(initialize, data_matrix.shape[0])
+
+	peptide_dict = dict()
+	if peptide_counts:
+		for line in peptide_file.readlines():
+			key = line.split()[1] 
+			count = int(line.split()[0])
+			print key, count
+			peptide_dict[key] = count
+
+	else:
+		#kdrew: count all the peptides for all the ids in id_dict
+		for line in peptide_file.readlines():
+			#kdrew: ignore non-unique peptides
+			if line.count('|') and ignore_nonunique:
+				#print "ignore line"
+				continue
+
+			#print line
+			#kdrew: count all lines that have protein id in them
+			for key in id_dict.keys():
+				if key in line:
+					try:
+						peptide_dict[key] += 1
+					except KeyError:
+						peptide_dict[key] = 1
+
+	#print id_dict.keys()
+	#print peptide_dict
+
+	#kdrew: 
+	for key in peptide_dict.keys():
+		try:
+			#kdrew: assert (already been tallied and new tally equals old)
+			assert (peptide_array[id_dict[key]] != initialize and peptide_array[id_dict[key]] != peptide_dict[key]), "Warning: duplicate peptide count entries do not equal"
+			peptide_array[id_dict[key]] = peptide_dict[key]
+		except KeyError:
+			continue
+
+	#kdrew: transpose to do division
+	data_matrix = data_matrix.T/peptide_array
+
+	print data_matrix.T
+	#kdrew: "retranspose" to get data matrix back into form
+	return data_matrix.T
+		
+
+
+

@@ -9,48 +9,112 @@ import itertools as it
 import cPickle 
 import operator
 import ast
+import argparse
 
 import protein_complex_maps.protein_util as pu
 
+def main():
+	parser = argparse.ArgumentParser(description="Tool to analyze pdb stoichometry benchmark results")
+	parser.add_argument("--results_pickle", action="store", dest="results_filename", required=True, 
+						help="Filename of compute_benchmark_probs pickle")
+	parser.add_argument("--results_pickle2", action="store", dest="results_filename2", required=False, default=None, 
+						help="Filename of compute_benchmark_probs pickle for comparison")
+	parser.add_argument("--input_benchmark_pickle", action="store", dest="benchmark_filename", required=True, 
+						help="Filename of pdb benchmark pickle")
+	parser.add_argument("--data_threshold", action="store", dest="data_threshold", type=int, required=False, default=10,
+						help="Only consider scores with data points above threshold")
+	parser.add_argument("--plot_filename", action="store", dest="plot_filename", required=False, default=None, 
+						help="Filename of results plot")
 
-#kdrew: pickle comes from running protein_complex_maps.stoichiometry.benchmark.build_pdb_benchmark.py
-mscpdbs = cPickle.load(open("/home/kdrew/scripts/protein_complex_maps/protein_complex_maps/stoichiometry/benchmark/ms_complete_pdbs.p", "rb"))
+	args = parser.parse_args()
 
-#kdrew: pickle comes from protein_complex_maps.stoichiometry.benchmark.compute_benchmark_probs.py
-#mscpdbs_results = cPickle.load(open("/home/kdrew/scripts/protein_complex_maps/protein_complex_maps/stoichiometry/benchmark/HS_ms2_elutions_msds_ms_complete_pdbs_results.p", "rb"))
 
-mscpdbs_results = cPickle.load(open("/home/kdrew/scripts/protein_complex_maps/protein_complex_maps/stoichiometry/benchmark/HS_ms2_elutions_msds_lenNormal_mean_ratio_true_ms_complete_pdbs_results.p", "rb"))
+	#kdrew: pickle comes from running protein_complex_maps.stoichiometry.benchmark.build_pdb_benchmark.py
+	#mscpdbs = cPickle.load(open("/home/kdrew/scripts/protein_complex_maps/protein_complex_maps/stoichiometry/benchmark/ms_complete_pdbs.p", "rb"))
+	mscpdbs = cPickle.load(open(args.benchmark_filename, "rb"))
 
-mscpdbs_noData_results = cPickle.load(open("/home/kdrew/scripts/protein_complex_maps/protein_complex_maps/stoichiometry/benchmark/HS_ms2_elutions_msds_lenNormal_noData_ms_complete_pdbs_results.p", "rb"))
+	#kdrew: pickle comes from protein_complex_maps.stoichiometry.benchmark.compute_benchmark_probs.py
+	#mscpdbs_results = cPickle.load(open("/home/kdrew/scripts/protein_complex_maps/protein_complex_maps/stoichiometry/benchmark/HS_ms2_elutions_msds_ms_complete_pdbs_results.p", "rb"))
+	#mscpdbs_results = cPickle.load(open("/home/kdrew/scripts/protein_complex_maps/protein_complex_maps/stoichiometry/benchmark/HS_ms2_elutions_msds_lenNormal_mean_ratio_true_ms_complete_pdbs_results.p", "rb"))
+	mscpdbs_results = cPickle.load(open(args.results_filename, "rb"))
 
-#plot_filename = "./HS_ms2_elutions_msds_lenNormal_noData_ms_complete_pdbs_results.pdf"
-plot_filename = "./HS_ms2_elutions_msds_lenNormal_mean_ratio_true_ms_complete_pdbs_results.pdf"
-fig = plt.figure()
-ax1 = fig.add_subplot(111)
+	results = [mscpdbs_results]
 
+	#print mscpdbs_results
+	#print mscpdbs
+
+	#plot_filename = "./HS_ms2_elutions_msds_lenNormal_noData_ms_complete_pdbs_results.pdf"
+	#plot_filename = "./HS_ms2_elutions_msds_lenNormal_mean_ratio_true_ms_complete_pdbs_results.pdf"
+	fig = plt.figure()
+	ax1 = fig.add_subplot(111)
+
+	score, top_ten, top_one, count, top_rank_list = analyze( mscpdbs_results, mscpdbs, args )
+
+	ind = np.arange(len(top_rank_list))
+	width = 0.35
+
+	if args.results_filename2 != None:
+		mscpdbs_results2 = cPickle.load(open(args.results_filename2, "rb"))
+		score2, top_ten2, top_one2, count2, top_rank_list2 = analyze( mscpdbs_results2, mscpdbs, args )
+		results.append(mscpdbs_results2)
+		ax1.bar(ind+width, top_rank_list2, color='b', alpha=0.5)
+
+	if args.plot_filename != None:
+
+		#kdrew: this plots the top rank (prediction) of each pdb in benchmark
+		ax1.bar(ind+width, top_rank_list, color='g', alpha=0.5)
+		ax1.set_xticks(ind+width)
+		ax1.set_xticklabels( ind, rotation=90, fontsize=6 )
+		#plt.title("HS_ms2_elutions_msds_lenNormal_mean_ratio_true_ms_complete_pdbs_results")
+
+		plt.savefig(args.plot_filename)
+
+			
+	print "score: %s" % (score,)
+	print "top_ten: %s" % (top_ten,)
+	print "top_one: %s" % (top_one,)
+	print "count: %s" % (count,)
+
+	if args.results_filename2 != None:
+		print "score2: %s" % (score2,)
+		print "top_ten2: %s" % (top_ten2,)
+		print "top_one2: %s" % (top_one2,)
+		print "count2: %s" % (count2,)
+
+
+		i = 0
+		for pdb_id in mscpdbs_results:
+			if mscpdbs_results[pdb_id][1] > args.data_threshold:
+				print "id: %s, 2: %s, meanRatio: %s, %s" % (pdb_id, top_rank_list2[i], top_rank_list[i], top_rank_list2[i] > top_rank_list[i])
+				i+=1
 
 #print mscpdbs_results
 #print mscpdbs
 
-def analyze( results ):
+def analyze( results, mscpdbs, args ):
 	top_rank_list = []
+
 	score = 0
 	top_ten = 0
 	top_one = 0
 	count = 0
+
 	for pdb_id in results:
 		sorted_results = sorted(results[pdb_id][0].iteritems(), key=operator.itemgetter(1))
 		sorted_results.reverse()
-		if results[pdb_id][1] > 10:
+		if results[pdb_id][1] > args.data_threshold:
+
 			count += 1
 			print pdb_id
 			print "true: %s" % (mscpdbs[pdb_id],)
 			print "lengths: %s" % (pu.get_length_uniprot( mscpdbs[pdb_id].keys() ))
+
 			print "data_points: %s" % (results[pdb_id][1],)
 			print "mapping: %s" % (results[pdb_id][2],)
 			true_map = {}
 			for chain in results[pdb_id][2]:
 				true_map[chain] = mscpdbs[pdb_id][results[pdb_id][2][chain]]
+			
 			print "true_map: %s" % (true_map,)
 			top_rank = None
 			for rank, pred in enumerate(sorted_results):
@@ -79,28 +143,8 @@ def analyze( results ):
 
 	return (score, top_ten, top_one, count, top_rank_list)
 
-score, top_ten, top_one, count, top_rank_list = analyze( mscpdbs_results )
-scoreND, top_tenND, top_oneND, countND, top_rank_listND = analyze( mscpdbs_noData_results )
-		
-print "score: %s" % (score,)
-print "top_ten: %s" % (top_ten,)
-print "top_one: %s" % (top_one,)
-print "count: %s" % (count,)
-
-print "scoreND: %s" % (scoreND,)
-print "top_tenND: %s" % (top_tenND,)
-print "top_oneND: %s" % (top_oneND,)
-print "countND: %s" % (countND,)
 
 
-ind = np.arange(len(top_rank_list))
-width = 0.35
-#kdrew: this plots the top rank (prediction) of each pdb in benchmark
-ax1.bar(ind+width, top_rank_listND, color='b', alpha=0.5)
-ax1.bar(ind+width, top_rank_list, color='g', alpha=0.5)
-ax1.set_xticks(ind+width)
-ax1.set_xticklabels( ind, rotation=90, fontsize=6 )
-plt.title("HS_ms2_elutions_msds_lenNormal_mean_ratio_true_ms_complete_pdbs_results")
-
-plt.savefig(plot_filename)
+if __name__ == "__main__":
+	main()
 
