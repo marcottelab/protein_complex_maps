@@ -55,8 +55,9 @@ class ReadDataTest(unittest.TestCase):
 		prot_ids['B'] = "Q9UBI1"
 
 		#kdrew: un-normalized length
-		lp = rs.relative_stoichiometry_probability(stoichiometry, prior, self.msds, prot_ids)
-		np.testing.assert_almost_equal( lp, (-5.30850095496,4) )
+		lp = rs.relative_stoichiometry_probability(stoichiometry, prior, self.msds, prot_ids, mean_ratio=False, median_ratio=False, set_std=False)
+		np.testing.assert_almost_equal( lp[0], -5.30850095496 )
+		np.testing.assert_almost_equal( lp[1], 4 )
 
 	def testRelativeStoichiometryProbability2(self,):
 
@@ -74,8 +75,10 @@ class ReadDataTest(unittest.TestCase):
 		dm = nu.normalize_length( self.msds.get_data_matrix(), self.msds.get_id_dict() )
 		self.msds.set_data_matrix(dm)
 
-		lp = rs.relative_stoichiometry_probability(stoichiometry, prior, self.msds, prot_ids )
-		np.testing.assert_almost_equal( lp, (-5.30818667031,4) )
+		lp = rs.relative_stoichiometry_probability(stoichiometry, prior, self.msds, prot_ids, mean_ratio=False,median_ratio=False,set_std=False)
+		np.testing.assert_almost_equal( lp[0], -5.30818667031 )
+		np.testing.assert_almost_equal( lp[1], 4 )
+
 
 	def testRelativeStoichiometry(self,):
 		print "relative_stoichiometry"
