@@ -26,9 +26,9 @@ def calculate_ratio(msds, protein_id1, protein_id2, log_transform=True):
 	#kdrew: take ratio of matrix values between protein ids
 	ratio_list = []
 	for a1, a2 in zip(array1, array2):
-		#print a1, a2
+		print a1, a2
 		if a1 > 0.0 and a2 > 0.0:
-			#print a1/a2
+			print "a1 and a2 > 0.0, ratio: %s" % (a1/a2,)
 			ratio_list.append(a1/a2)
 
 	if log_transform:
@@ -57,8 +57,8 @@ def calculate_ratio(msds, protein_id1, protein_id2, log_transform=True):
 #prot_ids['B'] = "uniprot_id2"
 #prot_ids['C'] = "uniprot_id3"
 
-def relative_stoichiometry_probability( stoichiometry, prior, msds, prot_ids, scale=1.0, mean_ratio=True ):
-	num_data_points = 0
+def relative_stoichiometry_probability( stoichiometry, prior, msds, prot_ids, scale=1.0, mean_ratio=False, median_ratio=True, set_std=False, no_data=False):
+	num_data_points = []
 	log_probability = np.log(prior)
 	#print "prior log_probability: %s" % (log_probability,)
 	#kdrew: for all combinations of pairs (ex. (A,B), (A,C), (B,C))
@@ -69,23 +69,33 @@ def relative_stoichiometry_probability( stoichiometry, prior, msds, prot_ids, sc
 
 		ratios = calculate_ratio( msds, prot_ids[pair[0]], prot_ids[pair[1]] )
 		print "number of data points between %s and %s : %s" % (prot_ids[pair[0]], prot_ids[pair[1]], len(ratios), )
-		num_data_points += len(ratios)
-		if mean_ratio:
+		num_data_points.append(len(ratios))
+
+		if no_data:
+			continue
+
+		if set_std:
 			#kdrew: set scale to be the ratio's standard deviation
 			pair_norm = norm(loc=pair_logratio, scale=ratios.std())
+
+		if mean_ratio:
 			log_probability = log_probability + np.log(pair_norm.pdf(ratios.mean()))
+		elif median_ratio:
+			log_probability = log_probability + np.log(pair_norm.pdf(np.median(ratios)))
 		else:
 			for r in ratios:
 				#print "r: %s : %s : %s" % (r,pair_norm.pdf(r), np.log(pair_norm.pdf(r)),)
 				log_probability = log_probability + np.log(pair_norm.pdf(r))
 				#print "updated log_probability: %s" % (log_probability,)
 
+		print "mean: %s median: %s mean_pdf: %s median_pdf: %s" % (ratios.mean(), np.median(ratios), pair_norm.pdf(ratios.mean()), pair_norm.pdf(np.median(ratios)))
+		print "ratios: %s" % (ratios,)
 	#print stoichiometry, log_probability
 	return log_probability, num_data_points
 
 
 
-def relative_stoichiometry( msds, ids, stoichiometries ):
+def relative_stoichiometry( msds, ids, stoichiometries, prior_type="uniform" ):
 	numOfProteins = len(ids)
 
 	stoichiometries_slim = stoichiometries.slim(numOfProteins)
@@ -103,10 +113,16 @@ def relative_stoichiometry( msds, ids, stoichiometries ):
 	print "prot_ids: %s" % (prot_ids,)
 
 	for stoich in stoichiometries_slim:
-		#kdrew: prior is relative to all the other stoichiometries of size numOfProteins (set above)
-		prior = stoich.count / stoichiometries_slim.total_count()
-		print "stoich: %s prior: %s" % (stoich, prior,)
+		prior = None
+
+		if prior_type == "pdb":
+			#kdrew: prior is relative to all the other stoichiometries of size numOfProteins (set above)
+			prior = stoich.count / stoichiometries_slim.total_count()
+		elif prior_type == "uniform":
+			prior = 1.0/len(stoichiometries_slim)
+
 		log_prob, num_data_points  = relative_stoichiometry_probability( stoich, prior, msds, prot_ids ) 
+		print "stoich: %s prior: %s log_prob: %s" % (stoich, prior, log_prob)
 		results[stoich.__str__()] = log_prob
 	
 	return results, num_data_points, prot_ids
