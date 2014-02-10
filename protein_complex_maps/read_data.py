@@ -47,6 +47,19 @@ class MSDataSet(object):
 
 	#def get_data_matrix( self, names=None, remove_zero=False ):
 
+	#kdrew: get submatrix based on protein identifiers
+	def get_subdata_matrix( self, ids):
+		matrix = self.get_data_matrix()
+		id_indices = []
+		new_map = dict()
+		for i,i_d in enumerate(ids):
+			id_indices.append(self.__id_dict[i_d])
+			new_map[i] = i_d
+
+
+		return matrix[np.ix_(id_indices, range(0,matrix.shape[1]))], new_map
+		
+
 	def get_data_matrix( self, remove_zero=False ):
 		#print "get_data_matrix"
 		#print self.__master_data_matrix
