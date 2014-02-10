@@ -18,6 +18,8 @@ def main():
 						help="Filename of MSDS pickle")
 	parser.add_argument("--input_benchmark_pickle", action="store", dest="benchmark_filename", required=True, 
 						help="Filename of pdb benchmark pickle")
+	parser.add_argument("--pdb_ids", action="store", dest="pdb_ids", required=False, nargs='+', default=None,
+						help="List of pdbs in benchmark to compute")
 	parser.add_argument("--stoichiometry_filename", action="store", dest="stoichiometry_filename", required=True, 
 						help="Filename of stoichiometries from pdb website (slightly massaged)")
 	parser.add_argument("--output_filename", action="store", dest="output_filename", required=True, 
@@ -43,8 +45,11 @@ def main():
 	msds_id_dict = msds.get_id_dict()
 	msds_id_set = set(msds_id_dict.keys())
 	results_dict = dict()
+
+	if args.pdb_ids == None:
+		args.pdb_ids = ms_complete_pdbs.keys()
 	#kdrew: for every benchmark complex, call relative stoichiometry
-	for pdb_id in ms_complete_pdbs:
+	for pdb_id in args.pdb_ids:
 		print pdb_id
 		prot_ids = ms_complete_pdbs[pdb_id].keys()
 		if msds_id_set >= set(prot_ids):
