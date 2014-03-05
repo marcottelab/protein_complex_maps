@@ -24,6 +24,8 @@ def main():
 						help="Filename of stoichiometries from pdb website (slightly massaged)")
 	parser.add_argument("--output_filename", action="store", dest="output_filename", required=True, 
 						help="Filename of output pickle")
+	parser.add_argument("--prior_type", action="store", dest="prior_type", required=False, default="uniform",
+						help="Type of prior to use for calculation, [uniform, pdb]")
 
 	args = parser.parse_args()
 
@@ -54,7 +56,7 @@ def main():
 		prot_ids = ms_complete_pdbs[pdb_id].keys()
 		if msds_id_set >= set(prot_ids):
 			print "benchmark ids are in msds"
-			results, num_dpts, prot_ids_map = rs.relative_stoichiometry( msds, prot_ids, s_set )
+			results, num_dpts, prot_ids_map = rs.relative_stoichiometry( msds, prot_ids, s_set, prior_type=args.prior_type )
 			print results
 			results_dict[pdb_id] = (results, num_dpts, prot_ids_map)
 		else:
