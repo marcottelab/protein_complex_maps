@@ -7,6 +7,8 @@ import itertools as it
 from scipy.stats import norm
 import protein_complex_maps.stoichiometry.stoichiometry as st
 
+from sklearn import mixture
+
 
 #kdrew: function for calculating the ratio of matrix values between two proteins to determine relative stoichiometry
 #kdrew: normalized by protein length, takes in uniprot ids
@@ -58,6 +60,7 @@ def calculate_ratio(msds, protein_id1, protein_id2, log_transform=True):
 #prot_ids['C'] = "uniprot_id3"
 
 def relative_stoichiometry_probability( stoichiometry, prior, msds, prot_ids, scale=1.0, mean_ratio=False, median_ratio=True, set_std=False, no_data=False):
+	single_class_flag = True
 	num_data_points = []
 	log_probability = np.log(prior)
 	#print "prior log_probability: %s" % (log_probability,)
@@ -71,8 +74,21 @@ def relative_stoichiometry_probability( stoichiometry, prior, msds, prot_ids, sc
 		print "number of data points between %s and %s : %s" % (prot_ids[pair[0]], prot_ids[pair[1]], len(ratios), )
 		num_data_points.append(len(ratios))
 
+
 		if no_data:
 			continue
+
+
+		clf = mixture.DPGMM(n_components=5, cvtype='diag')
+		X = np.array([[x,] for x in ratios])
+		print X
+		if len(X) > 5:
+			clf.fit(X)
+			Y = clf.predict(X)
+			numOfClasses = len(set(Y))
+			print "numOfClasses: %s converged? %s" % (numOfClasses, clf.converged_,)
+			if numOfClasses > 1 or not clf.converged_:
+				single_class_flag = False
 
 		if set_std:
 			#kdrew: set scale to be the ratio's standard deviation
@@ -91,7 +107,7 @@ def relative_stoichiometry_probability( stoichiometry, prior, msds, prot_ids, sc
 		print "mean: %s median: %s mean_pdf: %s median_pdf: %s" % (ratios.mean(), np.median(ratios), pair_norm.pdf(ratios.mean()), pair_norm.pdf(np.median(ratios)))
 		print "ratios: %s" % (ratios,)
 	#print stoichiometry, log_probability
-	return log_probability, num_data_points
+	return log_probability, num_data_points, single_class_flag
 
 
 
@@ -121,7 +137,8 @@ def relative_stoichiometry( msds, ids, stoichiometries, prior_type="uniform" ):
 		elif prior_type == "uniform":
 			prior = 1.0/len(stoichiometries_slim)
 
-		log_prob, num_data_points  = relative_stoichiometry_probability( stoich, prior, msds, prot_ids ) 
+		#kdrew: single class flag is set FALSE when GMM returns multiple classes
+		log_prob, num_data_points, single_class_flag  = relative_stoichiometry_probability( stoich, prior, msds, prot_ids ) 
 		print "stoich: %s prior: %s log_prob: %s" % (stoich, prior, log_prob)
 		results[stoich.__str__()] = log_prob
 	
