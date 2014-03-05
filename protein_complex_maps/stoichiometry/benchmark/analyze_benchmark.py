@@ -57,7 +57,10 @@ def main():
 	fig = plt.figure()
 	ax1 = fig.add_subplot(111)
 
-	score, top_ten, top_one, count, top_rank_list = analyze( mscpdbs_results, mscpdbs, args )
+	score, top_ten, top_one, count, top_rank_list, results_list, pdb_list = analyze( mscpdbs_results, mscpdbs, args )
+	for result in results_list:
+		print "%s\t%s" % (result[0], result[1])
+
  	top_rank_list = zip(*top_rank_list)[0]
 
 	ind = np.arange(len(top_rank_list))
@@ -65,7 +68,10 @@ def main():
 
 	if args.results_filename2 != None:
 		mscpdbs_results2 = cPickle.load(open(args.results_filename2, "rb"))
-		score2, top_ten2, top_one2, count2, top_rank_list2 = analyze( mscpdbs_results2, mscpdbs, args, randomize=args.randomize, trials=args.trials )
+		score2, top_ten2, top_one2, count2, top_rank_list2, results_list2, pdb_list2 = analyze( mscpdbs_results2, mscpdbs, args, randomize=args.randomize, trials=args.trials )
+
+		assert(pdb_list == pdb_list2)
+
 		results.append(mscpdbs_results2)
 		if args.trials > 1:     
 			trial_means = []
@@ -75,9 +81,10 @@ def main():
 				trial_std.append(np.array(i).std())
 		
 			if args.sort_mean:
-				trial_means, trial_std, top_rank_list = zip(*sorted(zip(trial_means, trial_std, top_rank_list)))
+				trial_means, trial_std, top_rank_list, pdb_list = zip(*sorted(zip(trial_means, trial_std, top_rank_list, pdb_list)))
 			if args.sort_rank:
-				top_rank_list, trial_means, trial_std = zip(*sorted(zip(top_rank_list, trial_means, trial_std)))
+				top_rank_list, trial_means, trial_std, pdb_list = zip(*sorted(zip(top_rank_list, trial_means, trial_std, pdb_list)))
+
 
 			
 			#ax1.errorbar(ind+width, trial_means, yerr=trial_std, fmt='o', color='b', alpha=0.5, ms=2)
@@ -89,13 +96,23 @@ def main():
 			top_rank_list2 = zip(*top_rank_list2)[0]
 			ax1.plot(ind+width, top_rank_list2, 'o', color='b', alpha=0.5, ms=2)
 
+			for result in results_list2:
+				print "%s\t%s" % (result[0], result[1])
+
+
 	if args.plot_filename != None:
+
 
 		#kdrew: this plots the top rank (prediction) of each pdb in benchmark
 		ax1.plot(ind+width, top_rank_list, '-o', color='g', alpha=0.5, ms=2)
 		ax1.set_xticks(ind+width)
-		ax1.set_xticklabels( ind, rotation=90, fontsize=6 )
+		stoich_list = [mscpdbs[x].values() for x in pdb_list]
+		#ax1.set_xticklabels( ind, rotation=90, fontsize=6 )
+		ax1.set_xticklabels( stoich_list, rotation=90, fontsize=4 )
 		#plt.title("HS_ms2_elutions_msds_lenNormal_mean_ratio_true_ms_complete_pdbs_results")
+
+		ylim = plt.ylim()
+		plt.ylim((-3, ylim[1]))
 
 		plt.savefig(args.plot_filename)
 
@@ -113,9 +130,10 @@ def main():
 
 
 		i = 0
-		for pdb_id in mscpdbs_results:
+		for pdb_id in pdb_list:
 			if min(mscpdbs_results[pdb_id][1]) > args.data_threshold:
-				print "id: %s, Rank2: %s, Rank1: %s, %s" % (pdb_id, np.array(top_rank_list2[i]).mean(), top_rank_list[i], np.array(top_rank_list2[i]).mean() > top_rank_list[i])
+				#print "id: %s, Rank2: %s, Rank1: %s, %s" % (pdb_id, np.array(top_rank_list2[i]).mean(), top_rank_list[i], np.array(top_rank_list2[i]).mean() > top_rank_list[i])
+				print "id: %s, Rank2: %s, Rank1: %s, TrueStoich: %s " % (pdb_id, trial_means[i], top_rank_list[i], mscpdbs[pdb_id])
 				i+=1
 
 
@@ -126,7 +144,9 @@ def main():
 #print mscpdbs
 
 def analyze( results, mscpdbs, args, randomize=False, trials=1):
+	results_list = []
 	top_rank_list = []
+	pdb_list = []
 
 	score_list = []
 	top_ten_list = []
@@ -155,7 +175,7 @@ def analyze( results, mscpdbs, args, randomize=False, trials=1):
 				count += 1
 				print pdb_id
 				print "true: %s" % (mscpdbs[pdb_id],)
-				print "lengths: %s" % (pu.get_length_uniprot( mscpdbs[pdb_id].keys() ))
+				#print "lengths: %s" % (pu.get_length_uniprot( mscpdbs[pdb_id].keys() ))
 
 				print "data_points: %s" % (results[pdb_id][1],)
 				print "mapping: %s" % (results[pdb_id][2],)
@@ -167,8 +187,10 @@ def analyze( results, mscpdbs, args, randomize=False, trials=1):
 				top_rank = None
 				for rank, pred in enumerate(sorted_results):
 					stoich = ast.literal_eval(pred[0])
-					if rank < 10:
-						print "rank: %s, stoich: %s, score: %s" % (rank, stoich, pred[1])
+
+					#if rank < 10:
+					print "rank: %s, stoich: %s, score: %s" % (rank, stoich, pred[1])
+
 					matched_all = True
 					for comb in it.combinations(stoich.keys(),2):
 						true_ratio = 1.0*true_map[comb[0]]/true_map[comb[1]]
@@ -179,6 +201,9 @@ def analyze( results, mscpdbs, args, randomize=False, trials=1):
 					#print "match?: %s" % (matched_all,)
 					if matched_all and top_rank == None:
 						top_rank  = rank
+						results_list.append((1, rank))
+					else:
+						results_list.append((-1, rank))
 
 				print "top_rank: %s" % (top_rank,)
 				score += top_rank
@@ -188,6 +213,9 @@ def analyze( results, mscpdbs, args, randomize=False, trials=1):
 					top_one += 1
 
 				tmp_top_rank_list.append(top_rank)
+
+				if i < 1:
+					pdb_list.append(pdb_id)
 
 		if len(top_rank_list) == 0:
 			#top_rank_list = tmp_top_rank_list
@@ -209,7 +237,7 @@ def analyze( results, mscpdbs, args, randomize=False, trials=1):
 	#	count = 1.0*count/trials
 	#else:
 
-	return (score_list, top_ten_list, top_one_list, count_list, top_rank_list)
+	return (score_list, top_ten_list, top_one_list, count_list, top_rank_list, results_list, pdb_list)
 
 
 
