@@ -50,9 +50,12 @@ def main():
 	for prot_ids in complex_list:
 		if msds_id_set >= set(prot_ids):
 			print "complex ids are in msds"
-			results, num_dpts, prot_ids_map = rs.relative_stoichiometry( msds, prot_ids, s_set, prior_type=args.prior_type )
+			results, num_dpts, prot_ids_map, single_class_flag = rs.relative_stoichiometry( msds, prot_ids, s_set, prior_type=args.prior_type )
 			print results
-			results_dict[prot_ids.__str__()] = (results, num_dpts, prot_ids_map)
+			if single_class_flag:
+				results_dict[prot_ids.__str__()] = (results, num_dpts, prot_ids_map)
+			else:
+				print "GMM did not converge to single class on all cases, single_class_flag == False"
 		else:
 			print "complex ids are NOT in msds"
 

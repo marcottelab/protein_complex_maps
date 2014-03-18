@@ -88,6 +88,7 @@ def relative_stoichiometry_probability( stoichiometry, prior, msds, prot_ids, sc
 			numOfClasses = len(set(Y))
 			print "numOfClasses: %s converged? %s" % (numOfClasses, clf.converged_,)
 			if numOfClasses > 1 or not clf.converged_:
+				print "more than 1 class or not converged, setting single_class_flag = false"
 				single_class_flag = False
 
 		if set_std:
@@ -111,9 +112,16 @@ def relative_stoichiometry_probability( stoichiometry, prior, msds, prot_ids, sc
 
 
 
+#kdrew: function to calculate the llr of a set of proteins for a set of stoichiometries
+#kdrew: msds = mass spec data set (see read_data.py)
+#kdrew: ids = protein ids in complex
+#kdrew: stoichiometries = list of stoichiometries 
+#kdrew: prior_type = uniform or pdb
 def relative_stoichiometry( msds, ids, stoichiometries, prior_type="uniform" ):
 	numOfProteins = len(ids)
 
+	#kdrew: slim down the set of stoichiometries to the size of complex,
+	#kdrew: no need to calculate llr of 3 subunits when we only have 2 proteins
 	stoichiometries_slim = stoichiometries.slim(numOfProteins)
 
 	#print "******"
@@ -128,6 +136,9 @@ def relative_stoichiometry( msds, ids, stoichiometries, prior_type="uniform" ):
 		prot_ids[key] = ids[i]
 	print "prot_ids: %s" % (prot_ids,)
 
+	
+	single_class_flag_global = True
+
 	for stoich in stoichiometries_slim:
 		prior = None
 
@@ -141,8 +152,13 @@ def relative_stoichiometry( msds, ids, stoichiometries, prior_type="uniform" ):
 		log_prob, num_data_points, single_class_flag  = relative_stoichiometry_probability( stoich, prior, msds, prot_ids ) 
 		print "stoich: %s prior: %s log_prob: %s" % (stoich, prior, log_prob)
 		results[stoich.__str__()] = log_prob
+
+		#kdrew: if any calculation comes back that did not converge to a single class according to GMM, flag globally
+		if not single_class_flag:
+			print "setting single_class_flag_global to False"
+			single_class_flag_global = False
 	
-	return results, num_data_points, prot_ids
+	return results, num_data_points, prot_ids, single_class_flag_global
 
 
 

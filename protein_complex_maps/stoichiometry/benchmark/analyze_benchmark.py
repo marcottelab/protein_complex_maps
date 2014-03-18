@@ -70,7 +70,7 @@ def main():
 		mscpdbs_results2 = cPickle.load(open(args.results_filename2, "rb"))
 		score2, top_ten2, top_one2, count2, top_rank_list2, results_list2, pdb_list2 = analyze( mscpdbs_results2, mscpdbs, args, randomize=args.randomize, trials=args.trials )
 
-		assert(pdb_list == pdb_list2)
+		assert(len(pdb_list) == len(pdb_list2))
 
 		results.append(mscpdbs_results2)
 		if args.trials > 1:     
