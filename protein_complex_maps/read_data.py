@@ -45,20 +45,42 @@ class MSDataSet(object):
 	def get_id_dict( self ):
 		return self.__id_dict
 
+	def set_id_dict( self, id_dict ):
+		self.__id_dict = id_dict
+
 	#def get_data_matrix( self, names=None, remove_zero=False ):
 
 	#kdrew: get submatrix based on protein identifiers
-	def get_subdata_matrix( self, ids):
+	def get_subdata_matrix( self, ids, ignoreNonExistingIds=False):
 		matrix = self.get_data_matrix()
 		id_indices = []
 		new_map = dict()
 		for i,i_d in enumerate(ids):
-			id_indices.append(self.__id_dict[i_d])
-			new_map[i] = i_d
+			#print i, i_d
+			try:
+				index1 = self.__id_dict[i_d]
+				if index1 not in id_indices:
+					id_indices.append(index1)
+					new_map[i] = i_d
+			except KeyError:
+				if ignoreNonExistingIds:
+					print "get_subdata_matrix ignoring: %s" % (i_d,)
+					continue
+				else:
+					raise
 
 
-		return matrix[np.ix_(id_indices, range(0,matrix.shape[1]))], new_map
+		#print "id_indices: %s mat_shape: %s" % (id_indices, matrix.shape[1], )
+		assert matrix.shape[1] > 0, "no columns in matrix" 
+		if len(id_indices) > 0:
+			#kdrew: set ensures no duplicates, but I lose mapping
+			return matrix[np.ix_(id_indices, range(0,matrix.shape[1]))], new_map
+		else:
+			return None, None
 		
+	def get_name2index( self, ):
+		return {v:k for k, v in self.__id_dict.items()}
+
 
 	def get_data_matrix( self, remove_zero=False ):
 		#print "get_data_matrix"
