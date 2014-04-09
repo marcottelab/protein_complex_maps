@@ -20,26 +20,39 @@ def main():
 						help="Filename of output plot")
 	parser.add_argument("--total_occupancy", action="store_true", dest="total_occupancy", required=False, default=False,
 						help="Flag to only plot columns where every gene has greater than zero counts")
+	parser.add_argument("--fraction_range", action="store", dest="fraction_range", nargs='+', required=False, 
+						help="Sets the range of fractions to plot")
 
 	args = parser.parse_args()
 
 	#kdrew: pickle comes from running protein_complex_maps.util.read_ms_elutions_pickle_MSDS.py
 	msds = pickle.load( open( args.msds_filename, "rb" ) )
 
-	plot_profile(msds, args.proteins, total_occupancy=args.total_occupancy, savefilename=args.plot_filename)
+	if args.fraction_range:
+		frange = [int(x) for x in args.fraction_range]
+	else:
+		frange = None
 
-def plot_profile(msds, protein_ids, total_occupancy=False, ylim_max=False, savefilename=None):
+	plot_profile(msds, args.proteins, total_occupancy=args.total_occupancy, savefilename=args.plot_filename, fraction_range=frange)
+
+def plot_profile(msds, protein_ids, total_occupancy=False, ylim_max=False, savefilename=None, fraction_range = None):
 	data_subplots = []
 	data_set, new_id_map = msds.get_subdata_matrix(protein_ids) 
 
-	#kdrew: only look at columns that have all genes with values
+	if fraction_range != None:
+		print fraction_range
+		#data_set = data_set[np.ix_(range(0,data_set.shape[0]), range(fraction_range[0], fraction_range[1]))]
+
+
+	#kdrew: only look at columns that have all genes with values, CAUTION: does not do this as implemented
+	#kdrew: just gets rid of zeros
 	if total_occupancy:
 		col_sum = np.sum(data_set,0)
 		shared_cols =  np.array(np.nonzero(col_sum)[1]).reshape(-1).tolist()
 		print shared_cols
 		data_set = data_set[np.ix_(range(0,data_set.shape[0]), shared_cols)]
 
-	print data_set
+	#print data_set
 
 	f, data_subplots = plt.subplots(len(data_set),1,sharex='col')
 
@@ -50,7 +63,7 @@ def plot_profile(msds, protein_ids, total_occupancy=False, ylim_max=False, savef
 
 		data_array_cols = np.array(data_row.reshape(-1))[0]
 
-		cols = set(range(0,len(data_array_cols)))
+		#cols = set(range(0,len(data_array_cols)))
 
 		data_subplots[i].bar(np.arange(len(data_array_cols)), map(float,data_array_cols), align='center', facecolor=barcolor, alpha=0.5 )
 
@@ -59,9 +72,15 @@ def plot_profile(msds, protein_ids, total_occupancy=False, ylim_max=False, savef
 		if ylim_max:
 			data_subplots[i].axes.set_ylim(0,max_value)
 
-		data_subplots[i].set_ylabel(new_id_map[i],rotation='horizontal', color=barcolor)
+		if fraction_range:
+			data_subplots[i].axes.set_xlim(fraction_range[0], fraction_range[1])
+
+		data_subplots[i].set_ylabel(new_id_map[i],rotation='horizontal', color=barcolor, fontsize=10)
+		#data_subplots[i].axes.set_yticks(data_subplots[i].axes.get_yticks()[0::5])
+		data_subplots[i].axes.set_yticks([])
 
 	if savefilename is None:
+		print "savefilename is None"
 		plt.show()
 	else:
 		plt.savefig(savefilename)
