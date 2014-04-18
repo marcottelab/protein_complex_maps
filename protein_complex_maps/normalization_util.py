@@ -3,6 +3,7 @@
 import numpy as np
 import math as m
 import protein_complex_maps.protein_util as pu
+import protein_complex_maps.peptide_util as ppu
 
 #kdrew: this function removes rows and columns that are all zero
 #kdrew: WARNING this removes rows and columns which will invalidate biclusters, only use prior to creating bicluster objects
@@ -117,40 +118,23 @@ def normalize_peptide_count(data_matrix, id_dict, peptide_file, peptide_counts=F
 
 	peptide_array = np.repeat(initialize, data_matrix.shape[0])
 
-	peptide_dict = dict()
 	if peptide_counts:
-		for line in peptide_file.readlines():
-			key = line.split()[1] 
-			count = int(line.split()[0])
-			print key, count
-			peptide_dict[key] = count
-
+		peptide_cnt_dict = ppu.read_peptide_counts(peptide_file)
 	else:
-		#kdrew: count all the peptides for all the ids in id_dict
-		for line in peptide_file.readlines():
-			#kdrew: ignore non-unique peptides
-			if line.count('|') and ignore_nonunique:
-				#print "ignore line"
-				continue
-
-			#print line
-			#kdrew: count all lines that have protein id in them
-			for key in id_dict.keys():
-				if key in line:
-					try:
-						peptide_dict[key] += 1
-					except KeyError:
-						peptide_dict[key] = 1
+		peptide_cnt_dict = dict()
+		peptide_dict = ppu.read_peptide_dict(peptide_file, id_dict.keys())
+		for key in peptide_dict:
+			peptide_cnt_dict[key] = len(peptide_dict[key])
 
 	#print id_dict.keys()
 	#print peptide_dict
 
 	#kdrew: 
-	for key in peptide_dict.keys():
+	for key in peptide_cnt_dict.keys():
 		try:
 			#kdrew: assert (already been tallied and new tally equals old)
-			assert (peptide_array[id_dict[key]] != initialize and peptide_array[id_dict[key]] != peptide_dict[key]), "Warning: duplicate peptide count entries do not equal"
-			peptide_array[id_dict[key]] = peptide_dict[key]
+			assert (peptide_array[id_dict[key]] != initialize and peptide_array[id_dict[key]] != peptide_cnt_dict[key]), "Warning: duplicate peptide count entries do not equal"
+			peptide_array[id_dict[key]] = peptide_cnt_dict[key]
 		except KeyError:
 			continue
 
@@ -161,6 +145,5 @@ def normalize_peptide_count(data_matrix, id_dict, peptide_file, peptide_counts=F
 	#kdrew: "retranspose" to get data matrix back into form
 	return data_matrix.T
 		
-
 
 
