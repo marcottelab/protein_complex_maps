@@ -13,8 +13,10 @@ class MSDataSet(object):
 		self.__master_data_matrix = None
 		#kdrew: holds original ids read from file and used to link other files read in, ordered by matrix rows
 		self.__master_name_list = None
+		self.__master_fraction_list = None
 		#kdrew: holds mapping of protein ids to matrix indices, includes ids from master_name_list
 		self.__id_dict = dict()
+		self.__frac_dict = dict()
 
 	def load_file( self, file_handle, header=False, normalize=False):
 		
@@ -27,10 +29,60 @@ class MSDataSet(object):
 		else:
 			self.__master_data_matrix, self.__master_name_list = concat_data_matrix( self.__master_data_matrix, self.__master_name_list, data_matrix1, name_list1)
 
+		self.update_id_dict()
+
+	def update_id_dict(self, reset=False):
+		if reset:
+			self.__id_dict = dict()
+			self.__frac_dict = dict()
 		#kdrew: updating id_dict with current name list
 		for i, name in enumerate(self.__master_name_list):
 			self.__id_dict[name] = i
 
+		if self.__master_fraction_list != None:
+			for i, frac in enumerate(self.__master_fraction_list):
+				self.__frac_dict[frac] = i
+
+	#kdrew: populate msds with peptide count dictionary
+	#kdrew: dictionary should be of the form protein->fraction->peptide->count
+	def create_by_peptide_counts( self, protein_counts ):
+		#kdrew: get a list of all proteins
+		protein_list = protein_counts.keys()
+
+		#kdrew: get a list of all fractions
+		fractions = set()
+		for prot in protein_list:
+			fractions = fractions.union(protein_counts[prot].keys())
+		fractions_list = list(fractions)
+		fractions_list.sort()
+		#print fractions_list
+
+		#kdrew: create data matrix size: proteins X fractions
+		dmat = np.matrix(np.zeros(shape=(len(protein_list),len(fractions_list))))
+
+		for i, prot in enumerate(protein_list):
+			for j, fraction in enumerate(fractions_list):
+				try:
+					 for peptide in protein_counts[prot][fraction]:
+						#kdrew: here is where normalization should be done
+						dmat[i,j] += protein_counts[prot][fraction][peptide]
+				except KeyError:
+					continue
+	
+		#print dmat
+
+		if self.__master_data_matrix == None:
+			self.__master_data_matrix = dmat
+			self.__master_name_list = protein_list
+			self.__master_fraction_list = fractions_list
+		else:
+			self.__master_data_matrix, self.__master_name_list = concat_data_matrix( self.__master_data_matrix, self.__master_name_list, data_matrix1, name_list1)
+			self.__master_fraction_list += fractions_list
+
+		self.update_id_dict()
+
+
+	#kdrew: adds mappings of protein ids to matrix indices
 	def map_ids( self, from_id, to_id):
 		#kdrew: map master_name_list from current db_id to db_id
 		#kdrew: update master_name_list and current db_id
@@ -42,8 +94,13 @@ class MSDataSet(object):
 		
 		#return self.__id_dict
 
+	#kdrew: dictionary of protein ids (keys) to matrix indices
 	def get_id_dict( self ):
 		return self.__id_dict
+
+	def get_fraction_dict( self ):
+		return self.__frac_dict
+
 
 	def set_id_dict( self, id_dict ):
 		self.__id_dict = id_dict
