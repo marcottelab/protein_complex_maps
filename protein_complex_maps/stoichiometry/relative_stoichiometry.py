@@ -19,8 +19,16 @@ def calculate_ratio(msds, protein_id1, protein_id2, log_transform=True):
 
 	matrix = msds.get_data_matrix()
 
-	array1 = np.array(matrix[msds.get_id_dict()[protein_id1]])[0]
-	array2 = np.array(matrix[msds.get_id_dict()[protein_id2]])[0]
+	try:
+		array1 = np.array(matrix[msds.get_id_dict()[protein_id1]])[0]
+	except KeyError:
+		print "Warning: missing id %s in msds" % (protein_id1)
+		return []
+	try:
+		array2 = np.array(matrix[msds.get_id_dict()[protein_id2]])[0]
+	except KeyError:
+		print "Warning: missing id %s in msds" % (protein_id2)
+		return []
 
 	#print array1
 	#print array2
@@ -28,7 +36,7 @@ def calculate_ratio(msds, protein_id1, protein_id2, log_transform=True):
 	#kdrew: take ratio of matrix values between protein ids
 	ratio_list = []
 	for a1, a2 in zip(array1, array2):
-		print a1, a2
+		#print a1, a2
 		if a1 > 0.0 and a2 > 0.0:
 			print "a1 and a2 > 0.0, ratio: %s" % (a1/a2,)
 			ratio_list.append(a1/a2)
@@ -59,7 +67,7 @@ def calculate_ratio(msds, protein_id1, protein_id2, log_transform=True):
 #prot_ids['B'] = "uniprot_id2"
 #prot_ids['C'] = "uniprot_id3"
 
-def relative_stoichiometry_probability( stoichiometry, prior, msds, prot_ids, scale=1.0, mean_ratio=False, median_ratio=True, set_std=False, no_data=False):
+def relative_stoichiometry_probability( stoichiometry, prior, msds, prot_ids, scale=1.0, mean_ratio=False, median_ratio=True, set_std=False, no_data=False, check_for_single_class=False):
 	single_class_flag = True
 	num_data_points = []
 	log_probability = np.log(prior)
@@ -79,17 +87,18 @@ def relative_stoichiometry_probability( stoichiometry, prior, msds, prot_ids, sc
 			continue
 
 
-		clf = mixture.DPGMM(n_components=5, cvtype='diag')
-		X = np.array([[x,] for x in ratios])
-		print X
-		if len(X) > 5:
-			clf.fit(X)
-			Y = clf.predict(X)
-			numOfClasses = len(set(Y))
-			print "numOfClasses: %s converged? %s" % (numOfClasses, clf.converged_,)
-			if numOfClasses > 1 or not clf.converged_:
-				print "more than 1 class or not converged, setting single_class_flag = false"
-				single_class_flag = False
+		if check_for_single_class:
+			clf = mixture.GMM(n_components=5)
+			X = np.array([[x,] for x in ratios])
+			print X
+			if len(X) > 5:
+				clf.fit(X)
+				Y = clf.predict(X)
+				numOfClasses = len(set(Y))
+				print "numOfClasses: %s converged? %s" % (numOfClasses, clf.converged_,)
+				if numOfClasses > 1 or not clf.converged_:
+					print "more than 1 class or not converged, setting single_class_flag = false"
+					single_class_flag = False
 
 		if set_std:
 			#kdrew: set scale to be the ratio's standard deviation
