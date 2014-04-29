@@ -36,7 +36,6 @@ def main():
 	plot_profile(msds, args.proteins, total_occupancy=args.total_occupancy, savefilename=args.plot_filename, fraction_range=frange)
 
 def plot_profile(msds, protein_ids, total_occupancy=False, ylim_max=False, savefilename=None, fraction_range = None):
-	data_subplots = []
 	data_set, new_id_map = msds.get_subdata_matrix(protein_ids) 
 
 	if fraction_range != None:
@@ -54,6 +53,11 @@ def plot_profile(msds, protein_ids, total_occupancy=False, ylim_max=False, savef
 
 	#print data_set
 
+	plot_profile_dataset(data_set, new_id_map, ylim_max, savefilename, fraction_range)
+
+def plot_profile_dataset(data_set, id_map, ylim_max=False, savefilename=None, fraction_range=None, x_highlight=(0,0), y_highlight=(0,0)):
+	data_subplots = []
+
 	f, data_subplots = plt.subplots(len(data_set),1,sharex='col')
 
 	max_value = np.max(data_set)
@@ -67,6 +71,11 @@ def plot_profile(msds, protein_ids, total_occupancy=False, ylim_max=False, savef
 
 		data_subplots[i].bar(np.arange(len(data_array_cols)), map(float,data_array_cols), align='center', facecolor=barcolor, alpha=0.5 )
 
+		data_subplots[i].axvspan(y_highlight[0], y_highlight[1], color='yellow', alpha=0.2)
+
+		if i in xrange(x_highlight[0], x_highlight[1]):
+			data_subplots[i].axvspan(0, len(data_array_cols), color='blue', alpha=0.2)
+
 		#data_subplots[i].axes.set_yticklabels([],visible=False)
 
 		if ylim_max:
@@ -75,7 +84,7 @@ def plot_profile(msds, protein_ids, total_occupancy=False, ylim_max=False, savef
 		if fraction_range:
 			data_subplots[i].axes.set_xlim(fraction_range[0], fraction_range[1])
 
-		data_subplots[i].set_ylabel(new_id_map[i],rotation='horizontal', color=barcolor, fontsize=10)
+		data_subplots[i].set_ylabel(id_map[i],rotation='horizontal', color=barcolor, fontsize=10)
 		#data_subplots[i].axes.set_yticks(data_subplots[i].axes.get_yticks()[0::5])
 		data_subplots[i].axes.set_yticks([])
 
