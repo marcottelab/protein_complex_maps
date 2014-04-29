@@ -58,10 +58,12 @@ def main():
 			print "benchmark ids are in msds"
 			results, num_dpts, prot_ids_map, single_class_flag = rs.relative_stoichiometry( msds, prot_ids, s_set, prior_type=args.prior_type )
 			print "results: %s" % (results,)
-			if single_class_flag:
-				results_dict[pdb_id] = (results, num_dpts, prot_ids_map)
-			else:
-				print "GMM did not converge to single class on all cases, single_class_flag == False"
+			#if single_class_flag:
+
+			results_dict[pdb_id] = (results, num_dpts, prot_ids_map)
+
+			#else:
+			#	print "GMM did not converge to single class on all cases, single_class_flag == False"
 		else:
 			print "benchmark ids are NOT in msds"
 

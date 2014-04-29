@@ -133,7 +133,8 @@ def main():
 		for pdb_id in pdb_list:
 			if min(mscpdbs_results[pdb_id][1]) > args.data_threshold:
 				#print "id: %s, Rank2: %s, Rank1: %s, %s" % (pdb_id, np.array(top_rank_list2[i]).mean(), top_rank_list[i], np.array(top_rank_list2[i]).mean() > top_rank_list[i])
-				print "id: %s, Rank2: %s, Rank1: %s, TrueStoich: %s " % (pdb_id, trial_means[i], top_rank_list[i], mscpdbs[pdb_id])
+				if args.randomize:
+					print "id: %s, Rank2: %s, Rank1: %s, TrueStoich: %s " % (pdb_id, trial_means[i], top_rank_list[i], mscpdbs[pdb_id])
 				i+=1
 
 
