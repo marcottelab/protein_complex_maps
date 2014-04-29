@@ -45,7 +45,12 @@ class MSDataSet(object):
 
 	#kdrew: populate msds with peptide count dictionary
 	#kdrew: dictionary should be of the form protein->fraction->peptide->count
-	def create_by_peptide_counts( self, protein_counts ):
+	#kdrew: sc_mean flag will take the mean of spectral counts for all peptides
+	#kdrew: threshold will require specified number of peptides to be present, otherwise set to zero
+	def create_by_peptide_counts( self, protein_counts, sc_mean = False, threshold=1 ):
+		#kdrew: make sure threshold is an int
+		threshold = int(threshold)
+
 		#kdrew: get a list of all proteins
 		protein_list = protein_counts.keys()
 
@@ -62,12 +67,24 @@ class MSDataSet(object):
 
 		for i, prot in enumerate(protein_list):
 			for j, fraction in enumerate(fractions_list):
+				peptide_count = 0
 				try:
 					 for peptide in protein_counts[prot][fraction]:
-						#kdrew: here is where normalization should be done
 						dmat[i,j] += protein_counts[prot][fraction][peptide]
+						peptide_count += 1
 				except KeyError:
 					continue
+
+				#kdrew: take the average of all the peptide counts
+				if sc_mean:
+					dmat[i,j] = 1.0*dmat[i,j]/peptide_count
+
+				#kdrew: for any protein that does not have a given number of peptides identified, set to zero
+				if peptide_count < threshold:
+					print "peptide_count < threshold, setting to zero"
+					dmat[i,j] = 0.0
+
+				print "prot: %s fraction: %s peptide_count: %s value: %s" % (prot, fraction, peptide_count, dmat[i,j])
 	
 		#print dmat
 
@@ -76,7 +93,7 @@ class MSDataSet(object):
 			self.__master_name_list = protein_list
 			self.__master_fraction_list = fractions_list
 		else:
-			self.__master_data_matrix, self.__master_name_list = concat_data_matrix( self.__master_data_matrix, self.__master_name_list, data_matrix1, name_list1)
+			self.__master_data_matrix, self.__master_name_list = concat_data_matrix( self.__master_data_matrix, self.__master_name_list, dmat, protein_list)
 			self.__master_fraction_list += fractions_list
 
 		self.update_id_dict()
@@ -94,6 +111,24 @@ class MSDataSet(object):
 		
 		#return self.__id_dict
 
+	#kdrew: function to take id_dict in msds2 and convert it to self's id_dict
+	#kdrew: useful when map_ids does not grab all ids or when uniprot mapping site is down
+	def transfer_map( self, msds2 ):
+		self_ids = self.__id_dict
+		msds_map = msds2.get_index2names()
+
+		self_ids2 = dict()
+		#kdrew: search through msds2's map for keys in self
+		for key in self_ids:
+			for i in msds_map:
+				if key in msds_map[i]:
+					#kdrew: grab all synonomous ids 
+					for j in msds_map[i]:
+						self_ids2[j] = self_ids[key]
+
+		self.__id_dict = self_ids2
+
+
 	#kdrew: dictionary of protein ids (keys) to matrix indices
 	def get_id_dict( self ):
 		return self.__id_dict
@@ -106,6 +141,42 @@ class MSDataSet(object):
 		self.__id_dict = id_dict
 
 	#def get_data_matrix( self, names=None, remove_zero=False ):
+
+	#kdrew: function to move given rows and columns into top left corner (low indices)
+	def reordered_data_matrix( self, rows, columns, data_matrix=None, id_map=None ):
+		if data_matrix == None:
+			data_matrix = self.get_data_matrix()
+
+		new_map = dict()
+
+		print "rows: %s" % rows
+		print "columns: %s" % columns
+
+		reordered_rows = [x for x in xrange(data_matrix.shape[0]) if x not in rows]
+		#print "reordered_rows: %s" % reordered_rows
+		#kdrew: reordered_rows maps between new indices and old indices
+		reordered_rows = rows + reordered_rows
+		reordered_columns = columns + [x for x in xrange(data_matrix.shape[1]) if x not in columns]
+		reordered_matrix = data_matrix[reordered_rows,:]
+		#print reordered_matrix
+		reordered_matrix = reordered_matrix[:,reordered_columns]
+
+		#print "original rows: %s" % range(data_matrix.shape[0])
+		#print "original columns: %s" % range(data_matrix.shape[1])
+		#print "reordered_rows: %s" % reordered_rows
+		#print "reordered_columns: %s" % reordered_columns
+
+		index2name_map = self.get_name2index()
+		for i in xrange(data_matrix.shape[0]):
+			if id_map == None:
+				new_map[i] = index2name_map[reordered_rows[i]]
+			else:
+				new_map[i] = id_map[reordered_rows[i]]
+
+		return reordered_matrix, new_map
+
+
+
 
 	#kdrew: get submatrix based on protein identifiers
 	def get_subdata_matrix( self, ids, ignoreNonExistingIds=False):
@@ -135,8 +206,23 @@ class MSDataSet(object):
 		else:
 			return None, None
 		
+	#kdrew: reverses id_dict dictionary but will only keep one entry
+	#kdrew: function name is confusing (consider changing to get_index2name) 
+	#kdrew: format is dict{1:protid, 2:protid2}
 	def get_name2index( self, ):
 		return {v:k for k, v in self.__id_dict.items()}
+	
+	#kdrew: similar to above but key is index (int) and value is list of redundant protein ids
+	def get_index2names(self,):
+		id_map = dict()
+		id_dict = self.get_id_dict()
+		for key in id_dict:
+			try:
+				id_map[id_dict[key]].append(key)
+			except KeyError:
+				id_map[id_dict[key]] = [key]
+
+		return id_map
 
 
 	def get_data_matrix( self, remove_zero=False ):
