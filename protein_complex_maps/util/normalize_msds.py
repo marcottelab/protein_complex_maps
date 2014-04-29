@@ -16,22 +16,36 @@ def main():
 	parser = argparse.ArgumentParser(description="Tool to normalize Mass Spec Data Set (MSDS) pickle")
 	parser.add_argument("--input_msds_pickle", action="store", dest="msds_filename", required=True, 
 						help="Filename of MSDS pickle")
+
 	parser.add_argument("--output_filename", action="store", dest="out_filename", required=True, 
 						help="Output filename of normalized MSDS pickle")
+
 	parser.add_argument("--length_normalize", action="store_true", dest="length_normalize", required=False, default=False,
 						help="Normalize by length, currently requires ENSEMBL_ID")
+
 	parser.add_argument("--peptide_normalize", action="store_true", dest="peptide_normalize", required=False, default=False,
 						help="Normalize by peptide, requires peptide_digest_file flag")
+
 	parser.add_argument("--peptide_digest_filename", action="store", dest="peptide_digest_filename", required=False, 
 						help="Filename of possible digested peptides")
+
 	parser.add_argument("--peptide_digest_format", action="store", dest="peptide_digest_format", required=False, default="raw",
 						help="Format of peptide digest file, either raw or counts")
+
 	parser.add_argument("--threshold_normalize", action="store_true", dest="threshold_normalize", required=False, default=False,
 						help="Normalize by threshold")
+
 	parser.add_argument("--threshold", action="store", type=float, dest="threshold", required=False, 
 						help="Threshold for which to normalize by")
+
 	parser.add_argument("--map_ids", action="store_true", dest="map_ids", required=False, default=False,
 						help="Map ENSEMBL_IDs to Uniprot accs")
+
+	parser.add_argument("--transfer_map", action="store_true", dest="transfer_map", required=False, default=False,
+						help="Transfer protein id map from one msds to another")
+
+	parser.add_argument("--transfer_msds_pickle", action="store", dest="transfer_msds_filename", required=True, 
+						help="Filename of MSDS pickle to be transfered")
 
 	args = parser.parse_args()
 
@@ -42,6 +56,10 @@ def main():
 	msds = pickle.load( open( args.msds_filename, "rb" ) )
 	if args.map_ids:
 		msds.map_ids("ENSEMBL_ID", "ACC")
+
+	if args.transfer_map:
+		msds2 = pickle.load( open( args.transfer_msds_filename, "rb" ) )
+		msds.transfer_map(msds2)
 
 	#kdrew: normalize by length as well as map ids
 	if args.length_normalize:
