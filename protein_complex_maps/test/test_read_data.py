@@ -77,6 +77,35 @@ class ReadDataTest(unittest.TestCase):
 		assert(mapped_ids["J3QRR3"] == 6)       
 		assert(mapped_ids["ENSG00000072110"] == 11)
 
+	def testReorder(self,):
+		msds = rd.MSDataSet()
+		msds.load_file(self.sample_file, header=True)
+		msds.load_file(self.sample_file2, header=True)
+
+		fulldm = msds.get_data_matrix()
+		print "testing Reorder"
+		print fulldm
+
+		reordered_dm, new_map = msds.reordered_data_matrix([5,6,2], [7,8,3])
+
+		print reordered_dm
+
+		print "name2index: %s" % msds.get_name2index()
+		print "new_map: %s" % new_map
+
+
+		assert msds.get_name2index()[5] == new_map[0]
+		assert msds.get_name2index()[6] == new_map[1]
+		assert msds.get_name2index()[2] == new_map[2]
+		assert msds.get_name2index()[0] == new_map[3]
+
+		assert fulldm[5,7] == reordered_dm[0,0]
+		assert fulldm[6,7] == reordered_dm[1,0]
+		assert fulldm[6,8] == reordered_dm[1,1]
+		assert fulldm[2,3] == reordered_dm[2,2]
+		assert fulldm[0,0] == reordered_dm[3,3]
+
+
 if __name__ == "__main__":
 	unittest.main()
 
