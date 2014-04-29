@@ -1,7 +1,7 @@
 
 
 import numpy as np
-
+import re
 
 #kdrew: function to combine peptide_dict and peptide_count_dict
 #kdrew: essentially maps protein->fraction->peptide->count
@@ -59,7 +59,7 @@ def read_peptide_list(peptide_list_file):
 
 #kdrew: peptide dict is the file that maps proteins to peptides (example file: test/Hs_test.pepDict)
 #kdrew: peptide_file is a file handle, id_list is a list of protein ids, ignore_nonunique flag will not store nonunique peptides found in file
-def read_peptide_dict(peptide_file, id_list, ignore_nonunique=True):
+def read_peptide_dict(peptide_file, id_list=None, ignore_nonunique=True, id_desc="gene:"):
 	peptide_dict = dict()
 	#kdrew: count all the peptides for all the ids in id_dict
 	for line in peptide_file.readlines():
@@ -68,15 +68,32 @@ def read_peptide_dict(peptide_file, id_list, ignore_nonunique=True):
 			#print "ignore line"
 			continue
 
-		#print line
-		#kdrew: count all lines that have protein id in them
-		for key in id_list:
-			if key in line:
-				peptide = line.split()[0]
-				try:
-					peptide_dict[key].append(peptide)
-				except KeyError:
-					peptide_dict[key] = [peptide]
+		if id_list:
+			#print line
+			#kdrew: count all lines that have protein id in them
+			for key in id_list:
+				if key in line:
+					peptide = line.split()[0]
+					try:
+						peptide_dict[key].append(peptide)
+					except KeyError:
+						peptide_dict[key] = [peptide]
+
+		#kdrew: load all peptides and proteins
+		else:
+			splits = re.split(' |\|',line)
+			peptide = line.split()[0]
+			for tok in splits:
+				#kdrew: id_desc describes what identifier to grab, gene: or protein:
+				if tok.startswith(id_desc):
+					key = tok.split(id_desc)[1]
+					try:
+						peptide_dict[key].append(peptide)
+					except KeyError:
+						peptide_dict[key] = [peptide]
+
+
+			
 
 	return peptide_dict
 
