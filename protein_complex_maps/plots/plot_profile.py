@@ -10,6 +10,8 @@ import argparse
 import cPickle
 import pickle
 
+import protein_complex_maps.protein_util as pu
+
 def main():
 	parser = argparse.ArgumentParser(description="Plot abundance profile of proteins")
 	parser.add_argument("--input_msds_pickle", action="store", dest="msds_filename", required=True, 
@@ -22,6 +24,8 @@ def main():
 						help="Flag to only plot columns where every gene has greater than zero counts")
 	parser.add_argument("--fraction_range", action="store", dest="fraction_range", nargs='+', required=False, 
 						help="Sets the range of fractions to plot")
+	parser.add_argument("--genenames", action="store_true", dest="genenames", required=False, default=False,
+						help="Set labels to genenames")
 
 	args = parser.parse_args()
 
@@ -33,9 +37,9 @@ def main():
 	else:
 		frange = None
 
-	plot_profile(msds, args.proteins, total_occupancy=args.total_occupancy, savefilename=args.plot_filename, fraction_range=frange)
+	plot_profile(msds, args.proteins, total_occupancy=args.total_occupancy, savefilename=args.plot_filename, fraction_range=frange, genenames=args.genenames)
 
-def plot_profile(msds, protein_ids, total_occupancy=False, ylim_max=False, savefilename=None, fraction_range = None):
+def plot_profile(msds, protein_ids, total_occupancy=False, ylim_max=False, savefilename=None, fraction_range = None, genenames=False):
 	data_set, new_id_map = msds.get_subdata_matrix(protein_ids) 
 
 	if fraction_range != None:
@@ -55,8 +59,11 @@ def plot_profile(msds, protein_ids, total_occupancy=False, ylim_max=False, savef
 
 	plot_profile_dataset(data_set, new_id_map, ylim_max, savefilename, fraction_range)
 
-def plot_profile_dataset(data_set, id_map, ylim_max=False, savefilename=None, fraction_range=None, x_highlight=(0,0), y_highlight=(0,0)):
+def plot_profile_dataset(data_set, id_map, ylim_max=False, savefilename=None, fraction_range=None, x_highlight=(0,0), y_highlight=(0,0), genenames=False):
 	data_subplots = []
+
+	if genenames:
+		genename_map = pu.get_genenames_uniprot( id_map.values() )
 
 	f, data_subplots = plt.subplots(len(data_set),1,sharex='col')
 
@@ -84,7 +91,15 @@ def plot_profile_dataset(data_set, id_map, ylim_max=False, savefilename=None, fr
 		if fraction_range:
 			data_subplots[i].axes.set_xlim(fraction_range[0], fraction_range[1])
 
-		data_subplots[i].set_ylabel(id_map[i],rotation='horizontal', color=barcolor, fontsize=10)
+		try:
+			if genenames:
+				data_subplots[i].set_ylabel(genename_map[id_map[i]],rotation='horizontal', color=barcolor, fontsize=10)
+			else:
+				data_subplots[i].set_ylabel(id_map[i],rotation='horizontal', color=barcolor, fontsize=10)
+		except KeyError:
+			data_subplots[i].set_ylabel(id_map[i],rotation='horizontal', color=barcolor, fontsize=10)
+
+
 		#data_subplots[i].axes.set_yticks(data_subplots[i].axes.get_yticks()[0::5])
 		data_subplots[i].axes.set_yticks([])
 
