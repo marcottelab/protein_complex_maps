@@ -17,19 +17,29 @@ ACC_QUERY_LENGTH = 500
 
 #kdrew: queries uniprot for protein sequence length
 def get_length_uniprot( protein_ids ):
-	length_dict = dict()
+	return get_from_uniprot( protein_ids, "length" )
+
+#kdrew: queries uniprot for protein sequence length
+def get_genenames_uniprot( protein_ids ):
+	return get_from_uniprot( protein_ids, "genes(PREFERRED)" )
+
+def get_from_uniprot( protein_ids, keyword ):
+	return_dict = dict()
 	#kdrew: break up query into chunks so as not to get 414 error
 	for i in xrange( (len(protein_ids)/ACC_QUERY_LENGTH)+1 ):
 		start_splice = i*ACC_QUERY_LENGTH
 		stop_splice = (i+1)*ACC_QUERY_LENGTH
-		report_query = "http://www.uniprot.org/uniprot/?format=tab&query=accession:(%s)&columns=id,length" % ("+or+".join(protein_ids[start_splice:stop_splice]),)
+		report_query = "http://www.uniprot.org/uniprot/?format=tab&query=accession:(%s)&columns=id,%s" % ("+or+".join(protein_ids[start_splice:stop_splice]), keyword)
 		#print report_query
 		f = urllib2.urlopen(report_query)
 		for line in f.readlines():
 			if line.split()[0] in protein_ids:
-				length_dict[line.split()[0]] = int(line.split()[1])
+				if keyword == "length":
+					return_dict[line.split()[0]] = int(line.split()[1])
+				else:
+					return_dict[line.split()[0]] = line.split()[1]
 
-	return length_dict
+	return return_dict
 
 
 #kdrew: uses uniprot webservice to map ids
@@ -41,6 +51,7 @@ def map_protein_ids( id_list, from_id, to_id ):
 		'from':'%s' % (from_id,),
 		'to':'%s' % (to_id,),
 		'format':'tab',
+		#kdrew: noticed a TypeError exception in join but not sure why
 		'query':' '.join(id_list)
 	}
 
