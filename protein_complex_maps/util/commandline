@@ -5,6 +5,7 @@ python read_and_pickle_MSDS.py --input_peplist_files ~/data/protein_complex_maps
 for i in `ls ~/data/protein_complex_maps/shared_complexes/source_data/elutions_protein_counts/CeDmHsMmSp_ms2_elutions/Hs_*FDR0010`; do python read_and_pickle_MSDS.py --input_msds_file $i --output_filename $(basename $i).p; done
 
 #kdrew: loop through msds pickles and normalize them by tryptic peptide counts
+#kdrew: moved /home/kdrew/data/protein_complex_maps/msds_pickles/HS_ms2_elutions_msds_peptide_normalized_ids_mapped.p
 for i in `ls Hs_G*.p`; do python ../normalize_msds.py --input_msds_pickle $i --output_filename ${i%.*}_peptide_normalized.p --peptide_normalize --peptide_digest_filename ~/data/protein_complex_maps/shared_complexes/source_data/Hs.pepDict --peptide_digest_format raw --transfer_map --transfer_msds_pickle ../HS_ms2_elutions_msds_peptide_normalized_ids_mapped.p; done 
 
 
