@@ -19,8 +19,9 @@ stoich_file = open("/home/kdrew//scripts/protein_complex_maps/protein_complex_ma
 stoich_data_set = p.load(stoich_file)
 
 #kdrew: readin msds 
+msds_file = open("/home/kdrew/data/protein_complex_maps/msds_pickles/HS_ms2_elutions_msds_peptide_normalized_ids_mapped.p")
 #msds_file = open("/home/kdrew/scripts/protein_complex_maps/protein_complex_maps/util/HS_ms2_elutions_msds_peptide_normalized_ids_mapped.p")
-msds_file = open("/home/kdrew/scripts/protein_complex_maps/protein_complex_maps/util/Hs_ms2_fromPeptide_msds_sc_mean_pdbs_ids_transfered.p")
+#msds_file = open("/home/kdrew/scripts/protein_complex_maps/protein_complex_maps/util/Hs_ms2_fromPeptide_msds_sc_mean_pdbs_ids_transfered.p")
 msds = p.load(msds_file)
 
 
