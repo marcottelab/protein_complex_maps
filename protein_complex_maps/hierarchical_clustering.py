@@ -42,6 +42,8 @@ def main():
 						help="Filename of output plot")
 	parser.add_argument("--physical_plot_filename", action="store", dest="physical_plot_filename", required=False, default=None,
 						help="Filename of physical interaction clustered plot")
+	parser.add_argument("--plot_profile", action="store_true", dest="plot_profile", required=False, default=False,
+						help="Plot profile instead of correlation matrix")
 	parser.add_argument("--pickle_filename", action="store", dest="pickle_filename", required=False, default=None,
 						help="Filename of linkage object pickle, if set will pickle two linkages and correlation matrix in tuple")
 	parser.add_argument("--sample_method", action="store", dest="sample_method", required=False, default=None,
@@ -88,8 +90,12 @@ def main():
 	if args.pickle_filename != None:
 		pickle.dump((Y,Y2,D,new_id_map), open(args.pickle_filename, "wb"))
 
-	#kdrew: reordered correlation matrix gets returned
-	D = plotDendrogram(Y, Y2, D, args.plot_filename, new_id_map)
+	if args.plot_profile:
+		D = plotDendrogramProfile(data_set, Y, args.plot_filename, new_id_map)
+	else:
+		#kdrew: reordered correlation matrix gets returned
+		D = plotDendrogram(Y, Y2, D, args.plot_filename, new_id_map)
+
 
 	if args.physical_plot_filename != None:
 		#kdrew: plot physical interactions
@@ -152,13 +158,41 @@ def runCluster(data_set, average_cnt=0, sample_module=None, scale=None):
 
 	return Y, Y2, D
 
-def plotDendrogramProfile(Y, plot_filename, new_id_map):
-	fig = pylab.figure(figsize=(8,8))
-	ax1 = fig.add_axes([0.09, 0.1, 0.11, 0.6])
+def plotDendrogramProfile(data_set, Y, plot_filename, new_id_map):
+	fig = pylab.figure(figsize=(14,14))
+	#ax1 = fig.add_axes([0.09, 0.1, 0.11, 0.6])
+	ax1 = pylab.subplot2grid((len(new_id_map),14),(0,0), rowspan=len(new_id_map), colspan=3)
 	dendrogram = sch.dendrogram(Y, orientation='right')
 	print dendrogram['leaves']
 	print [new_id_map[z] for z in dendrogram['leaves']]
 	ax1.set_yticklabels([new_id_map[z] for z in dendrogram['leaves']])
+
+	data_subplots = []
+	for i in xrange(len(dendrogram['leaves'])):
+		ax = pylab.subplot2grid((len(new_id_map),14),(i,4), colspan=10)
+		data_subplots.append(ax)
+
+	max_value = np.max(data_set)
+		
+	for i, leaf in enumerate(dendrogram['leaves']):
+		#kdrew: bottom of dendrogram is index 0, top is len(dendrogram['leaves'])
+		j = len(dendrogram['leaves']) - 1 - i
+		barcolor = "blue"
+		#print "i: %s leaf: %s" % (i, leaf)
+		data_row = data_set[leaf]
+		#print data_row
+		data_array_cols = np.array(data_row.reshape(-1))[0]
+		#print data_array_cols
+		#print data_array_cols[data_array_cols != 0]
+
+		data_subplots[j].bar(np.arange(len(data_array_cols)), map(float,data_array_cols), align='center', facecolor=barcolor, alpha=0.5 )
+		data_subplots[j].set_xlim(0, len(data_array_cols))
+		data_subplots[j].axes.set_yticks([])
+		#kdrew: only show tick marks on bottom profile 
+		if i != 0:
+			data_subplots[j].axes.set_xticks([])
+
+	fig.savefig(plot_filename)
 
 
 
