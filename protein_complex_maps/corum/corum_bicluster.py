@@ -7,7 +7,8 @@ import protein_complex_maps.coclustering as cc
 complex_file = '/home/kdrew/data/corum/allComplexes.csv'
 #complex_file = '/home/kdrew/data/corum/fewComplexes.csv'
 
-msds = pickle.load( open( '/home/kdrew/scripts/protein_complex_maps/protein_complex_maps/util/HS_ms2_elutions_msds_peptide_normalized_ids_mapped.p', "rb" ) )
+#msds = pickle.load( open( '/home/kdrew/scripts/protein_complex_maps/protein_complex_maps/util/HS_ms2_elutions_msds_peptide_normalized_ids_mapped.p', "rb" ) )
+msds = pickle.load( open( '/home/kdrew/data/protein_complex_maps/msds_pickles/HS_ms2_elutions_msds_peptide_normalized_ids_mapped.p', "rb" ) )
 
 complexes_dict = {}
 

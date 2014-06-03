@@ -13,7 +13,8 @@ import pickle
 savefilename = "/home/kdrew/public_html/test/Proteasome_Hs_full.pdf"
 
 sample_filename2 = "/home/kdrew/data/protein_complex_maps/sample_data/Hs_helaN_ph_hcw120_2_psome_sorted.txt"
-msds_filename = "/home/kdrew/scripts/protein_complex_maps/protein_complex_maps/util/HS_ms2_elutions_msds_peptide_normalized_ids_mapped.p"
+#msds_filename = "/home/kdrew/scripts/protein_complex_maps/protein_complex_maps/util/HS_ms2_elutions_msds_peptide_normalized_ids_mapped.p"
+msds_filename = "/home/kdrew/data/protein_complex_maps/msds_pickles/HS_ms2_elutions_msds_peptide_normalized_ids_mapped.p"
 
 proteosome_ids = ["ENSG00000128789","ENSG00000163636","ENSG00000013275","ENSG00000110801","ENSG00000041357","ENSG00000130706","ENSG00000108294","ENSG00000100567","ENSG00000126067","ENSG00000087191","ENSG00000106588","ENSG00000154611","ENSG00000099341","ENSG00000204264","ENSG00000095261","ENSG00000100764","ENSG00000165916","ENSG00000185627","ENSG00000100902","ENSG00000173692","ENSG00000100804","ENSG00000129084","ENSG00000100519","ENSG00000008018","ENSG00000101182","ENSG00000108671","ENSG00000108344","ENSG00000175166","ENSG00000143106","ENSG00000136930","ENSG00000132963","ENSG00000142507","ENSG00000197170","ENSG00000161057","ENSG00000159352","ENSG00000159377","ENSG00000115233","ENSG00000103035","ENSG00000101843"]
 
