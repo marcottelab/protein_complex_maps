@@ -183,13 +183,15 @@ class MSDataSet(object):
 		matrix = self.get_data_matrix()
 		id_indices = []
 		new_map = dict()
+		j = 0
 		for i,i_d in enumerate(ids):
 			#print i, i_d
 			try:
 				index1 = self.__id_dict[i_d]
 				if index1 not in id_indices:
 					id_indices.append(index1)
-					new_map[i] = i_d
+					new_map[j] = i_d
+					j += 1
 			except KeyError:
 				if ignoreNonExistingIds:
 					print "get_subdata_matrix ignoring: %s" % (i_d,)

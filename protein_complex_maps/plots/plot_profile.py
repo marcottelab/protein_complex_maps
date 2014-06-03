@@ -26,6 +26,8 @@ def main():
 						help="Sets the range of fractions to plot")
 	parser.add_argument("--genenames", action="store_true", dest="genenames", required=False, default=False,
 						help="Set labels to genenames")
+	parser.add_argument("--ignore_missing", action="store_true", dest="ignore_missing", required=False, default=False,
+						help="Ignore missing protein ids in msds")
 
 	args = parser.parse_args()
 
@@ -37,10 +39,10 @@ def main():
 	else:
 		frange = None
 
-	plot_profile(msds, args.proteins, total_occupancy=args.total_occupancy, savefilename=args.plot_filename, fraction_range=frange, genenames=args.genenames)
+	plot_profile(msds, args.proteins, total_occupancy=args.total_occupancy, savefilename=args.plot_filename, fraction_range=frange, genenames=args.genenames, ignore_missing=args.ignore_missing)
 
-def plot_profile(msds, protein_ids, total_occupancy=False, ylim_max=False, savefilename=None, fraction_range = None, genenames=False):
-	data_set, new_id_map = msds.get_subdata_matrix(protein_ids) 
+def plot_profile(msds, protein_ids, total_occupancy=False, ylim_max=False, savefilename=None, fraction_range = None, genenames=False, ignore_missing=False):
+	data_set, new_id_map = msds.get_subdata_matrix(protein_ids, ignoreNonExistingIds=ignore_missing) 
 
 	if fraction_range != None:
 		print fraction_range
@@ -97,6 +99,7 @@ def plot_profile_dataset(data_set, id_map, ylim_max=False, savefilename=None, fr
 			else:
 				data_subplots[i].set_ylabel(id_map[i],rotation='horizontal', color=barcolor, fontsize=10)
 		except KeyError:
+			print id_map[i]
 			data_subplots[i].set_ylabel(id_map[i],rotation='horizontal', color=barcolor, fontsize=10)
 
 
