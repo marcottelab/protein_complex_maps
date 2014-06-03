@@ -2,9 +2,64 @@ from scipy.stats.stats import pearsonr
 import math as m
 import numpy as np
 import protein_complex_maps.normalization_util as nu
+import argparse
+import pickle
+
+
 
 CLOSE_TO_ONE = 0.99999999
 EPSILON = 0.000001
+
+def main():
+
+	parser = argparse.ArgumentParser(description="Hierarchical clusters fractionation data")
+	parser.add_argument("--input_msds_pickle", action="store", dest="msds_filename", required=True, 
+						help="Filename of MSDS pickle: pickle comes from running protein_complex_maps.util.read_ms_elutions_pickle_MSDS.py")
+	parser.add_argument("--proteins", action="store", dest="proteins", nargs='+', required=True, 
+						help="Protein ids in which to anaylze")
+	parser.add_argument("--sample_method", action="store", dest="sample_method", required=False, default=None,
+						help="Sampling method to add noise to correlation calculations (poisson or normal)")
+	parser.add_argument("--sampling_iterations", action="store", type=int, dest="average_cnt", required=False, default=3,
+						help="Number of samples to compute average correlation")
+	parser.add_argument("--one_vs_all", action="store_true", dest="one_vs_all", required=False, default=False,
+						help="Compares a single protein to all other proteins in msds")
+
+	args = parser.parse_args()
+
+	msds = pickle.load( open( args.msds_filename, "rb" ) )
+
+	if args.sample_method == "poisson":
+		sample_module = np.random.poisson
+	elif args.sample_method == "normal":
+		sample_module = np.random.normal 
+	else:
+		sample_module = None
+	
+	if args.one_vs_all:
+		#kdrew: take first protein
+		index = msds.get_id_dict()[args.proteins[0]]
+		corr_list = correlation_array(msds.get_data_matrix(), index)
+		print corr_list
+
+
+
+	for prot in args.proteins:
+		index = msds.get_id_dict()[prot]
+
+		scores, tvals = sample_correlation_distribution(matrix=msds.get_data_matrix(), index=index, iterations=args.average_cnt, sample_module=sample_module)
+
+		print scores
+
+def correlation_array (matrix, index):
+	corr_list = []
+
+	data_array1 = np.array(matrix[index].reshape(-1))[0]
+	for i in range(matrix.shape[0]):
+		data_array2 = np.array(matrix[i].reshape(-1))[0]
+		corr_list.append(pearsonr(data_array1, data_array2))
+
+	return corr_list
+		
 
 def correlation_distribution( matrix, index=None ):
 
@@ -103,5 +158,7 @@ def sample_correlation_distribution(matrix, noise_constant=0.0, normalize=False,
 	return ( 1.0*scores_total/iterations, 1.0*tvalues_total/iterations )
 	
 
+if __name__ == "__main__":
+	main()
 
 
