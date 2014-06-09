@@ -2,8 +2,8 @@
 import logging
 import numpy as np
 import os.path
-#import matplotlib as mpl
-#mpl.use('Agg')
+import matplotlib as mpl
+mpl.use('Agg')
 #import matplotlib.mlab as mlab
 import matplotlib.pyplot as plt
 import scipy
@@ -137,7 +137,7 @@ def plotDendrogram(Y, Y2, D, plot_filename, new_id_map):
 
 	print dendrogram
 
-	fig.show()
+	#fig.show()
 	fig.savefig(plot_filename)
 
 	#print model.rows_
