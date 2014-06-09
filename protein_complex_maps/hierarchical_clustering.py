@@ -2,8 +2,8 @@
 import logging
 import numpy as np
 import os.path
-#import matplotlib as mpl
-#mpl.use('Agg')
+import matplotlib as mpl
+mpl.use('Agg')
 #import matplotlib.mlab as mlab
 import matplotlib.pyplot as plt
 import scipy
@@ -24,6 +24,7 @@ import argparse
 import pickle
 import scipy.cluster.hierarchy as sch
 
+import protein_complex_maps.protein_util as pu
 
 logging.basicConfig(level = logging.INFO,format='%(asctime)s %(levelname)s %(message)s')
 
@@ -44,12 +45,20 @@ def main():
 						help="Filename of physical interaction clustered plot")
 	parser.add_argument("--plot_profile", action="store_true", dest="plot_profile", required=False, default=False,
 						help="Plot profile instead of correlation matrix")
+	parser.add_argument("--plot_just_dendrogram", action="store_true", dest="plot_just_dendrogram", required=False, default=False,
+						help="Plot just dendrogram without correlation matrix")
 	parser.add_argument("--pickle_filename", action="store", dest="pickle_filename", required=False, default=None,
 						help="Filename of linkage object pickle, if set will pickle two linkages and correlation matrix in tuple")
 	parser.add_argument("--sample_method", action="store", dest="sample_method", required=False, default=None,
 						help="Sampling method to add noise to correlation calculations (poisson or normal)")
 	parser.add_argument("--average_cnt", action="store", type=int, dest="average_cnt", required=False, default=0,
 						help="Number of samples to compute average correlation")
+	parser.add_argument("--total_occupancy", action="store_true", dest="total_occupancy", required=False, default=False,
+						help="Flag to only plot columns where atleast one protein has greater than zero counts")
+	parser.add_argument("--ignore_missing", action="store_true", dest="ignore_missing", required=False, default=False,
+						help="Ignore missing protein ids in msds")
+	parser.add_argument("--genenames", action="store_true", dest="genenames", required=False, default=False,
+						help="Set labels to genenames")
 	#parser.add_argument("-j", action="store", dest="numOfProcs", required=False, default=1,
 	#    				help="Number of processors to use, default=1")
 
@@ -58,7 +67,7 @@ def main():
 	msds = pickle.load( open( args.msds_filename, "rb" ) )
 
 	if args.proteins != None:
-		data_set, new_id_map = msds.get_subdata_matrix(args.proteins) 
+		data_set, new_id_map = msds.get_subdata_matrix(args.proteins, ignoreNonExistingIds=args.ignore_missing) 
 
 	elif args.complexe != None:
 		db = MySQLdb.connect("localhost", 'kdrew', 'kdrew_utexas', 'stoichiometry')
@@ -67,7 +76,7 @@ def main():
 			cursor.execute("select distinct p.proteinid from complex as c, complex_association as ca, protein as p where p.id = ca.protein_key and ca.complex_key = c.id and c.name = '%s'" % (name) )
 			complex_protein_ids = cursor.fetchall()
 			complex_protein_ids = [ele for tupl in complex_protein_ids for ele in tupl]
-			data_set, new_id_map = msds.get_subdata_matrix(args.proteins) 
+			data_set, new_id_map = msds.get_subdata_matrix(args.proteins, ignoreNonExistingIds=args.ignore_missing) 
 
 
 		except MySQLdb.Error, e:
@@ -77,6 +86,17 @@ def main():
 		data_set = msds.get_data_matrix()
 		new_id_map = msds.get_name2index()
 
+	if args.genenames:
+		genename_map = pu.get_genenames_uniprot( new_id_map.values() )
+		print new_id_map
+		print genename_map
+		gene_id_map = dict()
+		for i in xrange(len(data_set)):
+			print i
+			print genename_map[new_id_map[i]]
+			gene_id_map[i] = genename_map[new_id_map[i]]
+
+		new_id_map = gene_id_map
 
 	if args.sample_method == "poisson":
 		sample_module = np.random.poisson
@@ -91,7 +111,9 @@ def main():
 		pickle.dump((Y,Y2,D,new_id_map), open(args.pickle_filename, "wb"))
 
 	if args.plot_profile:
-		D = plotDendrogramProfile(data_set, Y, args.plot_filename, new_id_map)
+		D = plotDendrogramProfile(data_set, Y, args.plot_filename, new_id_map, total_occupancy=args.total_occupancy)
+	elif args.plot_just_dendrogram:
+		D = plotJustDendrogram(Y, args.plot_filename, new_id_map)
 	else:
 		#kdrew: reordered correlation matrix gets returned
 		D = plotDendrogram(Y, Y2, D, args.plot_filename, new_id_map)
@@ -152,13 +174,34 @@ def runCluster(data_set, average_cnt=0, sample_module=None, scale=None):
 
 	D = np.nan_to_num(D)
 	#print D
-	Y = sch.linkage(D, method='centroid')
+	#Y = sch.linkage(D, method='centroid')
+	Y = sch.linkage(D, method='complete')
 	#Y2 = sch.linkage(D, method='complete')
-	Y2 = sch.linkage(D, method='single')
+	#Y2 = sch.linkage(D, method='single')
+	Y2 = sch.linkage(D, method='complete')
 
 	return Y, Y2, D
 
-def plotDendrogramProfile(data_set, Y, plot_filename, new_id_map):
+def plotJustDendrogram(Y, plot_filename, new_id_map):
+	fig = pylab.figure(figsize=(14,14))
+	#ax1 = fig.add_axes([0.09, 0.1, 0.11, 0.6])
+	ax1 = pylab.subplot2grid((len(new_id_map),14),(0,0), rowspan=len(new_id_map), colspan=14)
+	dendrogram = sch.dendrogram(Y, orientation='right')
+	print dendrogram['leaves']
+	print [new_id_map[z] for z in dendrogram['leaves']]
+	ax1.set_yticklabels([new_id_map[z] for z in dendrogram['leaves']])
+
+	fig.savefig(plot_filename)
+	pylab.close(fig)
+
+def plotDendrogramProfile(data_set, Y, plot_filename, new_id_map, total_occupancy=False):
+
+	if total_occupancy:
+		col_sum = np.sum(data_set,0)
+		shared_cols =  np.array(np.nonzero(col_sum)[1]).reshape(-1).tolist()
+		print shared_cols
+		data_set = data_set[np.ix_(range(0,data_set.shape[0]), shared_cols)]
+
 	fig = pylab.figure(figsize=(14,14))
 	#ax1 = fig.add_axes([0.09, 0.1, 0.11, 0.6])
 	ax1 = pylab.subplot2grid((len(new_id_map),14),(0,0), rowspan=len(new_id_map), colspan=3)
@@ -193,6 +236,7 @@ def plotDendrogramProfile(data_set, Y, plot_filename, new_id_map):
 			data_subplots[j].axes.set_xticks([])
 
 	fig.savefig(plot_filename)
+	pylab.close(fig)
 
 
 
@@ -232,6 +276,7 @@ def plotDendrogram(Y, Y2, D, plot_filename, new_id_map):
 
 	#fig.show()
 	fig.savefig(plot_filename)
+	pylab.close(fig)
 
 	#print model.rows_
 	#print model.columns_
