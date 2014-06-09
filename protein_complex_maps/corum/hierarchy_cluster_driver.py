@@ -16,6 +16,8 @@ def main():
 						help="Filename of complex protein identifiers (corum csv)")
 	parser.add_argument("--plot_filename", action="store", dest="plot_filename", required=False, default=None,
 						help="Filename of output plot")
+	parser.add_argument("--plot_profile", action="store_true", dest="plot_profile", required=False, default=False,
+						help="Plot profile instead of correlation matrix")
 
 	args = parser.parse_args()
 
@@ -46,9 +48,14 @@ def main():
 			#kdrew: do not bother computing small clusters or clusters where we have limited data for
 			if new_id_map is None or len(new_id_map) < 3:
 				continue
-			
+
 			Y, Y2, D = hc.runCluster( data_set )
-			hc.plotDendrogram(Y, Y2, D, plot_fname, new_id_map)
+
+			if args.plot_profile:
+				D = hc.plotDendrogramProfile(data_set, Y, plot_fname, new_id_map)
+			else:
+				hc.plotDendrogram(Y, Y2, D, plot_fname, new_id_map)
+
 
 			#pD = pic.create_interaction_matrix( args.proteins )
 			#pic.plotDendrogram(Y, Y2, pD, int_plot_fname, new_id_map)
@@ -56,7 +63,7 @@ def main():
 		#kdrew: if there is a problem continue to next complex
 		except:
 			e = sys.exc_info()[0]
-			print e
+			print "complex: %s error: %s" % (complex1,e)
 			continue
 
 
