@@ -25,6 +25,9 @@ class ReadDataTest(unittest.TestCase):
 		self.sample_file2 = open(sample_filename2, 'rb')
 		print self.data_matrix2
 
+		self.sample_Ce_filename = "./test_Ce_data.txt"
+		self.sample_Ce_file = open(self.sample_Ce_filename,'rb')
+
 	def testRead(self,):
 		
 		assert(self.data_matrix[np.ix_([0],[0])] == 0.0)
@@ -54,6 +57,20 @@ class ReadDataTest(unittest.TestCase):
 		index2 = c_nlist.index('ENSG00000100519')
 		assert(c_dmat[np.ix_([index2],[3])] == 105.0)
 		assert(c_dmat[np.ix_([index2],[7])] == 0.0)
+
+	def testCeMsDataSet(self,):
+		msds = rd.MSDataSet()
+		msds.load_file(self.sample_Ce_file, header=True)
+
+		msds.map_ids_by_genename(organism="Caenorhabditis+elegans")
+
+		mapped_ids = msds.get_id_dict()
+
+		assert(mapped_ids["C18H9.2"] == 6)
+		assert(mapped_ids["Q94242"] == 5)
+		assert(mapped_ids["Q94241"] == 2)
+		assert(mapped_ids["F55A4.7"] == 5)
+
 
 	def testMsDataSet(self,):
 		msds = rd.MSDataSet()

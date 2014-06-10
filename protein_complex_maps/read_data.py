@@ -98,6 +98,21 @@ class MSDataSet(object):
 
 		self.update_id_dict()
 
+	#kdrew: adds mappings of protein ids to matrix indices
+	def map_ids_by_genename( self, organism, reviewed=False ):
+		#kdrew: map master_name_list from current db_id to db_id
+		#kdrew: update master_name_list and current db_id
+		protids_map = pu.get_from_uniprot_by_genename( self.__master_name_list, organism=organism, reviewed=reviewed)
+		print protids_map
+		for protid in protids_map:
+			print protid
+			i = self.__master_name_list.index(protid)
+			for mapped_id in protids_map[protid]:
+				print mapped_id
+				self.__id_dict[mapped_id] = i
+		
+		#return self.__id_dict
+
 
 	#kdrew: adds mappings of protein ids to matrix indices
 	def map_ids( self, from_id, to_id):

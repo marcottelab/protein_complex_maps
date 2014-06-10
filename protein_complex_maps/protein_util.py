@@ -3,7 +3,7 @@
 
 import urllib, urllib2 
 
-ACC_QUERY_LENGTH = 500
+ACC_QUERY_LENGTH = 250
 
 ##kdrew: queries uniprot for protein sequence length
 #def get_length_uniprot( protein_id ):
@@ -38,6 +38,33 @@ def get_from_uniprot( protein_ids, keyword ):
 					return_dict[line.split()[0]] = int(line.split()[1])
 				else:
 					return_dict[line.split()[0]] = line.split()[1]
+
+	return return_dict
+
+def get_from_uniprot_by_genename( gene_ids, organism="", gene_prefix="gene_exact", reviewed=False):
+	return_dict = dict()
+	reviewed_str = ""
+	if reviewed:
+		reviewed_str = "+and+reviewed:yes"
+
+	#kdrew: break up query into chunks so as not to get 414 error
+	for i in xrange( (len(gene_ids)/ACC_QUERY_LENGTH)+1 ):
+		start_splice = i*ACC_QUERY_LENGTH
+		stop_splice = (i+1)*ACC_QUERY_LENGTH                                                                                 
+		genes_formatted = ["%s:%s" % (gene_prefix, id1,) for id1 in gene_ids[start_splice:stop_splice]]
+		report_query = "http://www.uniprot.org/uniprot/?format=tab&query=organism:(%s)+and+(%s)%s" % (organism, "+or+".join(genes_formatted), reviewed_str )
+		print report_query
+		f = urllib2.urlopen(report_query)
+		for line in f.readlines():
+			#print line
+			#kdrew: the returned line has a bunch of extra gene names (and other info), finding the intersection of the gene ids and the line returns the original queried gene id
+			intersection = list(set(line.split()).intersection(gene_ids))
+			if intersection:
+				try:
+					return_dict[intersection[0]].append(line.split()[0])
+				except:
+					return_dict[intersection[0]] = [line.split()[0],] 
+
 
 	return return_dict
 
