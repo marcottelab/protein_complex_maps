@@ -9,3 +9,5 @@ for i in `ls ~/data/protein_complex_maps/shared_complexes/source_data/elutions_p
 for i in `ls Hs_G*.p`; do python ../normalize_msds.py --input_msds_pickle $i --output_filename ${i%.*}_peptide_normalized.p --peptide_normalize --peptide_digest_filename ~/data/protein_complex_maps/shared_complexes/source_data/Hs.pepDict --peptide_digest_format raw --transfer_map --transfer_msds_pickle ../HS_ms2_elutions_msds_peptide_normalized_ids_mapped.p; done 
 
 
+#kdrew: convert Blake's inparanoid run files into sql table compatible file
+python ortholog_formatter.py --filename ~/data/protein_complex_maps/orthologies/table.Hs-Ce --output_filename ~/data/protein_complex_maps/orthologies/table.Hs-Ce.sql_fmt --species1 H.sapiens --species2 C.elegans
