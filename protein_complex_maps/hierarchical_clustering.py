@@ -94,7 +94,11 @@ def main():
 		for i in xrange(len(data_set)):
 			print i
 			print genename_map[new_id_map[i]]
-			gene_id_map[i] = genename_map[new_id_map[i]]
+			#kdrew: sometimes no genename is returned for certain ids, default to original id
+			if genename_map[new_id_map[i]] == None:
+				gene_id_map[i] = new_id_map[i]
+			else:
+				gene_id_map[i] = genename_map[new_id_map[i]]
 
 		new_id_map = gene_id_map
 
