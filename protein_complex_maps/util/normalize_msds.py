@@ -39,13 +39,25 @@ def main():
 						help="Threshold for which to normalize by")
 
 	parser.add_argument("--map_ids", action="store_true", dest="map_ids", required=False, default=False,
-						help="Map ENSEMBL_IDs to Uniprot accs")
+						help="Map one id type to another, set using map_id_from and map_id_to ")
+
+	parser.add_argument("--map_id_from", action="store", dest="map_id_from", required=False, default="ENSEMBL_ID",
+						help="Map ids of this type to another type, default=ENSEMBL_ID (list can be seen http://www.uniprot.org/faq/28)")
+
+	parser.add_argument("--map_id_to", action="store", dest="map_id_to", required=False, default="ACC",
+						help="Map ids to this type, default=ACC (list can be seen http://www.uniprot.org/faq/28)")
 
 	parser.add_argument("--transfer_map", action="store_true", dest="transfer_map", required=False, default=False,
 						help="Transfer protein id map from one msds to another")
 
-	parser.add_argument("--transfer_msds_pickle", action="store", dest="transfer_msds_filename", required=True, 
+	parser.add_argument("--transfer_msds_pickle", action="store", dest="transfer_msds_filename", required=False, 
 						help="Filename of MSDS pickle to be transfered")
+
+	parser.add_argument("--map_by_genename", action="store_true", dest="map_by_genename", required=False, default=False,
+						help="Map genename to ACC, can set organism")
+
+	parser.add_argument("--organism", action="store", dest="organism", required=False, default="",
+						help="Map genenames from specified organism")
 
 	args = parser.parse_args()
 
@@ -55,7 +67,10 @@ def main():
 	#kdrew: pickle comes from running protein_complex_maps.util.read_ms_elutions_pickle_MSDS.py
 	msds = pickle.load( open( args.msds_filename, "rb" ) )
 	if args.map_ids:
-		msds.map_ids("ENSEMBL_ID", "ACC")
+		msds.map_ids(args.map_id_from, args.map_id_to)
+
+	if args.map_by_genename:
+		msds.map_ids_by_genename(args.organism)
 
 	if args.transfer_map:
 		msds2 = pickle.load( open( args.transfer_msds_filename, "rb" ) )
@@ -65,7 +80,7 @@ def main():
 	if args.length_normalize:
 		print msds.get_id_dict()
 		#kdrew: map ids
-		msds.map_ids("ENSEMBL_ID", "ACC")
+		msds.map_ids(args.map_id_from, args.map_id_to)
 		print msds.get_id_dict()
 
 		#kdrew: normalize length
