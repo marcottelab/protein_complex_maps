@@ -2,6 +2,7 @@ from scipy.stats.stats import pearsonr
 import math as m
 import numpy as np
 import protein_complex_maps.normalization_util as nu
+import protein_complex_maps.protein_util as pu
 import argparse
 import pickle
 
@@ -23,6 +24,10 @@ def main():
 						help="Number of samples to compute average correlation")
 	parser.add_argument("--one_vs_all", action="store_true", dest="one_vs_all", required=False, default=False,
 						help="Compares a single protein to all other proteins in msds")
+	parser.add_argument("--top_results", action="store", type=int, dest="top_results", required=False, default=20,
+						help="Print out top n correlation results")
+	parser.add_argument("--genenames", action="store_true", dest="genenames", required=False, default=False,
+						help="Set labels to genenames")
 
 	args = parser.parse_args()
 
@@ -39,25 +44,56 @@ def main():
 		#kdrew: take first protein
 		index = msds.get_id_dict()[args.proteins[0]]
 		corr_list = correlation_array(msds.get_data_matrix(), index)
-		print corr_list
+		#print corr_list[index]
+		#print len(corr_list)
+		sorted_corr_list = sorted(corr_list, reverse=True, key=lambda x: x[0][0])
+		#print len(sorted_corr_list)
+
+		#for i in sorted_corr_list:
+		#	print i
+
+		id_map = msds.get_name2index()
+
+
+		for pred in sorted_corr_list[:args.top_results]:
+			if args.genenames:
+				uniprot_mapping = msds.get_mapping('ACC')
+				try:
+					genename_map = pu.get_genenames_uniprot( [uniprot_mapping[pred[1]]] )
+					try:
+						print genename_map[uniprot_mapping[pred[1]]], pred[0]
+					except KeyError:                        
+						uniprot_trimmed = uniprot_mapping[pred[1]].split('-')[0]
+						print genename_map[uniprot_trimmed], pred[0]
+				except KeyError:
+					print id_map[pred[1]], pred[0]
+
+			else:
+				print id_map[pred[1]], pred[0]
 
 
 
-	for prot in args.proteins:
-		index = msds.get_id_dict()[prot]
+	else:
 
-		scores, tvals = sample_correlation_distribution(matrix=msds.get_data_matrix(), index=index, iterations=args.average_cnt, sample_module=sample_module)
+		for prot in args.proteins:
+			index = msds.get_id_dict()[prot]
 
-		print scores
+			scores, tvals = sample_correlation_distribution(matrix=msds.get_data_matrix(), index=index, iterations=args.average_cnt, sample_module=sample_module)
+
+			print scores
 
 def correlation_array (matrix, index):
 	corr_list = []
 
 	data_array1 = np.array(matrix[index].reshape(-1))[0]
+	#print matrix.shape
 	for i in range(matrix.shape[0]):
 		data_array2 = np.array(matrix[i].reshape(-1))[0]
-		corr_list.append(pearsonr(data_array1, data_array2))
+		pcorr = list(pearsonr(data_array1, data_array2))
+		pcorr[0] = np.nan_to_num(pcorr[0])
+		corr_list.append((pcorr,i))
 
+	#print len(corr_list)
 	return corr_list
 		
 
