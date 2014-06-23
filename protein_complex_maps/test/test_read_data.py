@@ -13,13 +13,13 @@ class ReadDataTest(unittest.TestCase):
 
 		sample_filename = "./test_data.txt"
 		sample_file = open(sample_filename, 'rb')
-		self.data_matrix, self.name_list = rd.read_datafile(sample_file)
+		self.data_matrix, self.name_list, self.fraction_list = rd.read_datafile(sample_file)
 
 		print self.data_matrix
 
 		sample_filename2 = "./test_data2.txt"
 		sample_file2 = open(sample_filename2, 'rb')
-		self.data_matrix2, self.name_list2 = rd.read_datafile(sample_file2)
+		self.data_matrix2, self.name_list2, self.fraction_list2 = rd.read_datafile(sample_file2)
 
 		self.sample_file = open(sample_filename, 'rb')
 		self.sample_file2 = open(sample_filename2, 'rb')
@@ -93,6 +93,10 @@ class ReadDataTest(unittest.TestCase):
 		assert(mapped_ids["G3V380"] == 11)
 		assert(mapped_ids["J3QRR3"] == 6)       
 		assert(mapped_ids["ENSG00000072110"] == 11)
+
+		frac_map = msds.get_fraction_dict()
+		assert(frac_map['PH090807_HS3NE_HCW_P1A03'] == 2)
+		assert(frac_map['PH090807_HS3NE_HCW_P1A03a'] == 8)
 
 	def testReorder(self,):
 		msds = rd.MSDataSet()
