@@ -2,6 +2,7 @@
 #kdrew: this file is for utilities for querying features about proteins
 
 import urllib, urllib2 
+import MySQLdb
 
 ACC_QUERY_LENGTH = 250
 
@@ -15,6 +16,33 @@ ACC_QUERY_LENGTH = 250
 #			return int(line.split()[1])
 #	return None
 
+
+def get_ortholog( prot_ids, species1, species2, version="_v8", database='inparanoid', score_threshold = 1.0 ):
+	db = MySQLdb.connect("localhost", 'kdrew', 'kdrew_utexas', database)
+	cursor = db.cursor()
+	#kdrew: swap names if second is lower alphabetically
+	if species1 > species2:
+		species2, species1 = species1, species2
+	#kdrew: build up query statement
+	table_name = "%s_%s%s" % (species1, species2, version)
+	query = "select a1.protein_id as pid1, a2.protein_id as pid2 from %s as a1, %s as a2 where a1.cluster = a2.cluster and a1.species <> a2.species" % (table_name, table_name,) 
+	query = query + " and a2.score >= %s" % (score_threshold,)
+	placeholder = '%s'
+	placeholders = ','.join([placeholder] * len(prot_ids))
+	query_add = " and a1.protein_id in (%s)" % placeholders
+	query = query + query_add
+	print query
+
+	cursor.execute(query, prot_ids)
+
+	ortholog_results = cursor.fetchall()
+	ortholog_map = dict()
+	for pair in ortholog_results:
+		ortholog_map[pair[0]] = pair[1]
+
+	return ortholog_map
+
+
 #kdrew: queries uniprot for protein sequence length
 def get_length_uniprot( protein_ids ):
 	return get_from_uniprot( protein_ids, "length" )
@@ -25,6 +53,14 @@ def get_genenames_uniprot( protein_ids ):
 
 def get_from_uniprot( protein_ids, keyword ):
 	return_dict = dict()
+
+	#kdrew: sometimes uniprot accs have added '-1' that does not play well with this webservice
+	cleaned_protein_ids = []
+	for prot in protein_ids:
+		cleaned_protein_ids.append(prot.split('-')[0])
+
+	protein_ids = protein_ids + cleaned_protein_ids
+
 	#kdrew: break up query into chunks so as not to get 414 error
 	for i in xrange( (len(protein_ids)/ACC_QUERY_LENGTH)+1 ):
 		start_splice = i*ACC_QUERY_LENGTH
@@ -37,7 +73,11 @@ def get_from_uniprot( protein_ids, keyword ):
 				if keyword == "length":
 					return_dict[line.split()[0]] = int(line.split()[1])
 				else:
-					return_dict[line.split()[0]] = line.split()[1]
+					try:
+						return_dict[line.split()[0]] = line.split()[1]
+					except IndexError:
+						return_dict[line.split()[0]] = None
+
 
 	return return_dict
 
