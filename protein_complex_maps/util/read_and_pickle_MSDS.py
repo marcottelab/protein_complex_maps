@@ -28,6 +28,10 @@ def main():
 						help="Protein must have specified number of peptides identified or else value is set to 0.0")
 	parser.add_argument("--output_filename", action="store", dest="out_filename", required=True, 
 						help="Output filename of MSDS pickle")
+	parser.add_argument("--standardize", action="store_true", dest="standardize", required=False, default=False,
+						help="Standardize each data matrix (x - x_mean) / x_std ")
+	parser.add_argument("--normalize", action="store_true", dest="normalize", required=False, default=False,
+						help="Normalize each data matrix by the mean of total fractionation experiment")
 
 	args = parser.parse_args()
 
@@ -50,7 +54,7 @@ def main():
 		for sample_filename1 in args.msds_filenames:
 			print sample_filename1
 			sample_file1 = open(sample_filename1, 'rb')
-			msds.load_file(sample_file1, header=True)
+			msds.load_file(sample_file1, header=True, standardize=args.standardize, normalize=args.normalize)
 
 			#data_matrix = msds.get_data_matrix()
 
@@ -78,7 +82,7 @@ def main():
 			protein_count_dict = ppu.protein_counts_by_peptide(peptide_dict, peptide_count_dict)
 
 			#kdrew: add protein spectral counts to msds
-			msds.create_by_peptide_counts( protein_count_dict, args.spectral_count_mean, int(args.peptide_threshold))
+			msds.create_by_peptide_counts( protein_count_dict, args.spectral_count_mean, int(args.peptide_threshold), standardize=args.standardize)
 
 	print msds.get_id_dict()
 
