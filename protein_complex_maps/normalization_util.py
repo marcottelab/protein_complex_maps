@@ -18,6 +18,18 @@ def remove_zero(data_matrix, zero_rows=True, zero_columns=True):
 
 	return clean_data_matrix
 
+#kdrew: standardizes each cell to whole matrix
+def standardize(data_matrix):
+	return np.nan_to_num( (data_matrix - np.mean(data_matrix))/ np.std(data_matrix) )
+
+#kdrew: normalizes cells to be divided by mean
+def normalize_by_mean(data_matrix):
+	return np.nan_to_num( 1.0*data_matrix / np.mean(data_matrix) )
+
+#kdrew: converts cells to frequencies where whole matrix sums to one
+def normalize_by_total_sum(data_matrix):
+	return np.nan_to_num( 1.0*data_matrix / np.sum(data_matrix) )
+
 #kdrew: converts cells to frequencies where whole row sums to one
 def normalize_over_columns(data_matrix):
 	return np.nan_to_num( data_matrix / np.sum(data_matrix,1) )
