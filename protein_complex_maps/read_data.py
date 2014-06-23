@@ -17,17 +17,38 @@ class MSDataSet(object):
 		#kdrew: holds mapping of protein ids to matrix indices, includes ids from master_name_list
 		self.__id_dict = dict()
 		self.__frac_dict = dict()
+		self.__mappings = dict()
 
-	def load_file( self, file_handle, header=False, normalize=False):
+	#kdrew: ortholog_map allows for concatentating ortholog fractions, should be in the form of ortholog_map[protein_id_in_file] -> protein_id_in_msds
+	def load_file( self, file_handle, header=False, normalize=False, standardize=False, ortholog_map=None):
 		
-		data_matrix1, name_list1 = read_datafile(file_handle, header=header)
+		data_matrix1, name_list1, fraction_list1 = read_datafile(file_handle, header=header)
+		print "fraction_list1: %s" % fraction_list1
+
 		if normalize:
-			data_matrix1 = nu.normalize_over_columns(data_matrix1)
+			data_matrix1 = nu.normalize_by_mean(data_matrix1)
+
+		if standardize:
+			data_matrix1 = nu.standardize(data_matrix1)
+
 		if self.__master_data_matrix == None:
 			self.__master_data_matrix = data_matrix1
 			self.__master_name_list = name_list1
+			self.__master_fraction_list = fraction_list1
+		elif ortholog_map != None:
+			ortholog_list = []
+			for prot_id in protein_list:
+				try:
+					ortholog_list.append(ortholog_map[prot_id])
+				except KeyError:
+					#kdrew: if no mapping for given prot_id, just keep the name the same
+					ortholog_list.append(prot_id)
+
+			self.__master_data_matrix, self.__master_name_list = concat_data_matrix( self.__master_data_matrix, self.__master_name_list, dmat, ortholog_list)
+			self.__master_fraction_list += fractions_list
 		else:
 			self.__master_data_matrix, self.__master_name_list = concat_data_matrix( self.__master_data_matrix, self.__master_name_list, data_matrix1, name_list1)
+			self.__master_fraction_list += fraction_list1
 
 		self.update_id_dict()
 
@@ -47,7 +68,8 @@ class MSDataSet(object):
 	#kdrew: dictionary should be of the form protein->fraction->peptide->count
 	#kdrew: sc_mean flag will take the mean of spectral counts for all peptides
 	#kdrew: threshold will require specified number of peptides to be present, otherwise set to zero
-	def create_by_peptide_counts( self, protein_counts, sc_mean = False, threshold=1 ):
+	#kdrew: ortholog_map allows for concatentating ortholog fractions, should be in the form of ortholog_map[protein_id_in_protein_counts] -> protein_id_in_msds
+	def create_by_peptide_counts( self, protein_counts, sc_mean = False, threshold=1, standardize = False, ortholog_map=None ):
 		#kdrew: make sure threshold is an int
 		threshold = int(threshold)
 
@@ -88,10 +110,25 @@ class MSDataSet(object):
 	
 		#print dmat
 
+		if standardize:
+			dmat = nu.standardize(dmat)
+
 		if self.__master_data_matrix == None:
 			self.__master_data_matrix = dmat
 			self.__master_name_list = protein_list
 			self.__master_fraction_list = fractions_list
+		elif ortholog_map != None:
+			ortholog_list = []
+			for prot_id in protein_list:
+				try:
+					#kdrew: append the ortholog that will match a protein id in current msds
+					ortholog_list.append(ortholog_map[prot_id])
+				except KeyError:
+					#kdrew: if no mapping for given prot_id, just keep the name the same
+					ortholog_list.append(prot_id)
+
+			self.__master_data_matrix, self.__master_name_list = concat_data_matrix( self.__master_data_matrix, self.__master_name_list, dmat, ortholog_list)
+			self.__master_fraction_list += fractions_list
 		else:
 			self.__master_data_matrix, self.__master_name_list = concat_data_matrix( self.__master_data_matrix, self.__master_name_list, dmat, protein_list)
 			self.__master_fraction_list += fractions_list
@@ -104,12 +141,17 @@ class MSDataSet(object):
 		#kdrew: update master_name_list and current db_id
 		protids_map = pu.get_from_uniprot_by_genename( self.__master_name_list, organism=organism, reviewed=reviewed)
 		print protids_map
+
+		if "ACC" not in self.__mappings.keys():
+			self.__mappings["ACC"] = dict()
+
 		for protid in protids_map:
 			print protid
 			i = self.__master_name_list.index(protid)
 			for mapped_id in protids_map[protid]:
 				print mapped_id
 				self.__id_dict[mapped_id] = i
+				self.__mappings["ACC"][i] = mapped_id
 		
 		#return self.__id_dict
 
@@ -118,11 +160,13 @@ class MSDataSet(object):
 	def map_ids( self, from_id, to_id):
 		#kdrew: map master_name_list from current db_id to db_id
 		#kdrew: update master_name_list and current db_id
+		self.__mappings[to_id] = dict()
 		protids_map = pu.map_protein_ids( self.__master_name_list, from_id, to_id )
 		for protid in protids_map:
 			i = self.__master_name_list.index(protid)
 			for mapped_id in protids_map[protid]:
 				self.__id_dict[mapped_id] = i
+				self.__mappings[to_id][i] = mapped_id
 		
 		#return self.__id_dict
 
@@ -147,6 +191,15 @@ class MSDataSet(object):
 	#kdrew: dictionary of protein ids (keys) to matrix indices
 	def get_id_dict( self ):
 		return self.__id_dict
+
+	def get_mappings_dict( self ):
+		return self.__mappings
+
+	def get_mappings_dict( self ):
+		return self.__mappings
+
+	def get_mapping( self, key ):
+		return self.__mappings[key]
 
 	def get_fraction_dict( self ):
 		return self.__frac_dict
@@ -272,9 +325,12 @@ class MSDataSet(object):
 
 
 def read_datafile(fhandle, header=True):
+	fraction_list = None
 	if header:
 		#kdrew: eat header
 		line = fhandle.readline()
+		print "HEADER: %s" % line
+		fraction_list = line.split()[2:]
 	
 	data = []
 	name_list = []
@@ -291,7 +347,7 @@ def read_datafile(fhandle, header=True):
 
 	data_matrix = np.asmatrix(data)
 
-	return data_matrix, name_list
+	return data_matrix, name_list, fraction_list
 
 def concat_data_matrix(data_matrix1, name_list1, data_matrix2, name_list2):
 	
