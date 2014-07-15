@@ -37,7 +37,7 @@ def main():
 	#cmd.png("~/data/proteasome/pymol_scripts/4cr2_rotate.png")
 
 
-	cmd.load("../4cr2_objects.pse")
+	cmd.load("~/data/protein_complex_maps/subcomplexes/proteasome/4cr2_objects.pse")
 	cmd.disable()
 	cmd.set_view (" -0.183798626,   -0.982478261,    0.030202165,\
 		-0.941125035,    0.184772134,    0.283043444,\
@@ -47,8 +47,8 @@ def main():
 		774.580139160, 1124.854980469,  -20.000000000" )
 
 
-	PNAS=0
-	LINKAGE=1
+	PNAS=1
+	LINKAGE=0
 
 	sc_list = []
 	c_list = []
@@ -93,7 +93,7 @@ def main():
 		sc_list.append(SubComplex(['rpn2'], [0,50,0], "yellow"))
 		sc_list.append(SubComplex(['rpn8', 'rpn11'], [-75,0,0], "magenta"))
 
-	
+
 	explode(sc_list)
 	draw_connections(c_list)
 	
