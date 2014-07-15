@@ -25,9 +25,9 @@ def main():
 						help="species listed in OrtoA column")
 	parser.add_argument("--species2", action="store", dest="species2", required=True, 
 						help="species listed in OrtoB column")
-	parser.add_argument("--species1_from_id", action="store", dest="species1_from_id", required=True, 
+	parser.add_argument("--species1_from_id", action="store", dest="species1_from_id", required=False, default="", 
 						help="species1 id type")
-	parser.add_argument("--species2_from_id", action="store", dest="species2_from_id", required=True, 
+	parser.add_argument("--species2_from_id", action="store", dest="species2_from_id", required=False, default="", 
 						help="species2 id type")
 	parser.add_argument("--to_id", action="store", dest="to_id", required=False, default="ACC", 
 				help="convert ids this type, use empty string for original ids (note: automatically converts gene_exact to ACC)")
@@ -77,7 +77,7 @@ def main():
 		if args.species2_from_id == "gene_exact":
 			s2_map = pu.get_from_uniprot_by_genename(prot_s2_list)
 		else:
-			s2_map = pu.map_protein_ids(prot_s2_list, from_id=args.species1_from_id, to_id=args.to_id)
+			s2_map = pu.map_protein_ids(prot_s2_list, from_id=args.species2_from_id, to_id=args.to_id)
 
 		ortholog_map = dict(s1_map.items() + s2_map.items())
 
