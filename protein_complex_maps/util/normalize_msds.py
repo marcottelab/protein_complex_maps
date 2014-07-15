@@ -111,7 +111,7 @@ def main():
 
 	#print msds.get_id_dict()
 
-	cPickle.dump( msds, open(args.out_filename,"wb"))
+	pickle.dump( msds, open(args.out_filename,"wb"))
 
 if __name__ == "__main__":
 	main()
