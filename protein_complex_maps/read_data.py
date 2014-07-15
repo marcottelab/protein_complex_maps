@@ -37,20 +37,44 @@ class MSDataSet(object):
 			self.__master_fraction_list = fraction_list1
 		elif ortholog_map != None:
 			ortholog_list = []
-			for prot_id in protein_list:
+			for prot_id in name_list1:
 				try:
 					ortholog_list.append(ortholog_map[prot_id])
 				except KeyError:
 					#kdrew: if no mapping for given prot_id, just keep the name the same
 					ortholog_list.append(prot_id)
 
-			self.__master_data_matrix, self.__master_name_list = concat_data_matrix( self.__master_data_matrix, self.__master_name_list, dmat, ortholog_list)
-			self.__master_fraction_list += fractions_list
+			self.__master_data_matrix, self.__master_name_list = concat_data_matrix( self.__master_data_matrix, self.__master_name_list, data_matrix1, ortholog_list)
+			self.__master_fraction_list += fraction_list1
 		else:
 			self.__master_data_matrix, self.__master_name_list = concat_data_matrix( self.__master_data_matrix, self.__master_name_list, data_matrix1, name_list1)
 			self.__master_fraction_list += fraction_list1
 
 		self.update_id_dict()
+
+	#kdrew: ortholog_map allows for concatentating ortholog fractions, should be in the form of ortholog_map[protein_id_in_file] -> protein_id_in_msds
+	def concat_msds( self, msds2, ortholog_map = None ):
+
+		if ortholog_map != None:
+			ortholog_list = []
+
+			for prot_id in msds2.get_name_list():
+				try:
+					ortholog_list.append(ortholog_map[prot_id])
+				except KeyError:
+					#kdrew: if no mapping for given prot_id, just keep the name the same
+					ortholog_list.append(prot_id)
+
+			self.__master_data_matrix, self.__master_name_list = concat_data_matrix( self.__master_data_matrix, self.__master_name_list, msds2.get_data_matrix(), ortholog_list)
+			self.__master_fraction_list += msds2.get_fraction_list()
+
+			self.update_id_dict( reset=True )
+
+		else:
+			self.__master_data_matrix, self.__master_name_list = concat_data_matrix( self.__master_data_matrix, self.__master_name_list, msds2.get_data_matrix(), msds2.get_name_list() )
+			self.__master_fraction_list += msds2.get_fraction_list()
+
+			self.update_id_dict()
 
 	def update_id_dict(self, reset=False):
 		if reset:
@@ -135,7 +159,7 @@ class MSDataSet(object):
 
 		self.update_id_dict()
 
-	#kdrew: adds mappings of protein ids to matrix indices
+	#kdrew: adds mappings of Uniprot ACC protein ids to matrix indices
 	def map_ids_by_genename( self, organism, reviewed=False ):
 		#kdrew: map master_name_list from current db_id to db_id
 		#kdrew: update master_name_list and current db_id
@@ -144,6 +168,7 @@ class MSDataSet(object):
 
 		if "ACC" not in self.__mappings.keys():
 			self.__mappings["ACC"] = dict()
+			self.__mappings["ACC_list"] = dict()
 
 		for protid in protids_map:
 			print protid
@@ -152,6 +177,11 @@ class MSDataSet(object):
 				print mapped_id
 				self.__id_dict[mapped_id] = i
 				self.__mappings["ACC"][i] = mapped_id
+
+				try:
+					self.__mappings["ACC_list"][i].append(mapped_id)
+				except KeyError:
+					self.__mappings["ACC_list"][i] = [mapped_id]
 		
 		#return self.__id_dict
 
@@ -161,12 +191,22 @@ class MSDataSet(object):
 		#kdrew: map master_name_list from current db_id to db_id
 		#kdrew: update master_name_list and current db_id
 		self.__mappings[to_id] = dict()
+		self.__mappings[to_id+"_list"] = dict()
 		protids_map = pu.map_protein_ids( self.__master_name_list, from_id, to_id )
 		for protid in protids_map:
 			i = self.__master_name_list.index(protid)
+			if len(protids_map[protid]) == 0:
+				#kdrew: there is no mapping for this identifier, map to original identifer
+				self.__mappings[to_id][i] = protid
+				self.__mappings[to_id+"_list"][i] = [protid]
+
 			for mapped_id in protids_map[protid]:
 				self.__id_dict[mapped_id] = i
 				self.__mappings[to_id][i] = mapped_id
+				try:
+					self.__mappings[to_id+"_list"][i].append(mapped_id)
+				except KeyError:
+					self.__mappings[to_id+"_list"][i] = [mapped_id]
 		
 		#return self.__id_dict
 
@@ -195,15 +235,17 @@ class MSDataSet(object):
 	def get_mappings_dict( self ):
 		return self.__mappings
 
-	def get_mappings_dict( self ):
-		return self.__mappings
-
 	def get_mapping( self, key ):
 		return self.__mappings[key]
 
 	def get_fraction_dict( self ):
 		return self.__frac_dict
 
+	def get_fraction_list( self ):
+		return self.__master_fraction_list
+
+	def get_name_list( self ):
+		return self.__master_name_list
 
 	def set_id_dict( self, id_dict ):
 		self.__id_dict = id_dict
