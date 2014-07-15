@@ -8,6 +8,7 @@ mpl.use('Agg')
 import matplotlib.pyplot as plt
 import scipy
 import pylab
+import itertools as it
 from scipy.stats.stats import pearsonr
 from scipy.stats.stats import spearmanr
 import protein_complex_maps.normalization_util as nu
@@ -59,6 +60,11 @@ def main():
 						help="Ignore missing protein ids in msds")
 	parser.add_argument("--genenames", action="store_true", dest="genenames", required=False, default=False,
 						help="Set labels to genenames")
+	parser.add_argument("--cluster_method", action="store", dest="cluster_method", required=False, default="single",
+						help="""Type of linkage clustering, 
+						types found: http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/scipy.cluster.hierarchy.linkage.html, 
+						default: single""")
+
 	#parser.add_argument("-j", action="store", dest="numOfProcs", required=False, default=1,
 	#    				help="Number of processors to use, default=1")
 
@@ -109,7 +115,7 @@ def main():
 	else:
 		sample_module = None
 
-	Y, Y2, D = runCluster( data_set, args.average_cnt, sample_module )
+	Y, Y2, D = runCluster( data_set, args.average_cnt, sample_module, cluster_method=args.cluster_method )
 	
 	if args.pickle_filename != None:
 		pickle.dump((Y,Y2,D,new_id_map), open(args.pickle_filename, "wb"))
@@ -137,7 +143,7 @@ def main():
 
 #kdrew: both average_cnt and sample_module need to be set for average correlation with sample noise to be computed
 #kdrew: consider moving correlation to another module
-def runCluster(data_set, average_cnt=0, sample_module=None, scale=None): 
+def runCluster(data_set, average_cnt=0, sample_module=None, scale=None, cluster_method="single"): 
 
 	data_set = np.nan_to_num(data_set)
 	#data_set = nu.add_noise_over_columns(data_set)
@@ -175,24 +181,47 @@ def runCluster(data_set, average_cnt=0, sample_module=None, scale=None):
 				corr = pearsonr(np.array(data_set[i,])[0], np.array(data_set[j,])[0])
 				D[i,j] = corr[0]
 
+	Ddist = []
+	for i, j in it.combinations(range(data_set.shape[0]),2):
+		Ddist.append( 1 - D[i,j] )
+
 
 	D = np.nan_to_num(D)
+	Ddist = np.nan_to_num(Ddist)
 	#print D
 	#Y = sch.linkage(D, method='centroid')
-	Y = sch.linkage(D, method='complete')
+	Y = sch.linkage(Ddist, method=cluster_method)
 	#Y2 = sch.linkage(D, method='complete')
 	#Y2 = sch.linkage(D, method='single')
-	Y2 = sch.linkage(D, method='complete')
+	Y2 = sch.linkage(Ddist, method=cluster_method)
 
 	return Y, Y2, D
 
-def plotJustDendrogram(Y, plot_filename, new_id_map):
+def plotJustDendrogram(Y, plot_filename, new_id_map, circle_annotate=None):
 	fig = pylab.figure(figsize=(14,14))
 	#ax1 = fig.add_axes([0.09, 0.1, 0.11, 0.6])
 	ax1 = pylab.subplot2grid((len(new_id_map),14),(0,0), rowspan=len(new_id_map), colspan=14)
 	dendrogram = sch.dendrogram(Y, orientation='right')
+	#dendrogram = sch.dendrogram( Y )
 	print dendrogram['leaves']
 	print [new_id_map[z] for z in dendrogram['leaves']]
+
+	#kdrew: testing purposes
+	#circle_annotate = range(len(dendrogram['icoord']))
+	if circle_annotate != None:
+		for j, k in enumerate(zip(dendrogram['icoord'], dendrogram['dcoord'])):
+			i = k[0]
+			d = k[1]
+			print j
+			print d[1]
+			cl_id = Y[:,2].tolist().index(d[1])
+			x = 0.5 * sum(i[1:3])
+			y = d[1]
+			ax1.scatter(y, x, s=circle_annotate[cl_id], alpha=0.5)
+			#ax1.annotate(str(circle_annotate[cl_id]), (y,x))
+			#ax1.annotate(str(cl_id), (y,x))
+
+
 	ax1.set_yticklabels([new_id_map[z] for z in dendrogram['leaves']])
 
 	fig.savefig(plot_filename)
