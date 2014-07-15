@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import scipy
 import pylab
 import MySQLdb
+import itertools as it
 from scipy.stats.stats import pearsonr
 
 import protein_complex_maps.normalization_util as nu
@@ -76,20 +77,203 @@ def main():
 	plotDendrogram(Y, D, args.plot_filename, args.proteins)
 	#clusters = evaluateClusters(msds, data_set, new_id_map, fit_model, args.plot_filename, plot_threshold=args.plot_threshold)
 
-def create_interaction_matrix( proteins, map_from="ACC+ID"):
+def interactions_over_random( protein_id_map, Y ):
+	print "in interactions_over_random"
+	print Y
+	print len(Y)
+	print Y[-1]
+	highest_cluster_id = len(Y) + len(protein_id_map) - 1
+	print "highest_cluster_id: %s" % highest_cluster_id
+	print "numOfProteins: %s" % len(protein_id_map)
+
+	biogrid_map = pu.map_protein_ids( list(it.chain(*protein_id_map.values()))  , "ACC+ID", 'BIOGRID_ID' )
+
+	#kdrew: clean up protein_id_map so only matches to biogrid_map are present
+	for i in protein_id_map:
+		not_found_flag = True
+		for pid in protein_id_map[i]:
+			#print "biogrid mapping: %s : %s" % (pid, biogrid_map[pid],)
+			if len(biogrid_map[pid]) > 0:
+				protein_id_map[i] = [pid]
+				not_found_flag = False
+
+		if not_found_flag:
+			protein_id_map[i] = [pid]
+
+
+	ior = IntOverRand(protein_id_map, Y, biogrid_map)
+
+	#interactions_over_random_recursive( protein_id_map, Y, highest_cluster_id, biogrid_map )
+	ior.interactions_over_random_recursive( highest_cluster_id )
+
+	#print ior.zscores
+	#print ior.distances
+
+	return ior.zscores, ior.distances
+
+class IntOverRand(object):
+	def __init__(self, protein_id_map, Y, biogrid_map, nRandSamples=1000, sampling_type="all", bg_cutoff=0.5):
+		self.protein_id_map = protein_id_map
+		self.Y = Y
+		self.biogrid_map = biogrid_map
+		self.nRandSamples = nRandSamples
+		self.sampling_type = sampling_type
+		#kdrew: percent of background from which to sample in order to be valid
+		self.bg_cutoff = bg_cutoff
+
+		self.zscores = dict()
+		self.distances = dict()
+
+		protein_ids = list(it.chain(*self.protein_id_map.values() ))
+		self.Dtotal = create_interaction_matrix(protein_ids , self.biogrid_map )
+		#kdrew: add a bit of noise
+		self.Dtotal = nu.sample_noise(self.Dtotal, sample_module=np.random.normal, scale=0.001)
+		print "Dtotal: %s" % self.Dtotal
+
+		self.missing_from_biogrid = 0
+		for pid in protein_ids:
+			if len(biogrid_map[pid]) == 0:
+				self.missing_from_biogrid += 1
+
+		print "missing from biogrid: %s out of %s" % (self.missing_from_biogrid, len(protein_ids))
+
+
+
+	#def interactions_over_random_recursive( protein_id_map, Y, cluster_id, biogrid_map, nRandSamples=1000 ):
+	def interactions_over_random_recursive( self, cluster_id ):
+
+		print "in interactions_over_random recursive, %s" % cluster_id
+
+		#kdrew: leaf node
+		if cluster_id < len(self.protein_id_map):
+			return [self.protein_id_map[cluster_id]]
+
+		Y_id = cluster_id - len(self.protein_id_map)
+
+		#kdrew: get all protids in subcluster i and j
+		#kdrew: left subcluster
+		proteins_lcluster = self.interactions_over_random_recursive( self.Y[Y_id][0] )
+		
+		#kdrew: right subcluster
+		proteins_rcluster = self.interactions_over_random_recursive( self.Y[Y_id][1] )
+
+		print "cluster_id %s Y_id %s" % (cluster_id, Y_id)
+		print proteins_lcluster
+		print proteins_rcluster
+
+		#kdrew: unpack list
+		protein_ids = list(it.chain(*proteins_lcluster+proteins_rcluster))
+
+		#kdrew: get interactions for protids 
+		D = create_interaction_matrix( protein_ids, self.biogrid_map )
+		print D
+
+		c_boundary = len(proteins_lcluster)
+		cr_boundary = len(proteins_rcluster)
+		lcluster_sum = D[:c_boundary+1,:c_boundary+1].sum()
+		rcluster_sum = D[c_boundary:,c_boundary:].sum()
+
+		rand_lcluster_sum_list = []
+		rand_rcluster_sum_list = []
+		#kdrew: for i in nRandSamples:
+		for i in range(self.nRandSamples):
+			#kdrew: draw random sample of protids of size len(protids[i]) from protids[i] + protids[j]
+
+			#kdrew: shuffle is not what we want here, want to shuffle the ids in each cluster set
+			#np.random.shuffle(D)
+
+			#kdrew: samples from all proteins in whole complex
+			if self.sampling_type == "all":
+				rand_order = range(self.Dtotal.shape[0])
+				np.random.shuffle(rand_order)
+				#print "rand_order: %s" % rand_order
+				Drand = self.Dtotal[:,rand_order][rand_order]
+				rand_lcluster_sum = Drand[:c_boundary+1,:c_boundary+1].sum()
+				rand_rcluster_sum = Drand[:cr_boundary+1,:cr_boundary+1].sum()
+
+			#kdrew: samples from only the proteins in both the left and right clusters, all other proteins are not considered
+			else:
+				rand_order = range(D.shape[0])
+				np.random.shuffle(rand_order)
+				#print "rand_order: %s" % rand_order
+				Drand = D[:,rand_order][rand_order]
+
+				#print Drand
+
+				#kdrew: get interactions for random protids 
+				rand_lcluster_sum = Drand[:c_boundary+1,:c_boundary+1].sum()
+				rand_rcluster_sum = Drand[c_boundary:,c_boundary:].sum()
+				
+			rand_lcluster_sum_list.append(rand_lcluster_sum)
+			rand_rcluster_sum_list.append(rand_rcluster_sum)
+
+			#print "rand lcluster_sum: %s" % lcluster_sum
+			#print "rand rcluster_sum: %s" % rcluster_sum
+
+		#kdrew: get indexes for left and right subclusters 
+		l_cluster_id = self.Y[Y_id][0] 
+		r_cluster_id = self.Y[Y_id][1] 
+		lY_id = l_cluster_id - len(self.protein_id_map)
+		rY_id = r_cluster_id - len(self.protein_id_map)
+
+		l_cluster_zscore = (lcluster_sum - np.mean(rand_lcluster_sum_list)) / np.std(rand_lcluster_sum_list)
+		r_cluster_zscore = (rcluster_sum - np.mean(rand_rcluster_sum_list)) / np.std(rand_rcluster_sum_list)
+
+		print "lcluster_sum: %s zscore: %s" % (lcluster_sum, l_cluster_zscore)
+		print "rcluster_sum: %s zscore: %s" % (rcluster_sum, r_cluster_zscore)
+
+		c_boundary = len(proteins_lcluster)
+		cr_boundary = len(proteins_rcluster)
+
+		#kdrew: this makes sure the background from which we randomly sample is large enough
+		l_bg_lrg_enough = len(proteins_lcluster) <= self.bg_cutoff * self.Dtotal.shape[0]
+		r_bg_lrg_enough = len(proteins_rcluster) <= self.bg_cutoff * self.Dtotal.shape[0]
+
+		#kdrew: if indices are valid, meaning they are not leaf nodes, 
+		#kdrew: store distance metric and zscore
+		if lY_id >= 0 and l_bg_lrg_enough: 
+			ldist = self.Y[lY_id][2]
+			self.distances[l_cluster_id] = ldist
+			self.zscores[l_cluster_id] = l_cluster_zscore
+		else:
+			ldist = 0.0
+
+		if rY_id >= 0 and r_bg_lrg_enough:
+			rdist = self.Y[rY_id][2]
+			self.distances[r_cluster_id] = rdist
+			self.zscores[r_cluster_id] = r_cluster_zscore
+		else:
+			rdist = 0.0
+
+
+		return proteins_lcluster + proteins_rcluster
+
+def create_interaction_matrix( proteins, biogrid_map=None, map_from="ACC+ID", experimental_system=None):
 	db = MySQLdb.connect("localhost", 'kdrew', 'kdrew_utexas', 'biogrid')
 	cursor = db.cursor()
 
-	biogrid_map = pu.map_protein_ids( proteins, map_from, 'BIOGRID_ID' )
+	if type(experimental_system) is list:
+		format_strings = ','.join(['"%s"'] * len(experimental_system))
+		expsys_str = " and experimental_system in (%s)" % (format_strings,)
+		expsys_str = expsys_str % (tuple(experimental_system))
+	else:
+		expsys_str = ""
+
+	if biogrid_map == None:
+		biogrid_map = pu.map_protein_ids( proteins, map_from, 'BIOGRID_ID' )
 
 	D = scipy.zeros([len(proteins), len(proteins)])
 	for i, prot in enumerate(proteins):
 		for j, prot2 in enumerate(proteins):
+			if len(biogrid_map[prot2]) == 0 or len(biogrid_map[prot]) == 0:
+				#D[i,j] = -1
+				continue
 			print "prot: %s %s prot2: %s %s" % (prot, biogrid_map[prot], prot2, biogrid_map[prot2])
-			cursor.execute("select * from Homo_sapiens_3_2_112 where throughput = 'Low Throughput' and BioGRID_ID_A = '%s' and BioGRID_ID_B = '%s'" % ( biogrid_map[prot][0], biogrid_map[prot2][0] ) )
+			cursor.execute("select * from Homo_sapiens_3_2_112 where throughput = 'Low Throughput' and BioGRID_ID_A = '%s' and BioGRID_ID_B = '%s' %s" % ( biogrid_map[prot][0], biogrid_map[prot2][0], expsys_str ) )
 			rows = cursor.fetchall()
 			print len(rows)
 			D[i,j] = len(rows) != 0
+			#D[i,j] = len(rows) 
 
 			##kdrew: if i and j are same protein, mark them as being in the same physical interaction (this does not mean they are interacting with each other)
 			#if i == j:
@@ -146,89 +330,6 @@ def plotDendrogram(Y, Y2, D, plot_filename, new_id_map):
 
 	return D
 
-
-def evaluateClusters(msds, data_set, new_id_map, fit_model, plot_filename=None, plot_reordered=True, plot_threshold=0.0):
-
-	bicluster_list = []
-
-	rsscore_obj = rsu.RandomSamplingScore(data_set, su.multiple_dot_neg, sample_module=np.random)
-
-	for j, row in enumerate(fit_model.rows_):
-		print "Bicluster %s:" % (j,)
-
-		bicluster_ids = []
-		for i, val in enumerate(row):
-			if val:
-				try:
-					#print "id %s, val %s, new_id_map %s"  % (i, val, new_id_map[i], )
-					print "%s"  % (new_id_map[i], )
-					bicluster_ids.append(new_id_map[i])
-				except KeyError:
-					continue
-
-
-		#kdrew: matplotlib gets whiny about subplots when only one protein in plot, also make sure there are columns in matrix
-		if len(bicluster_ids) > 1 and np.any(fit_model.columns_[j]):
-			bicluster_data_set, bicluster_id_map = msds.get_subdata_matrix(bicluster_ids) 
-
-			bicluster_data_set = bicluster_data_set[np.ix_(range(len(bicluster_data_set)), fit_model.columns_[j])]
-
-
-
-			score = rsscore_obj.zscore_all_neg(bicluster_data_set)
-			print "initial score: %s" % (score,)
-
-			row_list = list(np.ix_(fit_model.rows_[j])[0]) 
-			column_list = list(np.ix_(fit_model.columns_[j])[0])
-			bicluster_list.append((bicluster_ids, score, row_list, column_list))
-
-
-			#MC_OPT = False
-			#if MC_OPT:
-			#	bcgen = bg.BiclusterGenerator(rsscore_obj.zscore_all_neg, iterations=250, starting_temperature = 0.0, random_module=np.random)
-			#	quench_annealer = anl.QuenchAnnealer( bcgen.get_montecarlo(), quench_iteration=250 )
-			#	bcgen.set_annealer(quench_annealer)
-            #
-			#	for i in xrange(1,10):
-			#		logger = logging.getLogger()
-			#		logger.disabled = True
-			#		bicluster1 = bcgen.generator(bicluster_data_set)
-            #
-			#		eval_dict = bcgen.evaluate( bicluster_data_set, len(bcgen.biclusters)-1 )
-			#		logger.disabled = False
-            #
-			#		logging.info(bicluster1.rows())
-			#		logging.info(bicluster1.columns())
-            #
-			#		for t in eval_dict.keys():
-			#			logging.info("random %s, mean: %s, std: %s, zscore: %s" % ( t, eval_dict[t]['mean'], eval_dict[t]['std'], eval_dict[t]['zscore'] ))
-
-			bc_msds = rd.MSDataSet()
-			bc_msds.set_data_matrix(bicluster_data_set)
-			bc_msds.set_id_dict({v:k for k, v in bicluster_id_map.items()})
-
-			#print bc_msds.get_id_dict()
-
-			if plot_filename != None and score < plot_threshold:
-				plot_fname = os.path.splitext(plot_filename)[0]+'.'+str(j)+os.path.splitext(plot_filename)[1]
-				#print bicluster_ids
-				if plot_reordered:
-					reordered_data_set, reordered_map = msds.reordered_data_matrix(row_list, column_list, data_set, new_id_map)
-					numOfRows = sum(fit_model.rows_[j])
-					numOfColumns = sum(fit_model.columns_[j])
-					#kdrew: since we reordered, highlight the first # of rows and columns
-					pp.plot_profile_dataset( reordered_data_set, reordered_map, savefilename=plot_fname, x_highlight= (0,numOfRows), y_highlight= (0,numOfColumns))
-				else:
-					pp.plot_profile( bc_msds, bicluster_ids, savefilename=plot_fname )
-
-
-		print "\n"
-
-	print new_id_map.values()
-	if plot_filename != None:
-		pp.plot_profile( msds, new_id_map.values(), total_occupancy = True, savefilename=plot_filename )
-
-	return bicluster_list
 
 
 if __name__ == "__main__":
