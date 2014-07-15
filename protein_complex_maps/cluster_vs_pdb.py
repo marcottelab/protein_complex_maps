@@ -26,16 +26,21 @@ def main():
 						help="species of pdb id")
 	parser.add_argument("--ignore_missing", action="store_true", dest="ignore_missing", required=False, default=False,
 						help="Ignore missing protein ids in msds")
+	parser.add_argument("--ortholog_map", action="store", dest="ortholog_map_commandline", nargs='+', required=False, default=[],
+						help="Add additional orthologs on commandline when automated ortholog mapping fails (i.e. O15514:P20433 )")
 	parser.add_argument("--cluster_method", action="store", dest="cluster_method", required=False, default="single",
 						help="""Type of linkage clustering, 
 						types found: http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/scipy.cluster.hierarchy.linkage.html, 
 						default: single""")
+	parser.add_argument("--plot_filename", action="store", dest="plot_filename", required=False, default=None,
+						help="Filename of output plot")
 
 	args = parser.parse_args()
 
 	msds = pickle.load( open( args.msds_filename, "rb" ) )
 
 	data_set, new_id_map = msds.get_subdata_matrix(args.proteins, ignoreNonExistingIds=args.ignore_missing) 
+
 	genename_map = pu.get_genenames_uniprot( new_id_map.values() )
 	gene_id_map = dict()
 	for i in xrange(len(data_set)):
@@ -91,13 +96,30 @@ def main():
 			print " %s (%s) : %s : %s (%s) " % ( k, pdb_gnames[k], acc2pdb[k], ortho_mapping[k], gnames[ortho_mapping[k]], )
 			for j in acc2pdb[k]:
 				try:
-					in2pdb[gnames[ortho_mapping[k]]].append(j.split(':')[1])
+					in2pdb[ortho_mapping[k]].append(j.split(':')[1])
 				except KeyError:
-					in2pdb[gnames[ortho_mapping[k]]] = [j.split(':')[1]]
+					in2pdb[ortho_mapping[k]] = [j.split(':')[1]]
 
 		except KeyError:
-			print "No ortholog for %s (%s) : %s" % (k, pdb_gnames[k], acc2pdb[k],)
+			print "No ortholog for %s (%s) : %s, check commandline" % (k, pdb_gnames[k], acc2pdb[k],)
+			for j in args.ortholog_map_commandline:
+				o1 = j.split(':')[0]
+				o2 = j.split(':')[1]
+				if k == o1:
+					for j in acc2pdb[k]:
+						try:
+							in2pdb[o2].append(j.split(':')[1])
+						except KeyError:
+							in2pdb[o2] = [j.split(':')[1]]
+				elif k == o2:
+					for j in acc2pdb[k]:
+						try:
+							in2pdb[o1].append(j.split(':')[1])
+						except KeyError:
+							in2pdb[o1] = [j.split(':')[1]]
 
+	#kdrew: redoing incase of additions from commandline
+	gnames = pu.get_genenames_uniprot( in2pdb.keys() )
 
 	interfaces_area = dict()
 
@@ -111,87 +133,57 @@ def main():
 	print interfaces_area
 
 
-	clusters_list = []
+	clusters = dict()
 	for i in range(len(Y)+1, 2*len(Y)+1):
-		clusters_list.append(cu.get_cluster(Y, i))
+		clusters[i] = cu.get_cluster(Y, i)
 
-	gene_clusters_list = []
-	for cl in clusters_list:
+	gene_clusters = dict()
+	for i in clusters:
 		gene_cl = []
-		for i in cl:
-			gene_cl.append(gene_id_map[i])
-		gene_clusters_list.append(gene_cl)
+		for j in clusters[i]:
+			gene_cl.append(new_id_map[j])
+		gene_clusters[i] = gene_cl
 
 
+	full_complex = new_id_map.values()
 
-	#clusters = []
-	#clusters.append(['PSMD6','PSMD3'])
-	#clusters.append(['PSMD6','PSMD3','PSMD11'])
-	#clusters.append(['PSMD6','PSMD3','PSMD11','PSMD13'])
-	#clusters.append(['PSMD6','PSMD3','PSMD11','PSMD13','PSMD12'])
-	#clusters.append(['PSMD6','PSMD3','PSMD11','PSMD13','PSMD12','PSMD7'])
-    #
-	#clusters.append(['PSMC5','PSMC4'])
-    #
-	#clusters.append(['PSMD2','PSMC2'])
-	#clusters.append(['PSMD2','PSMC2','PSMC1'])
-    #
-	#clusters.append(['PSMD2','PSMC2','PSMC1','PSMC5','PSMC4'])
-	#clusters.append(['PSMD2','PSMC2','PSMC1','PSMC5','PSMC4','PSMD1'])
-    #
-	#clusters.append(['PSMC6','PSMC3'])
-    #
-	#clusters.append(['PSMD2','PSMC2','PSMC1','PSMC5','PSMC4','PSMD1','PSMC6','PSMC3'])
-    #
-	#clusters.append(['PSMD2','PSMC2','PSMC1','PSMC5','PSMC4','PSMD1','PSMC6','PSMC3','PSMD6','PSMD3','PSMD11','PSMD13','PSMD12','PSMD7'])
-	#clusters.append(['PSMD2','PSMC2','PSMC1','PSMC5','PSMC4','PSMD1','PSMC6','PSMC3','PSMD6','PSMD3','PSMD11','PSMD13','PSMD12','PSMD7','PSMD14'])
-	#clusters.append(['PSMD2','PSMC2','PSMC1','PSMC5','PSMC4','PSMD1','PSMC6','PSMC3','PSMD6','PSMD3','PSMD11','PSMD13','PSMD12','PSMD7','PSMD14','PSMD4'])
-    #
-    #
-	#clusters.append(['PSMA5','PSMA2'])
-	#clusters.append(['PSMA5','PSMA2','PSMA6'])
-	#clusters.append(['PSMA5','PSMA2','PSMA6','PSMB3'])
-	#clusters.append(['PSMA5','PSMA2','PSMA6','PSMB3','PSMB1'])
-	#clusters.append(['PSMA5','PSMA2','PSMA6','PSMB3','PSMB1','PSMB4'])
-	#clusters.append(['PSMA5','PSMA2','PSMA6','PSMB3','PSMB1','PSMB4','PSMB6'])
-	#clusters.append(['PSMA5','PSMA2','PSMA6','PSMB3','PSMB1','PSMB4','PSMB6','PSMA3'])
-    #
-	#clusters.append(['PSMB7','PSMA7'])
-    #
-	#clusters.append(['PSMA5','PSMA2','PSMA6','PSMB3','PSMB1','PSMB4','PSMB6','PSMA3','PSMB7','PSMA7'])
-	#clusters.append(['PSMA5','PSMA2','PSMA6','PSMB3','PSMB1','PSMB4','PSMB6','PSMA3','PSMB7','PSMA7','PSMB5'])
-	#clusters.append(['PSMA5','PSMA2','PSMA6','PSMB3','PSMB1','PSMB4','PSMB6','PSMA3','PSMB7','PSMA7','PSMB5','PSMB2'])
-	#clusters.append(['PSMA5','PSMA2','PSMA6','PSMB3','PSMB1','PSMB4','PSMB6','PSMA3','PSMB7','PSMA7','PSMB5','PSMB2','PSMA1'])
-	#clusters.append(['PSMA5','PSMA2','PSMA6','PSMB3','PSMB1','PSMB4','PSMB6','PSMA3','PSMB7','PSMA7','PSMB5','PSMB2','PSMA1','PSMA4'])
-    #
-    #
-	#clusters.append(['PSMD2','PSMC2','PSMC1','PSMC5','PSMC4','PSMD1','PSMC6','PSMC3','PSMD6','PSMD3','PSMD11','PSMD13','PSMD12','PSMD7','PSMD14','PSMD4','PSMA5','PSMA2','PSMA6','PSMB3','PSMB1','PSMB4','PSMB6','PSMA3','PSMB7','PSMA7','PSMB5','PSMB2','PSMA1','PSMA4'])
-    #
-	#clusters.append(['PSMD2','PSMC2','PSMC1','PSMC5','PSMC4','PSMD1','PSMC6','PSMC3','PSMD6','PSMD3','PSMD11','PSMD13','PSMD12','PSMD7','PSMD14','PSMD4','PSMA5','PSMA2','PSMA6','PSMB3','PSMB1','PSMB4','PSMB6','PSMA3','PSMB7','PSMA7','PSMB5','PSMB2','PSMA1','PSMA4','PSMD8'])
-    #
-	#full_complex = ['PSMD2','PSMC2','PSMC1','PSMC5','PSMC4','PSMD1','PSMC6','PSMC3','PSMD6','PSMD3','PSMD11','PSMD13','PSMD12','PSMD7','PSMD14','PSMD4','PSMA5','PSMA2','PSMA6','PSMB3','PSMB1','PSMB4','PSMB6','PSMA3','PSMB7','PSMA7','PSMB5','PSMB2','PSMA1','PSMA4','PSMD8']
+	print clusters
+	print gene_clusters
 
-	full_complex = gene_id_map.values()
+	iarea_gain_list = dict()
+	for cl in gene_clusters:
+		cl_area = calc_cluster_area( gene_clusters[cl], in2pdb, interfaces_area )
+		ch1, ch2 = cu.get_cluster_children(Y, cl)
+		#print "ch1: %s ch2: %s" % (ch1, ch2,)
+		if ch1 > len(Y):
+			ch1_area = calc_cluster_area( gene_clusters[ch1], in2pdb, interfaces_area )
+		else:
+			ch1_area = 0.0
 
-	print clusters_list
-	print gene_clusters_list
-	#print clusters
+		if ch2 > len(Y):
+			ch2_area = calc_cluster_area( gene_clusters[ch2], in2pdb, interfaces_area )
+		else:
+			ch2_area = 0.0
 
-	cluster_area = []
-	for cl in gene_clusters_list:
-		cl_area = calc_cluster_area( cl, in2pdb, interfaces_area )
-		cluster_area.append( cl_area )
 		#print "%s : %s" % (cl_area, cl,)
 
 		rand_area = []
 		for i in range(1000):
-			#kdrew: randomly draw len(cl) from full_complex and calc area
-			rand_cl_area = calc_cluster_area( random.sample( full_complex, len(cl) ), in2pdb, interfaces_area )
+			#kdrew: randomly draw len(gene_clusters[cl]) from full_complex and calc area
+			rand_cl_area = calc_cluster_area( random.sample( full_complex, len(gene_clusters[cl]) ), in2pdb, interfaces_area )
 			rand_area.append(rand_cl_area)
 
 		cl_zscore = ( cl_area - np.mean(rand_area) ) / np.std(rand_area)
-		print "Iarea: %s Z: %s randmean: %s randstd: %s cluster: %s" % (cl_area, cl_zscore, np.mean(rand_area), np.std(rand_area), cl,)
+		print "Total Iarea: %s Iarea_gain: %s Z: %s randmean: %s randstd: %s cluster: %s" % (cl_area, cl_area - ch1_area - ch2_area, cl_zscore, np.mean(rand_area), np.std(rand_area), [gnames[i] for i in gene_clusters[cl]],)
+		iarea_gain_list[cl] = cl_area - ch1_area - ch2_area
 
+
+	if args.plot_filename:
+ 		circle_annotate = [iarea_gain_list[cl] for cl in sorted(iarea_gain_list.keys()) ] 
+		print circle_annotate
+		print "monotonic? %s" % (Y[:,2], )
+		hc.plotJustDendrogram(Y, args.plot_filename, gene_id_map, circle_annotate =  circle_annotate )
+	
 
 
 def calc_cluster_area( cl, pdb_map, interfaces_area ):
