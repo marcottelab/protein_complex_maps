@@ -5,6 +5,19 @@ class ClusterOutOfBounds(Exception):
 	def __str__(self):
 		return repr(self.value)
 
+def get_cluster_children(Y, cluster_id):
+	if cluster_id > 2*len(Y):
+		raise ClusterOutOfBounds(cluster_id)
+
+	#kdrew: leaf node
+	if cluster_id < (len(Y)+1):
+		return ( None, None )
+
+	#kdrew: Y is of size n-1, the first n clusters are leafs (original observations)
+	Y_id = cluster_id - (len(Y) + 1)
+
+	return ( Y[Y_id][0], Y[Y_id][1] )
+
 
 def get_cluster(Y, cluster_id):
 
