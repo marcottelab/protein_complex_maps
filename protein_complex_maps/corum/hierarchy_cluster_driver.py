@@ -18,6 +18,8 @@ def main():
 						help="Filename of output plot")
 	parser.add_argument("--plot_profile", action="store_true", dest="plot_profile", required=False, default=False,
 						help="Plot profile instead of correlation matrix")
+	parser.add_argument("--size_threshold", action="store", dest="size_threshold", type=int, required=False, default=3,
+						help="Plot profile instead of correlation matrix")
 
 	args = parser.parse_args()
 
@@ -46,7 +48,7 @@ def main():
 			data_set, new_id_map = msds.get_subdata_matrix(complexes_dict[complex1], ignoreNonExistingIds=True)
 
 			#kdrew: do not bother computing small clusters or clusters where we have limited data for
-			if new_id_map is None or len(new_id_map) < 3:
+			if new_id_map is None or len(new_id_map) < args.size_threshold:
 				continue
 
 			Y, Y2, D = hc.runCluster( data_set )
