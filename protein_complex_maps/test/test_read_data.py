@@ -71,6 +71,32 @@ class ReadDataTest(unittest.TestCase):
 		assert(mapped_ids["Q94241"] == 2)
 		assert(mapped_ids["F55A4.7"] == 5)
 
+	def testOrthologMsDataSet(self,):
+		msds = rd.MSDataSet()
+		msds.load_file(self.sample_file, header=True)
+		ortholog_map = dict()
+		ortholog_map['F55A4.5'] = 'ENSG00000008018'
+		ortholog_map['F55A4.2'] = 'ENSG00000010438'
+		ortholog_map['F55A4.1'] = 'ENSG00000013275'
+		ortholog_map['B0462.1'] = 'ENSG00000041357'
+		ortholog_map['F55A4.7'] = 'ENSG00000072110'
+
+		msds.load_file(self.sample_Ce_file, header=True, ortholog_map=ortholog_map)
+
+		#msds.map_ids_by_genename(organism="Caenorhabditis+elegans")
+		print " ortholog data cat "
+		dmat = msds.get_data_matrix()
+		print dmat
+
+		#kdrew: test a few positions
+		assert( dmat[1,1] == 10.0 ) #no ortholog in new
+		assert( dmat[13,0] == 25.0 ) # ortholog in both
+		assert( dmat[13,10] == 35.0 )# ortholog in both 
+		assert( dmat[2,10] == 40.0 ) # ortholog in both 
+		assert( dmat[0,8] == 2.0 ) #no ortholog in original
+
+		print msds.get_id_dict()
+
 
 	def testMsDataSet(self,):
 		msds = rd.MSDataSet()
