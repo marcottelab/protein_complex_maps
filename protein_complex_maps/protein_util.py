@@ -18,6 +18,14 @@ ACC_QUERY_LENGTH = 250
 
 
 def get_ortholog( prot_ids, species1, species2, version="_v8", database='inparanoid', score_threshold = 1.0 ):
+
+	ortholog_map = dict()
+	#kdrew: if same species map each protein id to itself
+	if species1 == species2:
+		for prot in prot_ids:
+			ortholog_map[prot] = prot
+		return ortholog_map
+
 	db = MySQLdb.connect("localhost", 'kdrew', 'kdrew_utexas', database)
 	cursor = db.cursor()
 	#kdrew: swap names if second is lower alphabetically
@@ -36,7 +44,6 @@ def get_ortholog( prot_ids, species1, species2, version="_v8", database='inparan
 	cursor.execute(query, prot_ids)
 
 	ortholog_results = cursor.fetchall()
-	ortholog_map = dict()
 	for pair in ortholog_results:
 		ortholog_map[pair[0]] = pair[1]
 
@@ -131,11 +138,23 @@ def map_protein_ids( id_list, from_id, to_id ):
     #kdrew: put resulting map into dictionary of lists (one to many)
 	return_dict = {}
 	for line in response.readlines():
+		print line
 		if line.split()[0] != "From":
 			try:
-				return_dict[line.split()[0]].append(line.split()[1])
+				if len(line.split()) > 2:
+					return_dict[line.split()[0]] = return_dict[line.split()[0]] + line.split()[1:]
+				else:
+					return_dict[line.split()[0]].append(line.split()[1])
 			except:
-				return_dict[line.split()[0]] = [line.split()[1],] 
+				if len(line.split()) > 2:
+					return_dict[line.split()[0]] = line.split()[1:]
+				else:
+					return_dict[line.split()[0]] = [line.split()[1],] 
+
+	for i in id_list:
+		if i not in return_dict.keys():
+			print "No id match for %s, adding empty list" % i
+			return_dict[i] = []
 
 	return return_dict
 
