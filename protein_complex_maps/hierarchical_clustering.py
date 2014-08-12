@@ -19,6 +19,7 @@ import protein_complex_maps.plots.plot_profile as pp
 import protein_complex_maps.bicluster_generator as bg
 import protein_complex_maps.annealer as anl
 import protein_complex_maps.physical_interaction_clustering as pic
+import protein_complex_maps.external.npeet.entropy_estimators as ee
 
 
 import argparse
@@ -64,6 +65,9 @@ def main():
 						help="""Type of linkage clustering, 
 						types found: http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/scipy.cluster.hierarchy.linkage.html, 
 						default: single""")
+	parser.add_argument("--dependence_metric", action="store", dest="dependence_metric", required=False, default="pearson",
+						help="""pearson or mutual_information
+						default: pearson""")
 
 	#parser.add_argument("-j", action="store", dest="numOfProcs", required=False, default=1,
 	#    				help="Number of processors to use, default=1")
@@ -115,7 +119,7 @@ def main():
 	else:
 		sample_module = None
 
-	Y, Y2, D = runCluster( data_set, args.average_cnt, sample_module, cluster_method=args.cluster_method )
+	Y, Y2, D = runCluster( data_set, args.average_cnt, sample_module, cluster_method=args.cluster_method, dependence_metric=args.dependence_metric )
 	
 	if args.pickle_filename != None:
 		pickle.dump((Y,Y2,D,new_id_map), open(args.pickle_filename, "wb"))
@@ -140,10 +144,14 @@ def main():
 		print "pearsonr: %s pval: %s" % (corr, pval,)
 		corr, pval = spearmanr(D_flat, pD_flat)
 		print "spearmanr: %s pval: %s" % (corr, pval,)
+		D_list = [[x] for x in D_flat.tolist()]
+		pD_list = [[x] for x in pD_flat.tolist()]
+		minfo= ee.mi(D_list, pD_list)
+		print "mutual information: %s" % (minfo, )
 
 #kdrew: both average_cnt and sample_module need to be set for average correlation with sample noise to be computed
 #kdrew: consider moving correlation to another module
-def runCluster(data_set, average_cnt=0, sample_module=None, scale=None, cluster_method="single"): 
+def runCluster(data_set, average_cnt=0, sample_module=None, scale=None, cluster_method="single", dependence_metric="pearson"): 
 
 	data_set = np.nan_to_num(data_set)
 	#data_set = nu.add_noise_over_columns(data_set)
@@ -155,35 +163,47 @@ def runCluster(data_set, average_cnt=0, sample_module=None, scale=None, cluster_
 
 	for i in xrange(data_set.shape[0]):
 		for j in xrange(data_set.shape[0]):
-			if average_cnt > 0 and sample_module != None:
-				corr_sum = 0.0
-				for k in range(average_cnt):
-					a1 = np.nan_to_num(np.array(data_set[i,])[0])
-					a2 = np.nan_to_num(np.array(data_set[j,])[0])
+			if dependence_metric == "pearson":
+				if average_cnt > 0 and sample_module != None:
+					corr_sum = 0.0
+					for k in range(average_cnt):
+						a1 = np.nan_to_num(np.array(data_set[i,])[0])
+						a2 = np.nan_to_num(np.array(data_set[j,])[0])
 
-					if scale != None:
-						a1 = nu.sample_noise(a1, sample_module, scale=scale)
-						a2 = nu.sample_noise(a2, sample_module, scale=scale)
-					else:
-						a1 = nu.sample_noise(a1, sample_module)
-						a2 = nu.sample_noise(a2, sample_module)
+						if scale != None:
+							a1 = nu.sample_noise(a1, sample_module, scale=scale)
+							a2 = nu.sample_noise(a2, sample_module, scale=scale)
+						else:
+							a1 = nu.sample_noise(a1, sample_module)
+							a2 = nu.sample_noise(a2, sample_module)
 
-					corr = pearsonr(a1, a2)
-					#print corr
-					corr_sum += corr[0]
-					#print corr_sum
+						corr = pearsonr(a1, a2)
+						#print corr
+						corr_sum += corr[0]
+						#print corr_sum
 
 
-				D[i,j] = corr_sum/average_cnt
-				#print "D %s" % (D[i,j],)
+					D[i,j] = corr_sum/average_cnt
+					#print "D %s" % (D[i,j],)
 
-			else:
-				corr = pearsonr(np.array(data_set[i,])[0], np.array(data_set[j,])[0])
-				D[i,j] = corr[0]
+				else:
+					corr = pearsonr(np.array(data_set[i,])[0], np.array(data_set[j,])[0])
+					D[i,j] = corr[0]
+
+			elif dependence_metric == "mutual_information":
+				a_i = np.array(data_set[i,])[0]
+				a_j = np.array(data_set[j,])[0]
+				a_i_list = [[x] for x in a_i.tolist()]
+				a_j_list = [[x] for x in a_j.tolist()]
+				minfo= ee.mi(a_i_list, a_j_list)
+				D[i,j] = minfo
 
 	Ddist = []
 	for i, j in it.combinations(range(data_set.shape[0]),2):
-		Ddist.append( 1 - D[i,j] )
+		if dependence_metric == "pearson":
+			Ddist.append( 1 - D[i,j] )
+		elif dependence_metric == "mutual_information":
+			Ddist.append( D.max() - D[i,j] )
 
 
 	D = np.nan_to_num(D)
