@@ -129,15 +129,17 @@ def normalize_length(data_matrix, id_dict, initialize=np.nan):
 	return data_matrix.T
 
 	
-def normalize_peptide_count(data_matrix, id_dict, peptide_file, peptide_counts=False, ignore_nonunique=True, initialize=np.nan):
+def normalize_peptide_count(data_matrix, id_dict, peptide_file, peptide_counts=False, ignore_nonunique=True, initialize=np.nan, delimiter='|'):
 
 	peptide_array = np.repeat(initialize, data_matrix.shape[0])
 
+	#kdrew: there are two kinds of formats, this is where there are (protein id, number of peptides) pairs
 	if peptide_counts:
 		peptide_cnt_dict = ppu.read_peptide_counts(peptide_file)
+	#kdrew: this format is "raw", where each peptide has a list of all matching protein ids
 	else:
 		peptide_cnt_dict = dict()
-		peptide_dict = ppu.read_peptide_dict(peptide_file, id_dict.keys())
+		peptide_dict = ppu.read_peptide_dict(peptide_file, id_dict.keys(), delimiter=delimiter)
 		for key in peptide_dict:
 			peptide_cnt_dict[key] = len(peptide_dict[key])
 

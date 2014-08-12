@@ -59,12 +59,12 @@ def read_peptide_list(peptide_list_file):
 
 #kdrew: peptide dict is the file that maps proteins to peptides (example file: test/Hs_test.pepDict)
 #kdrew: peptide_file is a file handle, id_list is a list of protein ids, ignore_nonunique flag will not store nonunique peptides found in file
-def read_peptide_dict(peptide_file, id_list=None, ignore_nonunique=True, id_desc="gene:"):
+def read_peptide_dict(peptide_file, id_list=None, ignore_nonunique=True, id_desc="gene:", delimiter='|'):
 	peptide_dict = dict()
 	#kdrew: count all the peptides for all the ids in id_dict
 	for line in peptide_file.readlines():
 		#kdrew: ignore non-unique peptides
-		if line.count('|') and ignore_nonunique:
+		if line.count(delimiter) and ignore_nonunique:
 			#print "ignore line"
 			continue
 
@@ -81,6 +81,7 @@ def read_peptide_dict(peptide_file, id_list=None, ignore_nonunique=True, id_desc
 
 		#kdrew: load all peptides and proteins
 		else:
+			#kdrew: split by white space or delimiter, this is probably going fail for pepDicts that have wonky delimiters
 			splits = re.split(' |\|',line)
 			peptide = line.split()[0]
 			for tok in splits:
