@@ -3,6 +3,7 @@ import math as m
 import numpy as np
 import protein_complex_maps.normalization_util as nu
 import protein_complex_maps.protein_util as pu
+import protein_complex_maps.external.npeet.entropy_estimators as ee
 import argparse
 import pickle
 
@@ -13,7 +14,7 @@ EPSILON = 0.000001
 
 def main():
 
-	parser = argparse.ArgumentParser(description="Hierarchical clusters fractionation data")
+	parser = argparse.ArgumentParser(description="Computes dependence metrics between proteins in fractionation data")
 	parser.add_argument("--input_msds_pickle", action="store", dest="msds_filename", required=True, 
 						help="Filename of MSDS pickle: pickle comes from running protein_complex_maps.util.read_ms_elutions_pickle_MSDS.py")
 	parser.add_argument("--proteins", action="store", dest="proteins", nargs='+', required=True, 
@@ -81,6 +82,22 @@ def main():
 			scores, tvals = sample_correlation_distribution(matrix=msds.get_data_matrix(), index=index, iterations=args.average_cnt, sample_module=sample_module)
 
 			print scores
+
+def mutual_information_array (matrix, index):
+	mi_list = []
+
+	data_array1 = np.array(matrix[index].reshape(-1))[0]
+	data1_list = [[x] for x in data_array1.tolist()]
+	#print matrix.shape
+	for i in range(matrix.shape[0]):
+		data_array2 = np.array(matrix[i].reshape(-1))[0]
+		data2_list = [[x] for x in data_array2.tolist()]
+		mi = ee.mi(data_array1, data_array2)
+		mi_list.append((mi,i))
+
+	#print len(corr_list)
+	return mi_list
+		
 
 def correlation_array (matrix, index):
 	corr_list = []
