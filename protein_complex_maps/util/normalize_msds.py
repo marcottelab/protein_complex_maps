@@ -32,11 +32,17 @@ def main():
 	parser.add_argument("--peptide_digest_format", action="store", dest="peptide_digest_format", required=False, default="raw",
 						help="Format of peptide digest file, either raw or counts")
 
+	parser.add_argument("--peptide_digest_delimiter", action="store", dest="delimiter", required=False, default='|',
+						help="Delimiter of peptide digest file, seperates multiple proteins")
+
 	parser.add_argument("--threshold_normalize", action="store_true", dest="threshold_normalize", required=False, default=False,
 						help="Normalize by threshold")
 
 	parser.add_argument("--threshold", action="store", type=float, dest="threshold", required=False, 
 						help="Threshold for which to normalize by")
+
+	parser.add_argument("--standardize", action="store_true", dest="standardize", required=False, default=False,
+						help="Standardize each data matrix (x - x_mean) / x_std ")
 
 	parser.add_argument("--map_ids", action="store_true", dest="map_ids", required=False, default=False,
 						help="Map one id type to another, set using map_id_from and map_id_to ")
@@ -99,7 +105,7 @@ def main():
 			peptide_counts = False
 		if args.peptide_digest_format == "counts":
 			peptide_counts = True
-		dm_peptide = nu.normalize_peptide_count(msds.get_data_matrix(), msds.get_id_dict(), peptide_file, peptide_counts=peptide_counts)
+		dm_peptide = nu.normalize_peptide_count(msds.get_data_matrix(), msds.get_id_dict(), peptide_file, peptide_counts=peptide_counts, delimiter=args.delimiter)
 		msds.set_data_matrix(dm_peptide)
 
 
@@ -108,6 +114,11 @@ def main():
 		msds_dm = nu.threshold(msds_dm, threshold=args.threshold)
 		msds.set_data_matrix(msds_dm)
 
+
+	if args.standardize:
+		msds_dm = msds.get_data_matrix()
+		msds_dm = nu.standardize(msds_dm)
+		msds.set_data_matrix(msds_dm)
 
 	#print msds.get_id_dict()
 
