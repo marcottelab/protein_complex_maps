@@ -190,6 +190,12 @@ class MSDataSet(object):
 	def map_ids( self, from_id, to_id):
 		#kdrew: map master_name_list from current db_id to db_id
 		#kdrew: update master_name_list and current db_id
+
+		#kdrew: older versions of msds did not have mappings attribute
+		try:
+			self.__mappings
+		except AttributeError:
+			self.__mappings = dict()
 		self.__mappings[to_id] = dict()
 		self.__mappings[to_id+"_list"] = dict()
 		protids_map = pu.map_protein_ids( self.__master_name_list, from_id, to_id )
