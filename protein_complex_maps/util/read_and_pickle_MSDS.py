@@ -18,7 +18,7 @@ def main():
 						help="Filenames of elution files")
 	parser.add_argument("--input_msds_pickle", action="store", dest="msds_pickle_filename", required=False, default=None, 
 						help="Filename of MSDS pickle")
-	parser.add_argument("--input_msds_pickle2", action="store", dest="msds_pickle_filename_2", required=False, default=None, 
+	parser.add_argument("--input_msds_pickle2", action="store", dest="msds_pickle_filename_2", nargs='+', required=False, default=None, 
 						help="Filename of MSDS pickle")
 	parser.add_argument("--input_peplist_files", action="store", dest="peplist_filenames", nargs='+', required=False, default=None,
 						help="Filenames of peptide list files")
@@ -40,7 +40,7 @@ def main():
 						help="Normalize each data matrix by the mean of total fractionation experiment")
 	parser.add_argument("--species1", action="store", dest="species1", required=False, default=None, 
 						help="species listed in msds")
-	parser.add_argument("--species2", action="store", dest="species2", required=False, default=None,
+	parser.add_argument("--species2", action="store", dest="species2", nargs='+', required=False, default=None,
 						help="species listed in msds2")
 
 	args = parser.parse_args()
@@ -65,14 +65,16 @@ def main():
 
 
 	if args.msds_pickle_filename_2:
-		msds2 = pickle.load( open( args.msds_pickle_filename_2, "rb" ) )
+		for i, msds_pickle_filename in enumerate(args.msds_pickle_filename_2):
+			msds2 = pickle.load( open( msds_pickle_filename, "rb" ) )
 
-		if args.species1 and args.species2:
-			ortholog_map = pu.get_ortholog( msds2.get_name_list(), args.species2, args.species1, version="_origid", database="inparanoid_blake")
-			msds.concat_msds( msds2, ortholog_map )
+			if args.species1 and args.species2:
+				#kdrew: the min for indexing will use the last specified species for all remaining files
+				ortholog_map = pu.get_ortholog( msds2.get_name_list(), args.species2[min(i,len(args.species2)-1)], args.species1, version="_origid", database="inparanoid_blake")
+				msds.concat_msds( msds2, ortholog_map )
 
-		else:
-			msds.concat_msds( msds2 )
+			else:
+				msds.concat_msds( msds2 )
 
 
 	#kdrew: add to msds by elution files
