@@ -16,30 +16,53 @@ ACC_QUERY_LENGTH = 250
 #			return int(line.split()[1])
 #	return None
 
+#kdrew: wrapper class
+def get_ortholog( prot_ids, species1, species2=None, version="_v8", database='inparanoid', score_threshold = 1.0 ):
+	ortholog_map = dict()
+	if species2 == None:
+		#kdrew: find all tables in db and call get_ortholog_by_table for each table
+		db = MySQLdb.connect("localhost", 'kdrew', 'kdrew_utexas', database)
+		cursor = db.cursor()
+		query = "show tables"
+		cursor.execute(query)
+		for tableresult in cursor.fetchall():
+			tablename = tableresult[0]
+			if species1 in tablename:
+				omap = get_ortholog_by_table( prot_ids, tablename, database, score_threshold, species=species1 ) 
+				ortholog_map = dict( ortholog_map.items() + omap.items() )
 
-def get_ortholog( prot_ids, species1, species2, version="_v8", database='inparanoid', score_threshold = 1.0 ):
+		return ortholog_map
+				
+	else:
+		if species1 == species2:
+			for prot in prot_ids:
+				ortholog_map[prot] = prot
+			return ortholog_map
+		else:
+			#kdrew: swap names if second is lower alphabetically
+			if species1 > species2:
+				species2, species1 = species1, species2
+			#kdrew: build up query statement
+			tablename = "%s_%s%s" % (species1, species2, version)
+			return get_ortholog_by_table( prot_ids, tablename, database, score_threshold, species=species1) 
 
+
+def get_ortholog_by_table( prot_ids, tablename, database='inparanoid', score_threshold = 1.0, species=None ): 
 	ortholog_map = dict()
 	#kdrew: if same species map each protein id to itself
-	if species1 == species2:
-		for prot in prot_ids:
-			ortholog_map[prot] = prot
-		return ortholog_map
 
 	db = MySQLdb.connect("localhost", 'kdrew', 'kdrew_utexas', database)
 	cursor = db.cursor()
-	#kdrew: swap names if second is lower alphabetically
-	if species1 > species2:
-		species2, species1 = species1, species2
-	#kdrew: build up query statement
-	table_name = "%s_%s%s" % (species1, species2, version)
-	query = "select a1.protein_id as pid1, a2.protein_id as pid2 from %s as a1, %s as a2 where a1.cluster = a2.cluster and a1.species <> a2.species" % (table_name, table_name,) 
+	query = "select a1.protein_id as pid1, a2.protein_id as pid2 from %s as a1, %s as a2 where a1.cluster = a2.cluster and a1.species <> a2.species" % (tablename, tablename,) 
 	query = query + " and a2.score >= %s" % (score_threshold,)
 	placeholder = '%s'
 	placeholders = ','.join([placeholder] * len(prot_ids))
 	query_add = " and a1.protein_id in (%s)" % placeholders
 	query = query + query_add
-	print query
+	if species != None:
+		query_add = " and a2.species = '%s' " % (species[0]+'.'+species[1:],)
+		query = query + query_add
+	#print query
 
 	cursor.execute(query, prot_ids)
 
@@ -115,6 +138,33 @@ def get_from_uniprot_by_genename( gene_ids, organism="", gene_prefix="gene_exact
 
 	return return_dict
 
+
+#kdrew: map_protein_ids using uniprot changed their to_pdb formatting so it no longer has chain information
+#kdrew: this is from Martin's Lab server at UCL: http://bioinformatics.oxfordjournals.org/content/21/23/4297.full
+#kdrew: ids should be uniprot ac 
+#kdrew: there is a server but downloading the db and querying it should be faster
+def map_protein_ids_to_pdb( id_list, id_type='ac', database='pdbsws' ):
+	#http://www.bioinf.org.uk/cgi-bin/pdbsws/query.pl?plain=1&qtype=ac&id=P38764
+
+	id2pdb = dict()
+	db = MySQLdb.connect("localhost", 'kdrew', 'kdrew_utexas', database)
+	cursor = db.cursor()
+	#kdrew: build up query statement
+	placeholder = '%s'
+	placeholders = ','.join([placeholder] * len(id_list))
+	query = "select pdbid, chain, uniprot from pdb2uniprot as p2u where uniprot in (%s)" % placeholders
+	print query
+    
+	cursor.execute(query, id_list)
+    
+	results = cursor.fetchall()
+	for mapping in results:
+		try:
+			id2pdb[mapping[2]].append(mapping[0:2])
+		except KeyError:
+			id2pdb[mapping[2]] = [mapping[0:2],]
+    
+	return id2pdb
 
 #kdrew: uses uniprot webservice to map ids
 #kdrew: from_id and to_id are abbreviations of dbid names which can be found: http://www.uniprot.org/faq/28
