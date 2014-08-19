@@ -203,7 +203,10 @@ def runCluster(data_set, average_cnt=0, sample_module=None, scale=None, cluster_
 		if dependence_metric == "pearson":
 			Ddist.append( 1 - D[i,j] )
 		elif dependence_metric == "mutual_information":
+			#kdrew: this makes an actual distance, not sure of the right way of doing this
 			Ddist.append( D.max() - D[i,j] )
+			#kdrew: appeared random
+			#Ddist.append( D[i,i] - D[i,j] )
 
 
 	D = np.nan_to_num(D)
