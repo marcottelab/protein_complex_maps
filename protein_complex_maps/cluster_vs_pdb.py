@@ -60,21 +60,25 @@ def main():
 	pdb2acc = pu.map_protein_ids( [args.pdb_id,] , "PDB_ID", "ACC" )
 	#print pdb2acc
 	#kdrew: reverse map uniprot accs to pdb ids
-	acc2pdbs = pu.map_protein_ids( pdb2acc[args.pdb_id], "ACC", "PDB_ID" )
+	#acc2pdbs = pu.map_protein_ids( pdb2acc[args.pdb_id], "ACC", "PDB_ID" )
+	acc2pdbs = pu.map_protein_ids_to_pdb( pdb2acc[args.pdb_id] )
 	#print acc2pdb
 
 	#kdrew: the reverse map has all pdbs with given acc, get only pdb ids with pdb of interest and chain numbering
 	acc2pdb = dict()
-	pdb_token = args.pdb_id+":"
+	#pdb_token = args.pdb_id+":"
+	pdb_token = args.pdb_id
 	for acc in acc2pdbs:
-		for id1 in acc2pdbs[acc]:
-			if pdb_token in id1:
+		for pdbid in acc2pdbs[acc]:
+			print "%s %s" % (acc, pdbid,)
+			if pdb_token.lower() == pdbid[0].lower():
+				pdbid_with_chain = "%s:%s" % (pdbid[0],pdbid[1])
 				try:
-					acc2pdb[acc].append(id1)
+					acc2pdb[acc].append(pdbid_with_chain)
 				except KeyError:
-					acc2pdb[acc] = [id1,]
+					acc2pdb[acc] = [pdbid_with_chain,]
 
-	print acc2pdb
+	print "acc2pdb: %s" % (acc2pdb,)
 
 
 	#kdrew: map uniprot ids from pdb species to human (or other species of interest)
