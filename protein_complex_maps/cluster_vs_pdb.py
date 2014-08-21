@@ -11,7 +11,7 @@ import protein_complex_maps.hierarchical_clustering as hc
 
 def main(): 
 
-	parser = argparse.ArgumentParser(description="Hierarchical clusters fractionation data")
+	parser = argparse.ArgumentParser(description="Hierarchical clusters fractionation data and adds surface area data to each branch")
 	parser.add_argument("--input_msds_pickle", action="store", dest="msds_filename", required=True, 
 						help="Filename of MSDS pickle: pickle comes from running protein_complex_maps.util.read_ms_elutions_pickle_MSDS.py")
 	parser.add_argument("--proteins", action="store", dest="proteins", nargs='+', required=True, 
