@@ -3,8 +3,10 @@
 
 import urllib, urllib2 
 import MySQLdb
+import difflib
 
 ACC_QUERY_LENGTH = 250
+FUZZY_MATCH_THRESHOLD = 0.25
 
 ##kdrew: queries uniprot for protein sequence length
 #def get_length_uniprot( protein_id ):
@@ -30,6 +32,24 @@ def get_ortholog( prot_ids, species1, species2=None, version="_v8", database='in
 			if species1 in tablename:
 				omap = get_ortholog_by_table( prot_ids, tablename, database, score_threshold, species=species1 ) 
 				ortholog_map = dict( ortholog_map.items() + omap.items() )
+
+		missing_in_orthologmap = set()
+		for protid in prot_ids:
+			if protid not in ortholog_map:
+				missing_in_orthologmap.add(protid)
+
+		if 0 < len(missing_in_orthologmap):
+			print "missing: %s" % (missing_in_orthologmap,)
+			ids2species = get_organism_uniprot(list(missing_in_orthologmap))
+			for id1 in ids2species:
+				#kdrew: check to see if the passed in species is the same as id's species
+				#kdrew: have to do a fuzzy match because what gets returned by uniprot is the full name 
+				#kdrew: and the inparanoid name is an abbreviation ( I guess this is why they invented taxids )
+				#kdrew: maybe all of this can be avoided if I create a Hsapiens_Hsapiens table in inparanoid
+				print ids2species[id1], species1
+				if difflib.SequenceMatcher(None, species1,ids2species[id1]).ratio() > FUZZY_MATCH_THRESHOLD:
+					ortholog_map[id1] = id1
+
 
 		return ortholog_map
 				
@@ -72,6 +92,8 @@ def get_ortholog_by_table( prot_ids, tablename, database='inparanoid', score_thr
 
 	return ortholog_map
 
+def get_organism_uniprot( protein_ids ):
+	return get_from_uniprot( protein_ids, "organism" )
 
 #kdrew: queries uniprot for protein sequence length
 def get_length_uniprot( protein_ids ):
@@ -102,6 +124,8 @@ def get_from_uniprot( protein_ids, keyword ):
 			if line.split()[0] in protein_ids:
 				if keyword == "length":
 					return_dict[line.split()[0]] = int(line.split()[1])
+				elif keyword == "organism":
+					return_dict[line.split()[0]] = line.split('\t')[1]
 				else:
 					try:
 						return_dict[line.split()[0]] = line.split()[1]
@@ -143,7 +167,7 @@ def get_from_uniprot_by_genename( gene_ids, organism="", gene_prefix="gene_exact
 #kdrew: this is from Martin's Lab server at UCL: http://bioinformatics.oxfordjournals.org/content/21/23/4297.full
 #kdrew: ids should be uniprot ac 
 #kdrew: there is a server but downloading the db and querying it should be faster
-def map_protein_ids_to_pdb( id_list, id_type='ac', database='pdbsws' ):
+def map_protein_ids_to_pdb( id_list, database='pdbsws' ):
 	#http://www.bioinf.org.uk/cgi-bin/pdbsws/query.pl?plain=1&qtype=ac&id=P38764
 
 	id2pdb = dict()
@@ -165,6 +189,27 @@ def map_protein_ids_to_pdb( id_list, id_type='ac', database='pdbsws' ):
 			id2pdb[mapping[2]] = [mapping[0:2],]
     
 	return id2pdb
+
+#kdrew: return dictionary of chainid -> acc
+def get_pdb_protein_ids( pdbid, database='pdbsws' ):
+	#http://www.bioinf.org.uk/cgi-bin/pdbsws/query.pl?plain=1&qtype=ac&id=P38764
+
+	chain2protid = dict()
+	db = MySQLdb.connect("localhost", 'kdrew', 'kdrew_utexas', database)
+	cursor = db.cursor()
+	query = "select pdbid, chain, uniprot from pdb2uniprot as p2u where pdbid = '%s'" % (pdbid,)
+	print query
+    
+	cursor.execute(query)
+    
+	results = cursor.fetchall()
+	for mapping in results:
+		acc = mapping[2]
+		if acc == '?':
+			acc = None
+		chain2protid[mapping[1]] = acc
+    
+	return chain2protid
 
 #kdrew: uses uniprot webservice to map ids
 #kdrew: from_id and to_id are abbreviations of dbid names which can be found: http://www.uniprot.org/faq/28
