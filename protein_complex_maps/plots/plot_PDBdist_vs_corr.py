@@ -59,11 +59,20 @@ def main():
 	for pdbid in pdb_list:
 		print pdbid
 
+		#kdrew: can pass in two pdbids on same line if the complex is split into two pdbs, ex. ribosome 3j3a 3j3b
+		split_pdbid = pdbid.split()
+		pdbid = split_pdbid[0]
+		try:
+			pdbid2 = split_pdbid[1]
+		except IndexError:
+			pdbid2 = None
+
 		#kdrew: for every acc in pdb map to pdb chain
 		chain2acc = pu.get_pdb_protein_ids(pdbid)
 		if 0 == len(chain2acc):
 			print "No accs found for pdbid %s" % (pdbid,)
 			continue
+
 
 		#kdrew: for every acc map human version (or specified species)
 		acc2base_species = pu.get_ortholog( [x for x in chain2acc.values() if x != None], species1=args.base_species)
@@ -73,48 +82,45 @@ def main():
 		acc2idmap = msds.get_id_dict()
 
 
-		chain_pairs2acc = dict()
-		#kdrew: for every pair of chains 
-		#kdrew: find where we have proper mappings to base species acc 
-		#kdrew: and acc is in msds data
-		for c1, c2 in it.combinations(chain2acc.keys(),2):
-			print c1, c2
-			acc1 = chain2acc[c1]
-			acc2 = chain2acc[c2]
-			print acc1, acc2
-
-			base_acc1 = None
-			base_acc2 = None
-			try:
-				base_acc1 = acc2base_species[acc1]
-			except KeyError:
-				print "No mapping to base_species for acc %s" % (acc1)
-				continue
-
-			try:
-				base_acc2 = acc2base_species[acc2]
-			except KeyError:
-				print "No mapping to base_species for acc %s" % (acc2)
-				continue
-
-			#kdrew: check to see if  
-			if base_acc1 in acc2idmap and base_acc2 in acc2idmap:
-				print base_acc1, base_acc2
-				chain_pairs2acc[(c1,c2)] = (base_acc1, base_acc2)
-			else:
-				continue
+		chain_pairs2acc = chain_pairs(msds, chain2acc, acc2base_species)
 	
 		a1_dict = calc_correlation( chain_pairs2acc, msds )
+
+		#kdrew: if there is a second pdb in the pdb_list, compile chain combinations within 2nd structure and between 1st and 2nd structure
+		if pdbid2 != None:
+			chain2acc2 = pu.get_pdb_protein_ids(pdbid2)
+			if 0 == len(chain2acc2):
+				print "No accs found for pdbid %s" % (pdbid2,)
+				continue
+			acc2base_species2 = pu.get_ortholog( [x for x in chain2acc2.values() if x != None], species1=args.base_species)
+			acc2base_species = dict(acc2base_species.items() + acc2base_species2.items())
+			chain_pairs2acc2 = chain_pairs(msds, chain2acc2, acc2base_species)
+			a1_dict2 = calc_correlation( chain_pairs2acc2, msds )
+
+			#kdrew: call chain_pairs for inter pdb chain combinations
+			chain_pairs2acc_interpdb = chain_pairs(msds, chain2acc, acc2base_species, chain2acc2)
+			a1_dict_interpdb = calc_correlation( chain_pairs2acc2, msds )
+
+			#kdrew: combine all correlations into a single dictionary
+			a1_dict = dict(a1_dict.items() + a1_dict2.items() + a1_dict_interpdb.items())
 
 		if args.calc_metric == "calc_dist":
 			#kdrew: read in pdb
 			try:
 				structure = Bio.PDB.PDBParser().get_structure(pdbid, args.pdb_dir+'/'+pdbid+'.pdb')
+				if pdbid2 != None:
+					structure2 = Bio.PDB.PDBParser().get_structure(pdbid2, args.pdb_dir+'/'+pdbid2+'.pdb')
 			except IOError as e:
 				print "I/O error({0}): {1}".format(e.errno, e.strerror)
 				continue
 
 			a2_dict = calc_distance( chain_pairs2acc, structure )
+
+			if pdbid2 != None:
+				#kdrew: update to deal with interpdb calculations
+				a2_dict2 = calc_distance( chain_pairs2acc2, structure2 )
+				a2_dict_interpdb = calc_distance( chain_pairs2acc_interpdb, structure, structure2 )
+				a2_dict = dict(a2_dict.items() + a2_dict2.items() + a2_dict_interpdb.items())
 
 		elif args.calc_metric == "calc_surface_area":
 			pisaInt = pdbu.PISA_Interfaces( args.pisa_dir+'/'+pdbid+'_pisa' )
@@ -141,6 +147,67 @@ def main():
 
 	plot_data( pdb_plot_data, args.plot_filename )
 
+def chain_pairs(msds, chain2acc, acc2base_species, chain2acc2=None):
+
+	chain_pairs2acc = dict()
+
+	if chain2acc2 == None:
+		#kdrew: for every pair of chains 
+		#kdrew: find where we have proper mappings to base species acc 
+		#kdrew: and acc is in msds data
+		for c1, c2 in it.combinations(chain2acc.keys(),2):
+			print c1, c2
+			base_acc1, base_acc2 = chain_pairs_helper(msds, chain2acc, c1, c2, acc2base_species)
+
+			if base_acc1 == None or base_acc2 == None:
+				continue
+			else:
+				chain_pairs2acc[(c1,c2)] = (base_acc1, base_acc2)
+	else:
+		for c1 in chain2acc.keys():
+			for c2 in chain2acc2.keys():
+				print c1, c2
+				base_acc1, base_acc2 = chain_pairs_helper(msds, chain2acc, c1, c2, acc2base_species, chain2acc2)
+
+				if base_acc1 == None or base_acc2 == None:
+					continue
+				else:
+					chain_pairs2acc[(c1,c2)] = (base_acc1, base_acc2)
+
+
+	return chain_pairs2acc
+
+def chain_pairs_helper(msds, chain2acc, c1, c2, acc2base_species, chain2acc2=None):
+	acc2idmap = msds.get_id_dict()
+
+	acc1 = chain2acc[c1]
+	if chain2acc2 == None:
+		acc2 = chain2acc[c2]
+	else:
+		acc2 = chain2acc2[c2]
+
+	print acc1, acc2
+
+	base_acc1 = None
+	base_acc2 = None
+	try:
+		base_acc1 = acc2base_species[acc1]
+	except KeyError:
+		print "No mapping to base_species for acc %s" % (acc1)
+		return None, None
+
+	try:
+		base_acc2 = acc2base_species[acc2]
+	except KeyError:
+		print "No mapping to base_species for acc %s" % (acc2)
+		return None, None
+
+	#kdrew: check to see if accs are in msds
+	if base_acc1 not in acc2idmap or base_acc2 not in acc2idmap:
+		print "No mapping of base_acc in msds: %s %s" % (base_acc1, base_acc2,)
+		return None, None
+
+	return base_acc1, base_acc2
 
 def calc_correlation(chain_pairs2acc, msds):
 
@@ -191,6 +258,10 @@ def calc_surface_area(chain_pairs2acc, pisaInt):
 		base_acc1 = chain_pairs2acc[(c1,c2)][0]
 		base_acc2 = chain_pairs2acc[(c1,c2)][1]
 
+		#kdrew: don't calculate between the same protein
+		if base_acc1 == base_acc2:
+			continue
+
 		sArea = pisaInt.surface_area(c1, c2)
 
 		if sArea != None:
@@ -208,14 +279,17 @@ def calc_surface_area(chain_pairs2acc, pisaInt):
 	return sArea_dict
 
 #kdrew: calculate distance between chains
-def calc_distance(chain_pairs2acc, structure):
+def calc_distance(chain_pairs2acc, structure, structure2=None):
 
 	dist_dict = dict()
 	for c1, c2 in chain_pairs2acc:
 		base_acc1 = chain_pairs2acc[(c1,c2)][0]
 		base_acc2 = chain_pairs2acc[(c1,c2)][1]
+		#kdrew: don't calculate distance between the same protein
+		if base_acc1 == base_acc2:
+			continue
 
-		min_dist = pdbu.min_dist(structure, c1, c2)
+		min_dist = pdbu.min_dist(structure, c1, c2, structure2)
 
 		if not np.isnan(min_dist):
 			base_key1, base_key2 = base_acc1, base_acc2
