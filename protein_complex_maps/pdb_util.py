@@ -19,28 +19,36 @@ def calc_dist_matrix(chain_one, chain_two ) :
 			answer[row, col] = calc_residue_dist(residue_one, residue_two)
 	return answer
 
-def min_dist(structure, chain1, chain2):
-	return metric_dist( structure, chain1, chain2, function=np.nanmin)
+def min_dist(structure, chain1, chain2, structure2=None):
+	return metric_dist( structure, chain1, chain2, structure2=structure2, function=np.nanmin)
 
-def max_dist(structure, chain1, chain2):
-	return metric_dist( structure, chain1, chain2, function=np.nanmax)
+def max_dist(structure, chain1, chain2, structure2=None):
+	return metric_dist( structure, chain1, chain2, structure2=structure2, function=np.nanmax)
 
-def mean_dist(structure, chain1, chain2):
-	return metric_dist( structure, chain1, chain2, function=nanmean)
+def mean_dist(structure, chain1, chain2, structure2=None):
+	return metric_dist( structure, chain1, chain2, structure2=structure2, function=nanmean)
 
 #kdrew: structure as parsed by PDBParser and chain letter codes
-def metric_dist(structure, chain1, chain2, function=np.nanmin):
+#kdrew: if chains are in different pdbs (3aja, 3j3b of ribosome) use structure2
+def metric_dist(structure, chain1, chain2, structure2=None, function=np.nanmin):
 	try:
 		chain_one = structure[0][chain1]
 	except KeyError:
 		print "missing chain: %s" % (chain1,)
 		return np.nan
 
-	try:
-		chain_two = structure[0][chain2]
-	except KeyError:
-		print "missing chain: %s" % (chain2,)
-		return np.nan
+	if structure2 == None:
+		try:
+			chain_two = structure[0][chain2]
+		except KeyError:
+			print "missing chain: %s" % (chain2,)
+			return np.nan
+	else:
+		try:
+			chain_two = structure2[0][chain2]
+		except KeyError:
+			print "missing chain: %s" % (chain2,)
+			return np.nan
 
 	dmat = calc_dist_matrix(chain_one, chain_two)
 	return function(dmat)
