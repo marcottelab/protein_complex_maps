@@ -8,6 +8,7 @@ import pickle
 import protein_complex_maps.protein_util as pu
 import protein_complex_maps.cluster_util as cu
 import protein_complex_maps.hierarchical_clustering as hc
+import protein_complex_maps.pdb_util as pdbu
 
 def main(): 
 
@@ -125,21 +126,14 @@ def main():
 	#kdrew: redoing incase of additions from commandline
 	gnames = pu.get_genenames_uniprot( in2pdb.keys() )
 
-	interfaces_area = dict()
-
 	#kdrew: get interface area (angstrom^2) from pisa file for every interacting chain
-	pisa_file = open(args.pisa_filename, "rb")
-	for line in pisa_file.readlines():
-		line_split = line.split()
-		#interfaces_area[(line_split[1], line_split[6])] = float(line_split[10])
-		interfaces_area[(line_split[0], line_split[1])] = float(line_split[2])
-
-	print interfaces_area
-
+	pisaInt = pdbu.PISA_Interfaces( args.pisa_filename )
 
 	clusters = dict()
 	for i in range(len(Y)+1, 2*len(Y)+1):
 		clusters[i] = cu.get_cluster(Y, i)
+
+	print "new_id_map: %s" % (new_id_map,)
 
 	gene_clusters = dict()
 	for i in clusters:
@@ -154,62 +148,96 @@ def main():
 	print clusters
 	print gene_clusters
 
+	iarea_gain_list = calc_gene_clusters(gene_clusters, in2pdb, pisaInt, Y, full_complex, gnames)
+
+	rand_iarea_gain_list_total = dict()
+	#kdrew: randomize
+	for i in xrange(1000):
+		#kdrew: randomize new_id_map
+		rvals = new_id_map.values()
+		random.shuffle(rvals)
+		rand_id_map = dict(zip(new_id_map.keys(), rvals))
+
+		rand_gene_clusters = dict()
+		for i in clusters:
+			gene_cl = []
+			for j in clusters[i]:
+				gene_cl.append(rand_id_map[j])
+			rand_gene_clusters[i] = gene_cl
+
+		rand_iarea_gain_list = calc_gene_clusters(rand_gene_clusters, in2pdb, pisaInt, Y, full_complex, gnames)
+		for key in rand_iarea_gain_list:
+			try:
+				rand_iarea_gain_list_total[key].append(rand_iarea_gain_list[key])
+			except KeyError:
+				rand_iarea_gain_list_total[key] = [rand_iarea_gain_list[key]]
+
+
+	rand_iarea_gain_list_mean = dict()
+	rand_iarea_gain_list_std = dict()
+	for key in rand_iarea_gain_list_total:
+		rand_iarea_gain_list_mean[key] = np.mean(rand_iarea_gain_list_total[key])
+		rand_iarea_gain_list_std[key] = np.std(rand_iarea_gain_list_total[key])
+
+
+	if args.plot_filename:
+ 		circle_annotate = [iarea_gain_list[cl] for cl in sorted(iarea_gain_list.keys()) ] 
+ 		circle_annotate_rand = [rand_iarea_gain_list_mean[cl] for cl in sorted(rand_iarea_gain_list_mean.keys()) ] 
+		print circle_annotate
+		print "monotonic? %s" % (Y[:,2], )
+		hc.plotJustDendrogram(Y, args.plot_filename, gene_id_map, circle_annotate =  circle_annotate )
+		hc.plotJustDendrogram(Y, args.plot_filename+".rand.pdf", gene_id_map, circle_annotate =  circle_annotate_rand )
+	
+
+def calc_gene_clusters(gene_clusters, in2pdb, pisaInt, Y, full_complex, gnames):
 	iarea_gain_list = dict()
 	for cl in gene_clusters:
-		cl_area = calc_cluster_area( gene_clusters[cl], in2pdb, interfaces_area )
+		cl_area = calc_cluster_area( gene_clusters[cl], in2pdb, pisaInt )
 		ch1, ch2 = cu.get_cluster_children(Y, cl)
 		#print "ch1: %s ch2: %s" % (ch1, ch2,)
 		if ch1 > len(Y):
-			ch1_area = calc_cluster_area( gene_clusters[ch1], in2pdb, interfaces_area )
+			ch1_area = calc_cluster_area( gene_clusters[ch1], in2pdb, pisaInt )
 		else:
 			ch1_area = 0.0
 
 		if ch2 > len(Y):
-			ch2_area = calc_cluster_area( gene_clusters[ch2], in2pdb, interfaces_area )
+			ch2_area = calc_cluster_area( gene_clusters[ch2], in2pdb, pisaInt )
 		else:
 			ch2_area = 0.0
 
 		#print "%s : %s" % (cl_area, cl,)
 
-		rand_area = []
-		for i in range(1000):
-			#kdrew: randomly draw len(gene_clusters[cl]) from full_complex and calc area
-			rand_cl_area = calc_cluster_area( random.sample( full_complex, len(gene_clusters[cl]) ), in2pdb, interfaces_area )
-			rand_area.append(rand_cl_area)
-
-		cl_zscore = ( cl_area - np.mean(rand_area) ) / np.std(rand_area)
-		print "Total Iarea: %s Iarea_gain: %s Z: %s randmean: %s randstd: %s cluster: %s" % (cl_area, cl_area - ch1_area - ch2_area, cl_zscore, np.mean(rand_area), np.std(rand_area), [gnames[i] for i in gene_clusters[cl]],)
+		#rand_area = []
+		#for i in range(1000):
+		#	#kdrew: randomly draw len(gene_clusters[cl]) from full_complex and calc area
+		#	rand_cl_area = calc_cluster_area( random.sample( full_complex, len(gene_clusters[cl]) ), in2pdb, pisaInt )
+		#	rand_area.append(rand_cl_area)
+        #
+		#cl_zscore = ( cl_area - np.mean(rand_area) ) / np.std(rand_area)
+		#print "Total Iarea: %s Iarea_gain: %s Z: %s randmean: %s randstd: %s cluster: %s" % (cl_area, cl_area - ch1_area - ch2_area, cl_zscore, np.mean(rand_area), np.std(rand_area), [gnames[i] for i in gene_clusters[cl]],)
+		print "Total Iarea: %s Iarea_gain: %s cluster: %s" % (cl_area, cl_area - ch1_area - ch2_area, [gnames[i] for i in gene_clusters[cl]],)
 		iarea_gain_list[cl] = cl_area - ch1_area - ch2_area
-
-
-	if args.plot_filename:
- 		circle_annotate = [iarea_gain_list[cl] for cl in sorted(iarea_gain_list.keys()) ] 
-		print circle_annotate
-		print "monotonic? %s" % (Y[:,2], )
-		hc.plotJustDendrogram(Y, args.plot_filename, gene_id_map, circle_annotate =  circle_annotate )
 	
+	return iarea_gain_list
 
 
-def calc_cluster_area( cl, pdb_map, interfaces_area ):
+
+
+def calc_cluster_area( cl, pdb_map, pisaInt ):
 	cl_area = 0.0
 	#kdrew: for every pair of proteins in cluster
 	for i,j in it.combinations(cl,2):
-		#print "%s %s %s" % (in2pdb[i], in2pdb[j], interfaces_area[(in2pdb[i],in2pdb[j])], )	
+		#print "%s %s %s" % (in2pdb[i], in2pdb[j], pisaInt[(in2pdb[i],in2pdb[j])], )	
 		#kdrew: for every chain of protein1
 		for ii in pdb_map[i]:
 			#kdrew: for every chain of protein2
 			for jj in pdb_map[j]:
-				try:
-					#kdrew: get interface surface area
-					cl_area += interfaces_area[(ii,jj)]
-				except KeyError:
-					try:
-						#print "%s %s %s" % (pdb_map[i], pdb_map[j], interfaces_area[(pdb_map[j],pdb_map[i])], )
-						#kdrew: try reverse of chains
-						cl_area += interfaces_area[(jj,ii)]
-					except KeyError:
-						#print "%s %s %s" % (pdb_map[i], pdb_map[j], 0, )
-						cl_area += 0.0
+				#kdrew: get interface surface area
+				sa = pisaInt.surface_area(ii,jj)
+				if None != sa:
+					cl_area += sa
+				else:
+					cl_area += 0.0
 	return cl_area
 
 
