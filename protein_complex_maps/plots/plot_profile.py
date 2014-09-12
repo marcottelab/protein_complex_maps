@@ -59,7 +59,7 @@ def plot_profile(msds, protein_ids, total_occupancy=False, ylim_max=False, savef
 
 	#print data_set
 
-	plot_profile_dataset(data_set, new_id_map, ylim_max, savefilename, fraction_range)
+	plot_profile_dataset(data_set, new_id_map, ylim_max, savefilename, fraction_range, genenames=genenames)
 
 def plot_profile_dataset(data_set, id_map, ylim_max=False, savefilename=None, fraction_range=None, x_highlight=(0,0), y_highlight=(0,0), genenames=False):
 	data_subplots = []
@@ -89,6 +89,8 @@ def plot_profile_dataset(data_set, id_map, ylim_max=False, savefilename=None, fr
 
 		if ylim_max:
 			data_subplots[i].axes.set_ylim(0,max_value)
+
+		#data_subplots[i].axes.set_xlim(0, len(data_array_cols))
 
 		if fraction_range:
 			data_subplots[i].axes.set_xlim(fraction_range[0], fraction_range[1])
