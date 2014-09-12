@@ -26,7 +26,7 @@ def max_dist(structure, chain1, chain2, structure2=None):
 	return metric_dist( structure, chain1, chain2, structure2=structure2, function=np.nanmax)
 
 def mean_dist(structure, chain1, chain2, structure2=None):
-	return metric_dist( structure, chain1, chain2, structure2=structure2, function=nanmean)
+	return metric_dist( structure, chain1, chain2, structure2=structure2, function=np.nanmean)
 
 #kdrew: structure as parsed by PDBParser and chain letter codes
 #kdrew: if chains are in different pdbs (3aja, 3j3b of ribosome) use structure2
