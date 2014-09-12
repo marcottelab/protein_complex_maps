@@ -1,6 +1,7 @@
 
 
 import numpy as np
+from numpy.random import normal
 import matplotlib as mpl
 mpl.use('Agg')
 
@@ -9,6 +10,7 @@ import pickle
 import MySQLdb
 import itertools as it
 from scipy.stats.stats import pearsonr
+from scipy.stats import gaussian_kde
 import Bio.PDB
 import matplotlib.pyplot as plt
 from statsmodels.nonparametric.smoothers_lowess import lowess
@@ -19,7 +21,7 @@ import protein_complex_maps.pdb_util as pdbu
 
 def main():
 
-	parser = argparse.ArgumentParser(description="Hierarchical clusters fractionation data")
+	parser = argparse.ArgumentParser(description="Plot distance vs correlation for protein pairs in PDBs")
 	parser.add_argument("--input_msds_pickle", action="store", dest="msds_filename", required=True, 
 						help="Filename of MSDS pickle: pickle comes from running protein_complex_maps.util.read_ms_elutions_pickle_MSDS.py")
 	parser.add_argument("--pdb_list_filename", action="store", dest="pdb_list_filename", required=True, 
@@ -27,7 +29,9 @@ def main():
 	parser.add_argument("--base_species", action="store", dest="base_species", required=False, default="Hsapiens",
 						help="Species to evaluate, default=Hsapiens")
 	parser.add_argument("--pickle_results_filename", action="store", dest="pickle_results_filename", required=False, default="./pdb_results_tmp.p",
-						help="Filename of pickled results")
+						help="Filename of pickled results, default = pdb_results_tmp.p")
+	parser.add_argument("--load_results_pickle", action="store_true", dest="load_results_pickle", required=False, default=False,
+						help="Load results from pickle, overide default filename with --pickle_results_filename")
 	parser.add_argument("--plot_filename", action="store", dest="plot_filename", required=False, default=None,
 						help="Filename of output plot")
 	parser.add_argument("--calc_metric", action="store", dest="calc_metric", required=False, default="calc_dist",
@@ -38,6 +42,10 @@ def main():
 						help="Directory of pdbs for calculating distances")
 	parser.add_argument("--pisa_dir", action="store", dest="pisa_dir", required=False, default=None,
 						help="Directory of pisa files for calculating surface area")
+	parser.add_argument("--distance_metric", action="store", dest="distance_metric", required=False, default="min",
+						help="Function of descriptive statistic to be used for distance: min, max, mean, default=min")
+	parser.add_argument("--violin_plot", action="store_true", dest="violin_plot_flag", required=False, default=False,
+						help="Plot violin for range of correlations")
 
 	args = parser.parse_args()
 
@@ -45,7 +53,6 @@ def main():
 		print "must set --pdb_dir or --pisa_dir"
 		return
 
-	msds = pickle.load( open( args.msds_filename, "rb" ) )
 
 	#kdrew: read in pdb list
 	pdb_list_file = open(args.pdb_list_filename,"rb")
@@ -53,99 +60,124 @@ def main():
 	for line in pdb_list_file.readlines():
 		pdb_list.append(line.strip())
 
+
 	pdb_plot_data = dict()
 
-	#kdrew: for every pdb
-	for pdbid in pdb_list:
-		print pdbid
+	if not args.load_results_pickle:
+		msds = pickle.load( open( args.msds_filename, "rb" ) )
 
-		#kdrew: can pass in two pdbids on same line if the complex is split into two pdbs, ex. ribosome 3j3a 3j3b
-		split_pdbid = pdbid.split()
-		pdbid = split_pdbid[0]
+		#kdrew: for every pdb
+		for pdbid in pdb_list:
+			a1_list, a2_list = pdb_calc_distance(msds, pdbid, args.base_species, args.calc_metric, args.distance_metric, args.pdb_dir, args.pisa_dir)
+			if a1_list != None and a2_list != None:
+				pdb_plot_data[pdbid] = (a1_list, a2_list)
+
+		#kdrew: create pickle of current plot data
+		pickle.dump(pdb_plot_data, open(args.pickle_results_filename,"wb"))
+
+	else:
 		try:
-			pdbid2 = split_pdbid[1]
-		except IndexError:
-			pdbid2 = None
+			pdb_plot_data = pickle.load(open(args.pickle_results_filename,"rb"))
+		except:
+			print "Problem loading results pickle, make sure exists"
 
-		#kdrew: for every acc in pdb map to pdb chain
-		chain2acc = pu.get_pdb_protein_ids(pdbid)
-		if 0 == len(chain2acc):
-			print "No accs found for pdbid %s" % (pdbid,)
-			continue
+	plot_data( pdb_plot_data, args.plot_filename, violin_plot_flag=args.violin_plot_flag )
+
+def pdb_calc_distance(msds, pdbid, base_species, calc_metric, distance_metric, pdb_dir, pisa_dir):
+	print pdbid
+
+	#kdrew: can pass in two pdbids on same line if the complex is split into two pdbs, ex. ribosome 3j3a 3j3b
+	split_pdbid = pdbid.split()
+	pdbid = split_pdbid[0]
+	try:
+		pdbid2 = split_pdbid[1]
+	except IndexError:
+		pdbid2 = None
+
+	#kdrew: for every acc in pdb map to pdb chain
+	chain2acc = pu.get_pdb_protein_ids(pdbid)
+	if 0 == len(chain2acc):
+		print "No accs found for pdbid %s" % (pdbid,)
+		return None, None
+
+	#kdrew: for every acc map human version (or specified species)
+	acc2base_species = pu.get_ortholog( [x for x in chain2acc.values() if x != None], species1=base_species)
+
+	#kdrew: get data_set of base_species accs
+	data_set = msds.get_data_matrix( )
+	acc2idmap = msds.get_id_dict()
 
 
-		#kdrew: for every acc map human version (or specified species)
-		acc2base_species = pu.get_ortholog( [x for x in chain2acc.values() if x != None], species1=args.base_species)
+	chain_pairs2acc = chain_pairs(msds, chain2acc, acc2base_species)
 
-		#kdrew: get data_set of base_species accs
-		data_set = msds.get_data_matrix( )
-		acc2idmap = msds.get_id_dict()
+	a1_dict = calc_correlation( chain_pairs2acc, msds )
 
+	#kdrew: if there is a second pdb in the pdb_list, compile chain combinations within 2nd structure and between 1st and 2nd structure
+	if pdbid2 != None:
+		chain2acc2 = pu.get_pdb_protein_ids(pdbid2)
+		if 0 == len(chain2acc2):
+			print "No accs found for pdbid %s" % (pdbid2,)
+			return None, None
+		acc2base_species2 = pu.get_ortholog( [x for x in chain2acc2.values() if x != None], species1=base_species)
+		acc2base_species = dict(acc2base_species.items() + acc2base_species2.items())
+		chain_pairs2acc2 = chain_pairs(msds, chain2acc2, acc2base_species)
+		a1_dict2 = calc_correlation( chain_pairs2acc2, msds )
 
-		chain_pairs2acc = chain_pairs(msds, chain2acc, acc2base_species)
-	
-		a1_dict = calc_correlation( chain_pairs2acc, msds )
+		#kdrew: call chain_pairs for inter pdb chain combinations
+		chain_pairs2acc_interpdb = chain_pairs(msds, chain2acc, acc2base_species, chain2acc2)
+		a1_dict_interpdb = calc_correlation( chain_pairs2acc2, msds )
 
-		#kdrew: if there is a second pdb in the pdb_list, compile chain combinations within 2nd structure and between 1st and 2nd structure
-		if pdbid2 != None:
-			chain2acc2 = pu.get_pdb_protein_ids(pdbid2)
-			if 0 == len(chain2acc2):
-				print "No accs found for pdbid %s" % (pdbid2,)
-				continue
-			acc2base_species2 = pu.get_ortholog( [x for x in chain2acc2.values() if x != None], species1=args.base_species)
-			acc2base_species = dict(acc2base_species.items() + acc2base_species2.items())
-			chain_pairs2acc2 = chain_pairs(msds, chain2acc2, acc2base_species)
-			a1_dict2 = calc_correlation( chain_pairs2acc2, msds )
+		#kdrew: combine all correlations into a single dictionary
+		a1_dict = dict(a1_dict.items() + a1_dict2.items() + a1_dict_interpdb.items())
 
-			#kdrew: call chain_pairs for inter pdb chain combinations
-			chain_pairs2acc_interpdb = chain_pairs(msds, chain2acc, acc2base_species, chain2acc2)
-			a1_dict_interpdb = calc_correlation( chain_pairs2acc2, msds )
-
-			#kdrew: combine all correlations into a single dictionary
-			a1_dict = dict(a1_dict.items() + a1_dict2.items() + a1_dict_interpdb.items())
-
-		if args.calc_metric == "calc_dist":
-			#kdrew: read in pdb
-			try:
-				structure = Bio.PDB.PDBParser().get_structure(pdbid, args.pdb_dir+'/'+pdbid+'.pdb')
-				if pdbid2 != None:
-					structure2 = Bio.PDB.PDBParser().get_structure(pdbid2, args.pdb_dir+'/'+pdbid2+'.pdb')
-			except IOError as e:
-				print "I/O error({0}): {1}".format(e.errno, e.strerror)
-				continue
-
-			a2_dict = calc_distance( chain_pairs2acc, structure )
-
+	if calc_metric == "calc_dist":
+		#kdrew: read in pdb
+		try:
+			structure = Bio.PDB.PDBParser().get_structure(pdbid, pdb_dir+'/'+pdbid+'.pdb')
 			if pdbid2 != None:
-				#kdrew: update to deal with interpdb calculations
-				a2_dict2 = calc_distance( chain_pairs2acc2, structure2 )
-				a2_dict_interpdb = calc_distance( chain_pairs2acc_interpdb, structure, structure2 )
-				a2_dict = dict(a2_dict.items() + a2_dict2.items() + a2_dict_interpdb.items())
+				structure2 = Bio.PDB.PDBParser().get_structure(pdbid2, pdb_dir+'/'+pdbid2+'.pdb')
+		except IOError as e:
+			print "I/O error({0}): {1}".format(e.errno, e.strerror)
+			return None, None
 
-		elif args.calc_metric == "calc_surface_area":
-			pisaInt = pdbu.PISA_Interfaces( args.pisa_dir+'/'+pdbid+'_pisa' )
-			a2_dict = calc_surface_area( chain_pairs2acc, pisaInt )
-
+		if distance_metric == "min":
+			metric_function = np.nanmin
+		elif distance_metric == "max":
+			metric_function = np.nanmax
+		elif distance_metric == "mean":
+			metric_function = np.nanmean
 		else:
-			print "Error defining calc_metric"
-			return
+			print "Error with distance_metric argument"
+			return()
+
+		a2_dict = calc_distance( chain_pairs2acc, structure, function=metric_function )
+
+		if pdbid2 != None:
+			#kdrew: update to deal with interpdb calculations
+			a2_dict2 = calc_distance( chain_pairs2acc2, structure2, function=metric_function )
+			a2_dict_interpdb = calc_distance( chain_pairs2acc_interpdb, structure, structure2, function=metric_function )
+			a2_dict = dict(a2_dict.items() + a2_dict2.items() + a2_dict_interpdb.items())
+
+	elif calc_metric == "calc_surface_area":
+		pisaInt = pdbu.PISA_Interfaces( pisa_dir+'/'+pdbid+'_pisa' )
+		a2_dict = calc_surface_area( chain_pairs2acc, pisaInt )
+
+	else:
+		print "Error defining calc_metric"
+		return
 
 
-		#kdrew: convert to data to list format
-		a1_list = []
-		a2_list = []
-		for base_key in a1_dict:
-			if base_key in a2_dict:
-				a1_list.append( a1_dict[base_key] )
-				a2_list.append( a2_dict[base_key] )
+	#kdrew: convert to data to list format
+	a1_list = []
+	a2_list = []
+	for base_key in a1_dict:
+		if base_key in a2_dict:
+			a1_list.append( a1_dict[base_key] )
+			a2_list.append( a2_dict[base_key] )
 
 
-		pdb_plot_data[pdbid] = (a1_list, a2_list)
+	return (a1_list, a2_list)
 
-	#kdrew: create pickle of current plot data
-	pickle.dump(pdb_plot_data, open(args.pickle_results_filename,"wb"))
-
-	plot_data( pdb_plot_data, args.plot_filename )
 
 def chain_pairs(msds, chain2acc, acc2base_species, chain2acc2=None):
 
@@ -279,7 +311,7 @@ def calc_surface_area(chain_pairs2acc, pisaInt):
 	return sArea_dict
 
 #kdrew: calculate distance between chains
-def calc_distance(chain_pairs2acc, structure, structure2=None):
+def calc_distance(chain_pairs2acc, structure, structure2=None, function=np.nanmin):
 
 	dist_dict = dict()
 	for c1, c2 in chain_pairs2acc:
@@ -289,9 +321,10 @@ def calc_distance(chain_pairs2acc, structure, structure2=None):
 		if base_acc1 == base_acc2:
 			continue
 
-		min_dist = pdbu.min_dist(structure, c1, c2, structure2)
+		dist = pdbu.metric_dist(structure, c1, c2, structure2, function)
+		print dist
 
-		if not np.isnan(min_dist):
+		if not np.isnan(dist):
 			base_key1, base_key2 = base_acc1, base_acc2
 			#kdrew: order these based on lex order
 			if base_key1 > base_key2:
@@ -299,15 +332,15 @@ def calc_distance(chain_pairs2acc, structure, structure2=None):
 
 			#kdrew: if the same acc is represented in multiple chains, take the min dist
 			try:
-				dist_dict[(base_key1, base_key2)] = min(dist_dict[(base_key1, base_key2)], min_dist)
+				dist_dict[(base_key1, base_key2)] = min(dist_dict[(base_key1, base_key2)], dist)
 			except KeyError:
-				dist_dict[(base_key1, base_key2)] = min_dist
+				dist_dict[(base_key1, base_key2)] = dist
 
 	return dist_dict
 			
 	
 
-def plot_data( pdb_plot_data, plot_filename ):
+def plot_data( pdb_plot_data, plot_filename, violin_plot_flag=False ):
 
 	total_a1_list = []
 	total_a2_list = []
@@ -332,16 +365,79 @@ def plot_data( pdb_plot_data, plot_filename ):
 		total_a1_list += pdb_plot_data[pdbid][0]
 		total_a2_list += pdb_plot_data[pdbid][1]
 
-	#kdrew: scatter plot with lowess line for total set
-	plt.scatter(total_a1_list, total_a2_list)
-	ys = lowess(total_a2_list, total_a1_list)
-	plt.plot(np.sort(total_a1_list), ys[:,1], 'red')
+
+	if violin_plot_flag:
+		#limits = [(-0.4,-0.2), (-0.2,0.0), (0.0,0.2), (0.2,0.4), (0.4,0.6), (0.6,0.8), (0.8,1.0)] 
+		limits = [(0.0,0.2), (0.2,0.4), (0.4,0.6), (0.6,0.8), (0.8,1.0)] 
+		#limits = [(0.0,0.1), (0.1,0.2),(0.2,0.3),(0.3,0.4), (0.4,0.5),(0.5,0.6), (0.6,0.7),(0.7,0.8), (0.8,0.9),(0.9,1.0)] 
+		total_a1_list_separate = []
+		total_a2_list_separate = []
+		occupied_limits = []
+		for lower_limit, upper_limit in limits:
+			print lower_limit, upper_limit
+			tmp_tuple_list = [ (x, total_a2_list[i]) for i,x in enumerate(total_a1_list) if x > lower_limit and x <= upper_limit ]
+			print tmp_tuple_list
+			try:
+				total_a1_list_separate.append( zip(*tmp_tuple_list)[0])
+				total_a2_list_separate.append( zip(*tmp_tuple_list)[1])
+				occupied_limits.append((lower_limit, upper_limit))
+			except IndexError:
+				continue
+
+		pos = range(len(occupied_limits))
+		fig=plt.figure()
+		ax = fig.add_subplot(111)
+		#ax = plt.subplot2grid((4,1),(0,0), rowspan=3)
+		violin_plot(ax, total_a2_list_separate, pos, bp=1)
+
+		#kdrew: barplot underneath violin plot
+		#ax2 = plt.subplot2grid((4,1),(3,0))
+		#ax2.bar(pos, [len(x) for x in total_a2_list_separate], align="center") 
+		#ax2.set_xlim(min(pos)-0.5,max(pos)+0.5)
+		#plt.show()
+	
+	else:
+		#kdrew: scatter plot with lowess line for total set
+		plt.scatter(total_a1_list, total_a2_list)
+		ys = lowess(total_a2_list, total_a1_list)
+		plt.plot(np.sort(total_a1_list), ys[:,1], 'red')
+
+
 	if plot_filename is None:
 		print "plot_filename is None"
 		plt.show()
 	else:
 		plt.savefig(plot_filename)
 		plt.close('all')
+
+
+#kdrew: copied from http://pyinsci.blogspot.com/2009/09/violin-plot-with-matplotlib.html
+def violin_plot(ax,data,pos, bp=False):
+	'''
+	create violin plots on an axis
+	'''
+	dist = max(pos)-min(pos)
+	w = min(0.15*max(dist,1.0),0.5)
+	nPoints = sum([len(y) for y in data])
+	for d,p in zip(data,pos):
+		k = gaussian_kde(d) #calculates the kernel density
+		m = k.dataset.min() #lower bound of violin
+		M = k.dataset.max() #upper bound of violin
+		x = np.arange(m,M,(M-m)/100.) # support for violin
+		v = k.evaluate(x) #violin profile (density curve)
+		#v = v/v.max()*w #scaling the violin to the available space
+		v = v/v.max()*(1.0*len(d)/nPoints) #scaling the violin to be proportional to number of counts
+		ax.fill_betweenx(x,p,v+p,facecolor='y',alpha=0.3)
+		ax.fill_betweenx(x,p,-v+p,facecolor='y',alpha=0.3)
+	if bp:
+		ax.boxplot(data,notch=1,positions=pos,vert=1)
+
+    #pos = range(5)
+    #data = [normal(size=100) for i in pos]
+    #fig=plt.figure()
+    #ax = fig.add_subplot(111)
+    #violin_plot(ax,data,pos,bp=1)
+    #plt.show()
 
 
 if __name__ == "__main__":
