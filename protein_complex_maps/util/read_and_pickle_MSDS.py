@@ -4,6 +4,7 @@ import glob
 import cPickle
 import argparse
 import pickle 
+import numpy as np
 
 import protein_complex_maps.read_data as rd
 import protein_complex_maps.normalization_util as nu
@@ -42,8 +43,18 @@ def main():
 						help="species listed in msds")
 	parser.add_argument("--species2", action="store", dest="species2", nargs='+', required=False, default=None,
 						help="species listed in msds2")
+	parser.add_argument("--fill_missing", action="store", dest="fill_missing", required=False, default="zeros",
+						help="how missing data should be filled (zeros or nans), default=zeros")
 
 	args = parser.parse_args()
+
+
+	if args.fill_missing == "zeros":
+		fill_missing = np.zeros
+	elif args.fill_missing == "nans":
+		fill_missing = rd.fill_missing_with_nans
+	else:
+		print "problem with fill_missing, should be 'zeros' or 'nans'"
 
 	#kdrew: read in ms files
 	#sample_filenames = "/home/kdrew/data/protein_complex_maps/shared_complexes/source_data/elutions_protein_counts/CeDmHsMmSp_ms2_elutions/Hs_*"
@@ -71,10 +82,10 @@ def main():
 			if args.species1 and args.species2:
 				#kdrew: the min for indexing will use the last specified species for all remaining files
 				ortholog_map = pu.get_ortholog( msds2.get_name_list(), args.species2[min(i,len(args.species2)-1)], args.species1, version="_origid", database="inparanoid_blake")
-				msds.concat_msds( msds2, ortholog_map )
+				msds.concat_msds( msds2, ortholog_map, fill_missing=fill_missing )
 
 			else:
-				msds.concat_msds( msds2 )
+				msds.concat_msds( msds2, fill_missing=fill_missing )
 
 
 	#kdrew: add to msds by elution files
