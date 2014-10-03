@@ -20,7 +20,7 @@ class CorrelationTest(unittest.TestCase):
 
 	def testMatrix(self, ):
 		scores = cu.correlation_distribution(self.data_matrix)
-		#print scores
+		print scores
 		assert( scores[0] == 1.0 )
 		assert( len(scores) == 10 )
 

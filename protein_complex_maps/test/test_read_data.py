@@ -5,6 +5,7 @@
 import unittest
 import protein_complex_maps.read_data as rd
 import numpy as np
+import pandas
 
 
 class ReadDataTest(unittest.TestCase):
@@ -151,6 +152,27 @@ class ReadDataTest(unittest.TestCase):
 		assert fulldm[6,8] == reordered_dm[1,1]
 		assert fulldm[2,3] == reordered_dm[2,2]
 		assert fulldm[0,0] == reordered_dm[3,3]
+
+	def testDataFrame(self,):
+		msds = rd.MSDataSet()
+		msds2 = rd.MSDataSet()
+		msds.load_file(self.sample_file, header=True)
+		msds2.load_file(self.sample_file2, header=True)
+
+		#print "dataframe"
+		df = msds.get_data_frame()
+		df2 = msds2.get_data_frame()
+		#print df
+		#print df2
+
+		assert df['ENSG00000008018']['PH090807_HS3NE_HCW_P1A03'] == 60
+
+		df_full = pandas.concat([df,df2])
+		assert df_full['ENSG00000100519']['PH090807_HS3NE_HCW_P1A03'] == 20
+		assert np.isnan(df_full['ENSG00000100519']['PH090807_HS3NE_HCW_P1A03a'] )
+		#print df_full
+		#print df_full.corr()
+
 
 
 if __name__ == "__main__":
