@@ -103,7 +103,7 @@ def main():
 		gene_id_map = dict()
 		for i in xrange(len(data_set)):
 			print i
-			print genename_map[new_id_map[i]]
+			#print genename_map[new_id_map[i]]
 			#kdrew: sometimes no genename is returned for certain ids, default to original id
 			if genename_map[new_id_map[i]] == None:
 				gene_id_map[i] = new_id_map[i]
@@ -125,12 +125,12 @@ def main():
 		pickle.dump((Y,Y2,D,new_id_map), open(args.pickle_filename, "wb"))
 
 	if args.plot_profile:
-		D = plotDendrogramProfile(data_set, Y, args.plot_filename, new_id_map, total_occupancy=args.total_occupancy)
+		D = plotDendrogramProfile(data_set, Y, args.plot_filename, new_id_map, total_occupancy=args.total_occupancy, title=args.msds_filename)
 	elif args.plot_just_dendrogram:
-		D = plotJustDendrogram(Y, args.plot_filename, new_id_map)
+		D = plotJustDendrogram(Y, args.plot_filename, new_id_map, title=args.msds_filename)
 	else:
 		#kdrew: reordered correlation matrix gets returned
-		D = plotDendrogram(Y, Y2, D, args.plot_filename, new_id_map)
+		D = plotDendrogram(Y, Y2, D, args.plot_filename, new_id_map, title=args.msds_filename)
 
 
 	if args.physical_plot_filename != None:
@@ -220,10 +220,11 @@ def runCluster(data_set, average_cnt=0, sample_module=None, scale=None, cluster_
 
 	return Y, Y2, D
 
-def plotJustDendrogram(Y, plot_filename, new_id_map, circle_annotate=None):
+def plotJustDendrogram(Y, plot_filename, new_id_map, circle_annotate=None, title=""):
 	fig = pylab.figure(figsize=(14,14))
 	#ax1 = fig.add_axes([0.09, 0.1, 0.11, 0.6])
 	ax1 = pylab.subplot2grid((len(new_id_map),14),(0,0), rowspan=len(new_id_map), colspan=14)
+	#pylab.title(title)
 	dendrogram = sch.dendrogram(Y, orientation='right')
 	#dendrogram = sch.dendrogram( Y )
 	print dendrogram['leaves']
@@ -250,7 +251,7 @@ def plotJustDendrogram(Y, plot_filename, new_id_map, circle_annotate=None):
 	fig.savefig(plot_filename)
 	pylab.close(fig)
 
-def plotDendrogramProfile(data_set, Y, plot_filename, new_id_map, total_occupancy=False):
+def plotDendrogramProfile(data_set, Y, plot_filename, new_id_map, total_occupancy=False, title=""):
 
 	if total_occupancy:
 		col_sum = np.sum(data_set,0)
@@ -261,6 +262,7 @@ def plotDendrogramProfile(data_set, Y, plot_filename, new_id_map, total_occupanc
 	fig = pylab.figure(figsize=(14,14))
 	#ax1 = fig.add_axes([0.09, 0.1, 0.11, 0.6])
 	ax1 = pylab.subplot2grid((len(new_id_map),14),(0,0), rowspan=len(new_id_map), colspan=3)
+	pylab.title(title)
 	dendrogram = sch.dendrogram(Y, orientation='right')
 	print dendrogram['leaves']
 	print [new_id_map[z] for z in dendrogram['leaves']]
@@ -299,7 +301,7 @@ def plotDendrogramProfile(data_set, Y, plot_filename, new_id_map, total_occupanc
 
 #kdrew: code modified from stackoverflow
 #http://stackoverflow.com/a/3011894
-def plotDendrogram(Y, Y2, D, plot_filename, new_id_map):
+def plotDendrogram(Y, Y2, D, plot_filename, new_id_map, title=""):
 
 	fig = pylab.figure(figsize=(8,8))
 	ax1 = fig.add_axes([0.09, 0.1, 0.11, 0.6])
@@ -313,6 +315,7 @@ def plotDendrogram(Y, Y2, D, plot_filename, new_id_map):
 	ax2 = fig.add_axes([0.3, 0.78, 0.6, 0.2])
 	dendrogram2 = sch.dendrogram(Y2)
 	ax2.set_xticklabels([new_id_map[z] for z in dendrogram2['leaves']], rotation='vertical', size='small')
+	#pylab.title(title)
 
 	axmatrix = fig.add_axes([0.3,0.1,0.6,0.6])
 	idx1 = dendrogram['leaves']
@@ -329,6 +332,7 @@ def plotDendrogram(Y, Y2, D, plot_filename, new_id_map):
 	
 
 	print dendrogram
+
 
 	#fig.show()
 	fig.savefig(plot_filename)
