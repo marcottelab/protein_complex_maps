@@ -1,11 +1,13 @@
 
 import logging
 import numpy as np
+import pandas
 
 import protein_complex_maps.normalization_util as nu
 import protein_complex_maps.protein_util as pu
 
 logging.basicConfig(level = logging.DEBUG,format='%(asctime)s %(levelname)s %(message)s')
+
 
 class MSDataSet(object):
 
@@ -19,8 +21,12 @@ class MSDataSet(object):
 		self.__frac_dict = dict()
 		self.__mappings = dict()
 
+	def get_data_frame(self,):
+		df = pandas.DataFrame( self.__master_data_matrix.transpose(), columns=self.__master_name_list, index=self.__master_fraction_list )
+		return df
+
 	#kdrew: ortholog_map allows for concatentating ortholog fractions, should be in the form of ortholog_map[protein_id_in_file] -> protein_id_in_msds
-	def load_file( self, file_handle, header=False, normalize=False, standardize=False, ortholog_map=None):
+	def load_file( self, file_handle, header=False, normalize=False, standardize=False, ortholog_map=None, fill_missing=np.zeros):
 		
 		data_matrix1, name_list1, fraction_list1 = read_datafile(file_handle, header=header)
 		print "fraction_list1: %s" % fraction_list1
@@ -44,34 +50,49 @@ class MSDataSet(object):
 					#kdrew: if no mapping for given prot_id, just keep the name the same
 					ortholog_list.append(prot_id)
 
-			self.__master_data_matrix, self.__master_name_list = concat_data_matrix( self.__master_data_matrix, self.__master_name_list, data_matrix1, ortholog_list)
+			self.__master_data_matrix, self.__master_name_list = concat_data_matrix( self.__master_data_matrix, self.__master_name_list, data_matrix1, ortholog_list, fill_missing=fill_missing)
 			self.__master_fraction_list += fraction_list1
 		else:
-			self.__master_data_matrix, self.__master_name_list = concat_data_matrix( self.__master_data_matrix, self.__master_name_list, data_matrix1, name_list1)
+			self.__master_data_matrix, self.__master_name_list = concat_data_matrix( self.__master_data_matrix, self.__master_name_list, data_matrix1, name_list1, fill_missing=fill_missing)
 			self.__master_fraction_list += fraction_list1
 
 		self.update_id_dict()
 
+	#kdrew: returns a list of mapped names that correspond to this msds, so pass in worm msds with worm2human map and get list of human names
+	def get_ortholog_list( self, ortholog_map):
+		ortholog_list = []
+
+		for prot_id in self.get_name_list():
+			try:
+				ortholog_list.append(ortholog_map[prot_id])
+			except KeyError:
+				#kdrew: if no mapping for given prot_id, just keep the name the same
+				ortholog_list.append(prot_id)
+
+		return ortholog_list
+
 	#kdrew: ortholog_map allows for concatentating ortholog fractions, should be in the form of ortholog_map[protein_id_in_file] -> protein_id_in_msds
-	def concat_msds( self, msds2, ortholog_map = None ):
+	def concat_msds( self, msds2, ortholog_map = None, fill_missing=np.zeros ):
 
 		if ortholog_map != None:
-			ortholog_list = []
 
-			for prot_id in msds2.get_name_list():
-				try:
-					ortholog_list.append(ortholog_map[prot_id])
-				except KeyError:
-					#kdrew: if no mapping for given prot_id, just keep the name the same
-					ortholog_list.append(prot_id)
+			ortholog_list = msds2.get_ortholog_list(ortholog_map)
 
-			self.__master_data_matrix, self.__master_name_list = concat_data_matrix( self.__master_data_matrix, self.__master_name_list, msds2.get_data_matrix(), ortholog_list)
+			#kdrew: moved to function
+			#for prot_id in msds2.get_name_list():
+			#	try:
+			#		ortholog_list.append(ortholog_map[prot_id])
+			#	except KeyError:
+			#		#kdrew: if no mapping for given prot_id, just keep the name the same
+			#		ortholog_list.append(prot_id)
+
+			self.__master_data_matrix, self.__master_name_list = concat_data_matrix( self.__master_data_matrix, self.__master_name_list, msds2.get_data_matrix(), ortholog_list, fill_missing=fill_missing)
 			self.__master_fraction_list += msds2.get_fraction_list()
 
 			self.update_id_dict( reset=True )
 
 		else:
-			self.__master_data_matrix, self.__master_name_list = concat_data_matrix( self.__master_data_matrix, self.__master_name_list, msds2.get_data_matrix(), msds2.get_name_list() )
+			self.__master_data_matrix, self.__master_name_list = concat_data_matrix( self.__master_data_matrix, self.__master_name_list, msds2.get_data_matrix(), msds2.get_name_list(), fill_missing=fill_missing )
 			self.__master_fraction_list += msds2.get_fraction_list()
 
 			self.update_id_dict()
@@ -93,7 +114,7 @@ class MSDataSet(object):
 	#kdrew: sc_mean flag will take the mean of spectral counts for all peptides
 	#kdrew: threshold will require specified number of peptides to be present, otherwise set to zero
 	#kdrew: ortholog_map allows for concatentating ortholog fractions, should be in the form of ortholog_map[protein_id_in_protein_counts] -> protein_id_in_msds
-	def create_by_peptide_counts( self, protein_counts, sc_mean = False, threshold=1, standardize = False, ortholog_map=None ):
+	def create_by_peptide_counts( self, protein_counts, sc_mean = False, threshold=1, standardize = False, ortholog_map=None, fill_missing=np.zeros ):
 		#kdrew: make sure threshold is an int
 		threshold = int(threshold)
 
@@ -151,10 +172,10 @@ class MSDataSet(object):
 					#kdrew: if no mapping for given prot_id, just keep the name the same
 					ortholog_list.append(prot_id)
 
-			self.__master_data_matrix, self.__master_name_list = concat_data_matrix( self.__master_data_matrix, self.__master_name_list, dmat, ortholog_list)
+			self.__master_data_matrix, self.__master_name_list = concat_data_matrix( self.__master_data_matrix, self.__master_name_list, dmat, ortholog_list, fill_missing=fill_missing)
 			self.__master_fraction_list += fractions_list
 		else:
-			self.__master_data_matrix, self.__master_name_list = concat_data_matrix( self.__master_data_matrix, self.__master_name_list, dmat, protein_list)
+			self.__master_data_matrix, self.__master_name_list = concat_data_matrix( self.__master_data_matrix, self.__master_name_list, dmat, protein_list, fill_missing=fill_missing)
 			self.__master_fraction_list += fractions_list
 
 		self.update_id_dict()
@@ -397,7 +418,9 @@ def read_datafile(fhandle, header=True):
 
 	return data_matrix, name_list, fraction_list
 
-def concat_data_matrix(data_matrix1, name_list1, data_matrix2, name_list2):
+#kdrew: fill_missing is used when one matrix has names (genes) that the other matrix does not have and missing entries needs to be filled for the other matrix
+#kdrew: default is np.zeros but np.nan might be useful too
+def concat_data_matrix(data_matrix1, name_list1, data_matrix2, name_list2, fill_missing=np.zeros):
 	
 	name_set1 = set(name_list1)
 	name_set2 = set(name_list2)
@@ -421,14 +444,14 @@ def concat_data_matrix(data_matrix1, name_list1, data_matrix2, name_list2):
 			logging.debug("row1: %s" % (row1,))
 		except ValueError:
 			#kdrew: not in list
-			row1 = np.zeros(dm1_num_columns)
+			row1 = fill_missing(dm1_num_columns)
 
 		try:
 			idx2 = name_list2.index(name)
 			row2 = data_matrix2[idx2]
 		except ValueError:
 			#kdrew: not in list
-			row2 = np.zeros(dm2_num_columns)
+			row2 = fill_missing(dm2_num_columns)
 
 		complete_row = np.append(np.array(row1), np.array(row2))
 	
@@ -442,5 +465,9 @@ def concat_data_matrix(data_matrix1, name_list1, data_matrix2, name_list2):
 	return return_mat, return_name_list
 	
 
+def fill_missing_with_nans(num_of_cols):
+	a = np.empty(num_of_cols)
+	a.fill(np.nan)
+	return a
 
 
