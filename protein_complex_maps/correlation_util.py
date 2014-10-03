@@ -1,3 +1,4 @@
+
 from scipy.stats.stats import pearsonr
 import math as m
 import numpy as np
@@ -114,10 +115,24 @@ def correlation_array (matrix, index):
 	return corr_list
 		
 
+#kdrew: calculates correlation matrix and returns dict[(idx1,idx2)] = corr
+def correlation_matrix( data_set, threshold=None ):
+	matrix_clean = np.nan_to_num(data_set)
+	corrcoefMat = np.nan_to_num(np.corrcoef(matrix_clean))
+	
+	corr_dict = dict()
+	for i in xrange(corrcoefMat.shape[0]):
+		for j in xrange(corrcoefMat.shape[1]):
+			if threshold == None or corrcoefMat[i,j] >= threshold:
+				corr_dict[(i, j)] = corrcoefMat[i,j]
+			#print "%s\t%s\t%s" % (id_map[i], id_map[j], corrcoefMat[i,j],)
+
+	return corr_dict
+
 def correlation_distribution( matrix, index=None ):
 
 	corrcoefMat = np.nan_to_num(np.corrcoef(matrix))
-	#print corrcoefMat
+	print corrcoefMat
 	if index == None:
 		#kdrew: gets indices of upper triangle (w/o diagonal) and returns values in a list
 		#score_distribution = corrcoefMat[np.triu_indices(len(corrcoefMat),1)].tolist()
