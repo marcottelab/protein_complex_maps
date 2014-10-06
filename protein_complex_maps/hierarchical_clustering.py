@@ -97,6 +97,7 @@ def main():
 		new_id_map = msds.get_name2index()
 
 	if args.genenames:
+		print "new_id_map.values: %s" % (new_id_map.values(),)
 		genename_map = pu.get_genenames_uniprot( new_id_map.values() )
 		print new_id_map
 		print genename_map
@@ -105,10 +106,13 @@ def main():
 			print i
 			#print genename_map[new_id_map[i]]
 			#kdrew: sometimes no genename is returned for certain ids, default to original id
-			if genename_map[new_id_map[i]] == None:
+			try:
+				if genename_map[new_id_map[i]] == None:
+					gene_id_map[i] = new_id_map[i]
+				else:
+					gene_id_map[i] = genename_map[new_id_map[i]]
+			except KeyError:
 				gene_id_map[i] = new_id_map[i]
-			else:
-				gene_id_map[i] = genename_map[new_id_map[i]]
 
 		new_id_map = gene_id_map
 
