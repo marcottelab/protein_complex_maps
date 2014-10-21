@@ -15,17 +15,15 @@ EPSILON = 0.000001
 
 def main():
 
-	parser = argparse.ArgumentParser(description="Computes dependence metrics between proteins in fractionation data")
+	parser = argparse.ArgumentParser(description="Computes dependence metrics between proteins in fractionation data, single protein to all others in msds")
 	parser.add_argument("--input_msds_pickle", action="store", dest="msds_filename", required=True, 
 						help="Filename of MSDS pickle: pickle comes from running protein_complex_maps.util.read_ms_elutions_pickle_MSDS.py")
-	parser.add_argument("--proteins", action="store", dest="proteins", nargs='+', required=True, 
-						help="Protein ids in which to anaylze")
+	parser.add_argument("--protein", action="store", dest="protein", required=True, 
+						help="Protein id in which to anaylze")
 	parser.add_argument("--sample_method", action="store", dest="sample_method", required=False, default=None,
 						help="Sampling method to add noise to correlation calculations (poisson or normal)")
 	parser.add_argument("--sampling_iterations", action="store", type=int, dest="average_cnt", required=False, default=3,
 						help="Number of samples to compute average correlation")
-	parser.add_argument("--one_vs_all", action="store_true", dest="one_vs_all", required=False, default=False,
-						help="Compares a single protein to all other proteins in msds")
 	parser.add_argument("--top_results", action="store", type=int, dest="top_results", required=False, default=20,
 						help="Print out top n correlation results")
 	parser.add_argument("--genenames", action="store_true", dest="genenames", required=False, default=False,
@@ -42,47 +40,45 @@ def main():
 	else:
 		sample_module = None
 	
-	if args.one_vs_all:
-		#kdrew: take first protein
-		index = msds.get_id_dict()[args.proteins[0]]
-		corr_list = correlation_array(msds.get_data_matrix(), index)
-		#print corr_list[index]
-		#print len(corr_list)
-		sorted_corr_list = sorted(corr_list, reverse=True, key=lambda x: x[0][0])
-		#print len(sorted_corr_list)
+	index = msds.get_id_dict()[args.protein]
+	corr_list = correlation_array(msds.get_data_matrix(), index, sample_module=sample_module)
+	#print corr_list[index]
+	#print len(corr_list)
+	sorted_corr_list = sorted(corr_list, reverse=True, key=lambda x: x[0][0])
+	#print len(sorted_corr_list)
 
-		#for i in sorted_corr_list:
-		#	print i
+	#for i in sorted_corr_list:
+	#	print i
 
-		id_map = msds.get_name2index()
+	id_map = msds.get_name2index()
 
 
-		for pred in sorted_corr_list[:args.top_results]:
-			if args.genenames:
-				uniprot_mapping = msds.get_mapping('ACC')
+	for pred in sorted_corr_list[:args.top_results]:
+		if args.genenames:
+			uniprot_mapping = msds.get_mapping('ACC')
+			try:
+				genename_map = pu.get_genenames_uniprot( [uniprot_mapping[pred[1]]] )
 				try:
-					genename_map = pu.get_genenames_uniprot( [uniprot_mapping[pred[1]]] )
-					try:
-						print genename_map[uniprot_mapping[pred[1]]], pred[0]
-					except KeyError:                        
-						uniprot_trimmed = uniprot_mapping[pred[1]].split('-')[0]
-						print genename_map[uniprot_trimmed], pred[0]
-				except KeyError:
-					print id_map[pred[1]], pred[0]
-
-			else:
+					print genename_map[uniprot_mapping[pred[1]]], pred[0]
+				except KeyError:                        
+					uniprot_trimmed = uniprot_mapping[pred[1]].split('-')[0]
+					print genename_map[uniprot_trimmed], pred[0]
+			except KeyError:
 				print id_map[pred[1]], pred[0]
 
+		else:
+			print id_map[pred[1]], pred[0]
 
 
-	else:
 
-		for prot in args.proteins:
-			index = msds.get_id_dict()[prot]
-
-			scores, tvals = sample_correlation_distribution(matrix=msds.get_data_matrix(), index=index, iterations=args.average_cnt, sample_module=sample_module)
-
-			print scores
+	#else:
+    #
+	#	for prot in args.proteins:
+	#		index = msds.get_id_dict()[prot]
+    #
+	#		scores, tvals = sample_correlation_distribution(matrix=msds.get_data_matrix(), index=index, iterations=args.average_cnt, sample_module=sample_module)
+    #
+	#		print scores
 
 def mutual_information_array (matrix, index):
 	mi_list = []
@@ -100,13 +96,18 @@ def mutual_information_array (matrix, index):
 	return mi_list
 		
 
-def correlation_array (matrix, index):
+def correlation_array (matrix, index, sample_module=None):
 	corr_list = []
 
 	data_array1 = np.array(matrix[index].reshape(-1))[0]
+	if sample_module != None:
+		data_array1 = sample_module(data_array1)
+
 	#print matrix.shape
 	for i in range(matrix.shape[0]):
 		data_array2 = np.array(matrix[i].reshape(-1))[0]
+		if sample_module != None:
+			data_array2 = sample_module(data_array2)
 		pcorr = list(pearsonr(data_array1, data_array2))
 		pcorr[0] = np.nan_to_num(pcorr[0])
 		corr_list.append((pcorr,i))
@@ -129,6 +130,7 @@ def correlation_matrix( data_set, threshold=None ):
 
 	return corr_dict
 
+#kdrew: function returns array of correlations (all vs all non-self) or if an index is given, returns list of correlations of all vs one
 def correlation_distribution( matrix, index=None ):
 
 	corrcoefMat = np.nan_to_num(np.corrcoef(matrix))
@@ -160,7 +162,7 @@ def correlation_distribution( matrix, index=None ):
 def tvalue_correlation(ar, n):
 
 	#kdrew: t-value formula
-	def tvalue(r,n):
+	def tvalue(r,n):                                                                                           
 		try:
 			#kdrew: get a divide by zero if r is 1.0 (perfect correlation), set r to be close to one to avoid that
 			if m.fabs(r-1.0) < EPSILON: 
@@ -186,7 +188,8 @@ def tvalue_correlation(ar, n):
 	tvalue_vectorized = np.vectorize(tvalue)
 	return tvalue_vectorized(ar, n)
 
-#kdrew: adding poisson noise might not be the right thing to do here,
+#kdrew: function produces a list of a protein's correlations (all vs all and all vs one(index)), also adds noise and takes average over several iterations
+#kdrew: NOTE: adding poisson noise might not be the right thing to do here,
 #kdrew: essentially we are adding greater variance to larger values
 #kdrew: this penalizes larger values too much
 def sample_correlation_distribution(matrix, noise_constant=0.0, normalize=False, index=None, iterations=1000, sample_module=None):
