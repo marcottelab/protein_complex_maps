@@ -4,6 +4,9 @@
 import urllib, urllib2 
 import MySQLdb
 import difflib
+import Bio.Seq as Seq
+import Bio.SeqRecord as SeqRecord
+import Bio.Alphabet as ba
 
 ACC_QUERY_LENGTH = 250
 FUZZY_MATCH_THRESHOLD = 0.25
@@ -17,6 +20,25 @@ FUZZY_MATCH_THRESHOLD = 0.25
 #		if protein_id == line.split()[0]:
 #			return int(line.split()[1])
 #	return None
+
+def get_all_orthologs( prot_ids, version="_v8", database='inparanoid', score_threshold = 1.0 ): 
+	ortholog_map = dict()
+	db = MySQLdb.connect("localhost", 'kdrew', 'kdrew_utexas', database)
+	cursor = db.cursor()
+	query = "show tables"
+	cursor.execute(query)
+	for tableresult in cursor.fetchall():
+		print tableresult
+		tablename = tableresult[0]
+		omap = get_ortholog_by_table( prot_ids, tablename, database, score_threshold, species=None)
+		print omap
+		for key in omap:
+			try:
+				ortholog_map[key].append(omap[key])
+			except KeyError:
+				ortholog_map[key] = [omap[key],]
+
+	return ortholog_map
 
 #kdrew: wrapper class
 def get_ortholog( prot_ids, species1, species2=None, version="_v8", database='inparanoid', score_threshold = 1.0 ):
@@ -102,6 +124,22 @@ def get_length_uniprot( protein_ids ):
 #kdrew: queries uniprot for protein sequence length
 def get_genenames_uniprot( protein_ids ):
 	return get_from_uniprot( protein_ids, "genes(PREFERRED)" )
+
+def get_sequences_uniprot( protein_ids, seqrecord=False ):
+	seq_map = get_from_uniprot(protein_ids, keyword="sequence") 
+	if seqrecord:
+		return_seq_map = dict()
+		organism_map = get_organism_uniprot( protein_ids )
+		for key in seq_map:
+			if seq_map[key] != None:
+				s = Seq.Seq(seq_map[key], ba.generic_protein)
+				sr = SeqRecord.SeqRecord(s, id=key, description=organism_map[key])
+				#sr = SeqRecord.SeqRecord(Seq.Seq(seq_map[key], ba.generic_protein), id=key, description=organism_map[key])
+				#print sr
+				return_seq_map[key] = sr
+		return return_seq_map
+
+	return seq_map
 
 def get_from_uniprot( protein_ids, keyword ):
 	return_dict = dict()
