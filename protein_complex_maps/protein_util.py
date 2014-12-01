@@ -41,6 +41,7 @@ def get_all_orthologs( prot_ids, version="_v8", database='inparanoid', score_thr
 	return ortholog_map
 
 #kdrew: wrapper class
+#kdrew: species2 is the organism to map to, species1 is the organism of the input prot_ids
 def get_ortholog( prot_ids, species1, species2=None, version="_v8", database='inparanoid', score_threshold = 1.0 ):
 	ortholog_map = dict()
 	if species2 == None:
@@ -83,12 +84,16 @@ def get_ortholog( prot_ids, species1, species2=None, version="_v8", database='in
 		else:
 			#kdrew: swap names if second is lower alphabetically
 			if species1 > species2:
-				species2, species1 = species1, species2
+				species2_tmp, species1_tmp = species1, species2
+			else:
+				species1_tmp, species2_tmp = species1, species2
 			#kdrew: build up query statement
-			tablename = "%s_%s%s" % (species1, species2, version)
-			return get_ortholog_by_table( prot_ids, tablename, database, score_threshold, species=species1) 
+			tablename = "%s_%s%s" % (species1_tmp, species2_tmp, version)
+
+			return get_ortholog_by_table( prot_ids, tablename, database, score_threshold, species=species2) 
 
 
+#kdrew: species is the organism in which to map to
 def get_ortholog_by_table( prot_ids, tablename, database='inparanoid', score_threshold = 1.0, species=None ): 
 	ortholog_map = dict()
 	#kdrew: if same species map each protein id to itself
