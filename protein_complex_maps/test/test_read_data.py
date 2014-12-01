@@ -116,9 +116,13 @@ class ReadDataTest(unittest.TestCase):
 
 		msds.map_ids("ENSEMBL_ID", "ACC")
 		mapped_ids = msds.get_id_dict()
+                print "mapped_ids %s" % (mapped_ids,)
 		assert(mapped_ids["Q15024"] == 9)
-		assert(mapped_ids["G3V380"] == 11)
-		assert(mapped_ids["J3QRR3"] == 6)       
+                #kdrew: same genes but now taking the first in the last rather than last so the primary ids are changed
+		#assert(mapped_ids["G3V380"] == 11)
+		assert(mapped_ids["G3V2E8"] == 11)
+		#assert(mapped_ids["J3QRR3"] == 6)       
+		assert(mapped_ids["J3KRP2"] == 6)       
 		assert(mapped_ids["ENSG00000072110"] == 11)
 
 		frac_map = msds.get_fraction_dict()

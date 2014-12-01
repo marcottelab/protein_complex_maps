@@ -207,33 +207,67 @@ class MSDataSet(object):
 		#return self.__id_dict
 
 
-	#kdrew: adds mappings of protein ids to matrix indices
+	#kdrew: wrapper for adding mappings of protein ids to matrix indices
 	def map_ids( self, from_id, to_id):
 		#kdrew: map master_name_list from current db_id to db_id
 		#kdrew: update master_name_list and current db_id
 
+		protids_map = pu.map_protein_ids( self.__master_name_list, from_id, to_id )
+		self.add_mapping(protids_map, map_name = to_id)
+
+	#kdrew: adds mappings of protein ids to matrix indices
+	def add_mapping( self, id_map, map_name ):
 		#kdrew: older versions of msds did not have mappings attribute
 		try:
 			self.__mappings
 		except AttributeError:
 			self.__mappings = dict()
-		self.__mappings[to_id] = dict()
-		self.__mappings[to_id+"_list"] = dict()
-		protids_map = pu.map_protein_ids( self.__master_name_list, from_id, to_id )
-		for protid in protids_map:
-			i = self.__master_name_list.index(protid)
-			if len(protids_map[protid]) == 0:
-				#kdrew: there is no mapping for this identifier, map to original identifer
-				self.__mappings[to_id][i] = protid
-				self.__mappings[to_id+"_list"][i] = [protid]
 
-			for mapped_id in protids_map[protid]:
-				self.__id_dict[mapped_id] = i
-				self.__mappings[to_id][i] = mapped_id
-				try:
-					self.__mappings[to_id+"_list"][i].append(mapped_id)
-				except KeyError:
-					self.__mappings[to_id+"_list"][i] = [mapped_id]
+		self.__mappings[map_name] = dict()
+		self.__mappings[map_name+"_list"] = dict()
+
+                #kdrew: for every protein id
+		for protid in id_map:
+                        #kdrew: find index in msds
+			i = self.__master_name_list.index(protid)
+			try:
+                                #kdrew: tests if the map has a list of ids for entries (ex. many ids mapped for a single protein)
+				if isinstance(id_map[protid], list):
+                                        #kdrew: if list is empty
+					if len(id_map[protid]) == 0: 
+						#kdrew: there is no mapping for this identifier, map to original identifer
+						self.__mappings[map_name][i] = protid
+						self.__mappings[map_name+"_list"][i] = [protid]
+
+					else: 
+                                                #kdrew: list is not empty
+                                                primary_mapped_id = id_map[protid][0]
+						self.__id_dict[primary_mapped_id] = i
+						self.__mappings[map_name][i] = primary_mapped_id
+						self.__mappings[map_name+"_list"][i] = id_map[protid]
+
+                                                #kdrew: old code for iterating through for some reason, no real reason to do this
+						#for mapped_id in id_map[protid]:
+						#	self.__id_dict[mapped_id] = i
+						#	self.__mappings[map_name][i] = mapped_id
+						#	try:
+						#		self.__mappings[map_name+"_list"][i].append(mapped_id)
+						#	except KeyError:
+						#		self.__mappings[map_name+"_list"][i] = [mapped_id]
+
+                                #kdrew: tests if the map has a string for an entry (ex. only one id mapped for a single protein)
+				elif isinstance(id_map[protid], str):
+					mapped_id  = id_map[protid]
+					self.__id_dict[mapped_id] = i
+					self.__mappings[map_name][i] = mapped_id
+					self.__mappings[map_name+"_list"][i] = [mapped_id]
+                                else:
+                                        raise Exception, "id_map entry is neither a list or string, something wrong"
+
+			#kdrew: this is the case where there is no protid in id_map (missing in map and is not a list) and it should default to original id
+			except KeyError:
+				self.__mappings[map_name][i] = protid
+				self.__mappings[map_name+"_list"][i] = [protid]
 		
 		#return self.__id_dict
 
@@ -273,6 +307,9 @@ class MSDataSet(object):
 
 	def get_name_list( self ):
 		return self.__master_name_list
+
+	def set_name_list( self, name_list ):
+		self.__master_name_list = name_list
 
 	def set_id_dict( self, id_dict ):
 		self.__id_dict = id_dict
