@@ -126,7 +126,7 @@ def get_organism_uniprot( protein_ids ):
 def get_length_uniprot( protein_ids ):
 	return get_from_uniprot( protein_ids, "length" )
 
-#kdrew: queries uniprot for protein sequence length
+#kdrew: queries uniprot for protein sequence genename
 def get_genenames_uniprot( protein_ids ):
 	return get_from_uniprot( protein_ids, "genes(PREFERRED)" )
 

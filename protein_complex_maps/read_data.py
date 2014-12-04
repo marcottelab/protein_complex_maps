@@ -242,18 +242,11 @@ class MSDataSet(object):
 					else: 
                                                 #kdrew: list is not empty
                                                 primary_mapped_id = id_map[protid][0]
-						self.__id_dict[primary_mapped_id] = i
 						self.__mappings[map_name][i] = primary_mapped_id
 						self.__mappings[map_name+"_list"][i] = id_map[protid]
 
-                                                #kdrew: old code for iterating through for some reason, no real reason to do this
-						#for mapped_id in id_map[protid]:
-						#	self.__id_dict[mapped_id] = i
-						#	self.__mappings[map_name][i] = mapped_id
-						#	try:
-						#		self.__mappings[map_name+"_list"][i].append(mapped_id)
-						#	except KeyError:
-						#		self.__mappings[map_name+"_list"][i] = [mapped_id]
+						for mapped_id in id_map[protid]:
+							self.__id_dict[mapped_id] = i
 
                                 #kdrew: tests if the map has a string for an entry (ex. only one id mapped for a single protein)
 				elif isinstance(id_map[protid], str):

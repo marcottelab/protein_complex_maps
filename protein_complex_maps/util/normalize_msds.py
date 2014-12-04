@@ -9,6 +9,7 @@ import protein_complex_maps.read_data as rd
 import protein_complex_maps.normalization_util as nu
 import protein_complex_maps.stoichiometry.stoichiometry as st
 import protein_complex_maps.stoichiometry.relative_stoichiometry as rs
+import protein_complex_maps.protein_util as pu
 
 
 def main():
@@ -65,6 +66,13 @@ def main():
 	parser.add_argument("--organism", action="store", dest="organism", required=False, default="",
 						help="Map genenames from specified organism")
 
+	parser.add_argument("--map_orthologs", action="store_true", dest="map_orthologs", required=False, default=False,
+						help="Map orthologs from species1 to species2")
+	parser.add_argument("--species1", action="store", dest="species1", required=False, default=None, 
+						help="species listed in msds")
+	parser.add_argument("--species2", action="store", dest="species2", required=False, default=None,
+						help="species to map orthologs to")
+
 	args = parser.parse_args()
 
 	#length_normalize = False
@@ -81,6 +89,10 @@ def main():
 	if args.transfer_map:
 		msds2 = pickle.load( open( args.transfer_msds_filename, "rb" ) )
 		msds.transfer_map(msds2)
+
+	if args.map_orthologs:
+		ortholog_map = pu.get_ortholog( msds.get_name_list(), args.species1, args.species2, version="_origid", database="inparanoid_blake")
+		msds.add_mapping( ortholog_map, args.species2+"_ortho" )
 
 	#kdrew: normalize by length as well as map ids
 	if args.length_normalize:
