@@ -11,11 +11,30 @@ def calc_residue_dist(residue_one, residue_two) :
 		return np.nan
 	return np.sqrt(np.sum(diff_vector * diff_vector))
 
-def calc_dist_matrix(chain_one, chain_two ) :
+def calc_dist_matrix(chain_one, chain_two, no_hetero_atoms = True ) :
 	"""Returns a matrix of C-alpha distances between two chains"""
-	answer = np.zeros((len(chain_one), len(chain_two)), np.float)
-	for row, residue_one in enumerate(chain_one) :
-		for col, residue_two in enumerate(chain_two) :
+	if no_hetero_atoms:
+		#kdrew: create new chain_one and chain_two arrays with only residues not hetatoms
+		chain_one_tmp = []
+		chain_two_tmp = []
+		for r1 in chain_one:
+			#print r1.get_id()
+			if r1.get_id()[0]== ' ':
+				chain_one_tmp.append(r1)
+		for r2 in chain_two:
+			#print r2.get_id()
+			if r2.get_id()[0] == ' ':
+				chain_two_tmp.append(r2)
+		chain1 = chain_one_tmp
+		chain2 = chain_two_tmp
+	else:
+		chain1 = chain_one
+		chain2 = chain_two
+
+
+	answer = np.zeros((len(chain1), len(chain2)), np.float)
+	for row, residue_one in enumerate(chain1) :
+		for col, residue_two in enumerate(chain2) :
 			answer[row, col] = calc_residue_dist(residue_one, residue_two)
 	return answer
 
