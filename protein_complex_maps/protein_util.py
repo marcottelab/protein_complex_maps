@@ -180,6 +180,9 @@ def get_from_uniprot( protein_ids, keyword ):
 
 def get_from_uniprot_by_genename( gene_ids, organism="", gene_prefix="gene_exact", reviewed=False):
 	return_dict = dict()
+
+	gene_ids_case_incensitive = gene_ids + [x.lower() for x in gene_ids] + [y.upper() for y in gene_ids]
+
 	reviewed_str = ""
 	if reviewed:
 		reviewed_str = "+and+reviewed:yes"
@@ -193,9 +196,9 @@ def get_from_uniprot_by_genename( gene_ids, organism="", gene_prefix="gene_exact
 		print report_query
 		f = urllib2.urlopen(report_query)
 		for line in f.readlines():
-			#print line
+			print line
 			#kdrew: the returned line has a bunch of extra gene names (and other info), finding the intersection of the gene ids and the line returns the original queried gene id
-			intersection = list(set(line.split()).intersection(gene_ids))
+			intersection = list(set(line.split()).intersection(gene_ids_case_incensitive))
 			if intersection:
 				try:
 					return_dict[intersection[0]].append(line.split()[0])
@@ -256,18 +259,20 @@ def get_pdb_protein_ids( pdbid, database='pdbsws' ):
 
 #kdrew: uses uniprot webservice to map ids
 #kdrew: from_id and to_id are abbreviations of dbid names which can be found: http://www.uniprot.org/faq/28
-def map_protein_ids( id_list, from_id, to_id ):
+def map_protein_ids( id_list, from_id, to_id, reviewed=False ):
 	url = 'http://www.uniprot.org/mapping/'
 
+	query_str = ' '.join(id_list)
 	params = {
 		'from':'%s' % (from_id,),
 		'to':'%s' % (to_id,),
 		'format':'tab',
 		#kdrew: noticed a TypeError exception in join but not sure why
-		'query':' '.join(id_list)
+		'query':query_str,
 	}
 
 	data = urllib.urlencode(params)
+	print data
 	request = urllib2.Request(url, data)
 	contact = "kdrew@utexas.edu" 
 	request.add_header('User-Agent', 'Python %s' % contact)
@@ -289,10 +294,20 @@ def map_protein_ids( id_list, from_id, to_id ):
 				else:
 					return_dict[line.split()[0]] = [line.split()[1],] 
 
+
 	for i in id_list:
 		if i not in return_dict.keys():
 			print "No id match for %s, adding empty list" % i
 			return_dict[i] = []
+
+	if reviewed:
+		#kdrew: flatten ids into set
+		ret_id_list = list(set([item for sublist in return_dict.values() for item in sublist]))
+		is_reviewed_list = get_from_uniprot(ret_id_list, 'reviewed')
+		unreviewed_list = [item for item in is_reviewed_list if is_reviewed_list[item] == 'unreviewed']
+
+		for i in return_dict:
+			return_dict[i] = list(set(return_dict[i]) - set(unreviewed_list))
 
 	return return_dict
 
