@@ -23,79 +23,101 @@ import protein_complex_maps.pdb_util as pdbu
 def main():
 
 	parser = argparse.ArgumentParser(description="Plot precision recall of protein interactions for network deconvolution and correlation")
-	parser.add_argument("--input_msds_pickle", action="store", dest="msds_filename", required=True, 
-						help="Filename of MSDS pickle: pickle comes from running protein_complex_maps.util.read_ms_elutions_pickle_MSDS.py")
-	parser.add_argument("--pdb_list_filename", action="store", dest="pdb_list_filename", required=True, 
+	parser.add_argument("--pdb_list_filename", action="store", dest="pdb_list_filename", required=False, default=None,
 						help="File of benchmark pdbids")
+	parser.add_argument("--pdbid", action="store", dest="pdbid", required=False, default=None,
+						help="PDB id")
 	parser.add_argument("--base_species", action="store", dest="base_species", required=False, default="Hsapiens",
 						help="Species to evaluate, default=Hsapiens")
-	parser.add_argument("--pickle_results_filename", action="store", dest="pickle_results_filename", required=False, default="./interactions_tmp.p",
-						help="Filename of pickled results, default = pdb_results_tmp.p")
-	parser.add_argument("--load_results_pickle", action="store_true", dest="load_results_pickle", required=False, default=False,
-						help="Load results from pickle, overide default filename with --pickle_results_filename")
 	parser.add_argument("--plot_filename", action="store", dest="plot_filename", required=False, default=None,
 						help="Filename of output plot")
 	parser.add_argument("--pisa_dir", action="store", dest="pisa_dir", required=True, default=None,
 						help="Directory of pisa files for calculating surface area")
-	parser.add_argument("--nd_proteins", action="store", dest="nd_proteins", nargs='+', required=False, 
-						help="Protein ids ordered in ND matrix ")
 	parser.add_argument("--nd_matrix", action="store", dest="nd_matrix", required=False, default=None,
 						help="Filename of nd matrix")
+	parser.add_argument("--corr_matrix", action="store", dest="corr_matrix", required=False, default=None,
+						help="Filename of corr matrix")
+	parser.add_argument("--matrix_ids", action="store", dest="matrix_ids", required=False, default=None,
+						help="Filename of ids in matrix")
+	parser.add_argument("--replace_PDBID", action="store_true", dest="replace_PDBID", required=False, default=False,
+						help="Flag to replace PDBID in nd_matrix, corr_matrix and matrix_ids args with pdb ids in pdb_list_filename")
 	args = parser.parse_args()
 
 
-	#kdrew: read in pdb list
-	pdb_list_file = open(args.pdb_list_filename,"rb")
 	pdb_list = []
-	for line in pdb_list_file.readlines():
-		pdb_list.append(line.strip())
-
-
-	pdb_plot_data = dict()
-
-
-        a1_list = None
-        a2_list = None
-	if not args.load_results_pickle:
-		msds = pickle.load( open( args.msds_filename, "rb" ) )
-
-		#kdrew: for every pdb
-		for pdbid in pdb_list:
-			a1_list, a2_list, nd_list = pdb_calc_interactions(msds, pdbid, args.base_species, args.pisa_dir, args.nd_matrix, args.nd_proteins)
-			if a1_list != None and a2_list != None:
-				pdb_plot_data[pdbid] = (a1_list, a2_list)
-
-		#kdrew: create pickle of current plot data
-		pickle.dump(pdb_plot_data, open(args.pickle_results_filename,"wb"))
-
+	if args.pdb_list_filename != None:
+		#kdrew: read in pdb list
+		pdb_list_file = open(args.pdb_list_filename,"rb")
+		for line in pdb_list_file.readlines():
+			pdb_list.append(line.strip())
+	elif args.pdbid != None:
+		pdb_list.append(args.pdbid)
 	else:
-		try:
-			pdb_plot_data = pickle.load(open(args.pickle_results_filename,"rb"))
-		except:
-			print "Problem loading results pickle, make sure exists"
+		print "Use either --pdb_list_filename or --pdbid to specify PDB"
+		return
 
 
-        precision, recall, thresholds = precision_recall_curve(a2_list, a1_list)
-        area = auc(recall, precision)
-        print "PR Area Under Curve: %0.2f" % area
-        plt.plot(recall, precision, 'red')
+	interaction_list = []
+	correlation_list = []
+	nd_list = []
 
-        precision, recall, thresholds = precision_recall_curve(a2_list, nd_list)
-        area = auc(recall, precision)
-        print "PR Area Under Curve: %0.2f" % area
-        plt.plot(recall, precision, 'blue')
+	#kdrew: for every pdb
+	for pdbid in pdb_list:
 
-        
+            matrix_ids_filename = args.matrix_ids
+            nd_matrix_filename = args.nd_matrix
+            corr_matrix_filename = args.corr_matrix
 
-        plt.title('Precision-Recall: AUC=%0.2f' % (area,))
-        plt.xlabel('Recall')
-        plt.ylabel('Precision')
-        plt.ylim([0.0, 1.05])
-        plt.xlim([0.0, 1.0])
-        plt.legend(loc="lower left")
+            if args.replace_PDBID:
+                matrix_ids_filename = matrix_ids_filename.replace("PDBID",pdbid)
+                nd_matrix_filename = nd_matrix_filename.replace("PDBID",pdbid)
+                corr_matrix_filename = corr_matrix_filename.replace("PDBID",pdbid)
 
-        plt.savefig(args.plot_filename)
-        plt.close('all')
+            #kdrew: read in ids
+            matrix_id_file = open(matrix_ids_filename,"rb")
+            matrix_id_list = []
+            for line in matrix_id_file.readlines():
+                    matrix_id_list.append(line.strip())
+
+
+            nd_mat = np.loadtxt(nd_matrix_filename)
+            corr_mat = np.loadtxt(corr_matrix_filename)
+
+
+            #kdrew: load pisa file
+            pisaInt = pdbu.PISA_Interfaces( args.pisa_dir+'/'+pdbid+'_pisa', pdbid=pdbid )
+
+            for acc1, acc2 in it.combinations(matrix_id_list,2):
+                surface_area = pisaInt.surface_area_by_acc(acc1, acc2, base_species=args.base_species)
+                if surface_area != None:
+                        interaction_list.append(1)
+                else:
+                        interaction_list.append(0)
+
+                nd_list.append( nd_mat[matrix_id_list.index(acc1), matrix_id_list.index(acc2)])
+                correlation_list.append( corr_mat[matrix_id_list.index(acc1), matrix_id_list.index(acc2)])
+
+	precision, recall, thresholds = precision_recall_curve(interaction_list, correlation_list)
+	area = auc(recall, precision)
+	print "PR Area Under Curve: %0.2f" % area
+	plt.plot(recall, precision, 'red')
+
+	precision, recall, thresholds = precision_recall_curve(interaction_list, nd_list)
+	area = auc(recall, precision)
+	print "PR Area Under Curve: %0.2f" % area
+	plt.plot(recall, precision, 'blue')
+
+	
+
+	plt.title('Precision-Recall: AUC=%0.2f' % (area,))
+	plt.xlabel('Recall')
+	plt.ylabel('Precision')
+	plt.ylim([0.0, 1.05])
+	plt.xlim([0.0, 1.0])
+	plt.legend(loc="lower left")
+
+	plt.savefig(args.plot_filename)
+	plt.close('all')
 
 
 def pdb_calc_interactions(msds, pdbid, base_species, pisa_dir, nd_matrix, nd_proteins):
