@@ -42,7 +42,7 @@ def get_all_orthologs( prot_ids, version="_v8", database='inparanoid', score_thr
 
 #kdrew: wrapper class
 #kdrew: species2 is the organism to map to, species1 is the organism of the input prot_ids
-def get_ortholog( prot_ids, species1, species2=None, version="_v8", database='inparanoid', score_threshold = 1.0 ):
+def get_ortholog( prot_ids, species1, species2=None, version="_v8", database='inparanoid', score_threshold = 1.0, reversible=False ):
 	ortholog_map = dict()
 	if species2 == None:
 		#kdrew: find all tables in db and call get_ortholog_by_table for each table
@@ -73,6 +73,8 @@ def get_ortholog( prot_ids, species1, species2=None, version="_v8", database='in
 				if difflib.SequenceMatcher(None, species1,ids2species[id1]).ratio() > FUZZY_MATCH_THRESHOLD:
 					ortholog_map[id1] = id1
 
+		if reversible:
+			ortholog_map.update({ortholog_map[x]:x for x in ortholog_map})
 
 		return ortholog_map
 				
@@ -237,7 +239,7 @@ def map_protein_ids_to_pdb( id_list, database='pdbsws' ):
 	return id2pdb
 
 #kdrew: return dictionary of chainid -> acc
-def get_pdb_protein_ids( pdbid, database='pdbsws' ):
+def get_pdb_protein_ids( pdbid, database='pdbsws', reversible=False ):
 	#http://www.bioinf.org.uk/cgi-bin/pdbsws/query.pl?plain=1&qtype=ac&id=P38764
 
 	chain2protid = dict()
@@ -254,6 +256,10 @@ def get_pdb_protein_ids( pdbid, database='pdbsws' ):
 		if acc == '?':
 			acc = None
 		chain2protid[mapping[1]] = acc
+
+	if reversible:
+		chain2protid.update({chain2protid[x]:x for x in chain2protid})
+
     
 	return chain2protid
 
