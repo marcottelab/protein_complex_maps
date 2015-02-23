@@ -7,6 +7,8 @@ import Bio.PDB
 import Bio.SeqIO.PdbIO as pdbio
 import Bio.SeqUtils as su
 
+import protein_complex_maps.protein_util as pu
+
 #kdrew: add residues that are missing from pdb atom record (discontinous residue numbering), chain is chain identifier
 def add_missing_residues(pdb_filename, chain_id, no_hetero_atoms = True):
 
@@ -169,9 +171,10 @@ def metric_dist(structure, chain1, chain2, structure2=None, function=np.nanmin):
 
 class PISA_Interfaces(object):
 
-	def __init__(self, pisa_filename):
+	def __init__(self, pisa_filename, pdbid=None):
 		self.pisa_filename = pisa_filename
 		self.interfaces_area = dict()
+		self.pdbid = pdbid
 
 		#kdrew: get interface area (angstrom^2) from pisa file for every interacting chain
 		pisa_file = open(pisa_filename, "rb")
@@ -184,6 +187,20 @@ class PISA_Interfaces(object):
 				chainA, chainB = chainB, chainA
 			self.interfaces_area[(chainA, chainB)] = float(line_split[2])
 
+		if self.pdbid != None:
+			self.chain2acc = pu.get_pdb_protein_ids(self.pdbid, reversible=True)
+			print self.chain2acc
+
+		self.acc2base_species = dict()
+
+	def map_orthologs(self, base_species):
+
+		if self.pdbid == None:
+			raise Exception, "Cannot map accs because did not initialize PISA_Interfaces with pdbid"
+
+		self.acc2base_species[base_species] = pu.get_ortholog( [x for x in self.chain2acc.values() if x != None], species1=base_species, reversible=True)
+		print self.acc2base_species
+
 	def surface_area(self, chainA, chainB):
 		if chainA > chainB:
 			chainA, chainB = chainB, chainA
@@ -194,4 +211,25 @@ class PISA_Interfaces(object):
 			sa = None
 
 		return sa
+
+	def surface_area_by_acc(self, acc1, acc2, base_species=None):
+
+		#kdrew: if base_species is not already mapped, map it
+		if base_species not in self.acc2base_species.keys() and base_species != None:
+			self.map_orthologs(base_species)
+
+		#kdrew: if base_species is specified then use ortholog mapping
+		if base_species != None:
+			try:
+				c1 = self.chain2acc[self.acc2base_species[base_species][acc1]]
+				c2 = self.chain2acc[self.acc2base_species[base_species][acc2]]
+			except KeyError, e:
+				print "Cannot find %s in chain2acc" % (e,)
+				return None
+		#kdrew: if base species is not specified, input accs are the same as specified in the pdb
+		else:
+			c1 = self.chain2acc[acc1]
+			c2 = self.chain2acc[acc2]
+
+		return self.surface_area(c1,c2)
 
