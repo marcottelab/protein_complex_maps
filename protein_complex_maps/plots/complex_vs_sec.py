@@ -4,6 +4,7 @@ import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.mlab as mlab
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 import argparse
 import pickle
@@ -178,78 +179,56 @@ def main():
 
     mw_sort_idx_woNone = np.argsort(complex_mw_array_woNone)
 
-    fig = plt.figure(num=None, figsize=(8,10))
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+
     #plt.matshow(complex_sec_average_array[mw_sort_idx])
-    plt.imshow(complex_sec_average_array_woNone[mw_sort_idx_woNone], aspect='auto')
+    #plt.imshow(complex_sec_average_array_woNone[mw_sort_idx_woNone], aspect='auto')
+
+
+    small_mw = (0.0,100000)
+    #medium_mw = (100000,250000)
+    #large_mw = (250000, 10000000000000)
+    medium_mw = (100000,700000)
+    large_mw = (700000, 10000000000000)
+    #kdrew: bin complexes by total molecular weight
+    small_mw_indices = [i for i in nonNone_index if complex_mw_array[i] >= small_mw[0] and complex_mw_array[i] < small_mw[1]]
+    medium_mw_indices = [i for i in nonNone_index if complex_mw_array[i] >= medium_mw[0] and complex_mw_array[i] < medium_mw[1]]
+    large_mw_indices = [i for i in nonNone_index if complex_mw_array[i] >= large_mw[0] and complex_mw_array[i] < large_mw[1]]
+
+    print "small: %s" % (len(small_mw_indices))
+    print "medium: %s" % (len(medium_mw_indices))
+    print "large: %s" % (len(large_mw_indices))
+    
+    print small_mw_indices
+    print complex_sec_average_array[small_mw_indices]
+
+    #kdrew: combine binned complexes (average arrays)
+    small_average_array = np.average(complex_sec_average_array[small_mw_indices], axis=0)
+    medium_average_array = np.average(complex_sec_average_array[medium_mw_indices], axis=0)
+    large_average_array = np.average(complex_sec_average_array[large_mw_indices], axis=0)
+    #total_average_array = [small_average_array, medium_average_array, large_average_array]
+    total_average_array = [large_average_array, medium_average_array, small_average_array]
+    #ylabels = ['large (>250kDa)','medium (>100kDa, <250kDa)','small (<100KDa)']
+    #ylabels = ['(>250kDa)','(>100kDa, <250kDa)','(<100KDa)']
+    #ylabels = ['large\n(>250kDa)','medium\n(>100kDa, <250kDa)','small\n(<100KDa)']
+    ylabels = ['large\n(>700kDa)','medium\n(>100kDa, <700kDa)','small\n(<100KDa)']
+
+    colors = ['r','b','g']
+    #for i, ys in enumerate([[1,2,3,4,5],[10,20,30,40,50],[100,200,300,400,500],[10,20,30,40,50]]):
+    #for i, ys in enumerate(complex_sec_average_array_woNone[mw_sort_idx_woNone]):
+    for i, ys in enumerate(total_average_array):
+        cs = colors[i%len(colors)] * len(ys)
+        xs = np.arange(len(ys)) 
+        zs = [i] * len(ys)
+        ax.bar(xs, ys, zs=zs, zdir='y', color=cs, alpha=0.8)
+
     plt.xlabel('SEC Fraction')
-    plt.ylabel('Complex rank (ordered by increasing molecular weight)')
-    plt.colorbar()
+    plt.yticks(range(len(total_average_array)), ylabels, fontsize=8)
+    #plt.ylabel('')
+    #plt.colorbar()
     fig.savefig(args.plot_filename)
     
-
-
-
-
-def plot_profile():
-    fig = plt.figure()
-    ax1 = fig.add_subplot(111)
-    ax2 = ax1.twiny()
-    ax3 = ax1.twinx()
-
-
-    #kdrew: make initial array all equal to 1.0
-    combined_data = np.repeat(1.0,len(sec_data[sec_data.keys()[0]]))
-    print combined_data
-
-
-    individual_color = '0.90'
-
-    #plt.plot( sec_data['Q16401'] )
-    #for i in sec_data.keys():
-    for i in subcomplex_ids:
-            if i in subcomplex_ids:
-                    if combine:
-                            ax1.plot( sec_data[i], color=individual_color, zorder=0)
-                            ax2.plot( sec_data[i], color=individual_color, zorder=-1)
-                    else:
-                            ax1.plot( sec_data[i])
-                            ax2.plot( sec_data[i])
-
-                    sec_data_noised = np.array(sec_data[i]) + TINY_NUM
-                    combined_data = combined_data * sec_data_noised
-                    print "########################"
-                    print np.array(sec_data[i]).max() 
-                    print combined_data
-                    print combined_data.max()
-                    combined_data = combined_data/combined_data.max()
-                    print combined_data
-
-
-    if combine:
-            ax1.plot( combined_data , linewidth=4, zorder=1)
-    else:
-            #ax1.legend(sec_data.keys())
-            ax1.legend([id_map[i] for i in subcomplex_ids])
-
-    xlabels = range(10,41,5)
-
-    toplabels = [670, 440,130,67,15]
-
-    ax1.set_xticks(range(4,33,5))
-    ax1.set_xticklabels(xlabels)
-    ax1.set_xlabel('Fraction')
-
-    ax2.set_xticks([10,13,15,19,27])
-    ax2.set_xticklabels(toplabels)
-    ax2.set_xlabel('kDa')
-    ax2.set_zorder(-1)
-
-    #ax2.set_title("Concensus SEC of Commander Complex subunits")
-    #ax2.set_title("SEC of Commander Complex subunits")
-
-    plt.savefig(plot_filename)
-
-
 
 if __name__ == "__main__":
     main()
