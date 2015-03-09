@@ -100,9 +100,9 @@ def threshold(data_matrix, threshold, absent=0):
 
 
 #kdrew: if values are above threshold, entry is marked present (1) otherwise absent (0)
-def binary(data_matrix, threshold, present=1, absent=0):
-	above_threshold = data_matrix >= threshold
-	below_threshold = data_matrix < threshold
+def binary(data_matrix, threshold=0.0, present=1, absent=0):
+	above_threshold = data_matrix > threshold
+	below_threshold = data_matrix <= threshold
 
 	data_matrix[above_threshold] = present
 	data_matrix[below_threshold] = absent
