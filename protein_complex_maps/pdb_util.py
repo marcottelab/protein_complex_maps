@@ -214,22 +214,31 @@ class PISA_Interfaces(object):
 
 	def surface_area_by_acc(self, acc1, acc2, base_species=None):
 
-		#kdrew: if base_species is not already mapped, map it
-		if base_species not in self.acc2base_species.keys() and base_species != None:
-			self.map_orthologs(base_species)
+            print "acc1: %s acc2: %s" % (acc1, acc2)
+            print "base_species: %s" % base_species
 
-		#kdrew: if base_species is specified then use ortholog mapping
-		if base_species != None:
-			try:
-				c1 = self.chain2acc[self.acc2base_species[base_species][acc1]]
-				c2 = self.chain2acc[self.acc2base_species[base_species][acc2]]
-			except KeyError, e:
-				print "Cannot find %s in chain2acc" % (e,)
-				return None
-		#kdrew: if base species is not specified, input accs are the same as specified in the pdb
-		else:
-			c1 = self.chain2acc[acc1]
-			c2 = self.chain2acc[acc2]
+            #kdrew: if base_species is not already mapped, map it
+            if base_species not in self.acc2base_species.keys() and base_species != None:
+                self.map_orthologs(base_species)
 
-		return self.surface_area(c1,c2)
+                print self.acc2base_species[base_species][acc1]
+                print self.acc2base_species[base_species][acc2]
+
+            #kdrew: if base_species is specified then use ortholog mapping
+            if base_species != None:
+                try:
+                    c1 = self.chain2acc[self.acc2base_species[base_species][acc1]]
+                    c2 = self.chain2acc[self.acc2base_species[base_species][acc2]]
+                    print c1, c2
+                except KeyError, e:
+                    print "Cannot find %s in chain2acc" % (e,)
+                    return None
+            #kdrew: if base species is not specified, input accs are the same as specified in the pdb
+            else:
+                c1 = self.chain2acc[acc1]
+                c2 = self.chain2acc[acc2]
+
+            print c1, c2
+
+            return self.surface_area(c1,c2)
 
