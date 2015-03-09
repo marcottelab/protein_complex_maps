@@ -40,26 +40,26 @@ def main():
 
         
         
-        protein_ids = []
-        for pdbid in pdb_list:
-            chain2acc = pu.get_pdb_protein_ids(pdbid)
-            acc2base_species = pu.get_ortholog( [x for x in chain2acc.values() if x != None], species1=args.base_species)
-            protein_ids = protein_ids + acc2base_species.values()
+	protein_ids = []
+	for pdbid in pdb_list:
+		chain2acc = pu.get_pdb_protein_ids(pdbid)
+		acc2base_species = pu.get_ortholog( [x for x in chain2acc.values() if x != None], species1=args.base_species)
+		protein_ids = protein_ids + acc2base_species.values()
 
 
-        msds = pickle.load( open( args.msds_filename, "rb" ) )
+	msds = pickle.load( open( args.msds_filename, "rb" ) )
 
-        data_set, new_id_map = msds.get_subdata_matrix(protein_ids, ignoreNonExistingIds=True)
+	data_set, new_id_map = msds.get_subdata_matrix(protein_ids, ignoreNonExistingIds=True)
 
-        out_id_file = open(os.path.splitext(args.out_filename)[0]+'.ids', "wb")
-        for i in xrange(len(new_id_map)):
-            out_id_file.write(new_id_map[i]+'\n')
+	out_id_file = open(os.path.splitext(args.out_filename)[0]+'.ids', "wb")
+	for i in xrange(len(new_id_map)):
+		out_id_file.write(new_id_map[i]+'\n')
 
-        out_id_file.close()
+	out_id_file.close()
 	matrix_clean = np.nan_to_num(data_set)
 	corrcoefMat = np.nan_to_num(np.corrcoef(matrix_clean))
 
-        np.savetxt(args.out_filename, corrcoefMat)
+	np.savetxt(args.out_filename, corrcoefMat)
 
 
 
