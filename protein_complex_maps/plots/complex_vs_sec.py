@@ -180,7 +180,9 @@ def main():
     mw_sort_idx_woNone = np.argsort(complex_mw_array_woNone)
 
     fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
+    ax = fig.add_subplot(311)
+    ax2 = fig.add_subplot(312)
+    ax3 = fig.add_subplot(313)
 
     #plt.matshow(complex_sec_average_array[mw_sort_idx])
     #plt.imshow(complex_sec_average_array_woNone[mw_sort_idx_woNone], aspect='auto')
@@ -212,19 +214,26 @@ def main():
     #ylabels = ['large (>250kDa)','medium (>100kDa, <250kDa)','small (<100KDa)']
     #ylabels = ['(>250kDa)','(>100kDa, <250kDa)','(<100KDa)']
     #ylabels = ['large\n(>250kDa)','medium\n(>100kDa, <250kDa)','small\n(<100KDa)']
-    ylabels = ['large\n(>700kDa)','medium\n(>100kDa, <700kDa)','small\n(<100KDa)']
+    plot_labels = ['large\n(>700kDa)','medium\n(>100kDa, <700kDa)','small\n(<100KDa)']
 
     colors = ['r','b','g']
     #for i, ys in enumerate([[1,2,3,4,5],[10,20,30,40,50],[100,200,300,400,500],[10,20,30,40,50]]):
     #for i, ys in enumerate(complex_sec_average_array_woNone[mw_sort_idx_woNone]):
-    for i, ys in enumerate(total_average_array):
-        cs = colors[i%len(colors)] * len(ys)
-        xs = np.arange(len(ys)) 
-        zs = [i] * len(ys)
-        ax.bar(xs, ys, zs=zs, zdir='y', color=cs, alpha=0.8)
+    #for i, ys in enumerate(total_average_array):
+    #    cs = colors[i%len(colors)] * len(ys)
+    #    xs = np.arange(len(ys)) 
+    #    zs = [i] * len(ys)
+    #    ax.bar(xs, ys, zs=zs, zdir='y', color=cs, alpha=0.8)
+
+    ax.bar(np.arange(len(small_average_array)), small_average_array, color=colors[0])
+    ax.set_ylim([0.0,0.6])
+    ax2.bar(np.arange(len(medium_average_array)), medium_average_array, color=colors[1])
+    ax2.set_ylim([0.0,0.6])
+    ax3.bar(np.arange(len(large_average_array)), large_average_array, color=colors[2])
+    ax3.set_ylim([0.0,0.6])
 
     plt.xlabel('SEC Fraction')
-    plt.yticks(range(len(total_average_array)), ylabels, fontsize=8)
+    #plt.yticks(range(len(total_average_array)), ylabels, fontsize=8)
     #plt.ylabel('')
     #plt.colorbar()
     fig.savefig(args.plot_filename)
