@@ -27,6 +27,9 @@ def main():
 	parser.add_argument("--peptide_normalize", action="store_true", dest="peptide_normalize", required=False, default=False,
 						help="Normalize by peptide, requires peptide_digest_file flag")
 
+	parser.add_argument("--column_normalize", action="store_true", dest="column_normalize", required=False, default=False,
+						help="Normalize so columns sum to 1.0")
+
 	parser.add_argument("--peptide_digest_filename", action="store", dest="peptide_digest_filename", required=False, 
 						help="Filename of possible digested peptides")
 
@@ -120,6 +123,11 @@ def main():
 		dm_peptide = nu.normalize_peptide_count(msds.get_data_matrix(), msds.get_id_dict(), peptide_file, peptide_counts=peptide_counts, delimiter=args.delimiter)
 		msds.set_data_matrix(dm_peptide)
 
+	#kdrew: each column sums to 1.0
+	if args.column_normalize:
+		msds_dm = msds.get_data_matrix()
+		msds_dm = nu.normalize_over_rows(msds_dm)
+		msds.set_data_matrix(msds_dm)
 
 	if args.threshold_normalize:
 		msds_dm = msds.get_data_matrix()
