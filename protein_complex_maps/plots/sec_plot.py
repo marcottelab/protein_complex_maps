@@ -5,6 +5,9 @@ mpl.use('Agg')
 import matplotlib.mlab as mlab
 import matplotlib.pyplot as plt
 
+import sklearn.mixture
+from scipy.optimize import curve_fit
+
 import argparse
 import csv
 import protein_complex_maps.protein_util as pu
@@ -48,13 +51,14 @@ def main():
 
     fig = plt.figure()
     ax1 = fig.add_subplot(111)
-    ax2 = ax1.twiny()
-    ax3 = ax1.twinx()
+    #ax2 = ax1.twiny()
+    #ax3 = ax1.twinx()
 
 
     #kdrew: make initial array all equal to 1.0
     combined_data = np.repeat(1.0,len(sec_data[sec_data.keys()[0]]))
     print combined_data
+    total_data = np.repeat(0.0,len(sec_data[sec_data.keys()[0]]))
 
 
     individual_color = '0.90'
@@ -64,11 +68,11 @@ def main():
         if i in args.proteins:
             if args.combine:
                 ax1.plot( sec_data[i], color=individual_color, zorder=0)
-                ax2.plot( sec_data[i], color=individual_color, zorder=-1)
+                #ax2.plot( sec_data[i], color=individual_color, zorder=-1)
             else:
                 try:
                     ax1.plot( sec_data[i])
-                    ax2.plot( sec_data[i])
+                    #ax2.plot( sec_data[i])
                 except KeyError, e:
                     print "KeyError: %s, skipping" % (e,)
                     continue
@@ -81,6 +85,7 @@ def main():
             print combined_data.max()
             combined_data = combined_data/combined_data.max()
             print combined_data
+            total_data = total_data + sec_data[i]
 
 
     if args.combine:
@@ -88,20 +93,27 @@ def main():
     else:
         #ax1.legend(sec_data.keys())
         ax1.legend([id_map[i] for i in args.proteins],prop={'size':7})
+        #print "not setting legend"
 
 
 
-    xlabels = range(10,41,5)
-    ax1.set_xticks(range(3,33,5))
+    #xlabels = range(10,41,5)
+    #ax1.set_xticks(range(3,33,5))
+    #ax1.set_xticks([3.0,8.0,13.0,18.0,23.0,28.0])
+    #ax1.set_xticklabels(xlabels)
+    xlabels = ['','','','10','','','','','15','','','','','20','','','','','25','','','','','30','','','','','35','','','','']
+    ax1.set_xticks(range(0,33))
     ax1.set_xticklabels(xlabels)
     ax1.set_xlabel('Fraction')
 
-    toplabels = [670, 440,130,67,15]
+    toplabels = ['','','','','','','','','','670','','','','','440','','130','','','67','','','','','','','15','','','','','','']
+    #toplabels = [670,440,130,67,15]
     #ax2.set_xticks([10,13,15,19,27])
-    ax2.set_xticks([9,14,16,19,26])
-    ax2.set_xticklabels(toplabels, rotation='vertical')
-    ax2.set_xlabel('kDa')
-    ax2.set_zorder(-1)
+    #ax2.set_xticks([9,14,16,19,26])
+    #ax2.set_xticks(range(0,33))
+    #ax2.set_xticklabels(toplabels, rotation='vertical')
+    #ax2.set_xlabel('kDa')
+    #ax2.set_zorder(-1)
 
     #ax2.set_title("Concensus SEC of Commander Complex subunits")
     #ax2.set_title("SEC of Commander Complex subunits")
@@ -109,6 +121,30 @@ def main():
     plt.savefig(args.plot_filename)
 
 
+    print total_data
+    p0 = [1., 12.0, 1.]
+    bins = np.arange(0,len(sec_data[sec_data.keys()[0]]))
+    print bins
+    #kdrew: mask is for commander complex
+    mask_total_data =  total_data * [0.0,0.0,0.0,0.,0.,0.,0.,0.,1.,1.,1.,1.,1.,1.,1.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.0]
+    coeff, var_matrix = curve_fit(gauss, bins, mask_total_data, p0=p0)
+
+    # Get the fitted curve
+    #hist_fit = gauss(bin_centres, *coeff)
+
+    #plt.plot(bin_centres, hist, label='Test data')
+    #plt.plot(bin_centres, hist_fit, label='Fitted data')
+
+    # Finally, lets get the fitting parameters, i.e. the mean and standard deviation:
+    print 'masked Raw Fitted mean = ', coeff[1]
+    print 'masked Adjusted Fitted mean = ', coeff[1] + 7
+    print 'masked Fitted standard deviation = ', coeff[2]
+
+#http://stackoverflow.com/questions/11507028/fit-a-gaussian-function
+# Define model function to be used to fit to the data above:
+def gauss(x, *p):
+    A, mu, sigma = p
+    return A*np.exp(-(x-mu)**2/(2.*sigma**2))
 
 if __name__ == "__main__":
     main()
