@@ -111,9 +111,10 @@ def get_ortholog_by_table( prot_ids, tablename, database='inparanoid', score_thr
 	if species != None:
 		query_add = " and a2.species = '%s' " % (species[0]+'.'+species[1:],)
 		query = query + query_add
-	#print query
+        print len(prot_ids)
+	print query
 
-	cursor.execute(query, prot_ids)
+	cursor.execute(query, tuple(prot_ids))
 
 	ortholog_results = cursor.fetchall()
 	for pair in ortholog_results:
