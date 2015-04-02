@@ -27,6 +27,8 @@ def main():
                                                 help="Flag to output binary: 1 if present (>= threshold) and 0 if absent (< threshold)")
 	parser.add_argument("--output_file", action="store", dest="out_filename", required=False, default=None, 
 						help="Filename of output file, default=None which prints to stdout")
+	parser.add_argument("--dataframe", action="store_true", dest="dataframe", required=False, default=False, 
+						help="Flag to output dataframe with row and column names")
 	args = parser.parse_args()
 
 	msds = pickle.load( open( args.msds_filename, "rb" ) )
@@ -41,10 +43,18 @@ def main():
 
 
         if args.binary:
-            data_set = nu.binary(data_set, args.threshold)
-            np.savetxt(args.out_filename, data_set, fmt='%d')
+            if args.dataframe:
+                bin_data_set = nu.binary(data_set, args.threshold)
+                msds.set_data_matrix(bin_data_set)
+                msds.get_data_frame().to_csv(args.out_filename)
+            else:
+                data_set = nu.binary(data_set, args.threshold)
+                np.savetxt(args.out_filename, data_set, fmt='%d')
         else:
-            np.savetxt(args.out_filename, data_set)
+            if args.dataframe:
+                msds.get_data_frame().to_csv(args.out_filename)
+            else:
+                np.savetxt(args.out_filename, data_set)
 
         map_out_handle = open(args.out_filename+".map","wb")
         
