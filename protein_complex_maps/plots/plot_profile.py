@@ -78,35 +78,35 @@ def plot_profile_dataset(data_set, id_map, ylim_max=False, savefilename=None, fr
 
 		#cols = set(range(0,len(data_array_cols)))
 
-		data_subplots[i].bar(np.arange(len(data_array_cols)), map(float,data_array_cols), align='center', facecolor=barcolor, alpha=0.5 )
+		data_subplots[i,0].bar(np.arange(len(data_array_cols)), map(float,data_array_cols), align='center', facecolor=barcolor, alpha=0.5 )
 
-		data_subplots[i].axvspan(y_highlight[0], y_highlight[1], color='yellow', alpha=0.2)
+		data_subplots[i,0].axvspan(y_highlight[0], y_highlight[1], color='yellow', alpha=0.2)
 
 		if i in xrange(x_highlight[0], x_highlight[1]):
-			data_subplots[i].axvspan(0, len(data_array_cols), color='blue', alpha=0.2)
+			data_subplots[i,0].axvspan(0, len(data_array_cols), color='blue', alpha=0.2)
 
 		#data_subplots[i].axes.set_yticklabels([],visible=False)
 
 		if ylim_max:
-			data_subplots[i].axes.set_ylim(0,max_value)
+			data_subplots[i,0].axes.set_ylim(0,max_value)
 
 		#data_subplots[i].axes.set_xlim(0, len(data_array_cols))
 
 		if fraction_range:
-			data_subplots[i].axes.set_xlim(fraction_range[0], fraction_range[1])
+			data_subplots[i,0].axes.set_xlim(fraction_range[0], fraction_range[1])
 
 		try:
 			if genenames:
-				data_subplots[i].set_ylabel(genename_map[id_map[i]],rotation='horizontal', color=barcolor, fontsize=10)
+				data_subplots[i,0].set_ylabel(genename_map[id_map[i]],rotation='horizontal', color=barcolor, fontsize=10)
 			else:
-				data_subplots[i].set_ylabel(id_map[i],rotation='horizontal', color=barcolor, fontsize=10)
+				data_subplots[i,0].set_ylabel(id_map[i],rotation='horizontal', color=barcolor, fontsize=10)
 		except KeyError:
 			print id_map[i]
-			data_subplots[i].set_ylabel(id_map[i],rotation='horizontal', color=barcolor, fontsize=10)
+			data_subplots[i,0].set_ylabel(id_map[i],rotation='horizontal', color=barcolor, fontsize=10)
 
 
 		#data_subplots[i].axes.set_yticks(data_subplots[i].axes.get_yticks()[0::5])
-		data_subplots[i].axes.set_yticks([])
+		data_subplots[i,0].axes.set_yticks([])
 
 	if savefilename is None:
 		print "savefilename is None"
