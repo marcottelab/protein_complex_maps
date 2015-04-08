@@ -67,7 +67,7 @@ def plot_profile_dataset(data_set, id_map, ylim_max=False, savefilename=None, fr
 	if genenames:
 		genename_map = pu.get_genenames_uniprot( id_map.values() )
 
-	f, data_subplots = plt.subplots(len(data_set),1,sharex='col')
+	f, data_subplots = plt.subplots(len(data_set),1,sharex='col', squeeze=False)
 
 	max_value = np.max(data_set)
 
