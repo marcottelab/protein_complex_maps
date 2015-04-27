@@ -30,6 +30,9 @@ def main():
 	parser.add_argument("--column_normalize", action="store_true", dest="column_normalize", required=False, default=False,
 						help="Normalize so columns sum to 1.0")
 
+	parser.add_argument("--row_normalize", action="store_true", dest="row_normalize", required=False, default=False,
+						help="Normalize so rows sum to 1.0")
+
 	parser.add_argument("--peptide_digest_filename", action="store", dest="peptide_digest_filename", required=False, 
 						help="Filename of possible digested peptides")
 
@@ -127,6 +130,12 @@ def main():
 	if args.column_normalize:
 		msds_dm = msds.get_data_matrix()
 		msds_dm = nu.normalize_over_rows(msds_dm)
+		msds.set_data_matrix(msds_dm)
+
+	#kdrew: each row sums to 1.0
+	if args.row_normalize:
+		msds_dm = msds.get_data_matrix()
+		msds_dm = nu.normalize_over_columns(msds_dm)
 		msds.set_data_matrix(msds_dm)
 
 	if args.threshold_normalize:
