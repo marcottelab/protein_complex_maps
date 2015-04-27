@@ -21,6 +21,8 @@ import protein_complex_maps.bicluster.bicluster as bc
 import protein_complex_maps.plots.plot_bicluster as pbc
 import protein_complex_maps.random_sampling_util as rsu
 import protein_complex_maps.score_util as su
+import protein_complex_maps.bicluster_generator as bg
+import protein_complex_maps.annealer as anl
 
 logging.basicConfig(level = logging.DEBUG,format='%(asctime)s %(levelname)s %(message)s')
 
@@ -78,7 +80,12 @@ def main():
 
     #logging.debug(clean_data_matrix)
 
-    V = data_set
+    #kdrew: make all rows sum to 1.0
+    #data_set = nu.normalize_over_columns(data_set)
+    #kdrew: make all columns sum to 1.0
+    data_set = nu.normalize_over_rows(data_set)
+
+    V = data_set 
 
     print V
 
@@ -117,9 +124,17 @@ def main():
     #print "Estimate"
     #print np.dot(W, H)
 
-    rsscore_obj = rsu.RandomSamplingScore(data_set, su.multiple_dot_neg, sample_module=np.random)
+    rsscore_obj = rsu.RandomSamplingScore(data_set, su.multiple_dot, sample_module=np.random)
     score_function = rsscore_obj.zscore_all
+    bcgen = bg.BiclusterGenerator(rsscore_obj.zscore_all_neg, iterations=2500, starting_temperature = 0.00000001, random_module=np.random)
+    ratequench_annealer = anl.RateQuenchAnnealer( bcgen.get_montecarlo(), quench_iteration=2400, scale=0.9, rate=0.3, recent_iterations=10, adjust_scale=True )
+    bcgen.set_annealer(ratequench_annealer)
 
+
+    bicluster1 = bc.Bicluster(rows=[0,1,2,3,4,5,14], cols=[55,56], random_module=random)
+    print "lid zscore: %s" % (rsscore_obj.zscore_all(bicluster1.get_submatrix(data_set)),)
+    print "lid cols zscore: %s" % (rsscore_obj.zscore_columns(data_set, bicluster1))
+    print "lid rows zscore: %s" % (rsscore_obj.zscore_rows(data_set, bicluster1))
 
     print "Clusters"
     for i in range(args.rank):
@@ -132,7 +147,11 @@ def main():
         print rows
         print cols
         bicluster1 = bc.Bicluster(rows=rows, cols=cols, random_module=random)
-        pbc.plot_bicluster( data_set, bicluster1, savefilename="/home/kdrew/public_html/test/bicluster_test%s.pdf" % (i,))
+        pbc.plot_bicluster( data_set, bicluster1, savefilename="/home/kdrew/public_html/test/bicluster_test%s.pdf" % (i,), ylim_max=True)
+
+        #kdrew: monte carlo optimize using nnmf cluster as seed
+        bicluster_mc = bcgen.generator(data_set, bicluster1)
+	eval_dict = bcgen.evaluate( data_set, len(bcgen.biclusters)-1 )
 
         try:
             print "zscore: %s" % (rsscore_obj.zscore_all(bicluster1.get_submatrix(data_set)),)
@@ -141,6 +160,10 @@ def main():
         except:
             continue
 
+	for t in eval_dict.keys():
+            logging.info("random %s, mean: %s, std: %s, zscore: %s" % ( t, eval_dict[t]['mean'], eval_dict[t]['std'], eval_dict[t]['zscore'] ))
+
+	pbc.plot_bicluster(data_set, bicluster_mc, savefilename="/home/kdrew/public_html/test/bicluster_testMC%s.pdf" % (i), ylim_max=True)
 
     data_subplots = []
     f, data_subplots = plt.subplots(len(W),1,sharex='col')
