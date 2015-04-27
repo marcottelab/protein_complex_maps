@@ -62,7 +62,7 @@ def get_ortholog( prot_ids, species1, species2=None, version="_v8", database='in
 				missing_in_orthologmap.add(protid)
 
 		if 0 < len(missing_in_orthologmap):
-			print "missing: %s" % (missing_in_orthologmap,)
+			print "Do fuzzy match, missing: %s" % (missing_in_orthologmap,)
 			ids2species = get_organism_uniprot(list(missing_in_orthologmap))
 			for id1 in ids2species:
 				#kdrew: check to see if the passed in species is the same as id's species
@@ -111,8 +111,8 @@ def get_ortholog_by_table( prot_ids, tablename, database='inparanoid', score_thr
 	if species != None:
 		query_add = " and a2.species = '%s' " % (species[0]+'.'+species[1:],)
 		query = query + query_add
-        print len(prot_ids)
-	print query
+        #print len(prot_ids)
+	#print query
 
 	cursor.execute(query, tuple(prot_ids))
 
@@ -310,8 +310,11 @@ def map_protein_ids( id_list, from_id, to_id, reviewed=False ):
 	if reviewed:
 		#kdrew: flatten ids into set
 		ret_id_list = list(set([item for sublist in return_dict.values() for item in sublist]))
+		#print ret_id_list
 		is_reviewed_list = get_from_uniprot(ret_id_list, 'reviewed')
+		#print is_reviewed_list
 		unreviewed_list = [item for item in is_reviewed_list if is_reviewed_list[item] == 'unreviewed']
+		#print unreviewed_list
 
 		for i in return_dict:
 			return_dict[i] = list(set(return_dict[i]) - set(unreviewed_list))
