@@ -157,44 +157,65 @@ def main():
             #print "percent score %s: %s" % (x, (df_scored.sum()))
 
 
-        for exp1,exp2 in it.combinations( df_dict.keys(), 2 ):
-            print "combinations: %s, %s" % (exp1, exp2)
 
-            for x in it.product(list(df_dict[exp1].index), list(df_dict[exp2].index)):
 
-                df1 = df_dict[exp1]
-                df2 = df_dict[exp2]
-                print x
-                print df1.loc[x[0]]
-                print df2.loc[x[1]]
 
-                combined_df = df1.loc[x[0]].mul( df2.loc[x[1]], fill_value=0.0 )
+        for r in range(1, len(df_dict)+1):
+            for exp_list in it.combinations( df_dict.keys(), r ):
 
-                #kdrew: this scoring function gives a 1*abundance to proteins within in the complex and a -1*abundance to all other proteins
-                #kdrew: the sum is the total score 
-                score_mask_1neg1 = [ 1 if i in args.proteins else -1 for i in combined_df.index]
-                df_scored = combined_df * score_mask_1neg1
-                print "score %s: %s" % (x, df_scored.sum())
+                df_list = [ df_dict[exp] for exp in exp_list ] 
+                df_index_list = [ list(df.index) for df in df_list ]
+                print "combinations: %s" % (','.join(exp_list))
+                print "possible fractions: %s" % (df_list,)
 
-                #kdrew: count how many original proteins are still present (> 0.0)
-                protein_count = (combined_df[args.proteins] > 0.0).sum()
-                proteins = combined_df.index[(combined_df[args.proteins] > 0.0)].tolist()
-                protein_percent = (1.0*protein_count)/len(args.proteins)
-                print "protein_count %s / %s = %s" % (protein_count, len(args.proteins), protein_percent)
+                for fractions in it.product(*df_index_list):
 
-                #kdrew: this scoring function gives what percent the final solution will have of proteins in the complex
-                score_mask_1_0 = [ 1 if i in args.proteins else 0 for i in combined_df.index]
-                df_scored = combined_df * score_mask_1_0
-                purity_percent = df_scored.sum()/combined_df.sum()
-                print "percent score %s: %s" % (x, purity_percent)
+                    print fractions
+                    #print df_list[0].loc[fractions[0]]
+                    #print df_list[1].loc[fractions[1]]
 
-                pr = PurificationRecipe(experiments=[exp1,exp2], fractions=x, proteins=proteins, protein_percent=protein_percent, purity_percent=purity_percent)
+                    #kdrew: initialize vector to be the first fraction
+                    combined_vector = df_list[0].loc[fractions[0]]
+                    #kdrew: multiply additional fraction vectors
+                    for i in range(1,len(fractions)):
+                        combined_vector = combined_vector .mul( df_list[i].loc[fractions[i]], fill_value=0.0 )
 
-                results_list.append(pr)
+                    pr = score_fraction(combined_vector, args.proteins)
 
+                    pr.experiments=exp_list
+                    pr.fractions=fractions
+
+                    results_list.append(pr)
 
         for result in results_list:
             print result
+
+
+def score_fraction(vector, proteins):
+
+    #kdrew: this scoring function gives a 1*abundance to proteins within in the complex and a -1*abundance to all other proteins
+    #kdrew: the sum is the total score 
+    score_mask_1neg1 = [ 1 if i in proteins else -1 for i in vector.index]
+    vector_scored = vector * score_mask_1neg1
+    print "score %s" % (vector_scored.sum())
+
+
+    #kdrew: count how many original proteins are still present (> 0.0)
+    protein_count = (vector[proteins] > 0.0).sum()
+    proteins_present = vector.index[(vector[proteins] > 0.0)].tolist()
+    protein_percent = (1.0*protein_count)/len(proteins)
+    print "protein_count %s / %s = %s" % (protein_count, len(proteins), protein_percent)
+
+    #kdrew: this scoring function gives what percent the final solution will have of proteins in the complex
+    score_mask_1_0 = [ 1 if i in proteins else 0 for i in vector.index]
+    vector_scored = vector * score_mask_1_0
+    purity_percent = vector_scored.sum()/vector.sum()
+    print "percent score %s" % (purity_percent)
+
+    pr = PurificationRecipe(proteins=proteins_present, protein_percent=protein_percent, purity_percent=purity_percent)
+
+    return pr
+
 
 class PurificationRecipe(object):
 
