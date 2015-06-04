@@ -34,8 +34,10 @@ class PurificationRecipe(object):
 
         self.results_list = []
         self.df_dict = dict()
+        self.df_index_dict = dict()
 
         self.create_data_frames()
+
 
     def create_data_frames(self,):
         #kdrew: store data in data frames
@@ -59,36 +61,68 @@ class PurificationRecipe(object):
             df = df.div( df.sum(axis=1), axis=0 )
 
             #kdrew: threshold out fraction vectors that do not have enough of the input proteins
-            percent_vector = 1.0*(df[self.proteins] > 0.0).sum(axis=1)/len(self.proteins)
-            df = df[percent_vector > self.protein_percent_threshold]
+            #print self.proteins
             #print df
+            bool_vector = df[self.proteins] > 0.0
+            sum_vector = bool_vector.sum(axis=1)
+            percent_vector = 1.0*(sum_vector)/len(self.proteins)
+            #percent_vector = 1.0*(df[self.proteins] > 0.0).sum(axis=1)/len(self.proteins)
+            #df = df[percent_vector > self.protein_percent_threshold]
 
+
+            #kdrew: store list of fractions that pass threshold
+            self.df_index_dict[msds_filename] = list(df[percent_vector > self.protein_percent_threshold].index)
+
+            #kdrew: store dataframe
             self.df_dict[ msds_filename ] = df
 
 
     def create_recipes(self,):
 
-        #kdrew: for different possible numbers of sequential experiments
+        #kdrew: for different possible numbers of sequential experiments, focusing on 1 exp or combinations of 2 or more ...
         for r in range(1, len(self.df_dict)+1):
             for exp_list in it.combinations( self.df_dict.keys(), r ):
 
                 df_list = [ self.df_dict[exp] for exp in exp_list ] 
-                df_index_list = [ list(df.index) for df in df_list ]
+                #df_index_list = [ list(df.index) for df in df_list ]
+                df_index_list = [ self.df_index_dict[exp] for exp in exp_list ] 
 
+                #kdrew: for different sets of fractions
                 for fractions in it.product(*df_index_list):
 
-                    #kdrew: initialize vector to be the first fraction
-                    combined_vector = df_list[0].loc[fractions[0]]
-                    #kdrew: multiply additional fraction vectors
-                    for i in range(1,len(fractions)):
-                        combined_vector = combined_vector .mul( df_list[i].loc[fractions[i]], fill_value=0.0 )
 
-                    pr = self.score_fraction( combined_vector )
+                    #kdrew: current false because this does not seem to be the correct way of combining fractions
+                    if False:
+
+                        #kdrew: initialize vector to be the first fraction
+                        vector = df_list[0].loc[fractions[0]]
+                        #kdrew: multiply additional fraction vectors
+                        for i in range(1,len(fractions)):
+                            vector = vector.mul( df_list[i].loc[fractions[i]], fill_value=0.0 )
+
+
+                    #kdrew: combine vectors as distributions across fractions
+                    else:
+                        df = df_list[0]
+                        #df_sums = df.sum(axis=0)
+                        #kdrew: do not do normalization across fractions on the first one because we want the inital concentration to be present
+                        #df = df.div(df.sum(axis=0),axis=1)
+                        vector = df.loc[fractions[0]]
+
+                        for i in range(1,len(fractions)):
+                            df = df_list[i]
+                            df = df.div(df.sum(axis=0),axis=1)
+                            vector = vector.mul( df.loc[fractions[i]], fill_value = 0.0 )
+
+
+                    pr = self.score_fraction( vector )
 
                     pr.experiments=exp_list
                     pr.fractions=fractions
 
                     self.results_list.append(pr)
+
+
 
     def show_results(self,):
         sorted_results_list = sorted(self.results_list, key = lambda result : result.purity_percent)
