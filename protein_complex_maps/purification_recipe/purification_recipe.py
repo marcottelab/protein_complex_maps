@@ -28,10 +28,11 @@ def main():
 
 class PurificationRecipe(object):
 
-    def __init__(self, msds_filenames, proteins, protein_percent_threshold):
+    def __init__(self, msds_filenames, proteins, protein_percent_threshold, normalize_flag=True):
         self.msds_filenames = msds_filenames
         self.proteins = proteins
         self.protein_percent_threshold = protein_percent_threshold
+        self.normalize_flag = normalize_flag
 
         self.results_list = []
         self.df_dict = dict()
@@ -40,7 +41,9 @@ class PurificationRecipe(object):
         self.create_data_frames()
 
 
+
     def create_data_frames(self,):
+
         #kdrew: store data in data frames
         for msds_filename in self.msds_filenames:
             msds = pickle.load( open( msds_filename, "rb" ) )
@@ -58,8 +61,9 @@ class PurificationRecipe(object):
             ##kdrew: normalize by fractions (max of all fraction vectors = 1.0)
             #df = df.div( df.max(axis=1), axis=0 )
 
-            #kdrew: normalize by fractions (sum of all fraction vectors = 1.0, i.e. probability)
-            df = df.div( df.sum(axis=1), axis=0 )
+            if self.normalize_flag:
+                #kdrew: normalize by fractions (sum of all fraction vectors = 1.0, i.e. probability)
+                df = df.div( df.sum(axis=1), axis=0 )
 
             #kdrew: threshold out fraction vectors that do not have enough of the input proteins
             #print self.proteins
@@ -119,6 +123,7 @@ class PurificationRecipe(object):
 
                     #kdrew: combine vectors as distributions across fractions
                     df = df_list[0]
+                    #print df
                     #df_sums = df.sum(axis=0)
                     #kdrew: do not do normalization across fractions on the first one because we want the inital concentration to be present
                     #df = df.div(df.sum(axis=0),axis=1)
@@ -127,9 +132,11 @@ class PurificationRecipe(object):
                     for i in range(1,len(fractions)):
                         df = df_list[i]
                         df = df.div(df.sum(axis=0),axis=1)
+                        #print df
                         vector = vector.mul( df.loc[fractions[i]], fill_value = 0.0 )
 
 
+                    #print fractions
                     score_dict = self.score_fraction( vector )
 
                     pr = PurificationRecipeResult()
@@ -169,6 +176,8 @@ class PurificationRecipe(object):
         score_mask_1_0 = [ 1 if i in self.proteins else 0 for i in vector.index]
         vector_scored = vector * score_mask_1_0
         purity_percent = vector_scored.sum()/vector.sum()
+        #print vector_scored
+        #print vector
         #print "percent score %s" % (purity_percent)
 
         #pr = PurificationRecipeResult(proteins=proteins_present, protein_percent=protein_percent, purity_percent=purity_percent )
