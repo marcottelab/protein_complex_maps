@@ -5,6 +5,7 @@ import itertools as it
 
 import argparse
 import pickle
+import pandas as pd
 
 logging.basicConfig(level = logging.INFO,format='%(asctime)s %(levelname)s %(message)s')
 
@@ -45,7 +46,7 @@ class PurificationRecipe(object):
             msds = pickle.load( open( msds_filename, "rb" ) )
             df = msds.get_data_frame()
 
-            print "filename: %s" % msds_filename
+            #print "filename: %s" % msds_filename
 
             missing_proteins = [ i for i in self.proteins if i not in df.columns ]
             print "missing: %s" % missing_proteins
@@ -84,41 +85,60 @@ class PurificationRecipe(object):
             for exp_list in it.combinations( self.df_dict.keys(), r ):
 
                 df_list = [ self.df_dict[exp] for exp in exp_list ] 
-                #df_index_list = [ list(df.index) for df in df_list ]
                 df_index_list = [ self.df_index_dict[exp] for exp in exp_list ] 
 
                 #kdrew: for different sets of fractions
                 for fractions in it.product(*df_index_list):
 
+                    #print df_list[0]
 
-                    #kdrew: current false because this does not seem to be the correct way of combining fractions
-                    if False:
+                    #print fractions
+                    #kdrew: initialize vector to be the first fraction
+                    y_df = df_list[0]
+                    y_df = y_df.div(y_df.sum(axis=0))
+                    #print y_df
+                    y_vector = y_df.loc[fractions[0]]
+                    #print y_vector
+                    #kdrew: multiply additional fraction vectors
+                    for i in range(1,len(fractions)):
+                        y_df2 = df_list[i]
+                        y_df2 = y_df2.div(y_df2.sum(axis=0))
+                        #print y_df2
+                        y_vector2 = y_df2.loc[fractions[i]]
+                        #print y_vector2
+                        #y_df = pd.DataFrame(y_df.values * y_df2.values, columns=y_df.columns, index=y_df.index)
+                        y_vector = y_vector*y_vector2
+                        #print y_vector
 
-                        #kdrew: initialize vector to be the first fraction
-                        vector = df_list[0].loc[fractions[0]]
-                        #kdrew: multiply additional fraction vectors
-                        for i in range(1,len(fractions)):
-                            vector = vector.mul( df_list[i].loc[fractions[i]], fill_value=0.0 )
+                    yield_mean = y_vector[self.proteins].mean()
+                    #print "average yield: %s" % (yield_mean)
+                    #print y_df
+                    #print y_df.loc[fractions[0]]
+                    #print "\n"
 
 
                     #kdrew: combine vectors as distributions across fractions
-                    else:
-                        df = df_list[0]
-                        #df_sums = df.sum(axis=0)
-                        #kdrew: do not do normalization across fractions on the first one because we want the inital concentration to be present
-                        #df = df.div(df.sum(axis=0),axis=1)
-                        vector = df.loc[fractions[0]]
+                    df = df_list[0]
+                    #df_sums = df.sum(axis=0)
+                    #kdrew: do not do normalization across fractions on the first one because we want the inital concentration to be present
+                    #df = df.div(df.sum(axis=0),axis=1)
+                    vector = df.loc[fractions[0]]
 
-                        for i in range(1,len(fractions)):
-                            df = df_list[i]
-                            df = df.div(df.sum(axis=0),axis=1)
-                            vector = vector.mul( df.loc[fractions[i]], fill_value = 0.0 )
+                    for i in range(1,len(fractions)):
+                        df = df_list[i]
+                        df = df.div(df.sum(axis=0),axis=1)
+                        vector = vector.mul( df.loc[fractions[i]], fill_value = 0.0 )
 
 
-                    pr = self.score_fraction( vector )
+                    score_dict = self.score_fraction( vector )
 
+                    pr = PurificationRecipeResult()
+                    pr.proteins = score_dict['proteins_present']
+                    pr.protein_percent = score_dict['protein_percent']
+                    pr.purity_percent = score_dict['purity_percent']
                     pr.experiments=exp_list
                     pr.fractions=fractions
+                    pr.yield_percent = yield_mean
 
                     self.results_list.append(pr)
 
@@ -139,7 +159,7 @@ class PurificationRecipe(object):
         #print "score %s" % (vector_scored.sum())
 
 
-        #kdrew: count how many original proteins are still present (> 0.0)
+        #kdrew: count how many original proteins are still present (counts > 0.0)
         protein_count = (vector[self.proteins] > 0.0).sum()
         proteins_present = vector.index[(vector[self.proteins] > 0.0)].tolist()
         protein_percent = (1.0*protein_count)/len(self.proteins)
@@ -151,22 +171,27 @@ class PurificationRecipe(object):
         purity_percent = vector_scored.sum()/vector.sum()
         #print "percent score %s" % (purity_percent)
 
-        pr = PurificationRecipeResult(proteins=proteins_present, protein_percent=protein_percent, purity_percent=purity_percent)
+        #pr = PurificationRecipeResult(proteins=proteins_present, protein_percent=protein_percent, purity_percent=purity_percent )
+        score_dict = dict()
+        score_dict['proteins_present'] = proteins_present
+        score_dict['protein_percent'] = protein_percent
+        score_dict['purity_percent'] = purity_percent
 
-        return pr
+        return score_dict
 
 
 class PurificationRecipeResult(object):
 
-    def __init__(self, experiments=[], fractions=[], proteins=[], protein_percent=None, purity_percent=None):
+    def __init__(self, experiments=[], fractions=[], proteins=[], protein_percent=None, purity_percent=None, yield_percent=None):
         self.experiments = experiments
         self.fractions = fractions
         self.proteins = proteins
         self.protein_percent = protein_percent
         self.purity_percent = purity_percent
+        self.yield_percent = yield_percent
 
     def __str__(self,):
-        return "experiments: %s, fractions: %s, protein_percent: %s, purity_percent: %s" % (self.experiments, self.fractions, self.protein_percent, self.purity_percent)
+        return "experiments: %s, fractions: %s, protein_percent: %s, purity_percent: %s, yield_percent: %s" % (self.experiments, self.fractions, self.protein_percent, self.purity_percent, self.yield_percent)
 
 if __name__ == "__main__":
 	main()
