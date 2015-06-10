@@ -18,21 +18,25 @@ def main():
                                     help="Protein ids in which to anaylze")
 	parser.add_argument("--protein_percent_threshold", action="store", dest="protein_percent_threshold", type=float, required=False, default=0.9,
                                     help="Percentage of proteins that need to be present in input fractions (expressed as decimal), default 0.9 (ie 90%)")
+	parser.add_argument("--plot_filename", action="store", dest="plot_filename", required=True,
+                                    help="Filename of plot on plot.ly")
 
 	args = parser.parse_args()
 
-        pr_obj = PurificationRecipe( args.msds_filenames, args.proteins, args.protein_percent_threshold )
+        pr_obj = PurificationRecipe( args.msds_filenames, args.proteins, args.protein_percent_threshold, args.plot_filename)
         pr_obj.create_recipes()
         pr_obj.show_results()
+        pr_obj.plot_results()
 
 
 class PurificationRecipe(object):
 
-    def __init__(self, msds_filenames, proteins, protein_percent_threshold, normalize_flag=True):
+    def __init__(self, msds_filenames, proteins, protein_percent_threshold, plot_filename, normalize_flag=True):
         self.msds_filenames = msds_filenames
         self.proteins = proteins
         self.protein_percent_threshold = protein_percent_threshold
         self.normalize_flag = normalize_flag
+        self.plot_filename = plot_filename
 
         self.results_list = []
         self.df_dict = dict()
@@ -94,49 +98,34 @@ class PurificationRecipe(object):
                 #kdrew: for different sets of fractions
                 for fractions in it.product(*df_index_list):
 
-                    #print df_list[0]
-
-                    #print fractions
                     #kdrew: initialize vector to be the first fraction
                     y_df = df_list[0]
                     y_df = y_df.div(y_df.sum(axis=0))
-                    #print y_df
                     y_vector = y_df.loc[fractions[0]]
-                    #print y_vector
                     #kdrew: multiply additional fraction vectors
                     for i in range(1,len(fractions)):
                         y_df2 = df_list[i]
                         y_df2 = y_df2.div(y_df2.sum(axis=0))
-                        #print y_df2
                         y_vector2 = y_df2.loc[fractions[i]]
-                        #print y_vector2
-                        #y_df = pd.DataFrame(y_df.values * y_df2.values, columns=y_df.columns, index=y_df.index)
                         y_vector = y_vector*y_vector2
-                        #print y_vector
 
                     yield_mean = y_vector[self.proteins].mean()
                     #print "average yield: %s" % (yield_mean)
-                    #print y_df
-                    #print y_df.loc[fractions[0]]
-                    #print "\n"
 
 
                     #kdrew: combine vectors as distributions across fractions
                     df = df_list[0]
-                    #print df
-                    #df_sums = df.sum(axis=0)
-                    #kdrew: do not do normalization across fractions on the first one because we want the inital concentration to be present
+
+                    #kdrew: do not do normalization across fractions on the first one because we want the initial concentration to be present
                     #df = df.div(df.sum(axis=0),axis=1)
                     vector = df.loc[fractions[0]]
 
                     for i in range(1,len(fractions)):
                         df = df_list[i]
                         df = df.div(df.sum(axis=0),axis=1)
-                        #print df
                         vector = vector.mul( df.loc[fractions[i]], fill_value = 0.0 )
 
 
-                    #print fractions
                     score_dict = self.score_fraction( vector )
 
                     pr = PurificationRecipeResult()
@@ -155,6 +144,49 @@ class PurificationRecipe(object):
         sorted_results_list = sorted(self.results_list, key = lambda result : result.purity_percent)
         for result in sorted_results_list:
             print result
+
+    def plot_results(self,):
+
+        import plotly.plotly as py
+        from plotly.graph_objs import *
+
+        purity_percent = [result.purity_percent for result in self.results_list]
+        yield_percent = [result.yield_percent for result in self.results_list]
+        #protein_percent = [result.protein_percent for result in self.results_list]
+        fraction_text = ["Fractions: %s <br> Protein Percent: %s" % ("<br>".join(result.fractions), result.protein_percent) for result in self.results_list]
+             
+        trace1 = Scatter(
+            x=purity_percent,
+            y=yield_percent,
+            mode='markers',
+            name="Testing",
+            text=fraction_text,
+            marker=Marker(
+                color='rgb(164, 194, 244)',
+                size=12,
+                line=Line(
+                    color='white',
+                    width=0.5
+                )
+            )
+        )
+
+        data = Data([trace1,])
+        layout = Layout(
+            title='Purification Recipe',
+            xaxis=XAxis(
+                title='Purity %',
+                showgrid=True,
+                zeroline=False
+            ),
+            yaxis=YAxis(
+                title='Yield %',
+                showline=False
+            )
+        )
+        fig = Figure(data=data, layout=layout)
+        plot_url = py.plot(fig, filename=self.plot_filename, auto_open=False)
+        print plot_url
 
 
     def score_fraction(self, vector ):
