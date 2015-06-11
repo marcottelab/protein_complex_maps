@@ -18,32 +18,60 @@ def main():
                                     help="Protein ids in which to anaylze")
 	parser.add_argument("--protein_percent_threshold", action="store", dest="protein_percent_threshold", type=float, required=False, default=0.9,
                                     help="Percentage of proteins that need to be present in input fractions (expressed as decimal), default 0.9 (ie 90%)")
-	parser.add_argument("--plot_filename", action="store", dest="plot_filename", required=True,
+	parser.add_argument("--plot_filename", action="store", dest="plot_filename", required=False, default=None,
                                     help="Filename of plot on plot.ly")
+	parser.add_argument("--fractionation_type", action="store", dest="fractionation_type_file", required=False, default="./fractionation_type.txt",
+                                    help="File that describes the type of column used for a fractionation experiment")
 
 	args = parser.parse_args()
 
-        pr_obj = PurificationRecipe( args.msds_filenames, args.proteins, args.protein_percent_threshold, args.plot_filename)
+        pr_obj = PurificationRecipe( args.msds_filenames, args.proteins, args.protein_percent_threshold, args.plot_filename, args.fractionation_type_file)
         pr_obj.create_recipes()
         pr_obj.show_results()
-        pr_obj.plot_results()
+        if args.plot_filename != None:
+            pr_obj.plot_results()
 
 
 class PurificationRecipe(object):
 
-    def __init__(self, msds_filenames, proteins, protein_percent_threshold, plot_filename, normalize_flag=True):
+    def __init__(self, msds_filenames, proteins, protein_percent_threshold, plot_filename=None, fractionation_type_file=None, normalize_flag=True):
         self.msds_filenames = msds_filenames
         self.proteins = proteins
         self.protein_percent_threshold = protein_percent_threshold
         self.normalize_flag = normalize_flag
         self.plot_filename = plot_filename
+        self.fractionation_type_file = fractionation_type_file
 
         self.results_list = []
         self.df_dict = dict()
         self.df_index_dict = dict()
+        self.frac_type_dict = dict()
+
+        if self.fractionation_type_file != None:
+            self.map_fractionation_type()
 
         self.create_data_frames()
 
+
+    def map_fractionation_type(self,):
+
+        ft_file = open(self.fractionation_type_file, "rb")
+        for line in ft_file.readlines():
+            ls = line.split('\t')
+            
+            fname = None
+            for msds_filename in self.msds_filenames:
+                if ls[0] in msds_filename:
+                    fname = msds_filename
+                    break
+
+            if fname != None:
+                if len(ls) == 2:
+                    self.frac_type_dict[fname] = ls[1].strip()
+                else:
+                    self.frac_type_dict[fname] = None
+
+        print self.frac_type_dict
 
 
     def create_data_frames(self,):
@@ -91,52 +119,72 @@ class PurificationRecipe(object):
         #kdrew: for different possible numbers of sequential experiments, focusing on 1 exp or combinations of 2 or more ...
         for r in range(1, len(self.df_dict)+1):
             for exp_list in it.combinations( self.df_dict.keys(), r ):
-
-                df_list = [ self.df_dict[exp] for exp in exp_list ] 
-                df_index_list = [ self.df_index_dict[exp] for exp in exp_list ] 
-
-                #kdrew: for different sets of fractions
-                for fractions in it.product(*df_index_list):
-
-                    #kdrew: initialize vector to be the first fraction
-                    y_df = df_list[0]
-                    y_df = y_df.div(y_df.sum(axis=0))
-                    y_vector = y_df.loc[fractions[0]]
-                    #kdrew: multiply additional fraction vectors
-                    for i in range(1,len(fractions)):
-                        y_df2 = df_list[i]
-                        y_df2 = y_df2.div(y_df2.sum(axis=0))
-                        y_vector2 = y_df2.loc[fractions[i]]
-                        y_vector = y_vector*y_vector2
-
-                    yield_mean = y_vector[self.proteins].mean()
-                    #print "average yield: %s" % (yield_mean)
+                self.create_recipe_helper(exp_list)
 
 
-                    #kdrew: combine vectors as distributions across fractions
-                    df = df_list[0]
 
-                    #kdrew: do not do normalization across fractions on the first one because we want the initial concentration to be present
-                    #df = df.div(df.sum(axis=0),axis=1)
-                    vector = df.loc[fractions[0]]
+    def create_recipe_helper(self, exp_list):
 
-                    for i in range(1,len(fractions)):
-                        df = df_list[i]
-                        df = df.div(df.sum(axis=0),axis=1)
-                        vector = vector.mul( df.loc[fractions[i]], fill_value = 0.0 )
+        if self.fractionation_type_file != None:
+            #kdrew: filter out experiment sets that have multiple of the same fractionation type
+            fractionation_types = set()
+            for exp in exp_list:
+                if self.frac_type_dict[exp] not in fractionation_types and self.frac_type_dict[exp] != None:
+                    fractionation_types.add(self.frac_type_dict[exp])
+                else:
+                    #kdrew: if the fractionation type is already present than do not calculate 
+                    return
+
+        df_list = [ self.df_dict[exp] for exp in exp_list ] 
+        df_index_list = [ self.df_index_dict[exp] for exp in exp_list ] 
+
+        #kdrew: for different sets of fractions
+        for fractions in it.product(*df_index_list):
+
+            #kdrew: initialize vector to be the first fraction
+            y_df = df_list[0]
+            y_df = y_df.div(y_df.sum(axis=0))
+            y_vector = y_df.loc[fractions[0]]
+            #kdrew: multiply additional fraction vectors
+            for i in range(1,len(fractions)):
+                y_df2 = df_list[i]
+                y_df2 = y_df2.div(y_df2.sum(axis=0))
+                y_vector2 = y_df2.loc[fractions[i]]
+                y_vector = y_vector*y_vector2
+
+            yield_mean = y_vector[self.proteins].mean()
+            #print "average yield: %s" % (yield_mean)
 
 
-                    score_dict = self.score_fraction( vector )
+            #kdrew: combine vectors as distributions across fractions
+            df = df_list[0]
 
-                    pr = PurificationRecipeResult()
-                    pr.proteins = score_dict['proteins_present']
-                    pr.protein_percent = score_dict['protein_percent']
-                    pr.purity_percent = score_dict['purity_percent']
-                    pr.experiments=exp_list
-                    pr.fractions=fractions
-                    pr.yield_percent = yield_mean
+            #kdrew: do not do normalization across fractions on the first one because we want the initial concentration to be present
+            #df = df.div(df.sum(axis=0),axis=1)
+            vector = df.loc[fractions[0]]
 
-                    self.results_list.append(pr)
+            for i in range(1,len(fractions)):
+                df = df_list[i]
+                df = df.div(df.sum(axis=0),axis=1)
+                vector = vector.mul( df.loc[fractions[i]], fill_value = 0.0 )
+
+
+            score_dict = self.score_fraction( vector )
+
+            pr = PurificationRecipeResult()
+            pr.proteins = score_dict['proteins_present']
+            #kdrew: protein_percent, purity_percent and yield_percent are not really precents but fractionals.  
+            #kdrew: The term "fraction" is already used for column separation so keep with percent to avoid confusion.
+            pr.protein_percent = score_dict['protein_percent']
+            pr.purity_percent = score_dict['purity_percent']
+            pr.experiments=exp_list
+            pr.fractions=fractions
+            pr.yield_percent = yield_mean
+
+            if self.fractionation_type_file != None:
+                pr.fraction_types = fractionation_types
+
+            self.results_list.append(pr)
 
 
 
@@ -148,44 +196,55 @@ class PurificationRecipe(object):
     def plot_results(self,):
 
         import plotly.plotly as py
-        from plotly.graph_objs import *
+        import plotly.graph_objs as go
 
-        purity_percent = [result.purity_percent for result in self.results_list]
-        yield_percent = [result.yield_percent for result in self.results_list]
-        #protein_percent = [result.protein_percent for result in self.results_list]
-        fraction_text = ["Fractions: %s <br> Protein Percent: %s" % ("<br>".join(result.fractions), result.protein_percent) for result in self.results_list]
-             
-        trace1 = Scatter(
-            x=purity_percent,
-            y=yield_percent,
-            mode='markers',
-            name="Testing",
-            text=fraction_text,
-            marker=Marker(
-                color='rgb(164, 194, 244)',
-                size=12,
-                line=Line(
-                    color='white',
-                    width=0.5
+        colors = ['rbg(240,163,255)','rbg(0,117,220)','rbg(153,63,0)','rbg(76,0,92)','rbg(25,25,25)','rbg(0,92,49)','rbg(43,206,72)','rbg(255,204,153)','rbg(128,128,128)','rbg(148,255,181)','rbg(143,124,0)','rbg(157,204,0)','rbg(194,0,136)','rbg(0,51,128)','rbg(255,164,5)','rbg(255,168,187)','rbg(66,102,0)','rbg(255,0,16)','rbg(94,241,242)','rbg(0,153,143)','rbg(224,255,102)','rbg(116,10,255)','rbg(153,0,0)','rbg(255,255,128)','rbg(255,255,0)','rbg(255,80,5)']
+
+        traces = []
+        fraction_types_set = set( [ tuple(result.fraction_types) for result in self.results_list ] )
+        for i, frac_types_tup in enumerate(fraction_types_set):
+
+            #kdrew: make "percents" really percents
+            purity_percent = [result.purity_percent*100 for result in self.results_list if tuple(result.fraction_types) == frac_types_tup ]
+            yield_percent = [result.yield_percent*100 for result in self.results_list if tuple(result.fraction_types) == frac_types_tup ]
+            fraction_text = ["Fraction Types: %s <br> Fractions: %s <br> Protein Percent: %s" % ("<br>".join(result.fraction_types),"<br>".join(result.fractions), result.protein_percent*100) for result in self.results_list if tuple(result.fraction_types) == frac_types_tup ]
+            #purity_percent = [result.purity_percent for result in self.results_list ]
+            #yield_percent = [result.yield_percent for result in self.results_list]
+            #fraction_text = ["Fraction Types: %s <br> Fractions: %s <br> Protein Percent: %s" % ("<br>".join(result.fraction_types),"<br>".join(result.fractions), result.protein_percent) for result in self.results_list]
+                 
+            trace1 = go.Scatter(
+                x=purity_percent,
+                y=yield_percent,
+                mode='markers',
+                name=", ".join(frac_types_tup),
+                text=fraction_text,
+                marker=go.Marker(
+                    color=colors[i],
+                    size=12,
+                    line=go.Line(
+                        color='white',
+                        width=0.5
+                    )
                 )
             )
-        )
 
-        data = Data([trace1,])
-        layout = Layout(
+            traces.append(trace1)
+
+        data = go.Data(traces)
+        layout = go.Layout(
             title='Purification Recipe',
-            xaxis=XAxis(
+            xaxis=go.XAxis(
                 title='Purity %',
                 showgrid=True,
                 zeroline=False
             ),
-            yaxis=YAxis(
+            yaxis=go.YAxis(
                 title='Yield %',
                 showline=False
             )
         )
-        fig = Figure(data=data, layout=layout)
-        plot_url = py.plot(fig, filename=self.plot_filename, auto_open=False)
+        fig = go.Figure(data=data, layout=layout)
+        plot_url = py.plot(fig, filename=self.plot_filename, auto_open=False, world_readable=False)
         print plot_url
 
 
@@ -223,16 +282,17 @@ class PurificationRecipe(object):
 
 class PurificationRecipeResult(object):
 
-    def __init__(self, experiments=[], fractions=[], proteins=[], protein_percent=None, purity_percent=None, yield_percent=None):
+    def __init__(self, experiments=[], fractions=[], fraction_types=[], proteins=[], protein_percent=None, purity_percent=None, yield_percent=None):
         self.experiments = experiments
         self.fractions = fractions
+        self.fraction_types = fraction_types
         self.proteins = proteins
         self.protein_percent = protein_percent
         self.purity_percent = purity_percent
         self.yield_percent = yield_percent
 
     def __str__(self,):
-        return "experiments: %s, fractions: %s, protein_percent: %s, purity_percent: %s, yield_percent: %s" % (self.experiments, self.fractions, self.protein_percent, self.purity_percent, self.yield_percent)
+        return "experiments: %s, fractions: %s, fraction_types: %s, protein_percent: %s, purity_percent: %s, yield_percent: %s" % (self.experiments, self.fractions, self.fraction_types, self.protein_percent*100, self.purity_percent*100, self.yield_percent*100)
 
 if __name__ == "__main__":
 	main()
