@@ -14,6 +14,8 @@ class PurificationRecipeTest(unittest.TestCase):
 
             self.sample_pickle_filenames = ["./test_data.p", "./test_data2.p"]
 
+            self.sample_reorder_pickle_filenames = ["./test_data.p", "./test_data2_reorder_proteins.p"]
+
         def testCreateObject(self,):
 
             proteins = ['ENSG00000010438','ENSG00000013275']
@@ -116,6 +118,21 @@ class PurificationRecipeTest(unittest.TestCase):
             np.testing.assert_almost_equal(self.pr_obj.results_list[3].yield_percent, 0.056250000000000001)
 
 
+        def testMultiProtein_reorder(self,):
+
+            print "in testDoubleProtein"
+
+            proteins = ['ENSG00000010438','ENSG00000013275']
+            percent_threshold = 0.9
+            #kdrew: not normalizing so it is easier to manually calculate results
+            self.pr_obj = pr.PurificationRecipe( self.sample_reorder_pickle_filenames, proteins, percent_threshold, normalize_flag=False )
+            self.pr_obj.create_recipes()
+
+            self.pr_obj.show_results()
+
+            np.testing.assert_almost_equal(self.pr_obj.results_list[3].purity_percent, 0.25925925925925924)
+            assert(self.pr_obj.results_list[3].protein_percent == 1.0)
+            np.testing.assert_almost_equal(self.pr_obj.results_list[3].yield_percent, 0.056250000000000001)
 
 
 if __name__ == "__main__":
