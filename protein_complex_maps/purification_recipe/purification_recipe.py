@@ -36,7 +36,8 @@ class PurificationRecipe(object):
 
     def __init__(self, msds_filenames, proteins, protein_percent_threshold, plot_filename=None, fractionation_type_file=None, normalize_flag=True):
         self.msds_filenames = msds_filenames
-        self.proteins = proteins
+        self.input_proteins = proteins
+        self.proteins = set()
         self.protein_percent_threshold = protein_percent_threshold
         self.normalize_flag = normalize_flag
         self.plot_filename = plot_filename
@@ -83,9 +84,25 @@ class PurificationRecipe(object):
 
             #print "filename: %s" % msds_filename
 
-            missing_proteins = [ i for i in self.proteins if i not in df.columns ]
-            print "missing: %s" % missing_proteins
-            #kdrew: add in 0.0 rows for missing entries
+            self.proteins = set([ i for i in self.input_proteins if i in df.columns ])
+            unmapped_proteins = [ i for i in self.input_proteins if i not in df.columns ]
+            print "unmapped: %s, search for id in mapping dict" % unmapped_proteins
+
+            missing_proteins = []
+            id_dict = msds.get_id_dict()
+            for mprot in unmapped_proteins:
+                try:
+                    i = id_dict[mprot]
+                    mapped_id = df.columns[i]
+                    self.proteins.add(mapped_id)
+                except KeyError:
+                    missing_proteins.append(mprot)
+
+
+            print "final mapped proteins: %s" % self.proteins
+            print "final missing proteins: %s" % missing_proteins
+
+            #kdrew: add in 0.0 rows for missing entries that are still unmapped
             for missing_prot in missing_proteins:
                 df[missing_prot] = np.repeat( 0.0, len(df.index) )
 
