@@ -36,7 +36,9 @@ class PurificationRecipe(object):
 
     def __init__(self, msds_filenames, proteins, protein_percent_threshold, plot_filename=None, fractionation_type_file=None, normalize_flag=True):
         self.msds_filenames = msds_filenames
-        self.proteins = proteins
+        self.input_proteins = proteins
+        self.proteins = []
+        self.protein_map = dict()
         self.protein_percent_threshold = protein_percent_threshold
         self.normalize_flag = normalize_flag
         self.plot_filename = plot_filename
@@ -49,6 +51,10 @@ class PurificationRecipe(object):
 
         if self.fractionation_type_file != None:
             self.map_fractionation_type()
+
+        #kdrew: initialize
+        for prot_id in self.input_proteins:
+            self.protein_map[prot_id] = None
 
         self.create_data_frames()
 
@@ -76,16 +82,40 @@ class PurificationRecipe(object):
 
     def create_data_frames(self,):
 
-        #kdrew: store data in data frames
+        msds_dict= dict()
         for msds_filename in self.msds_filenames:
             msds = pickle.load( open( msds_filename, "rb" ) )
+            msds_dict[msds_filename] = msds
+
+            #kdrew: map input protein ids to protein ids used for indexing
+            #kdrew: id_dict is the mapping from protein_id -> index
+            id_dict = msds.get_id_dict()
+            #kdrew: name list will map id -> protein_id used for indexing
+            name_list = msds.get_name_list()
+            #kdrew: this will fill protein_map with the id used in msds
+            for prot_id in self.input_proteins:
+                try:
+                    self.protein_map[prot_id] = name_list[id_dict[prot_id]]
+                except KeyError:
+                    continue
+
+        self.proteins = self.protein_map.values()
+        print "self.proteins"
+        print self.proteins
+
+        #kdrew: store data in data frames
+        for msds_filename in msds_dict.keys():
+            msds = msds_dict[msds_filename]
             df = msds.get_data_frame()
 
             #print "filename: %s" % msds_filename
 
-            missing_proteins = [ i for i in self.proteins if i not in df.columns ]
-            print "missing: %s" % missing_proteins
-            #kdrew: add in 0.0 rows for missing entries
+            missing_proteins = [ self.protein_map[i] for i in self.input_proteins if self.protein_map[i] not in df.columns ]
+
+            print "final mapped proteins: %s" % self.proteins
+            print "final missing proteins: %s" % missing_proteins
+
+            #kdrew: add in 0.0 rows for missing entries that are still unmapped
             for missing_prot in missing_proteins:
                 df[missing_prot] = np.repeat( 0.0, len(df.index) )
 
