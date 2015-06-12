@@ -16,6 +16,8 @@ class PurificationRecipeTest(unittest.TestCase):
 
             self.sample_reorder_pickle_filenames = ["./test_data.p", "./test_data2_reorder_proteins.p"]
 
+            self.sample_uniprot_pickle_filenames = ["./test_data_ids_mapped.p", "./test_data2_ids_mapped.p"]
+
         def testCreateObject(self,):
 
             proteins = ['ENSG00000010438','ENSG00000013275']
@@ -120,12 +122,30 @@ class PurificationRecipeTest(unittest.TestCase):
 
         def testMultiProtein_reorder(self,):
 
-            print "in testDoubleProtein"
+            print "in testReorderProtein"
 
             proteins = ['ENSG00000010438','ENSG00000013275']
             percent_threshold = 0.9
             #kdrew: not normalizing so it is easier to manually calculate results
             self.pr_obj = pr.PurificationRecipe( self.sample_reorder_pickle_filenames, proteins, percent_threshold, normalize_flag=False )
+            self.pr_obj.create_recipes()
+
+            self.pr_obj.show_results()
+
+            np.testing.assert_almost_equal(self.pr_obj.results_list[3].purity_percent, 0.25925925925925924)
+            assert(self.pr_obj.results_list[3].protein_percent == 1.0)
+            np.testing.assert_almost_equal(self.pr_obj.results_list[3].yield_percent, 0.056250000000000001)
+
+
+        def testMultiProtein_uniprot(self,):
+
+            print "in testUniprot"
+
+            #proteins = ['ENSG00000010438','ENSG00000013275']
+            proteins = ['P35030','P43686']
+            percent_threshold = 0.9
+            #kdrew: not normalizing so it is easier to manually calculate results
+            self.pr_obj = pr.PurificationRecipe( self.sample_uniprot_pickle_filenames, proteins, percent_threshold, normalize_flag=False )
             self.pr_obj.create_recipes()
 
             self.pr_obj.show_results()
