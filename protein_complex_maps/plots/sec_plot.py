@@ -27,11 +27,11 @@ def main():
                                             help="Combine all profiles")
     args = parser.parse_args()
 
-    commd_ids = ['Q86X83', 'Q9Y371', 'Q9Y6G5', 'Q9UBI1', 'Q9GZQ3', 'Q8N668',  'O60826',  'Q567U6'] 
-    commd_id_map = {'Q9Y371':'sh3glb1', 'Q86X83':'commd2', 'Q9Y6G5':'commd10', 'Q9UBI1':'commd3', 'Q9GZQ3':'commd5', 'Q8N668':'commd1',  'O60826':'ccdc22',  'Q567U6':'ccdc93'} 
+    #commd_ids = ['Q86X83', 'Q9Y371', 'Q9Y6G5', 'Q9UBI1', 'Q9GZQ3', 'Q8N668',  'O60826',  'Q567U6'] 
+    #commd_id_map = {'Q9Y371':'sh3glb1', 'Q86X83':'commd2', 'Q9Y6G5':'commd10', 'Q9UBI1':'commd3', 'Q9GZQ3':'commd5', 'Q8N668':'commd1',  'O60826':'ccdc22',  'Q567U6':'ccdc93'} 
 
-    dimer_ids = ['P35251', 'P12956']
-    dimer_id_map = {'P12956':'P12956','P35251':'P35251'}
+    #dimer_ids = ['P35251', 'P12956']
+    #dimer_id_map = {'P12956':'P12956','P35251':'P35251'}
 
     #id_map = commd_id_map
 
@@ -63,6 +63,7 @@ def main():
 
     individual_color = '0.90'
 
+    proteins_present = []
     for i in args.proteins:
         #kdrew: why wouldn't it be, this is weird
         if i in args.proteins:
@@ -73,6 +74,7 @@ def main():
                 try:
                     ax1.plot( sec_data[i])
                     #ax2.plot( sec_data[i])
+                    proteins_present.append(i)
                 except KeyError, e:
                     print "KeyError: %s, skipping" % (e,)
                     continue
@@ -92,7 +94,9 @@ def main():
         ax1.plot( combined_data , linewidth=4, zorder=1)
     else:
         #ax1.legend(sec_data.keys())
-        ax1.legend([id_map[i] for i in args.proteins],prop={'size':7})
+        ax1.legend([id_map[i] for i in proteins_present],prop={'size':7})
+        print [id_map[i] for i in proteins_present]
+        print id_map
         #print "not setting legend"
 
 

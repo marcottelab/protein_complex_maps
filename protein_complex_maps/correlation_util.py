@@ -7,7 +7,7 @@ import protein_complex_maps.protein_util as pu
 import protein_complex_maps.external.npeet.entropy_estimators as ee
 import argparse
 import pickle
-
+import operator
 
 
 CLOSE_TO_ONE = 0.99999999
@@ -18,8 +18,8 @@ def main():
 	parser = argparse.ArgumentParser(description="Computes dependence metrics between proteins in fractionation data, single protein to all others in msds")
 	parser.add_argument("--input_msds_pickle", action="store", dest="msds_filename", required=True, 
 						help="Filename of MSDS pickle: pickle comes from running protein_complex_maps.util.read_ms_elutions_pickle_MSDS.py")
-	parser.add_argument("--protein", action="store", dest="protein", required=True, 
-						help="Protein id in which to anaylze")
+	parser.add_argument("--proteins", action="store", dest="proteins", nargs='+', required=True, 
+						help="Protein ids in which to anaylze")
 	parser.add_argument("--sample_method", action="store", dest="sample_method", required=False, default=None,
 						help="Sampling method to add noise to correlation calculations (poisson or normal)")
 	parser.add_argument("--sampling_iterations", action="store", type=int, dest="average_cnt", required=False, default=3,
@@ -28,6 +28,8 @@ def main():
 						help="Print out top n correlation results")
 	parser.add_argument("--genenames", action="store_true", dest="genenames", required=False, default=False,
 						help="Set labels to genenames")
+	parser.add_argument("--threshold", action="store", type=float, dest="threshold", required=False, default=0.3,
+						help="Threshold for correlation coefficient to be included in count")
 
 	args = parser.parse_args()
 
@@ -40,45 +42,61 @@ def main():
 	else:
 		sample_module = None
 	
-	index = msds.get_id_dict()[args.protein]
-	corr_list = correlation_array(msds.get_data_matrix(), index, sample_module=sample_module)
-	#print corr_list[index]
-	#print len(corr_list)
-	sorted_corr_list = sorted(corr_list, reverse=True, key=lambda x: x[0][0])
-	#print len(sorted_corr_list)
+        common_protein_counts = dict()
+        for prot in args.proteins:
+            index = msds.get_id_dict()[prot]
+            corr_list = correlation_array(msds.get_data_matrix(), index, sample_module=sample_module)
+            #print corr_list[index]
+            #print len(corr_list)
+            sorted_corr_list = sorted(corr_list, reverse=True, key=lambda x: x[0][0])
+            #print len(sorted_corr_list)
 
-	#for i in sorted_corr_list:
-	#	print i
+            #for i in sorted_corr_list:
+            #	print i
 
-	id_map = msds.get_name2index()
+            id_map = msds.get_name2index()
+
+            #kdrew: common_protein_counts is a sum of all correlation coefficients found in each proteins correlation list
+            for pred in sorted_corr_list:
+                if args.threshold <= pred[0][0]:
+                    try:
+                        common_protein_counts[pred[1]] += pred[0][0]
+                    except:
+                        common_protein_counts[pred[1]] = pred[0][0]
+
+            for pred in sorted_corr_list[:args.top_results]:
+                    if args.genenames:
+                            uniprot_mapping = msds.get_mapping('ACC')
+                            try:
+                                    genename_map = pu.get_genenames_uniprot( [uniprot_mapping[pred[1]]] )
+                                    try:
+                                            print genename_map[uniprot_mapping[pred[1]]], pred[0]
+                                    except KeyError:                        
+                                            uniprot_trimmed = uniprot_mapping[pred[1]].split('-')[0]
+                                            print genename_map[uniprot_trimmed], pred[0]
+                            except KeyError:
+                                    print id_map[pred[1]], pred[0]
+
+                    else:
+                            print id_map[pred[1]], pred[0]
 
 
-	for pred in sorted_corr_list[:args.top_results]:
-		if args.genenames:
-			uniprot_mapping = msds.get_mapping('ACC')
-			try:
-				genename_map = pu.get_genenames_uniprot( [uniprot_mapping[pred[1]]] )
-				try:
-					print genename_map[uniprot_mapping[pred[1]]], pred[0]
-				except KeyError:                        
-					uniprot_trimmed = uniprot_mapping[pred[1]].split('-')[0]
-					print genename_map[uniprot_trimmed], pred[0]
-			except KeyError:
-				print id_map[pred[1]], pred[0]
+        sorted_common_protein_counts = sorted(common_protein_counts.items(), reverse=True, key = operator.itemgetter(1))
+        for prot in sorted_common_protein_counts[:args.top_results]:
+            if args.genenames:
+                uniprot_mapping = msds.get_mapping('ACC')
+                try:
+                    genename_map = pu.get_genenames_uniprot( [uniprot_mapping[prot[0]]] )
+                    try:
+                        print genename_map[uniprot_mapping[prot[0]]], prot[1]
+                    except KeyError:                        
+                        uniprot_trimmed = uniprot_mapping[prot[0]].split('-')[0]
+                        print genename_map[uniprot_trimmed], prot[1]
+                except KeyError:
+                    print id_map[prot[0]], prot[1]
 
-		else:
-			print id_map[pred[1]], pred[0]
-
-
-
-	#else:
-    #
-	#	for prot in args.proteins:
-	#		index = msds.get_id_dict()[prot]
-    #
-	#		scores, tvals = sample_correlation_distribution(matrix=msds.get_data_matrix(), index=index, iterations=args.average_cnt, sample_module=sample_module)
-    #
-	#		print scores
+            else:
+                print id_map[prot[0]], prot[1]
 
 def mutual_information_array (matrix, index):
 	mi_list = []
