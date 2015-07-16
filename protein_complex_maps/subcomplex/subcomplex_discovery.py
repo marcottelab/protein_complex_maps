@@ -19,20 +19,30 @@ def main():
                                 help="Filenames of MSDS pickle: pickle comes from running protein_complex_maps.util.read_ms_elutions_pickle_MSDS.py")
     parser.add_argument("--proteins", action="store", dest="proteins", nargs='+', required=True,
                                 help="Protein ids in which to anaylze")
-    #parser.add_argument("--protein_percent_threshold", action="store", dest="protein_percent_threshold", type=float, required=False, default=0.9,
-    #                            help="Percentage of proteins that need to be present in input fractions (expressed as decimal), default 0.9 (ie 90%)")
+    parser.add_argument("--subcomplex_result_pickle", action="store", dest="subcomplex_result_pickle", required=True,
+                                help="Output file for which to pickle subcomplex results")
+    parser.add_argument("--maxr", action="store", type=int, dest="maxr", required=False, default=10,
+                                help="When calculating protein sets using combinations what is the max choose r to evaluate, will find all sets from pairs to size maxr, default=10")
+    parser.add_argument("--threshold", action="store", dest="threshold", type=float, required=False, default=0.0,
+                                help="Threshold for which consider protein present or absent in fraction, default=0.0")
 
     args = parser.parse_args()
 
-    cd_obj = ComplexDiscovery( args.msds_filenames, args.proteins)
-    cd_obj.discover_complexes(maxr=4)
+    cd_obj = ComplexDiscovery( args.msds_filenames, args.proteins, threshold=args.threshold)
+    subcomplex_results = cd_obj.discover_complexes(maxr=args.maxr)
+
+    pickle.dump(subcomplex_results, open(args.subcomplex_result_pickle,"wb"))
+
+    for i in sorted(subcomplex_results.items(), key = lambda x: len(x[1][0][1])):
+        print i, len(i[1][0][1])
 
 
 class ComplexDiscovery(object):
 
-    def __init__(self, msds_filenames, proteins, normalize_flag=True):
+    def __init__(self, msds_filenames, proteins, threshold=0.0, normalize_flag=True):
         self.msds_filenames = msds_filenames
         self.input_proteins = proteins
+        self.threshold = threshold
         self.proteins = []
         self.protein_map = dict()
         self.normalize_flag = normalize_flag
@@ -92,15 +102,16 @@ class ComplexDiscovery(object):
             #df = df.div( df.max(axis=1), axis=0 )
 
             if self.normalize_flag:
-                #kdrew: normalize by fractions (sum of all fraction vectors = 1.0, i.e. probability)
-                df = df.div( df.sum(axis=1), axis=0 )
+                #kdrew: normalize by proteins (sum of all protein vectors = 1.0, i.e. probability)
+                df = df.div( df.sum(axis=0), axis=1 )
+                #print df.sum(axis=0)
 
             #kdrew: threshold out fraction vectors that do not have enough of the input proteins
             #print self.proteins
             #print df
-            bool_vector = df[self.proteins] > 0.0
-            sum_vector = bool_vector.sum(axis=1)
-            percent_vector = 1.0*(sum_vector)/len(self.proteins)
+            #bool_vector = df[self.proteins] > 0.0
+            #sum_vector = bool_vector.sum(axis=1)
+            #percent_vector = 1.0*(sum_vector)/len(self.proteins)
             #percent_vector = 1.0*(df[self.proteins] > 0.0).sum(axis=1)/len(self.proteins)
             #df = df[percent_vector > self.protein_percent_threshold]
 
@@ -111,6 +122,7 @@ class ComplexDiscovery(object):
             #kdrew: store dataframe
             self.df_dict[ msds_filename ] = df
 
+    #kdrew: multiprocessor function to find fractions for all combinations of proteins sets
     def discover_complexes(self, maxr=None):
 
         subcomplex_dict = dict()
@@ -128,35 +140,48 @@ class ComplexDiscovery(object):
             for r in range(2, maxr+1):
                 #print "r: %s" % r
 
-                for protein_list in it.combinations( self.proteins, r ):
-                    #kdrew: protein_list is a list of proteins that are potentially members of a subcomplex
-                    #print protein_list
-                    df_pl = df[list(protein_list)]
-                    df_pl_greater0 = df_pl[df_pl > 0.0].dropna()
-                    #print df_pl_greater0.head()
-                    pl_fractions = df_pl_greater0.index
-                    #print pl_fractions
+                results = pool.map(multiprocess_helper, it.izip_longest([],it.combinations(self.proteins,r),fillvalue=(self,df_key)))
 
-                    out_list = list(set(self.proteins) - set(protein_list))
-
-                    #print out_list
-                    df_out = df[out_list]
-                    df_out_equal0 = df_out[df_out == 0.0].dropna()
-                    #print df_out_equal0.head()
-                    out_fractions = df_out_equal0.index
-                    #print out_fractions
-
-                    pl_only_fractions = list(set(pl_fractions).intersection(set(out_fractions)))
-                    #print "pl_only_fractions"
-                    #print  pl_only_fractions
-
-                    if len(pl_only_fractions) > 0:
+                for res in results:
+                    if len(res[2]) > 0:
+                        protein_list = res[0]
+                        df_key = res[1]
+                        pl_only_fractions = res[2]
                         print "protein_list: %s msds: %s fractions: %s" % (protein_list, df_key, pl_only_fractions)
+                        print df.ix[pl_only_fractions,list(protein_list)]
                         try:
                             subcomplex_dict[protein_list].append((df_key, pl_only_fractions))
                         except KeyError:
                             subcomplex_dict[protein_list] = [(df_key,pl_only_fractions)]
 
+        return subcomplex_dict
+
+
+    #kdrew: function to find fractions that only have proteins in protein_list above some threshold (default 0.0) and no other protein above threshold
+    def find_fractions(self, df_key, protein_list):
+        df = self.df_dict[df_key]
+        #kdrew: protein_list is a list of proteins that are potentially members of a subcomplex
+        df_pl = df[list(protein_list)]
+        df_pl_greater0 = df_pl[df_pl > self.threshold].dropna()
+        pl_fractions = df_pl_greater0.index
+
+        out_list = list(set(self.proteins) - set(protein_list))
+
+        df_out = df[out_list]
+        df_out_equal0 = df_out[df_out <= self.threshold].dropna()
+        out_fractions = df_out_equal0.index
+
+        pl_only_fractions = list(set(pl_fractions).intersection(set(out_fractions)))
+
+        return (protein_list, df_key, pl_only_fractions)
+
+#kdrew: annoying kludge to get object oriented (or any multiparameter) functions to work with multiprocessing
+#kdrew: outside of class, unpacks arguments including 'self' and calls class function with repackaged args
+def multiprocess_helper(arg, **kwargs):
+    self = arg[0][0]
+    df_key = arg[0][1]
+    protein_list = arg[1]
+    return self.find_fractions(df_key, protein_list)
 
 if __name__ == "__main__":
     main()
