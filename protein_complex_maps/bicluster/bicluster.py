@@ -1,6 +1,8 @@
 
 import numpy as np
 
+
+
 class Bicluster(object):
 
 	def __init__(self, rows=[], cols=[], random_module=None):
@@ -138,4 +140,124 @@ class Bicluster(object):
 		matrix[np.ix_(sorted_rows, sorted_cols)] = matrix[np.ix_(sorted_rows, sorted_cols)] * scale_factor
 
 		return matrix
+
+class BiclusterDF(Bicluster):
+
+	def __init__(self, rows=[], cols=[], random_module=None, data_frame=None):
+		self.data_frame = data_frame
+		self.df_rows = rows
+		self.df_cols = cols
+
+		rows_i = set([list(self.data_frame.index).index(x) for x in self.df_rows])
+		cols_i = set([list(self.data_frame.columns).index(x) for x in self.df_cols])
+
+		super(BiclusterDF, self).__init__(rows=rows_i, cols=cols_i, random_module=random_module)
+
+ 	def print_submatrix(self, data_frame=None):
+		if data_frame is None:
+			data_frame = self.data_frame
+		subdf = data_frame.ix[self.rows(), self.columns()]
+		print subdf
+
+	#kdrew: returns submatrix defined by the bicluster
+	#kdrew: without_indices creates the submatrix without the row specified by given indices
+	#kdrew: returns np matrix
+	def get_submatrix(self, data_frame=None, without_indices=[], without_cols=[]):
+		if data_frame is None:
+			data_frame = self.data_frame
+
+		without_row_ids = set([list(data_frame.index).index(x) for x in without_indices])
+		without_cols_ids = set([list(data_frame.columns).index(x) for x in without_cols])
+
+		sorted_rows = list(set(self.rows())-set(without_row_ids))
+		sorted_rows.sort()
+		sorted_cols = list(set(self.columns())-set(without_cols_ids))
+		sorted_cols.sort()
+
+		#print sorted_rows
+		#print sorted_cols
+
+		if len(sorted_rows) == 0:
+			return np.matrix([]).reshape(0,1)
+		if len(sorted_cols) == 0:
+			return np.matrix([]).reshape(1,0)
+
+		try:
+			matrix = data_frame.as_matrix()
+		except AttributeError: 
+			if isinstance(data_frame,(np.ndarray)):
+				matrix = data_frame
+			else:
+				raise
+
+		return matrix[np.ix_(sorted_rows, sorted_cols)]
+
+	#kdrew: get single row with columns defined in bicluster
+	def get_row(self, data_frame, row, without_cols=[]):
+		cols = set(self.columns) - set(without_cols)
+		matrix = data_frame.ix[[row], cols].as_matrix()
+		return matrix
+
+	#kdrew: get single column with rows defined in bicluster
+	def get_column(self, data_frame, column, without_rows=[]):
+		rows = set(self.rows()) - set(without_rows)
+		matrix = data_frame.ix[rows, [column]].as_matrix()
+		return matrix
+
+
+	#kdrew: returns rows not in bicluster
+	def get_outside_rows(self, data_frame):
+		all_rows = set(data_frame.index)
+		#print "all_rows", all_rows
+		return all_rows - set(self.rows())
+
+	#kdrew: returns columns not in bicluster
+	def get_outside_cols(self, data_frame):
+		all_cols = set(data_frame.columns)
+		return all_cols - set(self.columns())
+
+
+	def get_random_outside_rows(self, data_frame, seed=None, without_rows=[]):
+		#import random as r
+		if seed != None:
+			self.random_module.seed(seed)
+		outside_rows = self.get_outside_rows(data_frame) - set(without_rows)
+		random_sample_size = len(self.rows())
+		#print outside_rows
+		#kdrew: when there are not enough outside_rows to sample from, just take all of them (not optimal but it is what we have)
+		if len(self.rows()) > len(outside_rows):
+			random_sample_size = len(outside_rows)
+		#kdrew: return a list of random rows the size of the bicluster rows
+		random_rows = self.random_module.sample( outside_rows, random_sample_size )
+		#print random_rows
+		random_rows.sort()
+		return random_rows
+
+	def get_random_outside_cols(self, data_frame, seed=None, without_cols=[]):
+		#import random as r
+		if seed != None:
+			self.random_module.seed(seed)
+		outside_cols = self.get_outside_cols(data_frame) - set(without_cols)
+		random_sample_size = len(self.columns())
+		#print outside_cols
+		#kdrew: when there are not enough outside_rows to sample from, just take all of them (not optimal but it is what we have)
+		if len(self.columns()) > len(outside_cols):
+			random_sample_size = len(outside_cols)
+		#kdrew: return a list of random cols the size of the bicluster cols
+		random_cols = self.random_module.sample( outside_cols, random_sample_size )
+		#print random_cols
+		random_cols.sort()
+		return random_cols
+
+
+	#kdrew: scale bicluster submatrix in full matrix
+	def scale(self, data_frame, scale_factor):
+
+		if len(self.rows()) == 0 or len(self.columns()) == 0:
+			return data_frame.as_matrix()
+        
+		data_frame.ix[self.rows(), self.columns()] = data_frame.ix[self.rows(), self.columns()] * scale_factor
+
+		#kdrew: might want to return just the data_frame here (?)
+		return data_frame.as_matrix()
 
