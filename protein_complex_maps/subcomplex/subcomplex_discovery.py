@@ -8,6 +8,11 @@ import argparse
 import pickle
 import pandas as pd
 
+import protein_complex_maps.bicluster.bicluster as bc
+import protein_complex_maps.random_sampling_util as rsu
+import protein_complex_maps.score_util as su
+import protein_complex_maps.protein_util as pu
+
 pd.options.display.max_columns = 50
 
 logging.basicConfig(level = logging.INFO,format='%(asctime)s %(levelname)s %(message)s')
@@ -21,20 +26,48 @@ def main():
                                 help="Protein ids in which to anaylze")
     parser.add_argument("--subcomplex_result_pickle", action="store", dest="subcomplex_result_pickle", required=True,
                                 help="Output file for which to pickle subcomplex results")
-    parser.add_argument("--maxr", action="store", type=int, dest="maxr", required=False, default=10,
-                                help="When calculating protein sets using combinations what is the max choose r to evaluate, will find all sets from pairs to size maxr, default=10")
     parser.add_argument("--threshold", action="store", dest="threshold", type=float, required=False, default=0.0,
                                 help="Threshold for which consider protein present or absent in fraction, default=0.0")
+    parser.add_argument("--merge_threshold", action="store", dest="merge_threshold", type=float, required=False, default=0.5,
+                                help="Threshold for which consider merging two clusters by jaccard index, default=0.5")
 
     args = parser.parse_args()
 
+
     cd_obj = ComplexDiscovery( args.msds_filenames, args.proteins, threshold=args.threshold)
-    subcomplex_results = cd_obj.discover_complexes(maxr=args.maxr)
+    subcomplex_results = cd_obj.discover_complexes()
+    subcomplex_results = cd_obj.merge_subcomplexes(subcomplex_results, args.merge_threshold)
+
+    genename_map = pu.get_genenames_uniprot( args.proteins)
+    print genename_map
+    print cd_obj.rev_protein_map
 
     pickle.dump(subcomplex_results, open(args.subcomplex_result_pickle,"wb"))
 
-    for i in sorted(subcomplex_results.items(), key = lambda x: len(x[1][0][1])):
-        print i, len(i[1][0][1])
+    for i in sorted(subcomplex_results.items(), key = lambda x: len(x[1]), reverse=True):
+        proteins = i[0]
+        uniprot_ids = [cd_obj.rev_protein_map[prot_id] for prot_id in proteins]
+        genenames = [genename_map[prot_id] for prot_id in uniprot_ids]
+        fractions = [z[1] for z in i[1]]
+        print "proteins: %s, fractions: %s, #offracs: %s" % (genenames, fractions, len(i[1]), )
+        print "\n"
+
+
+        #kdrew: only testing a single df so this probably needs to be corrected if passing in multiple msds on the commandline
+        for df_key in cd_obj.df_dict:
+            df = cd_obj.df_dict[df_key]
+            df = df[cd_obj.proteins]
+
+            rsscore_obj = rsu.RandomSamplingScore(df.as_matrix(), su.multiple_dot, sample_module=np.random)
+            bicluster1 = bc.BiclusterDF(rows=fractions, cols=proteins, random_module=np.random, data_frame=df)
+            print "bicluster.rows(): %s" % bicluster1.rows()
+            try:
+                print "zscore: %s" % (rsscore_obj.zscore_all(bicluster1.get_submatrix(df)),)
+                print "cols zscore: %s" % (rsscore_obj.zscore_columns(df.as_matrix(), bicluster1))
+                print "rows zscore: %s" % (rsscore_obj.zscore_rows(df.as_matrix(), bicluster1))
+            except rsu.EmptyColumnsError, rsu.EmptyRowError:
+                continue
+
 
 
 class ComplexDiscovery(object):
@@ -45,6 +78,7 @@ class ComplexDiscovery(object):
         self.threshold = threshold
         self.proteins = []
         self.protein_map = dict()
+        self.rev_protein_map = dict()
         self.normalize_flag = normalize_flag
 
         self.results_list = []
@@ -54,8 +88,10 @@ class ComplexDiscovery(object):
         #kdrew: initialize
         for prot_id in self.input_proteins:
             self.protein_map[prot_id] = prot_id
+            
 
         self.create_data_frames()
+
 
 
     def create_data_frames(self,):
@@ -74,6 +110,8 @@ class ComplexDiscovery(object):
             for prot_id in self.input_proteins:
                 try:
                     self.protein_map[prot_id] = name_list[id_dict[prot_id]]
+                    #kdrew: do the reverse mapping
+                    self.rev_protein_map[name_list[id_dict[prot_id]]] = prot_id
                 except KeyError:
                     continue
 
@@ -98,61 +136,42 @@ class ComplexDiscovery(object):
                 df[missing_prot] = np.repeat( 0.0, len(df.index) )
 
 
-            ##kdrew: normalize by fractions (max of all fraction vectors = 1.0)
-            #df = df.div( df.max(axis=1), axis=0 )
-
             if self.normalize_flag:
                 #kdrew: normalize by proteins (sum of all protein vectors = 1.0, i.e. probability)
                 df = df.div( df.sum(axis=0), axis=1 )
                 #print df.sum(axis=0)
 
-            #kdrew: threshold out fraction vectors that do not have enough of the input proteins
-            #print self.proteins
-            #print df
-            #bool_vector = df[self.proteins] > 0.0
-            #sum_vector = bool_vector.sum(axis=1)
-            #percent_vector = 1.0*(sum_vector)/len(self.proteins)
-            #percent_vector = 1.0*(df[self.proteins] > 0.0).sum(axis=1)/len(self.proteins)
-            #df = df[percent_vector > self.protein_percent_threshold]
-
-
-            #kdrew: store list of fractions that pass threshold
-            #self.df_index_dict[msds_filename] = list(df[percent_vector > self.protein_percent_threshold].index)
+            df = df.fillna(0.0)
 
             #kdrew: store dataframe
             self.df_dict[ msds_filename ] = df
 
-    #kdrew: multiprocessor function to find fractions for all combinations of proteins sets
-    def discover_complexes(self, maxr=None):
+    #kdrew: function to find combinations of proteins for each given fraction
+    def discover_complexes(self,):
 
         subcomplex_dict = dict()
 
-        pool = mp.Pool()
-
-        for df_key in self.df_dict:
+        for i, df_key in enumerate(self.df_dict):
             df = self.df_dict[df_key]
             #print df
 
-            if maxr == None or maxr > len(self.proteins):
-                maxr = len(self.proteins)
+            #df_complex = df[list(self.proteins)]
+            #print df_complex
 
-            #kdrew: for different possible numbers of sequential experiments, focusing on 1 exp or combinations of 2 or more ...
-            for r in range(2, maxr+1):
-                #print "r: %s" % r
+            for fraction in df.index:
+                #print fraction
+                df_frac = df.ix[fraction,list(self.proteins)]
+                df_frac = df_frac[df_frac > self.threshold]
+                sorted_prot_ids = sorted(df_frac.index.tolist())
+                #print sorted_prot_ids
+                #print df_frac
+                mean_val = df_frac.mean()
+                #print "mean_val: %s" % (mean_val,)
+                try:
+                    subcomplex_dict[tuple(sorted_prot_ids)].append((df_key,fraction))
+                except KeyError:
+                    subcomplex_dict[tuple(sorted_prot_ids)] = [(df_key,fraction),]
 
-                results = pool.map(multiprocess_helper, it.izip_longest([],it.combinations(self.proteins,r),fillvalue=(self,df_key)))
-
-                for res in results:
-                    if len(res[2]) > 0:
-                        protein_list = res[0]
-                        df_key = res[1]
-                        pl_only_fractions = res[2]
-                        print "protein_list: %s msds: %s fractions: %s" % (protein_list, df_key, pl_only_fractions)
-                        print df.ix[pl_only_fractions,list(protein_list)]
-                        try:
-                            subcomplex_dict[protein_list].append((df_key, pl_only_fractions))
-                        except KeyError:
-                            subcomplex_dict[protein_list] = [(df_key,pl_only_fractions)]
 
         return subcomplex_dict
 
@@ -174,6 +193,43 @@ class ComplexDiscovery(object):
         pl_only_fractions = list(set(pl_fractions).intersection(set(out_fractions)))
 
         return (protein_list, df_key, pl_only_fractions)
+
+
+    #kdrew: there are a few ways to merge complexes, merge their intersection, merge their union, merge based on probability distribution of jaccard index 
+    #kdrew: this should also be implemented in the bicluster framework and allowed to sample in the monte carlo fashion
+    def merge_subcomplexes(self, subcomplex_results, merge_threshold=0.5):
+
+        for i in sorted(subcomplex_results.items(), key = lambda x: len(x[1])):
+            proteins_i = i[0]
+            if len(proteins_i) == 0:
+                continue
+            for j in sorted(subcomplex_results.items(), key = lambda x: len(x[1])):
+                proteins_j = j[0]
+                #print "proteins_i: %s" % (proteins_i,)
+                #print "proteins_j: %s" % (proteins_j,)
+                jindex = jaccard_index(proteins_i, proteins_j)
+                #print "jindex: %s" % jindex
+                if merge_threshold < jindex:
+                    #kdrew: merging by union
+                    sorted_prot_ids = sorted(list(set(proteins_i + proteins_j)))
+                    try:
+                        subcomplex_results[tuple(sorted_prot_ids)] = list(set(subcomplex_results[tuple(sorted_prot_ids)] + i[1] + j[1]))
+                    except KeyError:
+                        subcomplex_results[tuple(sorted_prot_ids)] = list(set(i[1] + j[1]))
+
+                    #kdrew: merging by intersection
+                    sorted_prot_ids = sorted(list(set(proteins_i).intersection(set(proteins_j))))
+                    try:
+                        subcomplex_results[tuple(sorted_prot_ids)] = list(set(subcomplex_results[tuple(sorted_prot_ids)] + i[1] + j[1]))
+                    except KeyError:
+                        subcomplex_results[tuple(sorted_prot_ids)] = list(set(i[1] + j[1]))
+
+        return subcomplex_results
+
+def jaccard_index(x, y):
+    sx = set(x)
+    sy = set(y)
+    return 1.0 * len(sx.intersection(sy)) / len(sx.union(sy))
 
 #kdrew: annoying kludge to get object oriented (or any multiparameter) functions to work with multiprocessing
 #kdrew: outside of class, unpacks arguments including 'self' and calls class function with repackaged args
