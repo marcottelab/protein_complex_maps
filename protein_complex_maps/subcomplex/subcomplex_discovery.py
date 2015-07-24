@@ -44,31 +44,78 @@ def main():
 
     pickle.dump(subcomplex_results, open(args.subcomplex_result_pickle,"wb"))
 
+    #scorefxn = su.multiple_dot
+    scorefxn = su.sum_matrix
+
     for i in sorted(subcomplex_results.items(), key = lambda x: len(x[1]), reverse=True):
-        proteins = i[0]
+        proteins = list(i[0])
         uniprot_ids = [cd_obj.rev_protein_map[prot_id] for prot_id in proteins]
         genenames = [genename_map[prot_id] for prot_id in uniprot_ids]
         fractions = [z[1] for z in i[1]]
-        print "proteins: %s, fractions: %s, #offracs: %s" % (genenames, fractions, len(i[1]), )
+        print "proteins: %s" % (genenames, )
+        print "fractions: %s" % (fractions, )
+        print "# of fracs: %s" % (len(i[1]), )
         print "\n"
 
+        print "cd_obj.subcomplex: %s" % (cd_obj.subcomplex_results[frozenset(proteins)],)
 
         #kdrew: only testing a single df so this probably needs to be corrected if passing in multiple msds on the commandline
         for df_key in cd_obj.df_dict:
             df = cd_obj.df_dict[df_key]
             df = df[cd_obj.proteins]
 
-            rsscore_obj = rsu.RandomSamplingScore(df.as_matrix(), su.multiple_dot, sample_module=np.random)
+            rsscore_obj = rsu.RandomSamplingScore(df.as_matrix(), scorefxn, sample_module=np.random)
             bicluster1 = bc.BiclusterDF(rows=fractions, cols=proteins, random_module=np.random, data_frame=df)
             print "bicluster.rows(): %s" % bicluster1.rows()
             try:
-                print "zscore: %s" % (rsscore_obj.zscore_all(bicluster1.get_submatrix(df)),)
-                print "cols zscore: %s" % (rsscore_obj.zscore_columns(df.as_matrix(), bicluster1))
-                print "rows zscore: %s" % (rsscore_obj.zscore_rows(df.as_matrix(), bicluster1))
-            except rsu.EmptyColumnsError, rsu.EmptyRowError:
+                zscore_all = rsscore_obj.zscore_all(bicluster1.get_submatrix(df))
+                print "zscore: %s" % (zscore_all)
+
+                #kdrew: proteins are fixed, shuffle fractions
+                zscore_cols = rsscore_obj.zscore_columns(df.as_matrix(), bicluster1)
+                print "cols zscore: %s" % (zscore_cols)
+
+                #kdrew: fractions are fixed, shuffle proteins
+                zscore_rows = rsscore_obj.zscore_rows(df.as_matrix(), bicluster1)
+                print "rows zscore: %s" % (zscore_rows)
+
+                cd_obj.subcomplex_results[frozenset(proteins)].zscore_all = zscore_all
+                cd_obj.subcomplex_results[frozenset(proteins)].zscore_cols = zscore_cols
+                cd_obj.subcomplex_results[frozenset(proteins)].zscore_rows = zscore_rows
+
+            except rsu.EmptyColumnError, rsu.EmptyRowError:
                 continue
 
 
+    print cd_obj.subcomplex_results.values()
+    print sorted(cd_obj.subcomplex_results.values())
+    #for result in sorted(cd_obj.subcomplex_results.values()):
+    #    print result
+
+class SubcomplexResult(object):
+    def __init__(self, proteins=[], fractions=[]):
+        self.proteins = frozenset(proteins)
+        self.fractions = set(fractions)
+        self.zscore_all = None
+        self.zscore_cols = None
+        self.zscore_rows = None
+
+    def __repr__(self):
+        return "proteins: %s\nfractions: %s\nzscore_all: %s\nzscore_cols: %s\nzscore_rows: %s" % (self.proteins, self.fractions, self.zscore_all, self.zscore_cols, self.zscore_rows)
+
+    def __cmp__(self, obj):
+        if obj.zscore_all == None or self.zscore_all > obj.zscore_all:
+            return 1
+        elif self.zscore_all == None or self.zscore_all < obj.zscore_all:
+            return -1
+        else:
+            return 0
+
+
+    #def add_proteins(prots):
+    #    self.proteins = self.proteins.union(prots)
+    def add_fractions(self, fracs):
+        self.fractions = self.fractions.union(fracs)
 
 class ComplexDiscovery(object):
 
@@ -84,6 +131,8 @@ class ComplexDiscovery(object):
         self.results_list = []
         self.df_dict = dict()
         self.df_index_dict = dict()
+
+        self.subcomplex_results = dict()
 
         #kdrew: initialize
         for prot_id in self.input_proteins:
@@ -168,12 +217,14 @@ class ComplexDiscovery(object):
                 mean_val = df_frac.mean()
                 #print "mean_val: %s" % (mean_val,)
                 try:
-                    subcomplex_dict[tuple(sorted_prot_ids)].append((df_key,fraction))
+                    subcomplex_dict[frozenset(sorted_prot_ids)].append((df_key,fraction))
+                    self.subcomplex_results[frozenset(sorted_prot_ids)].add_fractions([fraction]) 
                 except KeyError:
-                    subcomplex_dict[tuple(sorted_prot_ids)] = [(df_key,fraction),]
+                    subcomplex_dict[frozenset(sorted_prot_ids)] = [(df_key,fraction),]
+                    self.subcomplex_results[frozenset(sorted_prot_ids)] = SubcomplexResult(proteins=sorted_prot_ids, fractions=[fraction])
 
 
-        return subcomplex_dict
+        return subcomplex_dict 
 
 
     #kdrew: function to find fractions that only have proteins in protein_list above some threshold (default 0.0) and no other protein above threshold
@@ -210,19 +261,26 @@ class ComplexDiscovery(object):
                 jindex = jaccard_index(proteins_i, proteins_j)
                 #print "jindex: %s" % jindex
                 if merge_threshold < jindex:
-                    #kdrew: merging by union
-                    sorted_prot_ids = sorted(list(set(proteins_i + proteins_j)))
-                    try:
-                        subcomplex_results[tuple(sorted_prot_ids)] = list(set(subcomplex_results[tuple(sorted_prot_ids)] + i[1] + j[1]))
-                    except KeyError:
-                        subcomplex_results[tuple(sorted_prot_ids)] = list(set(i[1] + j[1]))
+                    ##kdrew: merging by union
+                    #sorted_prot_ids = sorted(list(proteins_i.union(proteins_j)))
+                    #try:
+                    #    subcomplex_results[frozenset(sorted_prot_ids)] = list(set(subcomplex_results[frozenset(sorted_prot_ids)] + i[1] + j[1]))
+                    #except KeyError:
+                    #    subcomplex_results[frozenset(sorted_prot_ids)] = list(set(i[1] + j[1]))
 
                     #kdrew: merging by intersection
                     sorted_prot_ids = sorted(list(set(proteins_i).intersection(set(proteins_j))))
+                    i_fracs = self.subcomplex_results[proteins_i].fractions
+                    j_fracs = self.subcomplex_results[proteins_j].fractions
                     try:
-                        subcomplex_results[tuple(sorted_prot_ids)] = list(set(subcomplex_results[tuple(sorted_prot_ids)] + i[1] + j[1]))
+                        subcomplex_results[frozenset(sorted_prot_ids)] = list(set(subcomplex_results[frozenset(sorted_prot_ids)] + i[1] + j[1]))
+
+                        self.subcomplex_results[frozenset(sorted_prot_ids)].add_fractions(i_fracs.union(j_fracs))
+
                     except KeyError:
-                        subcomplex_results[tuple(sorted_prot_ids)] = list(set(i[1] + j[1]))
+                        subcomplex_results[frozenset(sorted_prot_ids)] = list(set(i[1] + j[1]))
+
+                        self.subcomplex_results[frozenset(sorted_prot_ids)] = SubcomplexResult(proteins=sorted_prot_ids, fractions=i_fracs.union(j_fracs) ) 
 
         return subcomplex_results
 
