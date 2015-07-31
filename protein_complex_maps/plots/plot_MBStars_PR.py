@@ -15,6 +15,8 @@ import scipy.io
 import Bio.PDB
 import matplotlib.pyplot as plt
 
+import pandas as pd
+
 from sklearn.metrics import precision_recall_curve
 from sklearn.metrics import auc
 
@@ -54,8 +56,13 @@ def main():
 						help="Flag to load mb map from pickle file")
 	parser.add_argument("--mb_map_pickle_file", action="store", dest="mb_map_pickle_file", required=False, default="mb_map.p",
 						help="Filename of pickle map")
+	parser.add_argument("--mb_uniprot", action="store_true", dest="mb_uniprot_flag", required=False, default=False,
+						help="mb_matrix_ids has uniprot ids instead of ENSEMBL_IDs")
+	parser.add_argument("--corr_format", action="store", dest="corr_format", required=False, default="loadtxt",
+						help="Format of the correlation matrix file, use loadtxt or read_csv to read in, default = loadtxt")
 	args = parser.parse_args()
 
+        print "start of script"
 
 	pdb_list = []
 	if args.pdb_list_filename != None:
@@ -74,140 +81,198 @@ def main():
 	mb_interaction_list = []
 	correlation_list = []
 	nd_list = []
-        mb_list = []
-        biogrid_list = []
+	mb_list = []
+	biogrid_list = []
 
-        #kdrew: read in ids
-        mb_matrix_ids_filename = args.mb_matrix_ids
-        mb_matrix_id_file = open(mb_matrix_ids_filename,"rb")
-        mb_matrix_ensg_list = []
-        for line in mb_matrix_id_file.readlines():
-                line_id = line.strip()
-                mb_matrix_ensg_list.append(line_id)
-        mb_matrix_id_file.close()
-        if not args.mb_map_pickle:
-            mb_matrix_uniprot_map = pu.map_protein_ids(mb_matrix_ensg_list, "ENSEMBL_ID", "ACC")
-            pickle.dump(mb_matrix_uniprot_map, open(args.mb_map_pickle_file,"wb"))
-        else:
-            mb_matrix_uniprot_map = pickle.load(open(args.mb_map_pickle_file,"rb"))
+	pdb_mb_dict = {}
 
-        #mb_matrix_uniprot_map = pu.map_protein_ids(mb_matrix_ensg_list, "ENSEMBL_ID", "ACC")
-        #print mb_matrix_uniprot_map
+	#kdrew: read in ids
+	mb_matrix_ids_filename = args.mb_matrix_ids
+	mb_matrix_id_file = open(mb_matrix_ids_filename,"rb")
+	mb_matrix_id_lists = []
 
-        mb_matrix_id_dict = dict()
-        mb_matrix_id_lists = []
-        for pid in mb_matrix_ensg_list:
-            try:
-                mb_matrix_id_lists.append(mb_matrix_uniprot_map[pid])
-            except IndexError:
-                mb_matrix_id_lists.append(None)
+	if args.mb_uniprot_flag:
+		for line in mb_matrix_id_file.readlines():
+			#kdrew: needs to be in list because that is how it is handled below
+			mb_matrix_id_lists.append([line.strip(),])
 
+		mb_matrix_id_file.close()
+	else:
+		mb_matrix_ensg_list = []
+		for line in mb_matrix_id_file.readlines():
+				line_id = line.strip()
+				mb_matrix_ensg_list.append(line_id)
+		mb_matrix_id_file.close()
+		if not args.mb_map_pickle:
+			mb_matrix_uniprot_map = pu.map_protein_ids(mb_matrix_ensg_list, "ENSEMBL_ID", "ACC")
+			pickle.dump(mb_matrix_uniprot_map, open(args.mb_map_pickle_file,"wb"))
+		else:
+			mb_matrix_uniprot_map = pickle.load(open(args.mb_map_pickle_file,"rb"))
+
+		#mb_matrix_uniprot_map = pu.map_protein_ids(mb_matrix_ensg_list, "ENSEMBL_ID", "ACC")
+		#print mb_matrix_uniprot_map
+
+		for pid in mb_matrix_ensg_list:
+			try:
+				mb_matrix_id_lists.append(mb_matrix_uniprot_map[pid])
+			except IndexError:
+				mb_matrix_id_lists.append(None)
+
+
+	mb_matrix_id_dict = dict()
 
 	#kdrew: for every pdb
 	for pdbid in pdb_list:
+                print "for pdbid in pdb_list: %s"  % pdbid
 
-            chain2acc = pu.get_pdb_protein_ids(pdbid)
-            acc2base_species = pu.get_ortholog( [x for x in chain2acc.values() if x != None], species1=args.base_species, reversible=True)
+		pdb_mb_dict[pdbid] = list()
 
-            matrix_ids_filename = args.matrix_ids
-            biogrid_ids_filename = args.biogrid_ids
-            nd_matrix_filename = args.nd_matrix
-            mb_matrix_filename = args.mb_matrix
-            corr_matrix_filename = args.corr_matrix
-            biogrid_matrix_filename = args.biogrid_matrix
+		chain2acc = pu.get_pdb_protein_ids(pdbid)
+		acc2base_species = pu.get_ortholog( [x for x in chain2acc.values() if x != None], species1=args.base_species, reversible=True)
 
-            if args.replace_PDBID:
-                matrix_ids_filename = matrix_ids_filename.replace("PDBID",pdbid)
-                biogrid_ids_filename = biogrid_ids_filename.replace("PDBID",pdbid)
-                nd_matrix_filename = nd_matrix_filename.replace("PDBID",pdbid)
-                mb_matrix_filename = mb_matrix_filename.replace("PDBID",pdbid)
-                corr_matrix_filename = corr_matrix_filename.replace("PDBID",pdbid)
-                biogrid_matrix_filename = biogrid_matrix_filename.replace("PDBID",pdbid)
+		matrix_ids_filename = args.matrix_ids
+		biogrid_ids_filename = args.biogrid_ids
+		nd_matrix_filename = args.nd_matrix
+		mb_matrix_filename = args.mb_matrix
+		corr_matrix_filename = args.corr_matrix
+		biogrid_matrix_filename = args.biogrid_matrix
+
+		if args.replace_PDBID:
+			matrix_ids_filename = matrix_ids_filename.replace("PDBID",pdbid)
+			biogrid_ids_filename = biogrid_ids_filename.replace("PDBID",pdbid)
+			nd_matrix_filename = nd_matrix_filename.replace("PDBID",pdbid)
+			mb_matrix_filename = mb_matrix_filename.replace("PDBID",pdbid)
+			corr_matrix_filename = corr_matrix_filename.replace("PDBID",pdbid)
+			biogrid_matrix_filename = biogrid_matrix_filename.replace("PDBID",pdbid)
 
 
-            matrix_id_file = open(matrix_ids_filename,"rb")
-            matrix_id_list = []
-            for line in matrix_id_file.readlines():
-                    matrix_id_list.append(line.strip())
-            matrix_id_file.close()
+		matrix_id_file = open(matrix_ids_filename,"rb")
+		matrix_id_list = []
+		for line in matrix_id_file.readlines():
+			matrix_id_list.append(line.strip())
+		matrix_id_file.close()
 
-            #kdrew: read in biogrid ids
-            biogrid_id_file = open(biogrid_ids_filename,"rb")
-            biogrid_id_list = []
-            for line in biogrid_id_file.readlines():
-                    biogrid_id_list.append(line.strip())
-            biogrid_id_file.close()
+		#kdrew: read in biogrid ids
+		if biogrid_ids_filename != None:
+			biogrid_id_file = open(biogrid_ids_filename,"rb")
+			biogrid_id_list = []
+			for line in biogrid_id_file.readlines():
+				biogrid_id_list.append(line.strip())
+			biogrid_id_file.close()
 
-            pdb_matrix_id_list = []
-            for pid in matrix_id_list:
-                if acc2base_species.has_key(pid):
-                    pdb_matrix_id_list.append(pid)
+		pdb_matrix_id_list = []
+		for pid in matrix_id_list:
+			if acc2base_species.has_key(pid):
+				pdb_matrix_id_list.append(pid)
+			else:
+				continue
+
+		pdb_mb_matrix_id_list = []
+		for i, pid_list in enumerate(mb_matrix_id_lists):
+			notfound_flag = True
+			for pid in pid_list:
+				if acc2base_species.has_key(pid) and notfound_flag:
+					pdb_mb_matrix_id_list.append(pid)
+					mb_matrix_id_dict[pid] = i
+					notfound_flag = False
+
+                print pdb_mb_matrix_id_list
+                print mb_matrix_id_dict
+
+		#kdrew: readin matrices
+		if nd_matrix_filename != None:
+			nd_mat = np.loadtxt(nd_matrix_filename)
+		if mb_matrix_filename != None:
+			mb_mat = scipy.io.mmread(mb_matrix_filename).todense()
+
+                if args.corr_format == "loadtxt":
+                        corr_mat = np.loadtxt(corr_matrix_filename)
+                elif args.corr_format == "read_csv":
+                        #kdrew: indices are embedded in the file
+                        corr_mat = pd.read_csv(corr_matrix_filename, sep='\t', index_col=0)
                 else:
-                    continue
+                        print "unrecognized corr_format: %s" % args.corr_format
+                        return -1
 
-            pdb_mb_matrix_id_list = []
-            for i, pid_list in enumerate(mb_matrix_id_lists):
-                notfound_flag = True
-                for pid in pid_list:
-                    if acc2base_species.has_key(pid) and notfound_flag:
-                        pdb_mb_matrix_id_list.append(pid)
-                        mb_matrix_id_dict[pid] = i
-                        notfound_flag = False
-
-            #kdrew: readin matrices
-            nd_mat = np.loadtxt(nd_matrix_filename)
-            mb_mat = scipy.io.mmread(mb_matrix_filename).todense()
-            corr_mat = np.loadtxt(corr_matrix_filename)
-            biogrid_mat = np.loadtxt(biogrid_matrix_filename)
+		if biogrid_matrix_filename != None:
+			biogrid_mat = np.loadtxt(biogrid_matrix_filename)
 
 
-            #kdrew: load pisa file
-            pisaInt = pdbu.PISA_Interfaces( args.pisa_dir+'/'+pdbid+'_pisa', pdbid=pdbid )
+		#kdrew: load pisa file
+		pisaInt = pdbu.PISA_Interfaces( args.pisa_dir+'/'+pdbid+'_pisa', pdbid=pdbid )
 
-            for acc1, acc2 in it.combinations(pdb_mb_matrix_id_list,2):
-                surface_area = pisaInt.surface_area_by_acc(acc1, acc2, base_species=args.base_species)
-                if surface_area != None:
-                        interaction_list.append(1)
-                else:
-                        interaction_list.append(0)
+		for acc1, acc2 in it.combinations(pdb_mb_matrix_id_list,2):
+			surface_area = pisaInt.surface_area_by_acc(acc1, acc2, base_species=args.base_species)
+			if surface_area != None:
+				interaction_list.append(1)
+			else:
+				interaction_list.append(0)
 
-                nd_list.append( nd_mat[matrix_id_list.index(acc1), matrix_id_list.index(acc2)])
-                correlation_list.append( corr_mat[matrix_id_list.index(acc1), matrix_id_list.index(acc2)])
-                biogrid_list.append( biogrid_mat[biogrid_id_list.index(acc1), biogrid_id_list.index(acc2)])
+			if nd_matrix_filename != None:
+				nd_list.append( nd_mat[matrix_id_list.index(acc1), matrix_id_list.index(acc2)])
 
-            for acc1, acc2 in it.combinations(pdb_mb_matrix_id_list,2):
-                surface_area = pisaInt.surface_area_by_acc(acc1, acc2, base_species=args.base_species)
-                if surface_area != None:
-                        mb_interaction_list.append(1)
-                else:
-                        mb_interaction_list.append(0)
-                mb_list.append( mb_mat[mb_matrix_id_dict[acc1], mb_matrix_id_dict[acc2]])
+                        if args.corr_format == "loadtxt":
+                                correlation_list.append( corr_mat[matrix_id_list.index(acc1), matrix_id_list.index(acc2)])
+                        elif args.corr_format == "read_csv":
+                                correlation_list.append( corr_mat[acc1][acc2] )
+
+			if biogrid_ids_filename != None:
+				biogrid_list.append( biogrid_mat[biogrid_id_list.index(acc1), biogrid_id_list.index(acc2)])
+
+		#for acc1, acc2 in it.combinations(pdb_mb_matrix_id_list,2):
+		#    surface_area = pisaInt.surface_area_by_acc(acc1, acc2, base_species=args.base_species)
+
+			is_interaction = None
+			if surface_area != None:
+				mb_interaction_list.append(1)
+				is_interaction = 1
+			else:
+				mb_interaction_list.append(0)
+				is_interaction = 0
+
+			if mb_matrix_filename != None and nd_matrix_filename != None:
+				mb_list.append( mb_mat[mb_matrix_id_dict[acc1], mb_matrix_id_dict[acc2]])
+                                if args.corr_format == "loadtxt":
+                                        pdb_mb_dict[pdbid].append((acc1,acc2,mb_mat[mb_matrix_id_dict[acc1],mb_matrix_id_dict[acc2]],is_interaction,surface_area,pdbid,nd_mat[matrix_id_list.index(acc1), matrix_id_list.index(acc2)],corr_mat[matrix_id_list.index(acc1), matrix_id_list.index(acc2)]))
+                                elif args.corr_format == "read_csv":
+                                        pdb_mb_dict[pdbid].append((acc1,acc2,mb_mat[mb_matrix_id_dict[acc1],mb_matrix_id_dict[acc2]],is_interaction,surface_area,pdbid,nd_mat[matrix_id_list.index(acc1), matrix_id_list.index(acc2)],corr_mat[acc1][acc2]))
+
+			elif mb_matrix_filename != None:
+				mb_list.append( mb_mat[mb_matrix_id_dict[acc1], mb_matrix_id_dict[acc2]])
+
+                                if args.corr_format == "loadtxt":
+                                        pdb_mb_dict[pdbid].append((acc1,acc2,mb_mat[mb_matrix_id_dict[acc1],mb_matrix_id_dict[acc2]],is_interaction,surface_area,pdbid,corr_mat[matrix_id_list.index(acc1), matrix_id_list.index(acc2)]))
+                                elif args.corr_format == "read_csv":
+                                        pdb_mb_dict[pdbid].append((acc1,acc2,mb_mat[mb_matrix_id_dict[acc1],mb_matrix_id_dict[acc2]],is_interaction,surface_area,pdbid,corr_mat[acc1][acc2]))
 
 	precision, recall, thresholds = precision_recall_curve(interaction_list, correlation_list)
 	area = auc(recall, precision)
-	print "PR Area Under Curve: %0.2f" % area
+	print "Pearson PR Area Under Curve: %0.2f" % area
 	plt.plot(recall, precision, 'red')
 
-	precision, recall, thresholds = precision_recall_curve(interaction_list, nd_list)
-	area = auc(recall, precision)
-	print "PR Area Under Curve: %0.2f" % area
-	plt.plot(recall, precision, 'blue')
+	if nd_matrix_filename != None:
+		precision, recall, thresholds = precision_recall_curve(interaction_list, nd_list)
+		area = auc(recall, precision)
+		print "ND PR Area Under Curve: %0.2f" % area
+		plt.plot(recall, precision, 'blue')
 
-        print mb_interaction_list
-        print mb_list
-	precision, recall, thresholds = precision_recall_curve(mb_interaction_list, mb_list)
-	area = auc(recall, precision)
-	print "PR Area Under Curve: %0.2f" % area
-	plt.plot(recall, precision, 'black')
+	if mb_matrix_filename != None:
+		print mb_interaction_list
+		print mb_list
+		precision, recall, thresholds = precision_recall_curve(mb_interaction_list, mb_list)
+		area = auc(recall, precision)
+		print "MB stars PR Area Under Curve: %0.2f" % area
+		plt.plot(recall, precision, 'black')
 
-	precision, recall, thresholds = precision_recall_curve(interaction_list, biogrid_list)
-	area = auc(recall, precision)
-	print "PR Area Under Curve: %0.2f" % area
-	plt.plot(recall, precision, 'green')
+	if biogrid_ids_filename != None:
+		precision, recall, thresholds = precision_recall_curve(interaction_list, biogrid_list)
+		area = auc(recall, precision)
+		print "Y2H PR Area Under Curve: %0.2f" % area
+		plt.plot(recall, precision, 'green')
 
 	
 
-	plt.title('Precision-Recall: AUC=%0.2f' % (area,))
+	plt.title('Precision-Recall')
 	plt.xlabel('Recall')
 	plt.ylabel('Precision')
 	plt.ylim([0.0, 1.05])
@@ -219,10 +284,15 @@ def main():
 	plt.close('all')
 
 
+	for pdbid in pdb_mb_dict:
+		#print pdbid
+		for i in pdb_mb_dict[pdbid]:
+			print "%s %s %s %s %s %s %s %s" % i
 
 
 if __name__ == "__main__":
-	main()
+    print "before main"
+    main()
 
 
 
