@@ -97,12 +97,12 @@ def plot_profile_dataset(data_set, id_map, ylim_max=False, savefilename=None, fr
 
 		try:
 			if genenames:
-				data_subplots[i,0].set_ylabel(genename_map[id_map[i]],rotation='horizontal', color=barcolor, fontsize=10)
+				data_subplots[i,0].set_ylabel(genename_map[id_map[i]],rotation='horizontal', color=barcolor, fontsize=10, ha="right")
 			else:
-				data_subplots[i,0].set_ylabel(id_map[i],rotation='horizontal', color=barcolor, fontsize=10)
+				data_subplots[i,0].set_ylabel(id_map[i],rotation='horizontal', color=barcolor, fontsize=10, ha="right")
 		except KeyError:
 			print id_map[i]
-			data_subplots[i,0].set_ylabel(id_map[i],rotation='horizontal', color=barcolor, fontsize=10)
+			data_subplots[i,0].set_ylabel(id_map[i],rotation='horizontal', color=barcolor, fontsize=10, ha="right")
 
 
 		#data_subplots[i].axes.set_yticks(data_subplots[i].axes.get_yticks()[0::5])
