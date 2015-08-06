@@ -21,8 +21,14 @@ class MSDataSet(object):
 		self.__frac_dict = dict()
 		self.__mappings = dict()
 
-	def get_data_frame(self,):
-		df = pandas.DataFrame( self.__master_data_matrix.transpose(), columns=self.__master_name_list, index=self.__master_fraction_list )
+	def get_data_frame(self,ids=None, ignoreNonExistingIds=False):
+		if ids == None:
+			df = pandas.DataFrame( self.__master_data_matrix.transpose(), columns=self.__master_name_list, index=self.__master_fraction_list )
+		else:
+			data_set, new_id_map = self.get_subdata_matrix(ids, ignoreNonExistingIds=ignoreNonExistingIds)
+			print new_id_map
+			#df = pandas.DataFrame( data_set.transpose(), columns=ids, index=self.__master_fraction_list )
+			df = pandas.DataFrame( data_set.transpose(), columns=new_id_map.values(), index=self.__master_fraction_list )
 		return df
 
 	#kdrew: ortholog_map allows for concatentating ortholog fractions, should be in the form of ortholog_map[protein_id_in_file] -> protein_id_in_msds
@@ -180,11 +186,39 @@ class MSDataSet(object):
 
 		self.update_id_dict()
 
+	def map_remove_version( self, ):
+		num_orig = len(self.__master_name_list)
+		rmver_master_name_list = [x.split('.')[0] for x in self.__master_name_list]
+		num_rmver = len(set(rmver_master_name_list))
+
+		if "rmver" not in self.__mappings.keys():
+			self.__mappings["rmver"] = dict()
+			self.__mappings["rmver_list"] = dict()
+
+		for i, prot_id in enumerate(self.__master_name_list):
+			i = self.__master_name_list.index(prot_id)
+			mapped_id = rmver_master_name_list[i]
+			self.__mappings["rmver"][i] = mapped_id
+
+			try:
+				self.__mappings["rmver_list"][i].append(mapped_id)
+			except KeyError:
+				self.__mappings["rmver_list"][i] = [mapped_id]
+
+		print "num_orig: %s, num_rmver: %s" % (num_orig, num_rmver)
+
+
 	#kdrew: adds mappings of Uniprot ACC protein ids to matrix indices
-	def map_ids_by_genename( self, organism, reviewed=False ):
+	def map_ids_by_genename( self, organism, reviewed=False, genename_mappings=None):
 		#kdrew: map master_name_list from current db_id to db_id
 		#kdrew: update master_name_list and current db_id
-		protids_map = pu.get_from_uniprot_by_genename( self.__master_name_list, organism=organism, reviewed=reviewed)
+
+		if genename_mappings == None:
+			gene_ids = self.__master_name_list
+		else:
+			gene_ids = self.__mappings[genename_mappings].values()
+
+		protids_map = pu.get_from_uniprot_by_genename( gene_ids, organism=organism, reviewed=reviewed)
 		print protids_map
 
 		if "ACC" not in self.__mappings.keys():
@@ -193,7 +227,11 @@ class MSDataSet(object):
 
 		for protid in protids_map:
 			print protid
-			i = self.__master_name_list.index(protid)
+			if genename_mappings == None:
+				i = self.__master_name_list.index(protid)
+			else:
+				i = self.__mappings[genename_mappings].keys()[self.__mappings[genename_mappings].values().index(protid)]
+
 			for mapped_id in protids_map[protid]:
 				print mapped_id
 				self.__id_dict[mapped_id] = i
