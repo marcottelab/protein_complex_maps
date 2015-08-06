@@ -18,6 +18,7 @@ class RandomSamplingTest(unittest.TestCase):
 	def testScoreDistribution(self, ):
 
 		mdn_randsamp = rsu.RandomSampling( su.multiple_dot_per_unit, sample_module = np.random )
+		#mdn_randsamp = rsu.RandomSampling( su.multiple_dot_per_unit)
 		dist_all = mdn_randsamp.random_sampling_score_distribution_all( self.data_matrix, numrows=2, numcolumns=2 )
 		dist_columns = mdn_randsamp.random_sampling_score_distribution_columns( self.data_matrix, rows=[1,2], columns=[0,3] )
 		dist_rows = mdn_randsamp.random_sampling_score_distribution_rows( self.data_matrix, rows=[1,2], columns=[0,3] )
