@@ -2,13 +2,14 @@
 #kdrew: this file is for utilities for querying features about proteins
 
 import urllib, urllib2 
+import requests
 import MySQLdb
 import difflib
 import Bio.Seq as Seq
 import Bio.SeqRecord as SeqRecord
 import Bio.Alphabet as ba
 
-ACC_QUERY_LENGTH = 250
+ACC_QUERY_LENGTH = 100
 FUZZY_MATCH_THRESHOLD = 0.25
 
 ##kdrew: queries uniprot for protein sequence length
@@ -165,7 +166,11 @@ def get_from_uniprot( protein_ids, keyword ):
 		stop_splice = (i+1)*ACC_QUERY_LENGTH
 		report_query = "http://www.uniprot.org/uniprot/?format=tab&query=accession:(%s)&columns=id,%s" % ("+or+".join(protein_ids[start_splice:stop_splice]), keyword)
 		#print report_query
-		f = urllib2.urlopen(report_query)
+		try:
+			f = urllib2.urlopen(report_query)
+		except urllib2.HTTPError:
+			continue
+
 		for line in f.readlines():
 			if line.split()[0] in protein_ids:
 				if keyword == "length":
@@ -181,10 +186,10 @@ def get_from_uniprot( protein_ids, keyword ):
 
 	return return_dict
 
-def get_from_uniprot_by_genename( gene_ids, organism="", gene_prefix="gene_exact", reviewed=False):
+def get_from_uniprot_by_genename( gene_ids, organism="", gene_prefix="gene_exact", reviewed=False ):
 	return_dict = dict()
 
-	gene_ids_case_incensitive = gene_ids + [x.lower() for x in gene_ids] + [y.upper() for y in gene_ids]
+	gene_ids_case_incensitive = gene_ids + [x.lower() for x in gene_ids] + [y.upper() for y in gene_ids] 
 
 	reviewed_str = ""
 	if reviewed:
@@ -197,16 +202,22 @@ def get_from_uniprot_by_genename( gene_ids, organism="", gene_prefix="gene_exact
 		genes_formatted = ["%s:%s" % (gene_prefix, id1,) for id1 in gene_ids[start_splice:stop_splice]]
 		report_query = "http://www.uniprot.org/uniprot/?format=tab&query=organism:(%s)+and+(%s)%s" % (organism, "+or+".join(genes_formatted), reviewed_str )
 		print report_query
-		f = urllib2.urlopen(report_query)
-		for line in f.readlines():
-			print line
-			#kdrew: the returned line has a bunch of extra gene names (and other info), finding the intersection of the gene ids and the line returns the original queried gene id
-			intersection = list(set(line.split()).intersection(gene_ids_case_incensitive))
-			if intersection:
-				try:
-					return_dict[intersection[0]].append(line.split()[0])
-				except:
-					return_dict[intersection[0]] = [line.split()[0],] 
+		try:
+			#f = urllib2.urlopen(encoded_query)
+			f = requests.get(report_query)
+			#print f.text
+			for line in f.text.split('\n'):
+				print line
+				#kdrew: the returned line has a bunch of extra gene names (and other info), finding the intersection of the gene ids and the line returns the original queried gene id
+				intersection = list(set(line.split()).intersection(gene_ids_case_incensitive))
+				if intersection:
+					try:
+						return_dict[intersection[0]].append(line.split()[0])
+					except:
+						return_dict[intersection[0]] = [line.split()[0],] 
+		except urllib2.HTTPError, e:
+			print e, e.read()
+			continue
 
 
 	return return_dict
