@@ -29,6 +29,10 @@ def multiple_dot_per_unit(matrix):
 def multiple_dot_neg(matrix):
 	return -1.0*multiple_dot(matrix)
 
+def sum_matrix(matrix):
+	total_sum = sum(np.array(matrix.reshape(-1)))
+	return total_sum
+
 def sum_cells(matrix):
 	#kdrew: if there are no rows or no columns, return large negative number (i.e. bad score)
 	#kdrew: should I raise an exception here?
