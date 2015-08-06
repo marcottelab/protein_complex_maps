@@ -22,8 +22,10 @@ def main():
     parser = argparse.ArgumentParser(description="Discover subcomplexes in fractionation data")
     parser.add_argument("--input_msds_pickles", action="store", nargs='+', dest="msds_filenames", required=True,
                                 help="Filenames of MSDS pickle: pickle comes from running protein_complex_maps.util.read_ms_elutions_pickle_MSDS.py")
-    parser.add_argument("--proteins", action="store", dest="proteins", nargs='+', required=True,
+    parser.add_argument("--proteins", action="store", dest="proteins", nargs='+', required=False, default=[],
                                 help="Protein ids in which to anaylze")
+    parser.add_argument("--protein_file", action="store", dest="protein_file", required=False, default=None,
+                                help="File of protein ids in which to anaylze, each line has separate cluster of proteins")
     parser.add_argument("--subcomplex_result_pickle", action="store", dest="subcomplex_result_pickle", required=True,
                                 help="Output file for which to pickle subcomplex results")
     parser.add_argument("--threshold", action="store", dest="threshold", type=float, required=False, default=0.0,
@@ -32,6 +34,8 @@ def main():
                                 help="Threshold for which consider merging two clusters by jaccard index, default=0.5")
     parser.add_argument("--filter_threshold", action="store", dest="filter_threshold", type=float, required=False, default=0.5,
                                 help="Threshold for which consider filter two clusters by jaccard index (only include highest zscore cluster), default=0.5")
+    parser.add_argument("--output_file", action="store", dest="output_file", required=False, default=None,
+                                help="Filename for resulting subcomplex proteins, sorted by zscore_all DESC")
 
     args = parser.parse_args()
 
@@ -39,23 +43,64 @@ def main():
     #scorefxn = su.multiple_dot
     #scorefxn = su.sum_matrix
 
-    genename_map = pu.get_genenames_uniprot( args.proteins)
+    cluster_list = []
+    if len(args.proteins) > 0:
+        cluster_list.append(args.proteins)
 
-    cd_obj = ComplexDiscovery( args.msds_filenames, args.proteins, threshold=args.threshold, scorefxn=su.sum_matrix)
+    elif args.protein_file != None:
+        f = open(args.protein_file,"rb")
+        for line in f.readlines():
+            cluster_list.append(line.split())
+        f.close()
+
+    else:
+        print "Error: need to set args.protein_file or args.proteins"
+        return -1
+
+
+    filtered_subcomplexes = dict()
+    #kdrew: go through all of the clusters in the input and calculate subcomplexes
+    #for cluster_proteins in cluster_list:
+    multiproc_input = [(cluster_proteins,args) for cluster_proteins in cluster_list]
+    p = mp.Pool(12)
+    subcomplex_results = p.map(multiproc_complex_discovery_helper, multiproc_input)
+
+    for fs in subcomplex_results:
+        filtered_subcomplexes.update(fs)
+
+        for result in sorted(fs.values()):
+            #uniprot_ids = [cd_obj.rev_protein_map[prot_id] for prot_id in result.proteins]
+            #genenames = [genename_map[prot_id] for prot_id in uniprot_ids]
+            #print genenames
+            print result
+            print "\n"
+
+    if args.output_file != None:
+        ofile = open(args.output_file,"wb")
+
+        for result in sorted(filtered_subcomplexes.values(), reverse=True):
+            ofile.write(' '.join(result.proteins))
+            ofile.write("\n")
+
+        ofile.close()
+
+    pickle.dump( sorted(filtered_subcomplexes.values(), reverse=True), open(args.subcomplex_result_pickle,"wb"))
+
+
+def multiproc_complex_discovery_helper(parameter_tuple):
+    cluster_proteins = parameter_tuple[0]
+    args = parameter_tuple[1]
+
+    print cluster_proteins
+    genename_map = pu.get_genenames_uniprot( cluster_proteins )
+
+    cd_obj = ComplexDiscovery( args.msds_filenames, cluster_proteins, threshold=args.threshold, scorefxn=su.sum_matrix)
     cd_obj.discover_complexes()
     cd_obj.merge_subcomplexes(args.merge_threshold)
     cd_obj.calc_zscore()
-    filtered_subcomplexes = cd_obj.filter_subcomplexes(args.filter_threshold, remove_singletons=True)
+    fs = cd_obj.filter_subcomplexes(args.filter_threshold, remove_singletons=True)
 
-
-    for result in sorted(filtered_subcomplexes.values()):
-        uniprot_ids = [cd_obj.rev_protein_map[prot_id] for prot_id in result.proteins]
-        genenames = [genename_map[prot_id] for prot_id in uniprot_ids]
-        print genenames
-        print result
-        print "\n"
-
-    pickle.dump(filtered_subcomplexes.values(), open(args.subcomplex_result_pickle,"wb"))
+    return fs
 
 class SubcomplexResult(object):
     def __init__(self, proteins=[], fractions=[]):
