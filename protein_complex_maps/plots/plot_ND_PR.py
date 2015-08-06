@@ -93,11 +93,12 @@ def main():
             matrix_id_file.close()
 
             #kdrew: read in biogrid ids
-            biogrid_id_file = open(biogrid_ids_filename,"rb")
-            biogrid_id_list = []
-            for line in biogrid_id_file.readlines():
-                    biogrid_id_list.append(line.strip())
-            biogrid_id_file.close()
+            if biogrid_ids_filename != None:
+                biogrid_id_file = open(biogrid_ids_filename,"rb")
+                biogrid_id_list = []
+                for line in biogrid_id_file.readlines():
+                        biogrid_id_list.append(line.strip())
+                biogrid_id_file.close()
 
             pdb_matrix_id_list = []
             for pid in matrix_id_list:
@@ -107,9 +108,12 @@ def main():
                     continue
 
             #kdrew: readin matrices
-            nd_mat = np.loadtxt(nd_matrix_filename)
+            if nd_matrix_filename != None:
+                nd_mat = np.loadtxt(nd_matrix_filename)
             corr_mat = np.loadtxt(corr_matrix_filename)
-            biogrid_mat = np.loadtxt(biogrid_matrix_filename)
+
+            if biogrid_ids_filename != None:
+                biogrid_mat = np.loadtxt(biogrid_matrix_filename)
 
 
             #kdrew: load pisa file
@@ -122,28 +126,35 @@ def main():
                 else:
                         interaction_list.append(0)
 
-                nd_list.append( nd_mat[matrix_id_list.index(acc1), matrix_id_list.index(acc2)])
+                if nd_matrix_filename != None:
+                    nd_list.append( nd_mat[matrix_id_list.index(acc1), matrix_id_list.index(acc2)])
+
                 correlation_list.append( corr_mat[matrix_id_list.index(acc1), matrix_id_list.index(acc2)])
-                biogrid_list.append( biogrid_mat[biogrid_id_list.index(acc1), biogrid_id_list.index(acc2)])
+
+                if biogrid_ids_filename != None:
+                    biogrid_list.append( biogrid_mat[biogrid_id_list.index(acc1), biogrid_id_list.index(acc2)])
 
 	precision, recall, thresholds = precision_recall_curve(interaction_list, correlation_list)
 	area = auc(recall, precision)
 	print "PR Area Under Curve: %0.2f" % area
 	plt.plot(recall, precision, 'red')
 
-	precision, recall, thresholds = precision_recall_curve(interaction_list, nd_list)
-	area = auc(recall, precision)
-	print "PR Area Under Curve: %0.2f" % area
-	plt.plot(recall, precision, 'blue')
+        if nd_matrix_filename != None:
+            precision, recall, thresholds = precision_recall_curve(interaction_list, nd_list)
+            area = auc(recall, precision)
+            print "PR Area Under Curve: %0.2f" % area
+            plt.plot(recall, precision, 'blue')
 
-	precision, recall, thresholds = precision_recall_curve(interaction_list, biogrid_list)
-	area = auc(recall, precision)
-	print "PR Area Under Curve: %0.2f" % area
-	plt.plot(recall, precision, 'green')
+        if biogrid_ids_filename != None:
+            precision, recall, thresholds = precision_recall_curve(interaction_list, biogrid_list)
+            area = auc(recall, precision)
+            print "PR Area Under Curve: %0.2f" % area
+            plt.plot(recall, precision, 'green')
 
 	
 
-	plt.title('Precision-Recall: AUC=%0.2f' % (area,))
+	#plt.title('Precision-Recall: AUC=%0.2f' % (area,))
+	plt.title('Precision-Recall')
 	plt.xlabel('Recall')
 	plt.ylabel('Precision')
 	plt.ylim([0.0, 1.05])
