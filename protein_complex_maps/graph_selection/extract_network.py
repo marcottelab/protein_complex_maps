@@ -34,6 +34,12 @@ def main():
 						help="Flag to grow out to neighboring nodes of input proteins")
 	parser.add_argument("--threshold", action="store", type=float, dest="threshold", required=False, default=0.0,
 						help="Only include edges that pass a min threshold (>=), default = 0.0")
+	parser.add_argument("--map_ids", action="store_true", dest="map_ids", required=False, default=False,
+						help="Map one id type to another, set using map_id_from and map_id_to ")
+	parser.add_argument("--map_id_from", action="store", dest="map_id_from", required=False, default="ENSEMBL_ID",
+						help="Map ids of this type to another type, default=ENSEMBL_ID (list can be seen http://www.uniprot.org/faq/28)")
+	parser.add_argument("--map_id_to", action="store", dest="map_id_to", required=False, default="ACC",
+						help="Map ids to this type, default=ACC (list can be seen http://www.uniprot.org/faq/28)")
 	args = parser.parse_args()
 
 
@@ -80,13 +86,16 @@ def main():
 	mb_matrix_id_dict = dict()
 
         mb_mat = scipy.io.mmread(args.mb_matrix).todense()
-        corr_mat = np.loadtxt(args.corr_matrix)
 
-        matrix_id_file = open(args.matrix_ids,"rb")
-        matrix_id_list = []
-        for line in matrix_id_file.readlines():
-            matrix_id_list.append(line.strip())
-        matrix_id_file.close()
+        if args.corr_matrix != None:
+            corr_mat = np.loadtxt(args.corr_matrix)
+
+        if args.matrix_ids != None:
+            matrix_id_file = open(args.matrix_ids,"rb")
+            matrix_id_list = []
+            for line in matrix_id_file.readlines():
+                matrix_id_list.append(line.strip())
+            matrix_id_file.close()
 
         for i, pid_list in enumerate(mb_matrix_id_lists):
             notfound_flag = True
@@ -99,10 +108,17 @@ def main():
             genename_map = pu.get_genenames_uniprot( args.proteins )
             print genename_map
 
+	if args.map_ids:
+		msds.map_ids(args.map_id_from, args.map_id_to)
+
+
         if args.neighbors:
             for acc1 in args.proteins:
                 #kdrew: get all non-zero entries in mb_mat
-                whereobj = np.where(mb_mat[mb_matrix_id_dict[acc1],:] > 0.0)
+                try:
+                    whereobj = np.where(mb_mat[mb_matrix_id_dict[acc1],:] > 0.0)
+                except KeyError:
+                    continue
                 for i in np.array(whereobj[1])[0]:
                     #kdrew: find acc2 
                     #print i
