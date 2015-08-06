@@ -69,6 +69,8 @@ class BiclusterGenerator(object):
 		else:
 			#kdrew: copy seed bicluster to working bicluster
 			bicluster1 = bc.Bicluster(rows=seed_bicluster.rows()[:], cols=seed_bicluster.columns()[:], random_module=self.random_module)
+
+		logging.debug("seed bicluster: %s" % (bicluster1,))
 		
 		self.montecarlo.reset()
 		#kdrew: if no annealer is specified use default annealer
