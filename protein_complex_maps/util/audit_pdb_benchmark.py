@@ -72,6 +72,7 @@ def main():
                 mb_matrix_ensg_list.append(line_id)
         mb_matrix_id_file.close()
 
+        #kdrew: map orthologs and pickle or load pickle if passed in
         if not args.mb_map_pickle:
             mb_matrix_uniprot_map = pu.map_protein_ids(mb_matrix_ensg_list, "ENSEMBL_ID", "ACC")
             pickle.dump(mb_matrix_uniprot_map, open(args.mb_map_pickle_file,"wb"))
@@ -101,6 +102,7 @@ def main():
         protein_chain = dict()
         protein_accs = dict()
         combinations = dict()
+        base_protein_accs = list()
 	#kdrew: for every pdb
 	for pdbid in pdb_list:
             print pdbid
@@ -130,9 +132,10 @@ def main():
                 for pid in pid_list:
                     if acc2base_species.has_key(pid) and notfound_flag:
                         pdb_mb_matrix_id_list.append(pid)
+                        base_protein_accs.append(acc2base_species[pid])
                         mb_matrix_id_dict[pid] = i
                         notfound_flag = False
-                        print "%s %s" % (pid, mb_matrix_id_dict[pid])
+                        print "pid: %s i: %s" % (pid, mb_matrix_id_dict[pid])
 
             protein_mapped[pdbid] = pdb_mb_matrix_id_list
 
@@ -155,14 +158,23 @@ def main():
                 #mb_list.append( mb_mat[mb_matrix_id_dict[acc1], mb_matrix_id_dict[acc2]])
 
 
+        total_protein_ortho = []
         for pdbid in protein_accs.keys():
             print pdbid
             print len(set(protein_accs[pdbid]))
             print len(set(protein_ortho[pdbid]))
+            total_protein_ortho = total_protein_ortho + list(set(protein_ortho[pdbid]))
             print len(set(protein_mapped[pdbid]))
             print "combinations: %s" % combinations[pdbid]
+            print " ".join(list(set(protein_ortho[pdbid])))
 
         print "total interactions: %s" % sum(interaction_list)
+
+        print " ".join(base_protein_accs)
+        print ""
+        print " ".join(total_protein_ortho)
+
+        print mb_list
 
 if __name__ == "__main__":
 	main()
