@@ -9,8 +9,14 @@ import matplotlib.pyplot as plt
 import scipy
 import pylab
 import itertools as it
+
+import numpy.linalg as linalg
+
 from scipy.stats.stats import pearsonr
 from scipy.stats.stats import spearmanr
+
+import sklearn.metrics as skm
+
 import protein_complex_maps.normalization_util as nu
 import protein_complex_maps.read_data as rd
 import protein_complex_maps.random_sampling_util as rsu
@@ -66,7 +72,7 @@ def main():
 						types found: http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/scipy.cluster.hierarchy.linkage.html, 
 						default: single""")
 	parser.add_argument("--dependence_metric", action="store", dest="dependence_metric", required=False, default="pearson",
-						help="""pearson or mutual_information
+						help="""pearson or mutual_information or mutual_information_score
 						default: pearson""")
 
 	#parser.add_argument("-j", action="store", dest="numOfProcs", required=False, default=1,
@@ -124,6 +130,10 @@ def main():
 		sample_module = None
 
 	Y, Y2, D = runCluster( data_set, args.average_cnt, sample_module, cluster_method=args.cluster_method, dependence_metric=args.dependence_metric )
+
+        #Dinv = linalg.inv(D)
+        #print Dinv
+
 	
 	if args.pickle_filename != None:
 		pickle.dump((Y,Y2,D,new_id_map), open(args.pickle_filename, "wb"))
@@ -201,12 +211,17 @@ def runCluster(data_set, average_cnt=0, sample_module=None, scale=None, cluster_
 				a_j_list = [[x] for x in a_j.tolist()]
 				minfo= ee.mi(a_i_list, a_j_list)
 				D[i,j] = minfo
+			elif dependence_metric == "mutual_information_score":
+				a_i = np.array(data_set[i,])[0]
+				a_j = np.array(data_set[j,])[0]
+				minfo= skm.mutual_info_score(a_i, a_j)
+				D[i,j] = minfo
 
 	Ddist = []
 	for i, j in it.combinations(range(data_set.shape[0]),2):
 		if dependence_metric == "pearson":
 			Ddist.append( 1 - D[i,j] )
-		elif dependence_metric == "mutual_information":
+		elif dependence_metric == "mutual_information" or dependence_metric == "mutual_information_score":
 			#kdrew: this makes an actual distance, not sure of the right way of doing this
 			Ddist.append( D.max() - D[i,j] )
 			#kdrew: appeared random
@@ -312,13 +327,13 @@ def plotDendrogram(Y, Y2, D, plot_filename, new_id_map, title=""):
 	dendrogram = sch.dendrogram(Y, orientation='right')
 	print dendrogram['leaves']
 	print [new_id_map[z] for z in dendrogram['leaves']]
-	ax1.set_yticklabels([new_id_map[z] for z in dendrogram['leaves']])
+	ax1.set_yticklabels([new_id_map[z] for z in dendrogram['leaves']], size='x-small')
 
 	print new_id_map
 
 	ax2 = fig.add_axes([0.3, 0.78, 0.6, 0.2])
 	dendrogram2 = sch.dendrogram(Y2)
-	ax2.set_xticklabels([new_id_map[z] for z in dendrogram2['leaves']], rotation='vertical', size='small')
+	ax2.set_xticklabels([new_id_map[z] for z in dendrogram2['leaves']], rotation='vertical', size='x-small')
 	#pylab.title(title)
 
 	axmatrix = fig.add_axes([0.3,0.1,0.6,0.6])
