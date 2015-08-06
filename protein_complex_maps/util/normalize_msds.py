@@ -21,6 +21,9 @@ def main():
 	parser.add_argument("--output_filename", action="store", dest="out_filename", required=True, 
 						help="Output filename of normalized MSDS pickle")
 
+	parser.add_argument("--remove_version", action="store_true", dest="remove_version", required=False, default=False,
+						help="Remove version information from genenames (ex. LOC_Os12g30040.1 -> LOC_Os12g30040")
+
 	parser.add_argument("--length_normalize", action="store_true", dest="length_normalize", required=False, default=False,
 						help="Normalize by length, currently requires ENSEMBL_ID")
 
@@ -86,6 +89,10 @@ def main():
 
 	#kdrew: pickle comes from running protein_complex_maps.util.read_ms_elutions_pickle_MSDS.py
 	msds = pickle.load( open( args.msds_filename, "rb" ) )
+
+        if args.remove_version:
+            msds.map_remove_version()
+
 	if args.map_ids:
 		msds.map_ids(args.map_id_from, args.map_id_to)
 
