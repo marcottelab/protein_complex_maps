@@ -89,13 +89,14 @@ class RandomSampling(object):
 
 		return return_distribution
 
+	#kdrew: rows are fixed, shuffle columns
 	def random_sampling_score_distribution_columns(self, data_matrix, rows=[], columns=[] ):
 
 		if len(rows) == 0: 
 			raise EmptyRowError
 
 		if len(columns) == 0: 
-			raise EmptyColumnsError
+			raise EmptyColumnError
 
 		total_rows, total_columns = data_matrix.shape
 
@@ -121,7 +122,7 @@ class RandomSampling(object):
 			raise EmptyRowError
 
 		if len(columns) == 0: 
-			raise EmptyColumnsError
+			raise EmptyColumnError
 
 		total_rows, total_columns = data_matrix.shape
 
@@ -159,15 +160,10 @@ class RandomSamplingScore(RandomSampling):
 		return -1.0*self.zscore_all(matrix)
 		
 class EmptyRowError(Exception):
-	def __init__(self, expr, msg):
-		self.expr = expr
-		self.msg = msg
+    pass
 
 class EmptyColumnError(Exception):
-	def __init__(self, expr, msg):
-		self.expr = expr
-		self.msg = msg
-
+    pass
 
 
 
