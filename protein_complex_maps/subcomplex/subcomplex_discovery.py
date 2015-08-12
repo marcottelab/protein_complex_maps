@@ -62,7 +62,7 @@ def main():
     #kdrew: go through all of the clusters in the input and calculate subcomplexes
     #for cluster_proteins in cluster_list:
     multiproc_input = [(cluster_proteins,args) for cluster_proteins in cluster_list]
-    p = mp.Pool(12)
+    p = mp.Pool(8)
     subcomplex_results = p.map(multiproc_complex_discovery_helper, multiproc_input)
 
     for fs in subcomplex_results:
@@ -109,17 +109,36 @@ class SubcomplexResult(object):
         self.zscore_all = None
         self.zscore_cols = None
         self.zscore_rows = None
+        self.score_type = "zscore_all_fractions_geomean"
 
     def __repr__(self):
         return "proteins: %s\nfractions: %s\nzscore_all: %s\nzscore_cols: %s\nzscore_rows: %s" % (self.proteins, self.fractions, self.zscore_all, self.zscore_cols, self.zscore_rows)
 
+    #kdrew: compares two subcomplex results based on the score type defined in score_type
+    #kdrew: this might be a bit weird if two subcomplex result objects have different score_types, 
+    #kdrew: currently okay because score_type is hard coded but might cause problem if misused
     def __cmp__(self, obj):
-        if obj.zscore_all == None or self.zscore_all > obj.zscore_all:
+        if obj.get_score() == None or self.get_score() > obj.get_score():
             return 1
-        elif self.zscore_all == None or self.zscore_all < obj.zscore_all:
+        elif self.get_score() == None or self.get_score() < obj.get_score():
             return -1
         else:
             return 0
+
+    #kdrew: there are a bunch of different ways to score clusters, this returns the specified type in score_type
+    def get_score(self,):
+        if self.score_type == "zscore_all":
+            return self.zscore_all
+        elif self.score_type == "zscore_cols":
+            return self.zscore_cols
+        elif self.score_type == "zscore_rows":
+            return self.zscore_rows
+        elif self.score_type == "zscore_all_by_fractions":
+            return len(self.fractions) * self.zscore_all
+        elif self.score_type == "zscore_all_fractions_geomean":
+            return math.sqrt( len(self.fractions) * self.zscore_all )
+        else:
+            return None
 
 
     #def add_proteins(prots):
