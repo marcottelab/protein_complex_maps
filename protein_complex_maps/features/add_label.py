@@ -16,13 +16,17 @@ def main():
                                     help="Filename of input feature matrix")
     parser.add_argument("--input_positives", action="store", dest="positives", required=True, 
                                     help="Filenanme of positive pairs")
+    parser.add_argument("--sep", action="store", dest="sep", required=False, default='$',
+                                    help="Separator for reading csv, default=$")
+    parser.add_argument("--id_columns", action="store", dest="id_columns", nargs='+', required=True, 
+                                    help="List of columns that specify ids in feature matrix (ex. gene_id bait_geneid")
     parser.add_argument("--output_file", action="store", dest="out_filename", required=False, default=None, 
                                     help="Filename of output file, default=None which prints to stdout")
 
     args = parser.parse_args()
 
 
-    feature_table = pd.read_csv(args.feature_matrix,sep='$')
+    feature_table = pd.read_csv(args.feature_matrix,sep=args.sep)
 
     positive_file = open(args.positives,"rb")
 
@@ -49,8 +53,12 @@ def main():
     #ppis.add(frozenset([5987, 222389]))
     #neg_ppis.add(frozenset([10437, 64854]))
 
-    is_ppis = feature_table[['gene_id','bait_geneid']].apply(set,axis=1)['gene_id'].isin(ppis)
-    is_neg_ppis = feature_table[['gene_id','bait_geneid']].apply(set,axis=1)['gene_id'].isin(neg_ppis)
+    #kdrew: the bioplex dataframe was weird when applying a set function because it would generate the set and put it in both columns as a dataframe
+    #kdrew: it changed when the ids were floats instead of ints to a single column (not a dataframe)
+    #is_ppis = feature_table[['gene_id','bait_geneid']].apply(set,axis=1)['gene_id'].isin(ppis)
+    #is_neg_ppis = feature_table[['gene_id','bait_geneid']].apply(set,axis=1)['gene_id'].isin(neg_ppis)
+    is_ppis = feature_table[args.id_columns].apply(set,axis=1).isin(ppis)
+    is_neg_ppis = feature_table[args.id_columns].apply(set,axis=1).isin(neg_ppis)
 
     labels = [1 if is_ppis[index] else -1 if is_neg_ppis[index] else 0 for index in xrange(len(is_ppis))]
     
@@ -65,7 +73,7 @@ def main():
     #print feature_table[['gene_id','bait_geneid','is_ppis','is_neg_ppis','label']].head()
 
 
-    feature_table.to_csv(args.out_filename,sep='$')
+    feature_table.to_csv(args.out_filename,sep=args.sep)
 
 if __name__ == "__main__":
     main()
