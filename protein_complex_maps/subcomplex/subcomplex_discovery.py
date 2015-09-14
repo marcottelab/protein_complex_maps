@@ -3,6 +3,7 @@ import logging
 import numpy as np
 import itertools as it
 import multiprocessing as mp
+import math
 
 import argparse
 import pickle
@@ -34,6 +35,10 @@ def main():
                                 help="Threshold for which consider merging two clusters by jaccard index, default=0.5")
     parser.add_argument("--filter_threshold", action="store", dest="filter_threshold", type=float, required=False, default=0.5,
                                 help="Threshold for which consider filter two clusters by jaccard index (only include highest zscore cluster), default=0.5")
+    parser.add_argument("--score_type", action="store", dest="result_score_type", required=False, default="zscore_all_by_fractions",
+                                help="""Score type for comparing and ranking subcomplex results, 
+                                        (ie. zscore_all, zscore_rows, zscore_cols, zscore_all_by_fractions, zscore_all_fractions_geomean),
+                                        default = zscore_all_by_fractions""")
     parser.add_argument("--output_file", action="store", dest="output_file", required=False, default=None,
                                 help="Filename for resulting subcomplex proteins, sorted by zscore_all DESC")
 
@@ -94,7 +99,7 @@ def multiproc_complex_discovery_helper(parameter_tuple):
     print cluster_proteins
     genename_map = pu.get_genenames_uniprot( cluster_proteins )
 
-    cd_obj = ComplexDiscovery( args.msds_filenames, cluster_proteins, threshold=args.threshold, scorefxn=su.sum_matrix)
+    cd_obj = ComplexDiscovery( args.msds_filenames, cluster_proteins, threshold=args.threshold, scorefxn=su.sum_matrix, result_score_type=args.result_score_type)
     cd_obj.discover_complexes()
     cd_obj.merge_subcomplexes(args.merge_threshold)
     cd_obj.calc_zscore()
@@ -103,13 +108,13 @@ def multiproc_complex_discovery_helper(parameter_tuple):
     return fs
 
 class SubcomplexResult(object):
-    def __init__(self, proteins=[], fractions=[]):
+    def __init__(self, proteins=[], fractions=[], score_type="zscore_all_by_fractions"):
         self.proteins = frozenset(proteins)
         self.fractions = set(fractions)
         self.zscore_all = None
         self.zscore_cols = None
         self.zscore_rows = None
-        self.score_type = "zscore_all_fractions_geomean"
+        self.score_type = score_type
 
     def __repr__(self):
         return "proteins: %s\nfractions: %s\nzscore_all: %s\nzscore_cols: %s\nzscore_rows: %s" % (self.proteins, self.fractions, self.zscore_all, self.zscore_cols, self.zscore_rows)
@@ -117,7 +122,12 @@ class SubcomplexResult(object):
     #kdrew: compares two subcomplex results based on the score type defined in score_type
     #kdrew: this might be a bit weird if two subcomplex result objects have different score_types, 
     #kdrew: currently okay because score_type is hard coded but might cause problem if misused
+    #kdrew: added custom exception to deal with this case
     def __cmp__(self, obj):
+
+        if self.score_type != obj.score_type:
+            raise ScoreTypeException, "Score types must be the same between SubcomplexResults in order to compare: obj1: %s obj2: %s" % (self.score_type, obj.score_type)
+
         if obj.get_score() == None or self.get_score() > obj.get_score():
             return 1
         elif self.get_score() == None or self.get_score() < obj.get_score():
@@ -133,6 +143,8 @@ class SubcomplexResult(object):
             return self.zscore_cols
         elif self.score_type == "zscore_rows":
             return self.zscore_rows
+        elif self.zscore_all == None:
+            return None
         elif self.score_type == "zscore_all_by_fractions":
             return len(self.fractions) * self.zscore_all
         elif self.score_type == "zscore_all_fractions_geomean":
@@ -148,7 +160,7 @@ class SubcomplexResult(object):
 
 class ComplexDiscovery(object):
 
-    def __init__(self, msds_filenames, proteins, threshold=0.0, scorefxn=su.sum_matrix, normalize_flag=True):
+    def __init__(self, msds_filenames, proteins, threshold=0.0, scorefxn=su.sum_matrix, normalize_flag=True, result_score_type="zscore_all_by_fractions"):
         self.msds_filenames = msds_filenames
         self.input_proteins = proteins
         self.threshold = threshold
@@ -157,6 +169,7 @@ class ComplexDiscovery(object):
         self.rev_protein_map = dict()
         self.normalize_flag = normalize_flag
         self.scorefxn = scorefxn
+        self.result_score_type = result_score_type
 
         self.results_list = []
         self.df_dict = dict()
@@ -247,7 +260,7 @@ class ComplexDiscovery(object):
                 try:
                     self.subcomplex_results[frozenset(sorted_prot_ids)].add_fractions([fraction]) 
                 except KeyError:
-                    self.subcomplex_results[frozenset(sorted_prot_ids)] = SubcomplexResult(proteins=sorted_prot_ids, fractions=[fraction])
+                    self.subcomplex_results[frozenset(sorted_prot_ids)] = SubcomplexResult(proteins=sorted_prot_ids, fractions=[fraction], score_type=self.result_score_type)
 
 
 
@@ -327,7 +340,7 @@ class ComplexDiscovery(object):
                     except KeyError:
                         #subcomplex_results[frozenset(sorted_prot_ids)] = list(set(i[1] + j[1]))
 
-                        self.subcomplex_results[frozenset(sorted_prot_ids)] = SubcomplexResult(proteins=sorted_prot_ids, fractions=i_fracs.union(j_fracs) ) 
+                        self.subcomplex_results[frozenset(sorted_prot_ids)] = SubcomplexResult(proteins=sorted_prot_ids, fractions=i_fracs.union(j_fracs), score_type=self.result_score_type ) 
 
         #return subcomplex_results
 
@@ -386,6 +399,9 @@ def multiprocess_helper(arg, **kwargs):
     df_key = arg[0][1]
     protein_list = arg[1]
     return self.find_fractions(df_key, protein_list)
+
+class ScoreTypeException(Exception):
+    pass
 
 if __name__ == "__main__":
     main()
