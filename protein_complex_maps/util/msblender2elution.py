@@ -69,16 +69,19 @@ def main():
 
 	elution_profile_df = elution_profile_df.fillna(0)
 
-	if args.msblender_format:
-            total_count = pd.DataFrame(elution_profile_df.sum(axis=1))
-            total_count.columns = ['TotalCount']
-            elution_profile_df = pd.concat([total_count, elution_profile_df], axis=1)
-            elution_profile_df.index.name='#ProtID'
 
         if args.parse_uniprot_id:
-            uniprots = [x.split('|')[1] if len(x.split('|'))>1 else x for x in elution_profile_df.index ]
-            elution_profile_df.index = uniprots
+		uniprots = [x.split('|')[1] if len(x.split('|'))>1 else x for x in elution_profile_df.index ]
+		elution_profile_df.index = uniprots
 
+	if args.msblender_format:
+		total_count = pd.DataFrame(elution_profile_df.sum(axis=1))
+		total_count.columns = ['TotalCount']
+		elution_profile_df = pd.concat([total_count, elution_profile_df], axis=1)
+		elution_profile_df.index.name='#ProtID'
+		print elution_profile_df.index.name
+
+	print elution_profile_df.index.name
         elution_profile_df.to_csv(args.output_filename, sep='\t')
 
 	if args.group:
