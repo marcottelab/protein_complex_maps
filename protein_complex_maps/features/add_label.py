@@ -22,11 +22,15 @@ def main():
                                     help="List of columns that specify ids in feature matrix (ex. gene_id bait_geneid")
     parser.add_argument("--output_file", action="store", dest="out_filename", required=False, default=None, 
                                     help="Filename of output file, default=None which prints to stdout")
+    parser.add_argument("--fillna", action="store", dest="fillna", required=False, default=None, 
+                                    help="If set, fills NAs with input value")
 
     args = parser.parse_args()
 
 
     feature_table = pd.read_csv(args.feature_matrix,sep=args.sep)
+    if args.fillna != None:
+        feature_table = feature_table.fillna(float(args.fillna))
 
     positive_file = open(args.positives,"rb")
 
