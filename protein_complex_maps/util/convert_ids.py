@@ -20,6 +20,10 @@ def main():
                                             help="map only to reviewed ids, default=False")
     parser.add_argument("--pairwise", action="store_true", dest="pairwise", required=False, default=False,
                                             help="Split complex up into all pairs")
+    parser.add_argument("--add_cluster_id", action="store_true", dest="add_cluster_id", required=False, default=False,
+                                            help="Add a cluster id to the protein id. Used to distinguish same protein in multiple clusters, default=False")
+    parser.add_argument("--ppi_with_scores", action="store_true", dest="ppi_with_scores", required=False, default=False,
+                                            help="Input filename is pairwise with score in 3rd column, default=False")
 
     args = parser.parse_args()
 
@@ -30,9 +34,15 @@ def main():
         return
 
     clusters = []
+    #kdrew: save so you can write out ppi score later
+    ppi_scores = dict()
     f = open(args.filename, "rb")
-    for line in f.readlines():
-        clusters.append(line.split())
+    for i, line in enumerate(f.readlines()):
+        if args.ppi_with_scores:
+            clusters.append(line.split()[:2])
+            ppi_scores[i] = line.split()[2]
+        else:
+            clusters.append(line.split())
 
     input_ids = list(set([x for cluster in clusters for x in cluster]))
     inputID2ACC_map = pu.map_protein_ids(input_ids, args.from_id, "ACC", reviewed=args.reviewed)
@@ -40,9 +50,9 @@ def main():
     ACC2outputID_map = pu.map_protein_ids(flatten_list, "ACC", args.to_id, reviewed=args.reviewed)
 
     if not args.pairwise:
+        output_string = ""
         #kdrew: dumps clusters one per line in output id
-        fout = open(args.out_filename,"wb")
-        for cluster in clusters:
+        for clustid, cluster in enumerate(clusters):
             cluster_prot = []
             for prot in cluster:
                 #print prot
@@ -54,23 +64,32 @@ def main():
                         out_id = ACC2outputID_map[acc]
                         break
                 if  out_id != None and len(out_id) > 0:
-                    cluster_prot.append(out_id[0])
+                    if args.add_cluster_id:
+                        cluster_prot.append("%s_%s" % (clustid, out_id[0]))
+                    else:
+                        cluster_prot.append(out_id[0])
 
                     #fout.write(out_id[0])
                     #fout.write("\t")
                 
-            fout.write("\t".join(cluster_prot))
-            fout.write("\n")
+            #fout.write("\t".join(cluster_prot))
+            output_string += "\t".join(cluster_prot)
+            if args.ppi_with_scores:
+                #fout.write("\t%s" % ppi_scores[clustid])
+                output_string += "\t%s" % ppi_scores[clustid]
+            #fout.write("\n")
+            output_string += "\n"
+
+        fout = open(args.out_filename,"wb")
+        fout.write(output_string)
         fout.close()
 
 
     else:
-        #kdrew: dumps all pairs in clusters one per line in entrez id
-        fout = open(args.out_filename,"wb")
-
+        output_string = ""
         #kdrew: used to store pairs that have already been outputted, removes redundancy
         output_sets = []
-        for cluster in clusters:
+        for clustid, cluster in enumerate(clusters):
             for prot_pair in it.combinations(cluster,2):
                 #print prot
                 out_id1 = None
@@ -88,11 +107,38 @@ def main():
                         out_id2 = ACC2outputID_map[acc2]
                         break
                 if out_id1 != None and out_id2 != None and len(out_id1) > 0 and len(out_id2) > 0 and set([out_id1[0],out_id2[0]]) not in output_sets:
-                    fout.write(out_id1[0])
-                    fout.write("\t")
-                    fout.write(out_id2[0])
-                    fout.write("\n")
-                    output_sets.append(set([out_id1[0],out_id2[0]]))
+                    if args.add_cluster_id:
+                        #fout.write("%s_%s" % (clustid, out_id1[0]))
+                        #fout.write("\t")
+                        #fout.write("%s_%s" % (clustid, out_id2[0]))
+
+                        output_string += "%s_%s" % (clustid, out_id1[0])
+                        output_string += "\t"
+                        output_string += "%s_%s" % (clustid, out_id2[0])
+                        if args.ppi_with_scores:
+                            #fout.write("\t%s" % ppi_scores[clustid])
+                            output_string += "\t%s" % ppi_scores[clustid]
+                            
+                        output_string += "\n"
+
+                        output_sets.append(set(["%s_%s" % (clustid, out_id1[0]),"%s_%s" % (clustid, out_id2[0])]))
+                    else:
+                        #fout.write(out_id1[0])
+                        #fout.write("\t")
+                        #fout.write(out_id2[0])
+                        output_string += out_id1[0]
+                        output_string += "\t"
+                        output_string += out_id2[0]
+                        if args.ppi_with_scores:
+                            #fout.write("\t%s" % ppi_scores[clustid])
+                            output_string += "\t%s" % ppi_scores[clustid]
+                        #fout.write("\n")
+                        output_string += "\n"
+                        output_sets.append(set([out_id1[0],out_id2[0]]))
+
+        #kdrew: dumps all pairs in clusters one per line in entrez id
+        fout = open(args.out_filename,"wb")
+        fout.write(output_string)
         fout.close()
 
 if __name__ == "__main__":
