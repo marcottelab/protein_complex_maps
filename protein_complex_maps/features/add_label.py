@@ -77,6 +77,10 @@ def main():
     #print feature_table[['gene_id','bait_geneid','is_ppis','is_neg_ppis','label']].head()
 
 
+    #kdrew: weird extra column gets added, remove so it does not cause problems later
+    if 'Unnamed: 0.1' in feature_table.columns:
+        feature_table = feature_table.drop('Unnamed: 0.1',axis=1) 
+
     feature_table.to_csv(args.out_filename,sep=args.sep)
 
 if __name__ == "__main__":
