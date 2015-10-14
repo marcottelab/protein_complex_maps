@@ -19,11 +19,13 @@ def main():
                                     help="Name of label column, default='label' if present, else 1st column")
     parser.add_argument("--keep_labels", action="store", dest="keep_labels", nargs='+', required=False, default=None,
                                     help="Only keep rows with these labels, default = keep all")
+    parser.add_argument("--sep", action="store", dest="sep", required=False, default='$',
+                                    help="Column separator for input file, default=$")
 
     args = parser.parse_args()
 
 
-    feature_table = pd.read_csv(args.feature_matrix,sep='$')
+    feature_table = pd.read_csv(args.feature_matrix,sep=args.sep)
 
     if args.label_column in feature_table.columns:
         label_vector = feature_table[args.label_column]
