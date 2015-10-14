@@ -24,7 +24,6 @@ def main():
                                     help="Filename of output file, default=None which prints to stdout")
     parser.add_argument("--fillna", action="store", dest="fillna", required=False, default=None, 
                                     help="If set, fills NAs with input value")
-
     args = parser.parse_args()
 
 
@@ -38,12 +37,13 @@ def main():
     ppis = set()
     neg_ppis = set()
     for line in positive_file.readlines():
-        id1 = int(line.split()[0])
-        id2 = int(line.split()[1])
-        all_proteins.add(id1)
-        all_proteins.add(id2)
+        if len(line.split()) >= 2:
+            id1 = int(line.split()[0])
+            id2 = int(line.split()[1])
+            all_proteins.add(id1)
+            all_proteins.add(id2)
 
-        ppis.add(frozenset([id1,id2]))
+            ppis.add(frozenset([id1,id2]))
 
     for pair in it.combinations(all_proteins,2):
         if frozenset(pair) not in ppis:
