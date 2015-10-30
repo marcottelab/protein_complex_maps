@@ -24,6 +24,8 @@ def main():
                                             help="Add a cluster id to the protein id. Used to distinguish same protein in multiple clusters, default=False")
     parser.add_argument("--ppi_with_scores", action="store_true", dest="ppi_with_scores", required=False, default=False,
                                             help="Input filename is pairwise with score in 3rd column, default=False")
+    parser.add_argument("--columns", action="store", dest="columns", nargs='+', required=False, default=[],
+                                            help="Convert ids in specified columns, outputting the remaining columns unchanged")
 
     args = parser.parse_args()
 
@@ -36,11 +38,23 @@ def main():
     clusters = []
     #kdrew: save so you can write out ppi score later
     ppi_scores = dict()
+    additional_columns = dict()
     f = open(args.filename, "rb")
     for i, line in enumerate(f.readlines()):
         if args.ppi_with_scores:
             clusters.append(line.split()[:2])
             ppi_scores[i] = line.split()[2]
+        #kdrew: untested
+        elif len(args.columns) > 0:
+            clust = []
+            additional_c = []
+            for c in range(len(line.split())):
+                if str(c) in args.columns:
+                    clust.append(line.split()[c])
+                else:
+                    additional_c.append(line.split()[c])
+            clusters.append(clust)
+            additional_columns[i] = additional_c
         else:
             clusters.append(line.split())
 
@@ -78,6 +92,10 @@ def main():
                 #fout.write("\t%s" % ppi_scores[clustid])
                 output_string += "\t%s" % ppi_scores[clustid]
             #fout.write("\n")
+            elif len(args.columns) > 0:
+                output_string += "\t%s" % ("\t".join(additional_columns[clustid]))
+
+
             output_string += "\n"
 
         fout = open(args.out_filename,"wb")
@@ -106,6 +124,7 @@ def main():
                     else:
                         out_id2 = ACC2outputID_map[acc2]
                         break
+
                 if out_id1 != None and out_id2 != None and len(out_id1) > 0 and len(out_id2) > 0 and set([out_id1[0],out_id2[0]]) not in output_sets:
                     if args.add_cluster_id:
                         #fout.write("%s_%s" % (clustid, out_id1[0]))
@@ -118,6 +137,8 @@ def main():
                         if args.ppi_with_scores:
                             #fout.write("\t%s" % ppi_scores[clustid])
                             output_string += "\t%s" % ppi_scores[clustid]
+                        elif len(args.columns) > 0:
+                            output_string += "\t%s" % ("\t".join(additional_columns[clustid]))
                             
                         output_string += "\n"
 
@@ -132,6 +153,8 @@ def main():
                         if args.ppi_with_scores:
                             #fout.write("\t%s" % ppi_scores[clustid])
                             output_string += "\t%s" % ppi_scores[clustid]
+                        elif len(args.columns) > 0:
+                            output_string += "\t%s" % ("\t".join(additional_columns[clustid]))
                         #fout.write("\n")
                         output_string += "\n"
                         output_sets.append(set([out_id1[0],out_id2[0]]))
