@@ -27,7 +27,7 @@ def main():
     args = parser.parse_args()
 
 
-    feature_table = pd.read_csv(args.feature_matrix,sep=args.sep)
+    feature_table = pd.read_csv(args.feature_matrix,sep=args.sep, index_col=0)
     if args.fillna != None:
         feature_table = feature_table.fillna(float(args.fillna))
 
