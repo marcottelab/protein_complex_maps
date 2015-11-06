@@ -43,9 +43,9 @@ def main():
     for clustid, cluster in enumerate(clusters):
         for protid in cluster:
             if args.add_cluster_id:
-                attributes[key]["%s_%s" % (clustid, protid)] = results[protid]
+                attributes['genes']["%s_%s" % (clustid, protid)] = results[protid]
             else:
-                attributes[key][protid] = results[protid]
+                attributes['genes'][protid] = results[protid]
 
     #kdrew: write header
     fout.write("protid\t%s\n" % ('\t'.join(attributes.keys())))
