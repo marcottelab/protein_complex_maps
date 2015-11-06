@@ -26,6 +26,8 @@ def main():
                                             help="Input filename is pairwise with score in 3rd column, default=False")
     parser.add_argument("--columns", action="store", dest="columns", nargs='+', required=False, default=[],
                                             help="Convert ids in specified columns, outputting the remaining columns unchanged")
+    parser.add_argument("--orig_id", action="store_true", dest="orig_id", required=False, default=False,
+                                            help="Adds the original id instead of None if conversion fails")
 
     args = parser.parse_args()
 
@@ -70,7 +72,12 @@ def main():
             cluster_prot = []
             for prot in cluster:
                 #print prot
+
                 out_id = None
+                if args.orig_id:
+                    #kdrew: default id is the original id
+                    out_id = [prot,]
+
                 for acc in inputID2ACC_map[prot]:
                     if len(ACC2outputID_map[acc]) == 0:
                         continue
@@ -110,8 +117,14 @@ def main():
         for clustid, cluster in enumerate(clusters):
             for prot_pair in it.combinations(cluster,2):
                 #print prot
+
                 out_id1 = None
                 out_id2 = None
+                if args.orig_id:
+                    #kdrew: default id is the original id
+                    out_id1 = [prot_pair[0],]
+                    out_id2 = [prot_pair[1],]
+
                 for acc1 in inputID2ACC_map[prot_pair[0]]:
                     if len(ACC2outputID_map[acc1]) == 0:
                         continue
