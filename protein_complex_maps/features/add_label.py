@@ -24,10 +24,22 @@ def main():
                                     help="Filename of output file, default=None which prints to stdout")
     parser.add_argument("--fillna", action="store", dest="fillna", required=False, default=None, 
                                     help="If set, fills NAs with input value")
+    parser.add_argument("--int_convert", action="store_true", dest="int_convert", required=False, default=False, 
+                                    help="Convert id_columns to int")
+    parser.add_argument("--index_col0", action="store_true", dest="index_col0", required=False, default=False, 
+                                    help="input_feature_matrix includes unnamed index column at position 0")
     args = parser.parse_args()
 
 
-    feature_table = pd.read_csv(args.feature_matrix,sep=args.sep, index_col=0)
+    if len(args.id_columns) != 2:
+        print "Error: must provide two id columns"
+        return -1
+
+    if args.index_col0:
+        feature_table = pd.read_csv(args.feature_matrix,sep=args.sep, index_col=0)
+    else:
+        feature_table = pd.read_csv(args.feature_matrix,sep=args.sep)
+
     if args.fillna != None:
         feature_table = feature_table.fillna(float(args.fillna))
 
@@ -38,17 +50,19 @@ def main():
     neg_ppis = set()
     for line in positive_file.readlines():
         if len(line.split()) >= 2:
-            id1 = int(line.split()[0])
-            id2 = int(line.split()[1])
+            id1 = line.split()[0]
+            id2 = line.split()[1]
             all_proteins.add(id1)
             all_proteins.add(id2)
 
-            ppis.add(frozenset([id1,id2]))
+            ppi_str = str(sorted(list(frozenset([id1,id2]))))
+            ppis.add(ppi_str)
 
-    for pair in it.combinations(all_proteins,2):
-        if frozenset(pair) not in ppis:
+    for cpair in it.combinations(all_proteins,2):
+        pair = str(sorted(list(frozenset(cpair))))
+        if pair not in ppis:
             #print "pair is neg: %s" % ' '.join(pair)
-            neg_ppis.add(frozenset(pair))
+            neg_ppis.add(pair)
 
 
     print "size of neg_ppis: %s" % len(neg_ppis)
@@ -61,8 +75,29 @@ def main():
     #kdrew: it changed when the ids were floats instead of ints to a single column (not a dataframe)
     #is_ppis = feature_table[['gene_id','bait_geneid']].apply(set,axis=1)['gene_id'].isin(ppis)
     #is_neg_ppis = feature_table[['gene_id','bait_geneid']].apply(set,axis=1)['gene_id'].isin(neg_ppis)
-    is_ppis = feature_table[args.id_columns].apply(set,axis=1).isin(ppis)
-    is_neg_ppis = feature_table[args.id_columns].apply(set,axis=1).isin(neg_ppis)
+
+
+    if 'id1_str' not in feature_table.columns and 'id2_str' not in feature_table.columns:
+        if args.int_convert:
+            feature_table['id1_str'] = feature_table[args.id_columns[0]].astype(int).apply(str)
+            feature_table['id2_str'] = feature_table[args.id_columns[1]].astype(int).apply(str)
+        else:
+            feature_table['id1_str'] = feature_table[args.id_columns[0]].apply(str)
+            feature_table['id2_str'] = feature_table[args.id_columns[1]].apply(str)
+        feature_table['frozenset_ids'] = map(frozenset,feature_table[['id1_str','id2_str']].values)
+        feature_table['frozenset_ids_str_order'] = feature_table['frozenset_ids'].apply(list).apply(sorted).apply(str)
+    else:
+        print "Warning: id1_str / id2_str are already in feature table"
+
+    #print list(ppis)[:10]
+    #print feature_table['frozenset_ids_str_order'].values[:10]
+
+    #is_ppis = feature_table[args.id_columns].apply(set,axis=1).isin(ppis)
+    #is_ppis = feature_table['frozenset_ids_order'].isin(ppis)
+    is_ppis = [x in ppis for x in feature_table['frozenset_ids_str_order'].values] 
+    #is_neg_ppis = feature_table[args.id_columns].apply(set,axis=1).isin(neg_ppis)
+    #is_neg_ppis = feature_table['frozenset_ids_str_order'].isin(neg_ppis)
+    is_neg_ppis = [x in neg_ppis for x in feature_table['frozenset_ids_str_order'].values]
 
     labels = [1 if is_ppis[index] else -1 if is_neg_ppis[index] else 0 for index in xrange(len(is_ppis))]
     
@@ -72,8 +107,8 @@ def main():
     feature_table['is_neg_ppis'] = is_neg_ppis
     print len(ppis)
     print len(neg_ppis)
-    print is_ppis.sum()
-    print is_neg_ppis.sum()
+    print is_ppis.count(True)
+    print is_neg_ppis.count(True)
     #print feature_table[['gene_id','bait_geneid','is_ppis','is_neg_ppis','label']].head()
 
 
