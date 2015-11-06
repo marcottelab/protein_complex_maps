@@ -35,29 +35,33 @@ def main():
     args = parser.parse_args()
 
     #bioplex_feature_table = pd.read_csv("/home/kdrew/data/bioplex/150408_CDF_STAR_GRAPH_Ver2594_dollarsign.txt.test",sep='$')
-    bioplex_feature_table = pd.read_csv(args.feature_matrix, sep=args.sep)
+    feature_table = pd.read_csv(args.feature_matrix, sep=args.sep)
 
+    
 
     #kdrew: merge table to itself to get pairs of proteins with same bait
-    bioplex_feature_shared_bait_table = bioplex_feature_table.merge(bioplex_feature_table, on=args.bait_id_column)
+    feature_shared_bait_table = feature_table.merge(feature_table, on=args.bait_id_column)
+
+    print feature_shared_bait_table.columns
 
     #print bioplex_feature_shared_bait_table[['gene_id_x','gene_id_y']]
 
     #kdrew: create set of id pairs (need set because merge generates duplicate gene pairs, also deals with order)
-    df_tmp = bioplex_feature_shared_bait_table[[args.id_column+'_x',args.id_column+'_y']].apply(frozenset,axis=1)
-    bioplex_feature_shared_bait_table['gene_id_set'] = df_tmp
+    #df_tmp = feature_shared_bait_table[[args.id_column+'_x',args.id_column+'_y']].apply(frozenset,axis=1)
+    df_tmp = map(frozenset, feature_shared_bait_table[[args.id_column+'_x',args.id_column+'_y']].values)
+    feature_shared_bait_table['gene_id_set'] = df_tmp
     #bioplex_feature_shared_bait_table['gene_id_set'] = bioplex_feature_shared_bait_table[[args.id_column+'_x',args.id_column+'_y']].apply(frozenset,axis=1)[args.id_column+'_x']
 
     #bioplex_feature_shared_bait_table['gene_id_set'] = bioplex_feature_shared_bait_table[['gene_id_x','gene_id_y']].apply(frozenset,axis=1)['gene_id_x']
     #kdrew: generate tuple of set so groupby works, apparently cannot use cmp on sets
-    bioplex_feature_shared_bait_table['gene_id_tup'] = bioplex_feature_shared_bait_table['gene_id_set'].apply(tuple)
+    feature_shared_bait_table['gene_id_tup'] = feature_shared_bait_table['gene_id_set'].apply(tuple)
 
     #kdrew: number of times pair is found (unique baits), 'k' in Hart etal 2007 
-    ks = bioplex_feature_shared_bait_table.groupby('gene_id_tup').bait_geneid.nunique()
+    ks = feature_shared_bait_table.groupby('gene_id_tup')[args.bait_id_column].nunique()
     #kdrew: number of times individual id is found (unique baits), 'm' and 'n' in Hart etal 2007 
-    ms = bioplex_feature_shared_bait_table.groupby(args.id_column+'_x').bait_geneid.nunique()
+    ms = feature_shared_bait_table.groupby(args.id_column+'_x')[args.bait_id_column].nunique()
     #kdrew: number of total experiments (unique baits), 'N' in Hart etal 2007 
-    N = bioplex_feature_shared_bait_table.bait_geneid.nunique()
+    N = feature_shared_bait_table[args.bait_id_column].nunique()
 
 
     #for gene_ids in bioplex_feature_shared_bait_table.gene_id_tup:
