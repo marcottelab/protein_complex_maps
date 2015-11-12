@@ -91,35 +91,44 @@ def main():
     #only_features_results_sorted_key2int = only_features_results_sorted_key2int.dropna().astype(object)
     only_features_results_sorted_keys_noself = only_features_results_sorted_keys[only_features_results_sorted_keys[args.id_columns[0]] != only_features_results_sorted_keys[args.id_columns[1]]]
 
+    legacy = False
     if args.add_prob:
-        only_features_results_sorted.columns = ['key1_int','key2_int'] 
-        #kdrew: adding full feature and results sorted (to get a handle on probability) 
-        features_results_sorted_key2int = pd.concat([only_features_results_sorted_key2int,only_features_results_sorted], axis=1)
-        del only_features_results_sorted_key2int
-        del only_features_results_sorted
+        if legacy:
+            only_features_results_sorted.columns = ['key1_int','key2_int'] 
+            #kdrew: adding full feature and results sorted (to get a handle on probability) 
+            features_results_sorted_key2int = pd.concat([only_features_results_sorted_key2int,only_features_results_sorted], axis=1)
+            del only_features_results_sorted_key2int
+            del only_features_results_sorted
 
-        #kdrew: remove self
-        features_results_sorted_key2int_noself = features_results_sorted_key2int[features_results_sorted_key2int['key1_int'] != features_results_sorted_key2int['key2_int']]
-        del features_results_sorted_key2int
+            #kdrew: remove self
+            features_results_sorted_key2int_noself = features_results_sorted_key2int[features_results_sorted_key2int['key1_int'] != features_results_sorted_key2int['key2_int']]
+            del features_results_sorted_key2int
 
-        #kdrew: trim to just keys and prob
-        keys_wprob = features_results_sorted_key2int_noself[['key1_int','key2_int','svm_pos_prob']]
-        del features_results_sorted_key2int_noself
+            #kdrew: trim to just keys and prob
+            keys_wprob = features_results_sorted_key2int_noself[['key1_int','key2_int','svm_pos_prob']]
+            del features_results_sorted_key2int_noself
 
-        #kdrew: remove duplicate rows where the keys are the same
-        keys_nodups = keys_wprob.drop_duplicates(['key1_int','key2_int'])
-        print keys_nodups
-        print " "
-        #kdrew: remove NAs
-        keys_nodups = keys_nodups.dropna()
-        print keys_nodups
-        print " "
-        #kdrew: convert type to int
-        if args.int_convert:
-            keys_nodups['key1_int'] = keys_nodups['key1_int'].astype(int)
-            keys_nodups['key2_int'] = keys_nodups['key2_int'].astype(int)
-        print keys_nodups
-        print " "
+            #kdrew: remove duplicate rows where the keys are the same
+            keys_nodups = keys_wprob.drop_duplicates(['key1_int','key2_int'])
+            print keys_nodups
+            print " "
+            #kdrew: remove NAs
+            keys_nodups = keys_nodups.dropna()
+            print keys_nodups
+            print " "
+            #kdrew: convert type to int
+            if args.int_convert:
+                keys_nodups['key1_int'] = keys_nodups['key1_int'].astype(int)
+                keys_nodups['key2_int'] = keys_nodups['key2_int'].astype(int)
+            print keys_nodups
+            print " "
+
+        else:
+            keys_and_prob = only_features_results_sorted[args.id_columns+['svm_pos_prob']]
+            keys_and_prob_noself = keys_and_prob[keys_and_prob[args.id_columns[0]] != keys_and_prob[args.id_columns[1]]]
+            keys_nodups = keys_and_prob_noself.drop_duplicates()
+            keys_nodups = keys_nodups.dropna()
+
 
     else:
         #kdrew: only want keys
