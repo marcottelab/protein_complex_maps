@@ -4,6 +4,7 @@ import pandas as pd
 import pickle as p
 import argparse
 
+
 class ComplexComparison(object):
 
     def __init__(self, gold_standard=[], clusters=[]):
@@ -14,12 +15,18 @@ class ComplexComparison(object):
 
         #kdrew: dataframe where columns are clusters and rows are complexes(gold standard)
         self.intersection_table = None
+        self.na_table = None
 
     def get_gold_standard(self,):
         return self.gold_standard
 
     def get_clusters(self,):
         return self.clusters
+
+    def get_na_table(self,):
+        if self.na_table is None:
+            self.generate_na_table()
+        return self.na_table
 
     def get_intersection_table(self,):
         if self.intersection_table is None:
@@ -28,6 +35,34 @@ class ComplexComparison(object):
 
     #kdrew: different metrics for comparing complexes and clusters
 
+    #kdrew: convience wrapper function
+    def mmr(self,topN=None):
+        return self.max_matching_ratio(topN)
+
+    #kdrew: method described in Yang et al. BMC Medical Genomics Integrating PPI datasets with the PPI data from biomedical literature for protein complex detection (2014)
+    def max_matching_ratio(self,topN=None):
+        df = self.get_na_table()
+        #kdrew: if we want to only do a range of clusters (topN), we probably want to slice sn_df here
+        if topN != None:
+            df = df.ix[:,:topN]
+        #print df
+        max_df = df.max(axis=1)
+        #print max_df
+        sum_max_df = max_df.sum()
+        #print sum_max_df
+        num_of_gold_complexes = len(self.get_gold_standard())
+        #print num_of_gold_complexes
+
+        mmr = sum_max_df / num_of_gold_complexes
+        #print mmr
+        return mmr
+
+
+
+    #kdrew: method from Brohee and Helden BMC Bioinformatics, http://www.biomedcentral.com/content/pdf/1471-2105-7-488.pdf
+    #kdrew: intersection/size_of_gold = percent coverage of given complex
+    #kdrew: find max
+    #kdrew: size_of_gold * max_percent_coverage  / size_of_gold
     def sensitivity(self, topN=None):
         df = self.get_intersection_table()
         #kdrew: if we want to only do a range of clusters (topN), we probably want to slice sn_df here
@@ -41,6 +76,7 @@ class ComplexComparison(object):
         Sn = 1.0*sum(sn_co * goldstd_sizes) / sum(goldstd_sizes)
         return Sn
         
+    #kdrew: method from Brohee and Helden BMC Bioinformatics, http://www.biomedcentral.com/content/pdf/1471-2105-7-488.pdf
     def ppv(self, topN=None):
         df = self.get_intersection_table()
         #kdrew: if want to do a range of clusters (topN) we probably want to slice df here
@@ -49,12 +85,17 @@ class ComplexComparison(object):
         ppv_df = df.divide(1.0*df.sum())
         ppv_df = ppv_df.fillna(0.0)
         PPV_cl = ppv_df.max()
-        PPV = 1.0*sum(PPV_cl * df.sum()) / sum(df.sum())
+        try:
+            PPV = 1.0*sum(PPV_cl * df.sum()) / sum(df.sum())
+        except ZeroDivisionError:
+            PPV = None
         return PPV
 
+    #kdrew: method from Brohee and Helden BMC Bioinformatics, http://www.biomedcentral.com/content/pdf/1471-2105-7-488.pdf
     def acc(self, topN=None):
         Sn = self.sensitivity(topN)
         PPV = self.ppv(topN)
+        #kdrew: geometric mean
         Acc = (Sn * PPV) ** (1.0/2)
         return Acc
         
@@ -68,4 +109,47 @@ class ComplexComparison(object):
             rows_list.append(d)
         self.intersection_table = pd.DataFrame(rows_list)
 
+    #kdrew: method described in Yang et al. BMC Medical Genomics Integrating PPI datasets with the PPI data from biomedical literature for protein complex detection (2014)
+    #kdrew: this is also the Bader Score from:  http://www.biomedcentral.com/1471-2105/4/2 
+    def generate_na_table(self,):
+        rows_list = []
+        for cc in self.get_gold_standard():
+            d = dict()
+            for i, clst in enumerate(self.get_clusters()):
+                numerator = (1.0*len(set.intersection(set(clst),set(cc))))**2
+                denominator = 1.0 * (len(set(clst)) * len(set(cc)))
+
+                d[i] = numerator / denominator 
+            rows_list.append(d)
+        self.na_table = pd.DataFrame(rows_list)
+
+def main():
+
+    parser = argparse.ArgumentParser(description="Compare cluster predictions to gold standard complexes")
+    parser.add_argument("--cluster_predictions", action="store", dest="cluster_filename", required=True, 
+                                            help="Filename of cluster predictions, format one cluster per line, ids space separated")
+    parser.add_argument("--gold_standard", action="store", dest="gold_standard_filename", required=True, 
+                                            help="Filename of gold standard complexes, format one complex per line, ids space separated")
+
+    args = parser.parse_args()
+
+    gold_standard_complexes = []
+    gold_file = open(args.gold_standard_filename,"rb")
+    for line in gold_file.readlines():
+        gold_standard_complexes.append(line.split())
+
+    predicted_clusters = []
+    clpred_f = open(args.cluster_filename,"rb")
+    for line in clpred_f.readlines():
+        predicted_clusters.append(line.split())
+
+    cplx_compare = ComplexComparison(gold_standard_complexes, predicted_clusters)
+    print "Sensitivity: %s" % cplx_compare.sensitivity()
+    print "PPV: %s" % cplx_compare.ppv()
+    print "ACC: %s" % cplx_compare.acc()
+    print "MMR: %s" % cplx_compare.mmr()
+
+
+if __name__ == "__main__":
+        main()
 
