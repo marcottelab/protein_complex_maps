@@ -50,6 +50,7 @@ def main():
                 d['genename'].append(genename_map[inputID2ACC_map[prot_id][0]])
             except IndexError:
                 d['genename'].append(None)
+                d['acc'].append(None)
 
 
 
