@@ -111,6 +111,7 @@ class ComplexComparison(object):
 
     #kdrew: method described in Yang et al. BMC Medical Genomics Integrating PPI datasets with the PPI data from biomedical literature for protein complex detection (2014)
     #kdrew: this is also the Bader Score from:  http://www.biomedcentral.com/1471-2105/4/2 
+    #kdrew: NA = Neighborhood Affinity
     def generate_na_table(self,):
         rows_list = []
         for cc in self.get_gold_standard():

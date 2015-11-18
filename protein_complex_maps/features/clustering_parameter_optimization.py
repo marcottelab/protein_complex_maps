@@ -144,6 +144,7 @@ def main():
             best_overlap = overlap
             best_seed_method = seed_method
             best_fraction = fraction
+            print "best size: %s density: %s overlap: %s seed_method: %s fraction: %s" % (best_size, best_density, best_overlap, best_seed_method, best_fraction)
 
 
 
@@ -193,7 +194,7 @@ def comparison_helper(parameter_tuple):
     d['sensitivity'] = cplx_cmp.sensitivity()
     d['ppv'] = cplx_cmp.ppv()
     d['mmr'] = cplx_cmp.mmr()
-    d['percent_ppi_recovered'] = (1.0*ppi_recovered_count) / len(ppi)
+    d['percent_ppi_recovered'] = (1.0*ppi_recovered_count) / len(test_net)
 
     return d
 
