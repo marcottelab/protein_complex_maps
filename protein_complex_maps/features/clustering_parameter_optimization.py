@@ -91,24 +91,36 @@ def main():
     best_eval = None
 
     p = mp.Pool(args.procs)
-    for size, density, fraction, overlap, seed_method in it.product(size_sweep, density_sweep, fraction_sweep, overlap_sweep, seed_method_sweep ):
+    network_input_list = []
+    for ii, parameters  in enumerate(it.product(size_sweep, density_sweep, fraction_sweep, overlap_sweep, seed_method_sweep )):
+        #kdrew: unpack parameters
+        size, density, fraction, overlap, seed_method = parameters
 
         #kdrew: only take the topN ppis, assumes already sorted network (probably stupidly)
         sizeOfTopNetwork = int(len(input_network_list)*float(fraction))
         network_list = input_network_list[0:sizeOfTopNetwork]
 
         #kdrew: cluster network_list
-        multiproc_input = (network_list, args, str(size), str(density), str(overlap), str(seed_method), 0)
-        cluster_prediction, ii = cluster_helper( multiproc_input )
-        
+        parameter_input = (network_list, args, str(size), str(density), str(overlap), str(seed_method), str(fraction), ii)
+        #kdrew: append to list of parameters for input into multiprocessor map
+        network_input_list.append(parameter_input)
+
+    #kdrew: call clustering on parameter combinations
+    cluster_predictions = p.map(cluster_helper, network_input_list)
+
+    #kdrew: iterate through clustering results, returns tuple of prediction and number of iteration (ii)
+    for cluster_prediction, ii in cluster_predictions:
+        network_list = network_input_list[ii][0]
+        size = network_input_list[ii][2] 
+        density = network_input_list[ii][3] 
+        overlap = network_input_list[ii][4] 
+        seed_method = network_input_list[ii][5] 
+        fraction = network_input_list[ii][6] 
+
         #kdrew: compare gold standard vs predicted clusters
         cplx_comparison = cc.ComplexComparison(gold_standard_complexes, cluster_prediction) 
 
         metric_dict = dict()
-        #metric_dict['acc'] = np.mean([result.acc() for result in cplx_comparisons])
-        #metric_dict['sensitivity'] = np.mean([result.sensitivity() for result in cplx_comparisons])
-        #metric_dict['ppv'] = np.mean([result.ppv() for result in cplx_comparisons])
-        #metric_dict['mmr'] = np.mean([result.mmr() for result in cplx_comparisons])
         metric_dict['acc'] = cplx_comparison.acc() 
         metric_dict['sensitivity'] = cplx_comparison.sensitivity() 
         metric_dict['ppv'] = cplx_comparison.ppv() 
@@ -126,7 +138,7 @@ def main():
         bootstrapped_networks = [ sn[:sizeOfBootstrap] for sn in shuffled_networks ]
         bootstrapped_test_networks = [ sn[sizeOfBootstrap:] for sn in shuffled_networks ]
 
-        multiproc_input = [(boot_net, args, str(size), str(density), str(overlap), str(seed_method), i) for i, boot_net in enumerate(bootstrapped_networks)]
+        multiproc_input = [(boot_net, args, str(size), str(density), str(overlap), str(seed_method), str(fraction), i) for i, boot_net in enumerate(bootstrapped_networks)]
         bootstrapped_cluster_predictions = p.map(cluster_helper, multiproc_input)
 
         #kdrew: compare full clustered set vs bootstrapped clusters
@@ -144,23 +156,25 @@ def main():
             best_overlap = overlap
             best_seed_method = seed_method
             best_fraction = fraction
-            print "best size: %s density: %s overlap: %s seed_method: %s fraction: %s" % (best_size, best_density, best_overlap, best_seed_method, best_fraction)
+            best_cluster_prediction = cluster_prediction
+            print "best size: %s density: %s overlap: %s seed_method: %s fraction: %s numOfClusters: %s" % (best_size, best_density, best_overlap, best_seed_method, best_fraction, len(best_cluster_prediction))
 
 
 
 
-    #kdrew: only take the topN ppis, assumes already sorted network (probably stupidly)
-    sizeOfTopNetwork_best = int(len(input_network_list)*float(best_fraction))
-    network_list_best = input_network_list[0:sizeOfTopNetwork_best]
-
-    #kdrew: cluster network_list
-    multiproc_input_best = (network_list_best, args, str(best_size), str(best_density), str(best_overlap), str(best_seed_method), 0)
-    cluster_prediction_best, ii = cluster_helper( multiproc_input_best )
+    ##kdrew: only take the topN ppis, assumes already sorted network (probably stupidly)
+    #sizeOfTopNetwork_best = int(len(input_network_list)*float(best_fraction))
+    #network_list_best = input_network_list[0:sizeOfTopNetwork_best]
+    #
+    ##kdrew: cluster network_list
+    #multiproc_input_best = (network_list_best, args, str(best_size), str(best_density), str(best_overlap), str(best_seed_method), 0)
+    #cluster_prediction_best, ii = cluster_helper( multiproc_input_best )
 
     
+    #kdrew: output best cluster prediction
     if args.output_file != None:
         with open (args.output_file, "w") as output_file:
-            for cluster in cluster_prediction_best:
+            for cluster in best_cluster_prediction:
                 output_file.write(' '.join(cluster))
                 output_file.write("\n")
 
@@ -205,7 +219,8 @@ def cluster_helper(parameter_tuple):
     density = parameter_tuple[3]
     overlap = parameter_tuple[4]
     seed_method = parameter_tuple[5]
-    i = parameter_tuple[6]
+    fraction = parameter_tuple[6]
+    i = parameter_tuple[7]
 
     #kdrew: create temp file for bootstrapped input network, clusterone requires a file input
     fileTemp = tf.NamedTemporaryFile(delete=False)
