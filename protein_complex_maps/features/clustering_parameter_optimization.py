@@ -55,6 +55,8 @@ def main():
                                     help="Evaluation metric used to determine best set of parameters (mmr, acc, sensitivity, ppv), default=mmr")
     parser.add_argument("--procs", action="store", type=int, dest="procs", required=False, default=1,
                                     help="Number processors to use (int), default=1)")
+    parser.add_argument("--temp_dir", action="store", dest="temp_dir", required=False, default=None,
+                                    help="Where to store temporary files generated during processing, default=None (defaults to OS level tmp), in memory suggestion = /dev/shm/")
 
     args = parser.parse_args()
 
@@ -104,7 +106,7 @@ def main():
     p = mp.Pool(args.procs)
     network_input_list = []
     for ii, parameters  in enumerate(it.product(size_sweep, density_sweep, fraction_sweep, overlap_sweep, seed_method_sweep, inflation_sweep )):
-        print parameters
+        #print parameters
         #kdrew: unpack parameters
         size, density, fraction, overlap, seed_method, inflation  = parameters
 
@@ -268,7 +270,7 @@ def cluster_helper(parameter_dict):
     inflation = parameter_dict['inflation']
 
     #kdrew: create temp file for bootstrapped input network, clusterone requires a file input
-    fileTemp = tf.NamedTemporaryFile(delete=False)
+    fileTemp = tf.NamedTemporaryFile(delete=False, dir=args.temp_dir)
     try:
         #kdrew: write input_network or bootstrapped input network to temp file
         #fileTemp.write(input_network_str)
@@ -295,8 +297,8 @@ def cluster_helper(parameter_dict):
         #kdrew: for each predicted cluster, recluster using MCL
         for clust in predicted_clusters:
             #kdrew: for every pair in cluster find edge weight in input_network_list(?)
-            fileTemp = tf.NamedTemporaryFile(delete=False)
-            outTemp = tf.NamedTemporaryFile(delete=False)
+            fileTemp = tf.NamedTemporaryFile(delete=False, dir=args.temp_dir)
+            outTemp = tf.NamedTemporaryFile(delete=False, dir=args.temp_dir)
             #print fileTemp.name
             #print outTemp.name
             try:
