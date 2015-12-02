@@ -168,6 +168,7 @@ def main():
 
         for i, boot_net in enumerate(bootstrapped_networks):
             parameter_dict = dict()
+            parameter_dict['ppi_scores'] = ppi_scores
             parameter_dict['network_list'] = boot_net
             parameter_dict['args'] = args
             parameter_dict['size'] = str(size)
@@ -288,12 +289,16 @@ def cluster_helper(parameter_dict):
         if len(line.split() ) > 0:
             predicted_clusters.append(line.split())
 
-    if inflation != None:
+    #kdrew: converted inflation into str for use on commandline but if None check against str(None)
+    if inflation != str(None):
+        mcl_clusters = []
         #kdrew: for each predicted cluster, recluster using MCL
         for clust in predicted_clusters:
             #kdrew: for every pair in cluster find edge weight in input_network_list(?)
             fileTemp = tf.NamedTemporaryFile(delete=False)
             outTemp = tf.NamedTemporaryFile(delete=False)
+            #print fileTemp.name
+            #print outTemp.name
             try:
                 for prot1, prot2 in it.combinations(clust,2):
                     try:
@@ -301,20 +306,28 @@ def cluster_helper(parameter_dict):
                     except KeyError:
                         ppi_score = 0.0
 
-                    ppi_str = "%s\t%s\t%s" % (prot1, prot2, ppi_score)
+                    ppi_str = "%s\t%s\t%s\n" % (prot1, prot2, ppi_score)
                     fileTemp.write(ppi_str)
                 fileTemp.close()
 
-                proc = sp.Popen([args.mcl_bin, fileTemp.name, '-abc', '-o', outTemp.name, '-I', inflation], stdout=sp.PIPE, stderr=sp.PIPE)
+                proc = sp.Popen([args.mcl_bin, fileTemp.name, '--abc', '-o', outTemp.name, '-I', inflation], stdout=sp.PIPE, stderr=sp.PIPE)
                 mcl_out, err = proc.communicate()
 
-                print mcl_out
+                #print mcl_out
+                #print err
+
+                outfile = open(outTemp.name,"rb")
+                for line in outfile.readlines():
+                    mcl_clusters.append(line.split())
+                outfile.close()
 
 
             finally:
                 os.remove(fileTemp.name)
                 os.remove(outTemp.name)
+                #print "in finally"
 
+        predicted_clusters = mcl_clusters
 
 
     return predicted_clusters, i
