@@ -16,6 +16,8 @@ def main():
                                     help="Filename of input feature matrix")
     parser.add_argument("--input_positives", action="store", dest="positives", required=True, 
                                     help="Filenanme of positive pairs")
+    parser.add_argument("--input_negatives", action="store", dest="negatives", required=False, default=None,
+                                    help="Filenanme of negative pairs, default = None (generated from processing positives)")
     parser.add_argument("--sep", action="store", dest="sep", required=False, default='$',
                                     help="Separator for reading csv, default=$")
     parser.add_argument("--id_columns", action="store", dest="id_columns", nargs='+', required=True, 
@@ -58,11 +60,22 @@ def main():
             ppi_str = str(sorted(list(frozenset([id1,id2]))))
             ppis.add(ppi_str)
 
-    for cpair in it.combinations(all_proteins,2):
-        pair = str(sorted(list(frozenset(cpair))))
-        if pair not in ppis:
-            #print "pair is neg: %s" % ' '.join(pair)
-            neg_ppis.add(pair)
+    #kdrew: generate negative list by generating all pairs of proteins in positives but edges are not in positive list
+    if args.negatives == None:
+        for cpair in it.combinations(all_proteins,2):
+            pair = str(sorted(list(frozenset(cpair))))
+            if pair not in ppis:
+                #print "pair is neg: %s" % ' '.join(pair)
+                neg_ppis.add(pair)
+    else:
+        #kdrew: readin from file
+        negative_file = open(args.negatives,"rb")
+        for line in negative_file.readlines():
+            if len(line.split()) >= 2:
+                id1 = line.split()[0]
+                id2 = line.split()[1]
+                ppi_str = str(sorted(list(frozenset([id1,id2]))))
+                neg_ppis.add(ppi_str)
 
 
     print "size of neg_ppis: %s" % len(neg_ppis)
