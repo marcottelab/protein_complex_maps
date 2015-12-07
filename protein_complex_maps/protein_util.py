@@ -168,7 +168,8 @@ def get_from_uniprot( protein_ids, keyword ):
 		#print report_query
 		try:
 			f = urllib2.urlopen(report_query)
-		except urllib2.HTTPError:
+		except urllib2.HTTPError, msg:
+                        print msg
 			continue
 
 		for line in f.readlines():
