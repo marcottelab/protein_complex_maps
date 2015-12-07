@@ -21,7 +21,7 @@ class MSDataSet(object):
 		self.__frac_dict = dict()
 		self.__mappings = dict()
 
-	def get_data_frame(self,ids=None, ignoreNonExistingIds=False):
+	def get_data_frame(self, ids=None, ignoreNonExistingIds=False):
 		if ids == None:
 			df = pandas.DataFrame( self.__master_data_matrix.transpose(), columns=self.__master_name_list, index=self.__master_fraction_list )
 		else:
@@ -462,29 +462,30 @@ class MSDataSet(object):
 
 
 def read_datafile(fhandle, header=True):
-	fraction_list = None
-	if header:
-		#kdrew: eat header
-		line = fhandle.readline()
-		print "HEADER: %s" % line
-		fraction_list = line.split()[2:]
+    fraction_list = None
+    if header:
+        #kdrew: eat header
+        line = fhandle.readline()
+        print "HEADER: %s" % line
+        assert(line.split()[1] == 'TotalCount', "Error: missing column names, check --msblender_format in msblender2elution_profile.py")
+        fraction_list = line.split()[2:]
 	
-	data = []
-	name_list = []
+    data = []
+    name_list = []
 
-	for line in fhandle.readlines():
-		print line
-		line_data = line.split()
-		name_list.append(line_data[0])
-		line_array = map(float,line_data[2:])
-		logging.debug(line_array)
-		data.append(line_array)
+    for line in fhandle.readlines():
+        print line
+        line_data = line.split()
+        name_list.append(line_data[0])
+        line_array = map(float,line_data[2:])
+        logging.debug(line_array)
+        data.append(line_array)
 
-	#print data
+    #print data
 
-	data_matrix = np.asmatrix(data)
+    data_matrix = np.asmatrix(data)
 
-	return data_matrix, name_list, fraction_list
+    return data_matrix, name_list, fraction_list
 
 #kdrew: fill_missing is used when one matrix has names (genes) that the other matrix does not have and missing entries needs to be filled for the other matrix
 #kdrew: default is np.zeros but np.nan might be useful too
