@@ -15,6 +15,8 @@ def main():
                                             help="Filename to output  merged clusters")
     parser.add_argument("--merge_threshold", action="store", type=float, dest="merge_threshold", required=True, 
                                             help="Jiccard similarity threshold on which to merge")
+    parser.add_argument("--remove_largest", action="store_true", dest="remove_largest", required=False, default=False,
+                                            help="Instead of merging similar clusters, remove largest")
 
     args = parser.parse_args()
 
@@ -45,8 +47,18 @@ def main():
                     cluster1_set = frozenset(cluster1)
                     cluster2_set = frozenset(cluster2)
                     #print "merging %s : %s" % (cluster1, cluster2)
-                    cluster_union = frozenset(cluster1_set.union(cluster2_set))
-                    merged_clusters.add(cluster_union)
+
+                    if args.remove_largest:
+                        #kdrew: add the smaller cluster to the final set
+                        if len(cluster1_set) < len(cluster2_set):
+                            merged_clusters.add(cluster1_set)
+                        else:
+                            merged_clusters.add(cluster2_set)
+
+                    else:
+                        cluster_union = frozenset(cluster1_set.union(cluster2_set))
+                        merged_clusters.add(cluster_union)
+
                     merged_count += 1
 
                     #kdrew: remember the clusters that were merged
