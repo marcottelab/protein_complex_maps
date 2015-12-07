@@ -19,11 +19,13 @@ class SharedBaitFeatureTest(unittest.TestCase):
 
     def testSharedBaitFeature(self, ):
         result_table = sbf.shared_bait_feature(self.feature_table, 'bait_geneid', 'gene_id')
+        print "result_table"
         print result_table
 
         print result_table[(result_table['gene_id1'] == '2') & (result_table['gene_id2'] == '3')]
-        assert(result_table[(result_table['gene_id1'] == '2') & (result_table['gene_id2'] == '3')].pair_count == 3)
-        np.testing.assert_almost_equal(result_table[(result_table['gene_id1'] == '2') & (result_table['gene_id2'] == '3')].neg_ln_pval, 2.302585 )
+        print result_table[(result_table['gene_id1'] == '2') & (result_table['gene_id2'] == '3')].pair_count
+        assert((result_table[(result_table['gene_id1'] == '2') & (result_table['gene_id2'] == '3')].pair_count == 3).all())
+        np.testing.assert_almost_equal(result_table[(result_table['gene_id1'] == '2') & (result_table['gene_id2'] == '3')].neg_ln_pval.values, 2.302585 )
 
 
 
