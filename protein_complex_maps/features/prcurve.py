@@ -24,6 +24,10 @@ def main():
                                     help="Filename of negative pairs, default = None (generated from processing positives)")
     parser.add_argument("--output_file", action="store", dest="output_file", required=True, 
                                     help="Filename of output file")
+    parser.add_argument("--labels", action="store", dest="labels", nargs='+', required=False, default=None,
+                                    help="Labels for input results in order of --results_wprob list")
+    parser.add_argument("--threshold", action="store", type=float, dest="threshold", required=False, 
+                                    help="Filename of output file")
 
     args = parser.parse_args()
 
@@ -81,12 +85,13 @@ def main():
         true_array = []
         prob_array = []
         for result_pair in results_dict.keys():
-            if result_pair in ppis:
-                true_array.append(1)
-                prob_array.append(results_dict[result_pair])
-            elif result_pair in neg_ppis:
-                true_array.append(-1)
-                prob_array.append(results_dict[result_pair])
+            if args.threshold == None or args.threshold <= results_dict[result_pair]:
+                if result_pair in ppis:
+                    true_array.append(1)
+                    prob_array.append(results_dict[result_pair])
+                elif result_pair in neg_ppis:
+                    true_array.append(-1)
+                    prob_array.append(results_dict[result_pair])
 
 
         print len(true_array)
@@ -95,7 +100,10 @@ def main():
         precision, recall, thresholds = precision_recall_curve(true_array, prob_array) 
         #average_precision = average_precision_score(true_array, prob_array)
 
-        plt.plot(recall, precision, label=args.results_wprob[i])
+        label = args.results_wprob[i]
+        if args.labels != None:
+            label = args.labels[i]
+        plt.plot(recall, precision, label=label)
 
 
     #plt.clf()
@@ -105,7 +113,7 @@ def main():
     plt.xlim([0.0, 1.0])
     #plt.title('Precision-Recall example: AUC={0:0.2f}'.format(average_precision))
     plt.title('Precision-Recall')
-    plt.legend(loc="lower left",fontsize=8)
+    plt.legend(loc="upper right",fontsize=8)
 
     plt.savefig(args.output_file)
 
