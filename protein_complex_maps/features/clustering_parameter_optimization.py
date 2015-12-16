@@ -42,6 +42,9 @@ def main():
     parser.add_argument("--clusterone_seed_method", action="store", dest="clusterone_seed_method", nargs='+', required=False, 
                                     default=['nodes'], 
                                     help="ClusterOne seed method parameter sweep (nodes, cliques, unused_nodes, edges, default = nodes")
+    #parser.add_argument("--score_transform", action="store", dest="score_transform", nargs='+', required=False, 
+    #                                default=['none'], 
+    #                                help="Transform to apply to scores before clustering (none, log, default = none")
     parser.add_argument("--ppi_fraction", action="store", dest="ppi_fraction", nargs='+', required=False, 
                                     default=[0.005,0.01,0.05,.1,.25,.5,.75,1.0], 
                                     help="Use top fraction for further clustering, default = 0.005 0.01 0.05 .1 .25 .5 .75 1.0")
@@ -113,6 +116,9 @@ def main():
         #kdrew: only take the topN ppis, assumes already sorted network (probably stupidly)
         sizeOfTopNetwork = int(len(input_network_list)*float(fraction))
         network_list = input_network_list[0:sizeOfTopNetwork]
+        #print network_list[-1]
+        threshold_score = float(network_list[-1].split()[2])
+        #print threshold_score
 
         #kdrew: cluster network_list
         parameter_dict = dict()
@@ -124,6 +130,7 @@ def main():
         parameter_dict['overlap'] = str(overlap)
         parameter_dict['seed_method'] = str(seed_method)
         parameter_dict['fraction'] = str(fraction)
+        parameter_dict['threshold_score'] = threshold_score
         parameter_dict['inflation'] = str(inflation)
         parameter_dict['i'] = ii
 
@@ -142,6 +149,7 @@ def main():
         overlap = network_input_list[ii]['overlap']
         seed_method = network_input_list[ii]['seed_method']
         fraction = network_input_list[ii]['fraction']
+        threshold_score = network_input_list[ii]['threshold_score']
         inflation = network_input_list[ii]['inflation']
 
         #kdrew: compare gold standard vs predicted clusters
@@ -152,7 +160,7 @@ def main():
         metric_dict['sensitivity'] = cplx_comparison.sensitivity() 
         metric_dict['ppv'] = cplx_comparison.ppv() 
         metric_dict['mmr'] = cplx_comparison.mmr() 
-        print "size %s, density %s, overlap %s, seed_method %s, fraction %s, inflation %s, acc %s, sensitivity %s, ppv %s, mmr %s" % (size, density, overlap, seed_method, fraction, inflation, metric_dict['acc'], metric_dict['sensitivity'], metric_dict['ppv'], metric_dict['mmr'])
+        print "size %s, density %s, overlap %s, seed_method %s, fraction %s, threshold_score %s, inflation %s, acc %s, sensitivity %s, ppv %s, mmr %s" % (size, density, overlap, seed_method, fraction, threshold_score,  inflation, metric_dict['acc'], metric_dict['sensitivity'], metric_dict['ppv'], metric_dict['mmr'])
 
 
 
@@ -178,6 +186,7 @@ def main():
             parameter_dict['overlap'] = str(overlap)
             parameter_dict['seed_method'] = str(seed_method)
             parameter_dict['fraction'] = str(fraction)
+            parameter_dict['threshold_score'] = threshold_score
             parameter_dict['inflation'] = str(inflation)
             parameter_dict['i'] = i
             multiproc_input.append(parameter_dict)
@@ -266,6 +275,7 @@ def cluster_helper(parameter_dict):
     overlap = parameter_dict['overlap']
     seed_method = parameter_dict['seed_method']
     fraction = parameter_dict['fraction']
+    threshold_score = parameter_dict['threshold_score']
     i = parameter_dict['i']
     inflation = parameter_dict['inflation']
 
@@ -305,6 +315,9 @@ def cluster_helper(parameter_dict):
                 for prot1, prot2 in it.combinations(clust,2):
                     try:
                         ppi_score = ppi_scores[frozenset([prot1,prot2])] 
+                        if ppi_score < threshold_score:
+                            ppi_score = 0.0
+
                     except KeyError:
                         ppi_score = 0.0
 
@@ -315,13 +328,18 @@ def cluster_helper(parameter_dict):
                 proc = sp.Popen([args.mcl_bin, fileTemp.name, '--abc', '-o', outTemp.name, '-I', inflation], stdout=sp.PIPE, stderr=sp.PIPE)
                 mcl_out, err = proc.communicate()
 
+                #print fileTemp.name
+                #print clust
                 #print mcl_out
                 #print err
 
                 outfile = open(outTemp.name,"rb")
                 for line in outfile.readlines():
+                #    print line
                     mcl_clusters.append(line.split())
                 outfile.close()
+
+                #print "\n"
 
 
             finally:
