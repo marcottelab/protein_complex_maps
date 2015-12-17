@@ -166,8 +166,11 @@ class ComplexComparison(object):
 
 
             is_positive_list = [ np.max(map(set(group).issubset,self.get_gold_standard())) for group in it.combinations(clust_intersection, clique_size)]
-            true_positives += sum(is_positive_list)
-            false_positives += sum(np.logical_not(is_positive_list))
+            tp_curr = sum(is_positive_list)
+            true_positives += tp_curr
+            #false_positives += sum(np.logical_not(is_positive_list))
+
+            false_positives += len(is_positive_list) - tp_curr
 
             ##kdrew: for all combinations in cluster of size clique_size
             #for group in it.combinations(clust_intersection, clique_size):
@@ -187,7 +190,7 @@ class ComplexComparison(object):
 
         for gs_clust in self.get_gold_standard():
             is_positive_list = [ np.max(map(set(gs_group).issubset,self.get_clusters())) for gs_group in it.combinations(gs_clust, clique_size) ]
-            gs_true_positives += sum(is_positive_list)
+            #gs_true_positives += sum(is_positive_list)
             false_negatives += sum(np.logical_not(is_positive_list))
 
             #for gs_group in it.combinations(gs_clust, clique_size):
