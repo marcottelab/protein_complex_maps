@@ -1,5 +1,6 @@
     
 import numpy as np
+import numpy.random as rand
 import pandas as pd
 import pickle as p
 import argparse
@@ -131,25 +132,8 @@ class ComplexComparison(object):
         return return_dict
 
 
-    #kdrew: return chunks of size n from list l
-    def chunks(l,n):
-        n = max(1, n)
-        #kdrew: generator that slices list into n chunks, 
-        #kdrew: if the last slice is smaller than n, ignore
-        return [l[i:i + n] for i in xrange(0, len(l), n) if i+n< len(l)]
-
-    #kdrew: generator to return m number of random combinations of size n from list l
-    def rand_combinations(l,n,m):
-        #kdrew: determine the number of shuffling needed
-        i = int(np.ceil(1.0*m/(len(l)/n)))
-        for ii in xrange(i):
-            shuffled_l = rand.permutation(l)
-            for ch in chunks(shuffled_l,n):
-                yield ch
-
-
     #kdrew: calculate confusion matrix between predicted clusters and gold standard complexes for specific clique sizes
-    def clique_comparison(self, clique_size):
+    def clique_comparison(self, clique_size, approximate=True, samples=1000):
         true_positives = 0
         gs_true_positives = 0
         false_positives = 0
@@ -159,13 +143,16 @@ class ComplexComparison(object):
             #print "clust: %s" % (clust,)
             #kdrew: only look at cluster ids that are in the gold standard
             clust_intersection = clust & self.get_gold_standard_proteins()
-            #print "clust_intersection: %s" % (clust_intersection,)
+
             #kdrew: if all proteins are outside of the gold standard, move on
             if len(clust_intersection) <= 0:
                 continue
 
 
-            is_positive_list = [ np.max(map(set(group).issubset,self.get_gold_standard())) for group in it.combinations(clust_intersection, clique_size)]
+            if approximate and len(clust) > 10:
+                is_positive_list = [ np.max(map(set(group).issubset,self.get_gold_standard())) for group in rand_combinations(list(clust_intersection),clique_size,samples)]
+            else:
+                is_positive_list = [ np.max(map(set(group).issubset,self.get_gold_standard())) for group in it.combinations(clust_intersection, clique_size)]
             tp_curr = sum(is_positive_list)
             true_positives += tp_curr
             #false_positives += sum(np.logical_not(is_positive_list))
@@ -189,7 +176,10 @@ class ComplexComparison(object):
 
 
         for gs_clust in self.get_gold_standard():
-            is_positive_list = [ np.max(map(set(gs_group).issubset,self.get_clusters())) for gs_group in it.combinations(gs_clust, clique_size) ]
+            if approximate and len(clust) > 10:
+                is_positive_list = [ np.max(map(set(gs_group).issubset,self.get_clusters())) for gs_group in rand_combinations(list(gs_clust),clique_size,samples)]
+            else:
+                is_positive_list = [ np.max(map(set(gs_group).issubset,self.get_clusters())) for gs_group in it.combinations(gs_clust, clique_size) ]
             #gs_true_positives += sum(is_positive_list)
             false_negatives += sum(np.logical_not(is_positive_list))
 
@@ -237,6 +227,27 @@ class ComplexComparison(object):
                 d[i] = numerator / denominator 
             rows_list.append(d)
         self.na_table = pd.DataFrame(rows_list)
+
+
+#kdrew: return chunks of size n from list l
+def chunks(l,n):
+    n = max(1, n)
+    #kdrew: generator that slices list into n chunks, 
+    #kdrew: if the last slice is smaller than n, ignore
+    return [l[i:i + n] for i in xrange(0, len(l), n) if i+n< len(l)]
+
+#kdrew: generator to return m number of random combinations of size n from list l
+def rand_combinations(l,n,m):
+    #kdrew: determine the number of shuffling needed
+    try:
+        i = int(np.ceil(1.0*m/(len(l)/n)))
+        for ii in xrange(i):
+            shuffled_l = rand.permutation(l)
+            for ch in chunks(shuffled_l,n):
+                yield ch
+    except:
+        return
+
 
 def main():
 
