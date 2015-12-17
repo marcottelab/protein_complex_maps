@@ -163,29 +163,39 @@ class ComplexComparison(object):
             #kdrew: if all proteins are outside of the gold standard, move on
             if len(clust_intersection) <= 0:
                 continue
-            #kdrew: for all combinations in cluster of size clique_size
-            for group in it.combinations(clust_intersection, clique_size):
-                #print "group: %s" % (group,)
-                #kdrew: check all gold standard complexes if combination is a subset  
-                if np.max(map(set(group).issubset,self.get_gold_standard())):
-                    #print group
-                    #kdrew: if a subset of any gold standard complex, add a true positive
-                    true_positives +=1
-                else:
-                    #kdrew: if not a subset add a false positive
-                    #kdrew: there is a guarantee here from the cluster intersection with all gold standard proteins (above), 
-                    #kdrew: that a false positive will be a set of proteins in the gold standard but not in the same complex
-                    #kdrew: this allows for extra subunits and novel clusters with no overlap with gold standard to not be counted in evaluation
-                    false_positives +=1
+
+
+            is_positive_list = [ np.max(map(set(group).issubset,self.get_gold_standard())) for group in it.combinations(clust_intersection, clique_size)]
+            true_positives += sum(is_positive_list)
+            false_positives += sum(np.logical_not(is_positive_list))
+
+            ##kdrew: for all combinations in cluster of size clique_size
+            #for group in it.combinations(clust_intersection, clique_size):
+            #    #print "group: %s" % (group,)
+            #    #kdrew: check all gold standard complexes if combination is a subset  
+            #    if np.max(map(set(group).issubset,self.get_gold_standard())):
+            #        #print group
+            #        #kdrew: if a subset of any gold standard complex, add a true positive
+            #        true_positives +=1
+            #    else:
+            #        #kdrew: if not a subset add a false positive
+            #        #kdrew: there is a guarantee here from the cluster intersection with all gold standard proteins (above), 
+            #        #kdrew: that a false positive will be a set of proteins in the gold standard but not in the same complex
+            #        #kdrew: this allows for extra subunits and novel clusters with no overlap with gold standard to not be counted in evaluation
+            #        false_positives +=1
 
 
         for gs_clust in self.get_gold_standard():
-            for gs_group in it.combinations(gs_clust, clique_size):
-                if np.max(map(set(gs_group).issubset,self.get_clusters())).any():
-                    #print group
-                    gs_true_positives +=1
-                else:
-                    false_negatives +=1
+            is_positive_list = [ np.max(map(set(gs_group).issubset,self.get_clusters())) for gs_group in it.combinations(gs_clust, clique_size) ]
+            gs_true_positives += sum(is_positive_list)
+            false_negatives += sum(np.logical_not(is_positive_list))
+
+            #for gs_group in it.combinations(gs_clust, clique_size):
+            #    if np.max(map(set(gs_group).issubset,self.get_clusters())).any():
+            #        #print group
+            #        gs_true_positives +=1
+            #    else:
+            #        false_negatives +=1
 
         print "truepos: %s gs_truepos: %s falsepos: %s falseneg: %s" % (true_positives, gs_true_positives, false_positives, false_negatives)
 
