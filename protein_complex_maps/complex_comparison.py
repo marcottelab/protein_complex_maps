@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import pickle as p
 import argparse
+import itertools as it
 
 
 class ComplexComparison(object):
@@ -11,6 +12,11 @@ class ComplexComparison(object):
         #kdrew: gold_standard and clusters are a list of complexes 
         #kdrew: each complex contains a set of ids  (if passed in a list, will be converted to set)
         self.gold_standard = [set(x) for x in gold_standard]
+
+        self.gold_standard_proteins = set()
+        for x in gold_standard:
+            self.gold_standard_proteins = self.gold_standard_proteins.union(x)
+
         self.clusters = [set(x) for x in clusters]
 
         #kdrew: dataframe where columns are clusters and rows are complexes(gold standard)
@@ -19,6 +25,9 @@ class ComplexComparison(object):
 
     def get_gold_standard(self,):
         return self.gold_standard
+
+    def get_gold_standard_proteins(self,):
+        return self.gold_standard_proteins
 
     def get_clusters(self,):
         return self.clusters
@@ -98,7 +107,99 @@ class ComplexComparison(object):
         #kdrew: geometric mean
         Acc = (Sn * PPV) ** (1.0/2)
         return Acc
+
+    def clique_comparison_metric_mean(self,):
+        result_dict = self.clique_comparison_metric()
+        precision_list = [result_dict[x]['precision'] for x in result_dict.keys()]
+        recall_list = [result_dict[x]['recall'] for x in result_dict.keys()]
         
+        print "mean precision %s mean recall %s" % (np.mean(precision_list), np.mean(recall_list))
+
+        return {'precision_mean':np.mean(precision_list),'recall_mean':np.mean(recall_list)}
+
+    def clique_comparison_metric(self,):
+        max_len = np.max(map(len,self.get_clusters()))
+        return_dict = dict()
+        for size in range(2, max_len):
+            result_dict = self.clique_comparison(size)
+            print result_dict
+            recall = 1.0*result_dict['tp'] / (result_dict['tp'] + result_dict['fn'])
+            precision = 1.0*result_dict['tp'] / (result_dict['tp'] + result_dict['fp'])
+            print "precision: %s recall: %s" % (precision, recall)
+            return_dict[size] = {'precision':precision,'recall':recall}
+
+        return return_dict
+
+
+    #kdrew: return chunks of size n from list l
+    def chunks(l,n):
+        n = max(1, n)
+        #kdrew: generator that slices list into n chunks, 
+        #kdrew: if the last slice is smaller than n, ignore
+        return [l[i:i + n] for i in xrange(0, len(l), n) if i+n< len(l)]
+
+    #kdrew: generator to return m number of random combinations of size n from list l
+    def rand_combinations(l,n,m):
+        #kdrew: determine the number of shuffling needed
+        i = int(np.ceil(1.0*m/(len(l)/n)))
+        for ii in xrange(i):
+            shuffled_l = rand.permutation(l)
+            for ch in chunks(shuffled_l,n):
+                yield ch
+
+
+    #kdrew: calculate confusion matrix between predicted clusters and gold standard complexes for specific clique sizes
+    def clique_comparison(self, clique_size):
+        true_positives = 0
+        gs_true_positives = 0
+        false_positives = 0
+        false_negatives = 0
+
+        for clust in self.get_clusters():
+            #print "clust: %s" % (clust,)
+            #kdrew: only look at cluster ids that are in the gold standard
+            clust_intersection = clust & self.get_gold_standard_proteins()
+            #print "clust_intersection: %s" % (clust_intersection,)
+            #kdrew: if all proteins are outside of the gold standard, move on
+            if len(clust_intersection) <= 0:
+                continue
+            #kdrew: for all combinations in cluster of size clique_size
+            for group in it.combinations(clust_intersection, clique_size):
+                #print "group: %s" % (group,)
+                #kdrew: check all gold standard complexes if combination is a subset  
+                if np.max(map(set(group).issubset,self.get_gold_standard())):
+                    #print group
+                    #kdrew: if a subset of any gold standard complex, add a true positive
+                    true_positives +=1
+                else:
+                    #kdrew: if not a subset add a false positive
+                    #kdrew: there is a guarantee here from the cluster intersection with all gold standard proteins (above), 
+                    #kdrew: that a false positive will be a set of proteins in the gold standard but not in the same complex
+                    #kdrew: this allows for extra subunits and novel clusters with no overlap with gold standard to not be counted in evaluation
+                    false_positives +=1
+
+
+        for gs_clust in self.get_gold_standard():
+            for gs_group in it.combinations(gs_clust, clique_size):
+                if np.max(map(set(gs_group).issubset,self.get_clusters())).any():
+                    #print group
+                    gs_true_positives +=1
+                else:
+                    false_negatives +=1
+
+        print "truepos: %s gs_truepos: %s falsepos: %s falseneg: %s" % (true_positives, gs_true_positives, false_positives, false_negatives)
+
+        #assert true_positives == gs_true_positives
+
+        return_dict = dict()
+        return_dict['tp'] = true_positives
+        return_dict['fp'] = false_positives
+        return_dict['fn'] = false_negatives
+        return return_dict
+
+
+
+
         
     def generate_intersection_table(self,):
         rows_list = []
@@ -149,6 +250,8 @@ def main():
     print "PPV: %s" % cplx_compare.ppv()
     print "ACC: %s" % cplx_compare.acc()
     print "MMR: %s" % cplx_compare.mmr()
+    ccmm = cplx_compare.clique_comparison_metric_mean()
+    print "Precision Mean: %s Recall Mean: %s" % (ccmm['precision_mean'],ccmm['recall_mean'])
 
 
 if __name__ == "__main__":

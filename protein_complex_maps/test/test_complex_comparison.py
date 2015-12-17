@@ -17,6 +17,9 @@ class ComplexComparisonTest(unittest.TestCase):
         self.gold_standard2 = [['a','b','c','w'],['d','e','f'],['f','g'],['a','b'],['g','i']]
         self.clusters2 = [['a','b','c','w','x','y','z'],['d','e','f','h'],['a','b'],['j','k']]
 
+        self.gold_standard3 = [['a','b','c'],['d','e','f'],['f','g'],['a','b'],['g','i']]
+        self.clusters3 = [['a','b','c'],['d','e','f','h'],['a','b'],['j','k'],['c','d'],['f','g','a']]
+
     def testComplexComparison(self, ):
         ccobj = cc.ComplexComparison(self.gold_standard, self.clusters)
         np.testing.assert_almost_equal( ccobj.sensitivity(), 0.75)
@@ -56,6 +59,30 @@ class ComplexComparisonTest(unittest.TestCase):
         ccobj = cc.ComplexComparison(self.gold_standard, self.clusters)
         print ccobj.mmr()
         np.testing.assert_almost_equal( ccobj.mmr(), 0.575)
+
+    def testCliqueComparison(self, ):
+        ccobj = cc.ComplexComparison(self.gold_standard3, self.clusters3)
+        result_dict = ccobj.clique_comparison(clique_size=3)
+        assert result_dict['tp'] == 2
+        assert result_dict['fp'] == 1
+        assert result_dict['fn'] == 0
+        result_dict = ccobj.clique_comparison(clique_size=2)
+        assert result_dict['tp'] == 8
+        assert result_dict['fp'] == 3
+        assert result_dict['fn'] == 1
+
+    def testCliqueComparisonMetric(self, ):
+        ccobj = cc.ComplexComparison(self.gold_standard3, self.clusters3)
+        d = ccobj.clique_comparison_metric()
+
+        np.testing.assert_almost_equal( d[2]['precision'], 0.7272727272727273 )
+        np.testing.assert_almost_equal( d[2]['recall'], 0.8888888888888888 )
+        np.testing.assert_almost_equal( d[3]['precision'], 0.666666666667 )
+        np.testing.assert_almost_equal( d[3]['recall'], 1.0 )
+
+
+        print ccobj.clique_comparison_metric_mean()
+
 
 if __name__ == "__main__":
         unittest.main()
