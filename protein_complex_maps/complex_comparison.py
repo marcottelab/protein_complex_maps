@@ -5,6 +5,8 @@ import pandas as pd
 import pickle as p
 import argparse
 import itertools as it
+import random
+import bisect
 
 
 class ComplexComparison(object):
@@ -133,62 +135,60 @@ class ComplexComparison(object):
 
 
     #kdrew: calculate confusion matrix between predicted clusters and gold standard complexes for specific clique sizes
-    def clique_comparison(self, clique_size, approximate=True, samples=1000):
+    def clique_comparison(self, clique_size, samples=1000):
         true_positives = 0
         gs_true_positives = 0
         false_positives = 0
         false_negatives = 0
 
-        for clust in self.get_clusters():
-            #print "clust: %s" % (clust,)
+        #kdrew: only get clusters that are larger than or equal to the clique size
+        clusters = [clust for clust in self.get_clusters() if len(clust & self.get_gold_standard_proteins()) >= clique_size]
+
+        #kdrew: weight each cluster by the length of its overlap with the gold standard
+        wrg = WeightedRandomGenerator( [len(clust & self.get_gold_standard_proteins()) for clust in clusters ] )
+
+        for s in xrange(samples):
+
+            #kdrew: get a random cluster
+            clust = self.get_clusters()[wrg()]
+
             #kdrew: only look at cluster ids that are in the gold standard
             clust_intersection = clust & self.get_gold_standard_proteins()
 
-            #kdrew: if all proteins are outside of the gold standard, move on
+            #kdrew: if all proteins are outside of the gold standard, move on (unlikely to ever get selected due to weighted sampling)
             if len(clust_intersection) <= 0:
                 continue
 
+            shuffled_l = rand.permutation(list(clust))
 
-            if approximate and len(clust) > 10:
-                is_positive_list = [ np.max(map(set(group).issubset,self.get_gold_standard())) for group in rand_combinations(list(clust_intersection),clique_size,samples)]
+            if np.max(map(set(shuffled_l[:clique_size]).issubset,self.get_gold_standard())):
+               true_positives += 1 
             else:
-                is_positive_list = [ np.max(map(set(group).issubset,self.get_gold_standard())) for group in it.combinations(clust_intersection, clique_size)]
-            tp_curr = sum(is_positive_list)
-            true_positives += tp_curr
-            #false_positives += sum(np.logical_not(is_positive_list))
-
-            false_positives += len(is_positive_list) - tp_curr
-
-            ##kdrew: for all combinations in cluster of size clique_size
-            #for group in it.combinations(clust_intersection, clique_size):
-            #    #print "group: %s" % (group,)
-            #    #kdrew: check all gold standard complexes if combination is a subset  
-            #    if np.max(map(set(group).issubset,self.get_gold_standard())):
-            #        #print group
-            #        #kdrew: if a subset of any gold standard complex, add a true positive
-            #        true_positives +=1
-            #    else:
-            #        #kdrew: if not a subset add a false positive
-            #        #kdrew: there is a guarantee here from the cluster intersection with all gold standard proteins (above), 
-            #        #kdrew: that a false positive will be a set of proteins in the gold standard but not in the same complex
-            #        #kdrew: this allows for extra subunits and novel clusters with no overlap with gold standard to not be counted in evaluation
-            #        false_positives +=1
+                false_positives +=1
 
 
-        for gs_clust in self.get_gold_standard():
-            if approximate and len(clust) > 10:
-                is_positive_list = [ np.max(map(set(gs_group).issubset,self.get_clusters())) for gs_group in rand_combinations(list(gs_clust),clique_size,samples)]
+        #kdrew: only get gold standard complexes that are larger than or equal to the clique size
+        gs_clusters = [gs_clust for gs_clust in self.get_gold_standard() if len(gs_clust) >= clique_size]
+
+        #kdrew: weight each complex by size of complex
+        gs_wrg = WeightedRandomGenerator( [len(gs_clust) for gs_clust in gs_clusters ] )
+
+        for s in xrange(samples):
+
+            #kdrew: get a random cluster
+            gs_clust = self.get_gold_standard()[wrg()]
+
+            #kdrew: if all proteins are outside of the gold standard, move on (unlikely to ever get selected due to weighted sampling)
+            if len(gs_clust) <= 0:
+                continue
+
+            shuffled_l = rand.permutation(list(gs_clust))
+
+            if np.max(map(set(shuffled_l[:clique_size]).issubset,self.get_clusters())):
+                gs_true_positives += 1 
             else:
-                is_positive_list = [ np.max(map(set(gs_group).issubset,self.get_clusters())) for gs_group in it.combinations(gs_clust, clique_size) ]
-            #gs_true_positives += sum(is_positive_list)
-            false_negatives += sum(np.logical_not(is_positive_list))
+                false_negatives+=1
 
-            #for gs_group in it.combinations(gs_clust, clique_size):
-            #    if np.max(map(set(gs_group).issubset,self.get_clusters())).any():
-            #        #print group
-            #        gs_true_positives +=1
-            #    else:
-            #        false_negatives +=1
 
         print "truepos: %s gs_truepos: %s falsepos: %s falseneg: %s" % (true_positives, gs_true_positives, false_positives, false_negatives)
 
@@ -247,6 +247,25 @@ def rand_combinations(l,n,m):
                 yield ch
     except:
         return
+
+#kdrew: "borrowed" code from Eli Bendersky for generating fast access to weighted lists
+#http://eli.thegreenplace.net/2010/01/22/weighted-random-generation-in-python/
+class WeightedRandomGenerator(object):
+    def __init__(self, weights):
+        self.totals = []
+        running_total = 0
+
+        for w in weights:
+            running_total += w
+            self.totals.append(running_total)
+
+    def next(self):
+        rnd = random.random() * self.totals[-1]
+        return bisect.bisect_right(self.totals, rnd)
+
+    def __call__(self):
+        return self.next()
+
 
 
 def main():
