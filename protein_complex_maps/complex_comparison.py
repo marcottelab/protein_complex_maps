@@ -7,6 +7,7 @@ import argparse
 import itertools as it
 import random
 import bisect
+import scipy.misc as misc
 
 
 class ComplexComparison(object):
@@ -135,25 +136,27 @@ class ComplexComparison(object):
 
 
     #kdrew: calculate confusion matrix between predicted clusters and gold standard complexes for specific clique sizes
-    def clique_comparison(self, clique_size, samples=1000):
+    def clique_comparison(self, clique_size, samples=100000):
         true_positives = 0
         gs_true_positives = 0
         false_positives = 0
         false_negatives = 0
 
         #kdrew: only get clusters that are larger than or equal to the clique size
-        clusters = [clust for clust in self.get_clusters() if len(clust & self.get_gold_standard_proteins()) >= clique_size]
+        clusters = [clust & self.get_gold_standard_proteins() for clust in self.get_clusters() if len(clust & self.get_gold_standard_proteins()) >= clique_size]
 
         #kdrew: weight each cluster by the length of its overlap with the gold standard
-        wrg = WeightedRandomGenerator( [len(clust & self.get_gold_standard_proteins()) for clust in clusters ] )
+        wrg = WeightedRandomGenerator( [misc.comb(len(clust & self.get_gold_standard_proteins()), clique_size) for clust in clusters ] )
 
         for s in xrange(samples):
 
             #kdrew: get a random cluster
-            clust = self.get_clusters()[wrg()]
+            clust = clusters[wrg()]
+            #print clust
 
             #kdrew: only look at cluster ids that are in the gold standard
             clust_intersection = clust & self.get_gold_standard_proteins()
+            #print clust_intersection
 
             #kdrew: if all proteins are outside of the gold standard, move on (unlikely to ever get selected due to weighted sampling)
             if len(clust_intersection) <= 0:
@@ -171,12 +174,13 @@ class ComplexComparison(object):
         gs_clusters = [gs_clust for gs_clust in self.get_gold_standard() if len(gs_clust) >= clique_size]
 
         #kdrew: weight each complex by size of complex
-        gs_wrg = WeightedRandomGenerator( [len(gs_clust) for gs_clust in gs_clusters ] )
+        gs_wrg = WeightedRandomGenerator( [misc.comb(len(gs_clust), clique_size) for gs_clust in gs_clusters ] )
 
         for s in xrange(samples):
 
             #kdrew: get a random cluster
-            gs_clust = self.get_gold_standard()[wrg()]
+            gs_clust = gs_clusters[gs_wrg()]
+            #print gs_clust
 
             #kdrew: if all proteins are outside of the gold standard, move on (unlikely to ever get selected due to weighted sampling)
             if len(gs_clust) <= 0:
