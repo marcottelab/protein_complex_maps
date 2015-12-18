@@ -75,9 +75,9 @@ class ComplexComparisonTest(unittest.TestCase):
         ccobj = cc.ComplexComparison(self.gold_standard3, self.clusters3)
         d = ccobj.clique_comparison_metric()
 
-        np.testing.assert_almost_equal( d[2]['precision'], 0.7272727272727273 )
-        np.testing.assert_almost_equal( d[2]['recall'], 0.8888888888888888 )
-        np.testing.assert_almost_equal( d[3]['precision'], 0.666666666667 )
+        np.testing.assert_almost_equal( d[2]['precision'], 0.7272727272727273, 2)
+        np.testing.assert_almost_equal( d[2]['recall'], 0.8888888888888888, 1 )
+        np.testing.assert_almost_equal( d[3]['precision'], 0.666666666667, 2 )
         np.testing.assert_almost_equal( d[3]['recall'], 1.0 )
 
 
