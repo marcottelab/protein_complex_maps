@@ -117,26 +117,34 @@ class ComplexComparison(object):
         precision_list = [result_dict[x]['precision'] for x in result_dict.keys()]
         recall_list = [result_dict[x]['recall'] for x in result_dict.keys()]
         
-        print "mean precision %s mean recall %s" % (np.mean(precision_list), np.mean(recall_list))
+        #print "mean precision %s mean recall %s" % (np.mean(precision_list), np.mean(recall_list))
 
         return {'precision_mean':np.mean(precision_list),'recall_mean':np.mean(recall_list)}
 
     def clique_comparison_metric(self,):
-        max_len = np.max(map(len,self.get_clusters()))
+        clusters = [clust & self.get_gold_standard_proteins() for clust in self.get_clusters()]
+        max_len = np.max(map(len,clusters))
         return_dict = dict()
         for size in range(2, max_len):
+
+            #kdrew: shortcut, if the last two precision and recall estimates are 0.0 then there is exceedingly small chance are a larger clique size will have a precision/recall > 0.0
+            #kdrew: do not calculate, just mark the remainder clique sizes as zero
+            if size > 4 and return_dict[size-1]['precision'] == 0.0 and return_dict[size-1]['recall'] == 0.0 and return_dict[size-2]['precision'] == 0.0 and return_dict[size-2]['recall'] == 0.0:
+                return_dict[size] = {'precision':0.0,'recall':0.0}
+                continue
+
             result_dict = self.clique_comparison(size)
-            print result_dict
+            #print result_dict
             recall = 1.0*result_dict['tp'] / (result_dict['tp'] + result_dict['fn'])
             precision = 1.0*result_dict['tp'] / (result_dict['tp'] + result_dict['fp'])
-            print "precision: %s recall: %s" % (precision, recall)
+            #print "clique_size: %s precision: %s recall: %s" % (size, precision, recall)
             return_dict[size] = {'precision':precision,'recall':recall}
 
         return return_dict
 
 
     #kdrew: calculate confusion matrix between predicted clusters and gold standard complexes for specific clique sizes
-    def clique_comparison(self, clique_size, samples=100000):
+    def clique_comparison(self, clique_size, samples=10000):
         true_positives = 0
         gs_true_positives = 0
         false_positives = 0
@@ -144,6 +152,9 @@ class ComplexComparison(object):
 
         #kdrew: only get clusters that are larger than or equal to the clique size
         clusters = [clust & self.get_gold_standard_proteins() for clust in self.get_clusters() if len(clust & self.get_gold_standard_proteins()) >= clique_size]
+
+        #print "clusters size: %s" % (len(clusters))
+        #print clusters
 
         #kdrew: weight each cluster by the length of its overlap with the gold standard
         wrg = WeightedRandomGenerator( [misc.comb(len(clust & self.get_gold_standard_proteins()), clique_size) for clust in clusters ] )
@@ -172,6 +183,8 @@ class ComplexComparison(object):
 
         #kdrew: only get gold standard complexes that are larger than or equal to the clique size
         gs_clusters = [gs_clust for gs_clust in self.get_gold_standard() if len(gs_clust) >= clique_size]
+        #print "gs_clusters size: %s" % (len(gs_clusters))
+        #print gs_clusters
 
         #kdrew: weight each complex by size of complex
         gs_wrg = WeightedRandomGenerator( [misc.comb(len(gs_clust), clique_size) for gs_clust in gs_clusters ] )
@@ -182,19 +195,16 @@ class ComplexComparison(object):
             gs_clust = gs_clusters[gs_wrg()]
             #print gs_clust
 
-            #kdrew: if all proteins are outside of the gold standard, move on (unlikely to ever get selected due to weighted sampling)
-            if len(gs_clust) <= 0:
-                continue
-
             shuffled_l = rand.permutation(list(gs_clust))
 
-            if np.max(map(set(shuffled_l[:clique_size]).issubset,self.get_clusters())):
+            #if np.max(map(set(shuffled_l[:clique_size]).issubset,self.get_clusters())).any():
+            if np.max(map( set( shuffled_l[:clique_size] ).issubset, clusters )):
                 gs_true_positives += 1 
             else:
                 false_negatives+=1
 
 
-        print "truepos: %s gs_truepos: %s falsepos: %s falseneg: %s" % (true_positives, gs_true_positives, false_positives, false_negatives)
+        #print "truepos: %s gs_truepos: %s falsepos: %s falseneg: %s" % (true_positives, gs_true_positives, false_positives, false_negatives)
 
         #assert true_positives == gs_true_positives
 
@@ -203,8 +213,6 @@ class ComplexComparison(object):
         return_dict['fp'] = false_positives
         return_dict['fn'] = false_negatives
         return return_dict
-
-
 
 
         
@@ -298,7 +306,7 @@ def main():
     print "ACC: %s" % cplx_compare.acc()
     print "MMR: %s" % cplx_compare.mmr()
     ccmm = cplx_compare.clique_comparison_metric_mean()
-    print "Precision Mean: %s Recall Mean: %s" % (ccmm['precision_mean'],ccmm['recall_mean'])
+    print "Clique Precision Mean: %s Recall Mean: %s" % (ccmm['precision_mean'],ccmm['recall_mean'])
 
 
 if __name__ == "__main__":
