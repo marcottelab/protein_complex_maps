@@ -55,7 +55,7 @@ def main():
                                     default=[None],
                                     help="MCL Inflation (-I) parameter, default = [None] (no 2-stage clustering), docs suggest = 1.2 - 5.0")
     parser.add_argument("--eval_metric", action="store", dest="eval_metric", required=False, default='mmr',
-                                    help="Evaluation metric used to determine best set of parameters (mmr, acc, sensitivity, ppv), default=mmr")
+                                    help="Evaluation metric used to determine best set of parameters (mmr, acc, sensitivity, ppv, clique_precision_mean, clique_recall_mean), default=mmr")
     parser.add_argument("--procs", action="store", type=int, dest="procs", required=False, default=1,
                                     help="Number processors to use (int), default=1)")
     parser.add_argument("--temp_dir", action="store", dest="temp_dir", required=False, default=None,
@@ -160,7 +160,10 @@ def main():
         metric_dict['sensitivity'] = cplx_comparison.sensitivity() 
         metric_dict['ppv'] = cplx_comparison.ppv() 
         metric_dict['mmr'] = cplx_comparison.mmr() 
-        print "size %s, density %s, overlap %s, seed_method %s, fraction %s, threshold_score %s, inflation %s, acc %s, sensitivity %s, ppv %s, mmr %s" % (size, density, overlap, seed_method, fraction, threshold_score,  inflation, metric_dict['acc'], metric_dict['sensitivity'], metric_dict['ppv'], metric_dict['mmr'])
+        ccmm = cplx_comparison.clique_comparison_metric_mean()
+        metric_dict['clique_precision_mean'] = ccmm['precision_mean']
+        metric_dict['clique_recall_mean'] = ccmm['recall_mean']
+        print "size %s, density %s, overlap %s, seed_method %s, fraction %s, threshold_score %s, inflation %s, acc %s, sensitivity %s, ppv %s, mmr %s, clique_precision_mean %s, clique_recall_mean %s" % (size, density, overlap, seed_method, fraction, threshold_score,  inflation, metric_dict['acc'], metric_dict['sensitivity'], metric_dict['ppv'], metric_dict['mmr'], metric_dict['clique_precision_mean'],metric_dict['clique_recall_mean'])
 
 
 
@@ -197,7 +200,7 @@ def main():
         multiproc_input = [(cluster_prediction, predicted_clusters, bootstrapped_test_networks[i]) for predicted_clusters, i in bootstrapped_cluster_predictions]
         bootstrap_cplx_cmp_metrics = p.map(comparison_helper, multiproc_input) 
         for boot_cmp in bootstrap_cplx_cmp_metrics:
-            print "bootstrapped: size %s, density %s, overlap %s, seed_method %s, fraction %s, inflation %s,  acc %s, sensitivity %s, ppv %s, mmr %s, ppi_recovered %s" % (size, density, overlap, seed_method, fraction, inflation, boot_cmp['acc'], boot_cmp['sensitivity'], boot_cmp['ppv'], boot_cmp['mmr'], boot_cmp['percent_ppi_recovered'])
+            print "bootstrapped: size %s, density %s, overlap %s, seed_method %s, fraction %s, inflation %s,  acc %s, sensitivity %s, ppv %s, mmr %s, ppi_recovered %s, clique_precision_mean %s, clique_recall_mean %s" % (size, density, overlap, seed_method, fraction, inflation, boot_cmp['acc'], boot_cmp['sensitivity'], boot_cmp['ppv'], boot_cmp['mmr'], boot_cmp['percent_ppi_recovered'], boot_cmp['clique_precision_mean'], boot_cmp['clique_recall_mean'])
 
 
         #kdrew: keeping track of the best parameter set
@@ -262,6 +265,9 @@ def comparison_helper(parameter_tuple):
     d['ppv'] = cplx_cmp.ppv()
     d['mmr'] = cplx_cmp.mmr()
     d['percent_ppi_recovered'] = (1.0*ppi_recovered_count) / len(test_net)
+    ccmm = cplx_cmp.clique_comparison_metric_mean()
+    d['clique_precision_mean'] = ccmm['precision_mean']
+    d['clique_recall_mean'] = ccmm['recall_mean']
 
     return d
 
