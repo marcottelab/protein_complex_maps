@@ -125,7 +125,8 @@ class ComplexComparison(object):
         clusters = [clust & self.get_gold_standard_proteins() for clust in self.get_clusters()]
         max_len = np.max(map(len,clusters))
         return_dict = dict()
-        for size in range(2, max_len):
+        #print "max_len %s" % max_len
+        for size in range(2, max_len+1):
 
             #kdrew: shortcut, if the last two precision and recall estimates are 0.0 then there is exceedingly small chance are a larger clique size will have a precision/recall > 0.0
             #kdrew: do not calculate, just mark the remainder clique sizes as zero
