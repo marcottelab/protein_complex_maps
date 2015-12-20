@@ -56,6 +56,8 @@ def main():
                                     help="MCL Inflation (-I) parameter, default = [None] (no 2-stage clustering), docs suggest = 1.2 - 5.0")
     parser.add_argument("--eval_metric", action="store", dest="eval_metric", required=False, default='mmr',
                                     help="Evaluation metric used to determine best set of parameters (mmr, acc, sensitivity, ppv, clique_precision_mean, clique_recall_mean), default=mmr")
+    parser.add_argument("--output_all", action="store_true", dest="output_all", required=False, default=False,
+                                    help="Output all clusterings, default=False")
     parser.add_argument("--procs", action="store", type=int, dest="procs", required=False, default=1,
                                     help="Number processors to use (int), default=1)")
     parser.add_argument("--temp_dir", action="store", dest="temp_dir", required=False, default=None,
@@ -214,6 +216,16 @@ def main():
             best_inflation = inflation
             best_cluster_prediction = cluster_prediction
             print "best size: %s density: %s overlap: %s seed_method: %s fraction: %s inflation: %s numOfClusters: %s" % (best_size, best_density, best_overlap, best_seed_method, best_fraction, best_inflation, len(best_cluster_prediction))
+
+
+        #kdrew: output best cluster prediction
+        if args.output_file != None and args.output_all:
+            output_filename = "%s.S%s_D%s_O%s_SM%s_F%s_I%s%s" % (args.output_file.split('.')[:-1], size, density, overlap, seed_method, fraction, inflation, args.output_file.split('.')[-1])
+            with open (output_filename, "w") as output_file:
+                for cluster in cluster_prediction:
+                    output_file.write(' '.join(cluster))
+                    output_file.write("\n")
+
 
 
 
