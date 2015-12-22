@@ -4,6 +4,11 @@ import pandas as pd
 import pickle as p
 import argparse
 
+import matplotlib as mpl
+mpl.use('Agg')
+#import matplotlib.mlab as mlab
+import matplotlib.pyplot as plt
+
 
 class ComplexComparison(object):
 
@@ -41,29 +46,30 @@ class ComplexComparison(object):
 
     #kdrew: method described in Yang et al. BMC Medical Genomics Integrating PPI datasets with the PPI data from biomedical literature for protein complex detection (2014)
     def max_matching_ratio(self,topN=None):
+        max_df = self.max_matching_ratio_distribution(topN=topN)
+        sum_max_df = max_df.sum()
+
+        num_of_gold_complexes = len(self.get_gold_standard())
+
+        mmr = sum_max_df / num_of_gold_complexes
+        return mmr
+
+    def max_matching_ratio_distribution(self,topN=None):
         df = self.get_na_table()
         #kdrew: if we want to only do a range of clusters (topN), we probably want to slice sn_df here
         if topN != None:
             df = df.ix[:,:topN]
         #print df
         max_df = df.max(axis=1)
-        #print max_df
-        sum_max_df = max_df.sum()
-        #print sum_max_df
-        num_of_gold_complexes = len(self.get_gold_standard())
-        #print num_of_gold_complexes
 
-        mmr = sum_max_df / num_of_gold_complexes
-        #print mmr
-        return mmr
-
+        return max_df
 
 
     #kdrew: method from Brohee and Helden BMC Bioinformatics, http://www.biomedcentral.com/content/pdf/1471-2105-7-488.pdf
     #kdrew: intersection/size_of_gold = percent coverage of given complex
     #kdrew: find max
     #kdrew: size_of_gold * max_percent_coverage  / size_of_gold
-    def sensitivity(self, topN=None):
+    def sensitivity_distribution(self, topN=None):
         df = self.get_intersection_table()
         #kdrew: if we want to only do a range of clusters (topN), we probably want to slice sn_df here
         if topN != None:
@@ -71,13 +77,17 @@ class ComplexComparison(object):
         sn_df = df.divide(map(len,self.get_gold_standard()), axis=0)
         #print sn_df.max()
         sn_co = sn_df.max(axis=1)
+        return sn_co
+
+    def sensitivity(self, topN=None):
+        sn_co = self.sensitivity_distribution(topN=topN)
         #print sn_co.max()
         goldstd_sizes = map(len,self.get_gold_standard())
         Sn = 1.0*sum(sn_co * goldstd_sizes) / sum(goldstd_sizes)
         return Sn
         
     #kdrew: method from Brohee and Helden BMC Bioinformatics, http://www.biomedcentral.com/content/pdf/1471-2105-7-488.pdf
-    def ppv(self, topN=None):
+    def ppv_distribution(self, topN=None):
         df = self.get_intersection_table()
         #kdrew: if want to do a range of clusters (topN) we probably want to slice df here
         if topN != None:
@@ -85,6 +95,11 @@ class ComplexComparison(object):
         ppv_df = df.divide(1.0*df.sum())
         ppv_df = ppv_df.fillna(0.0)
         PPV_cl = ppv_df.max()
+        return PPV_cl
+
+    def ppv(self,topN=None):
+        df = self.get_intersection_table()
+        PPV_cl = self.ppv_distribution(topN=topN)
         try:
             PPV = 1.0*sum(PPV_cl * df.sum()) / sum(df.sum())
         except ZeroDivisionError:
@@ -131,6 +146,8 @@ def main():
                                             help="Filename of cluster predictions, format one cluster per line, ids space separated")
     parser.add_argument("--gold_standard", action="store", dest="gold_standard_filename", required=True, 
                                             help="Filename of gold standard complexes, format one complex per line, ids space separated")
+    parser.add_argument("--plot_filename", action="store", dest="plot_filename", required=False, default=None,
+                                            help="Filename for plotting histograms of metrics")
 
     args = parser.parse_args()
 
@@ -149,6 +166,17 @@ def main():
     print "PPV: %s" % cplx_compare.ppv()
     print "ACC: %s" % cplx_compare.acc()
     print "MMR: %s" % cplx_compare.mmr()
+
+
+    if args.plot_filename != None:
+        f, subplots = plt.subplots(3)
+        subplots[0].hist(cplx_compare.max_matching_ratio_distribution())
+        subplots[0].set_title('MMR')
+        subplots[1].hist(cplx_compare.sensitivity_distribution())
+        subplots[1].set_title('Sensitivity')
+        subplots[2].hist(cplx_compare.ppv_distribution())
+        subplots[2].set_title('PPV')
+        plt.savefig(args.plot_filename)
 
 
 if __name__ == "__main__":
