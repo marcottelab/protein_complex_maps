@@ -101,6 +101,7 @@ def main():
     inflation_sweep = args.mcl_inflation
 
     best_size = None
+    best_ii = None
     best_density = None
     best_fraction = None
     best_overlap = None
@@ -165,7 +166,7 @@ def main():
         ccmm = cplx_comparison.clique_comparison_metric_mean()
         metric_dict['clique_precision_mean'] = ccmm['precision_mean']
         metric_dict['clique_recall_mean'] = ccmm['recall_mean']
-        print "size %s, density %s, overlap %s, seed_method %s, fraction %s, threshold_score %s, inflation %s, acc %s, sensitivity %s, ppv %s, mmr %s, clique_precision_mean %s, clique_recall_mean %s" % (size, density, overlap, seed_method, fraction, threshold_score,  inflation, metric_dict['acc'], metric_dict['sensitivity'], metric_dict['ppv'], metric_dict['mmr'], metric_dict['clique_precision_mean'],metric_dict['clique_recall_mean'])
+        print "ii %s, size %s, density %s, overlap %s, seed_method %s, fraction %s, threshold_score %s, inflation %s, acc %s, sensitivity %s, ppv %s, mmr %s, clique_precision_mean %s, clique_recall_mean %s" % (ii, size, density, overlap, seed_method, fraction, threshold_score,  inflation, metric_dict['acc'], metric_dict['sensitivity'], metric_dict['ppv'], metric_dict['mmr'], metric_dict['clique_precision_mean'],metric_dict['clique_recall_mean'])
 
 
 
@@ -202,25 +203,26 @@ def main():
         multiproc_input = [(cluster_prediction, predicted_clusters, bootstrapped_test_networks[i]) for predicted_clusters, i in bootstrapped_cluster_predictions]
         bootstrap_cplx_cmp_metrics = p.map(comparison_helper, multiproc_input) 
         for boot_cmp in bootstrap_cplx_cmp_metrics:
-            print "bootstrapped: size %s, density %s, overlap %s, seed_method %s, fraction %s, inflation %s,  acc %s, sensitivity %s, ppv %s, mmr %s, ppi_recovered %s, clique_precision_mean %s, clique_recall_mean %s" % (size, density, overlap, seed_method, fraction, inflation, boot_cmp['acc'], boot_cmp['sensitivity'], boot_cmp['ppv'], boot_cmp['mmr'], boot_cmp['percent_ppi_recovered'], boot_cmp['clique_precision_mean'], boot_cmp['clique_recall_mean'])
+            print "bootstrapped: ii %s, size %s, density %s, overlap %s, seed_method %s, fraction %s, inflation %s,  acc %s, sensitivity %s, ppv %s, mmr %s, ppi_recovered %s, clique_precision_mean %s, clique_recall_mean %s" % (ii, size, density, overlap, seed_method, fraction, inflation, boot_cmp['acc'], boot_cmp['sensitivity'], boot_cmp['ppv'], boot_cmp['mmr'], boot_cmp['percent_ppi_recovered'], boot_cmp['clique_precision_mean'], boot_cmp['clique_recall_mean'])
 
 
         #kdrew: keeping track of the best parameter set
         if best_eval == None or best_eval < metric_dict[args.eval_metric]: 
             best_eval = metric_dict[args.eval_metric]
             best_size = size
+            best_ii = ii
             best_density = density
             best_overlap = overlap
             best_seed_method = seed_method
             best_fraction = fraction
             best_inflation = inflation
             best_cluster_prediction = cluster_prediction
-            print "best size: %s density: %s overlap: %s seed_method: %s fraction: %s inflation: %s numOfClusters: %s" % (best_size, best_density, best_overlap, best_seed_method, best_fraction, best_inflation, len(best_cluster_prediction))
+            print "best ii: %s size: %s density: %s overlap: %s seed_method: %s fraction: %s inflation: %s numOfClusters: %s" % (best_ii, best_size, best_density, best_overlap, best_seed_method, best_fraction, best_inflation, len(best_cluster_prediction))
 
 
         #kdrew: output best cluster prediction
         if args.output_file != None and args.output_all:
-            output_filename = "%s.S%s_D%s_O%s_SM%s_F%s_I%s%s" % (args.output_file.split('.')[:-1], size, density, overlap, seed_method, fraction, inflation, args.output_file.split('.')[-1])
+            output_filename = "%s.ii%s.%s" % (".".join(args.output_file.split('.')[:-1]), ii,  args.output_file.split('.')[-1])
             with open (output_filename, "w") as output_file:
                 for cluster in cluster_prediction:
                     output_file.write(' '.join(cluster))
