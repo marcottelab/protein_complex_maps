@@ -42,6 +42,9 @@ def main():
     parser.add_argument("--clusterone_seed_method", action="store", dest="clusterone_seed_method", nargs='+', required=False, 
                                     default=['nodes'], 
                                     help="ClusterOne seed method parameter sweep (nodes, cliques, unused_nodes, edges, default = nodes")
+    #parser.add_argument("--score_transform", action="store", dest="score_transform", nargs='+', required=False, 
+    #                                default=['none'], 
+    #                                help="Transform to apply to scores before clustering (none, log, default = none")
     parser.add_argument("--ppi_fraction", action="store", dest="ppi_fraction", nargs='+', required=False, 
                                     default=[0.005,0.01,0.05,.1,.25,.5,.75,1.0], 
                                     help="Use top fraction for further clustering, default = 0.005 0.01 0.05 .1 .25 .5 .75 1.0")
@@ -52,7 +55,9 @@ def main():
                                     default=[None],
                                     help="MCL Inflation (-I) parameter, default = [None] (no 2-stage clustering), docs suggest = 1.2 - 5.0")
     parser.add_argument("--eval_metric", action="store", dest="eval_metric", required=False, default='mmr',
-                                    help="Evaluation metric used to determine best set of parameters (mmr, acc, sensitivity, ppv), default=mmr")
+                                    help="Evaluation metric used to determine best set of parameters (mmr, acc, sensitivity, ppv, clique_precision_mean, clique_recall_mean), default=mmr")
+    parser.add_argument("--output_all", action="store_true", dest="output_all", required=False, default=False,
+                                    help="Output all clusterings, default=False")
     parser.add_argument("--procs", action="store", type=int, dest="procs", required=False, default=1,
                                     help="Number processors to use (int), default=1)")
     parser.add_argument("--temp_dir", action="store", dest="temp_dir", required=False, default=None,
@@ -96,6 +101,7 @@ def main():
     inflation_sweep = args.mcl_inflation
 
     best_size = None
+    best_ii = None
     best_density = None
     best_fraction = None
     best_overlap = None
@@ -113,6 +119,9 @@ def main():
         #kdrew: only take the topN ppis, assumes already sorted network (probably stupidly)
         sizeOfTopNetwork = int(len(input_network_list)*float(fraction))
         network_list = input_network_list[0:sizeOfTopNetwork]
+        #print network_list[-1]
+        threshold_score = float(network_list[-1].split()[2])
+        #print threshold_score
 
         #kdrew: cluster network_list
         parameter_dict = dict()
@@ -124,6 +133,7 @@ def main():
         parameter_dict['overlap'] = str(overlap)
         parameter_dict['seed_method'] = str(seed_method)
         parameter_dict['fraction'] = str(fraction)
+        parameter_dict['threshold_score'] = threshold_score
         parameter_dict['inflation'] = str(inflation)
         parameter_dict['i'] = ii
 
@@ -142,6 +152,7 @@ def main():
         overlap = network_input_list[ii]['overlap']
         seed_method = network_input_list[ii]['seed_method']
         fraction = network_input_list[ii]['fraction']
+        threshold_score = network_input_list[ii]['threshold_score']
         inflation = network_input_list[ii]['inflation']
 
         #kdrew: compare gold standard vs predicted clusters
@@ -152,7 +163,10 @@ def main():
         metric_dict['sensitivity'] = cplx_comparison.sensitivity() 
         metric_dict['ppv'] = cplx_comparison.ppv() 
         metric_dict['mmr'] = cplx_comparison.mmr() 
-        print "size %s, density %s, overlap %s, seed_method %s, fraction %s, inflation %s, acc %s, sensitivity %s, ppv %s, mmr %s" % (size, density, overlap, seed_method, fraction, inflation, metric_dict['acc'], metric_dict['sensitivity'], metric_dict['ppv'], metric_dict['mmr'])
+        ccmm = cplx_comparison.clique_comparison_metric_mean()
+        metric_dict['clique_precision_mean'] = ccmm['precision_mean']
+        metric_dict['clique_recall_mean'] = ccmm['recall_mean']
+        print "ii %s, size %s, density %s, overlap %s, seed_method %s, fraction %s, threshold_score %s, inflation %s, acc %s, sensitivity %s, ppv %s, mmr %s, clique_precision_mean %s, clique_recall_mean %s" % (ii, size, density, overlap, seed_method, fraction, threshold_score,  inflation, metric_dict['acc'], metric_dict['sensitivity'], metric_dict['ppv'], metric_dict['mmr'], metric_dict['clique_precision_mean'],metric_dict['clique_recall_mean'])
 
 
 
@@ -178,6 +192,7 @@ def main():
             parameter_dict['overlap'] = str(overlap)
             parameter_dict['seed_method'] = str(seed_method)
             parameter_dict['fraction'] = str(fraction)
+            parameter_dict['threshold_score'] = threshold_score
             parameter_dict['inflation'] = str(inflation)
             parameter_dict['i'] = i
             multiproc_input.append(parameter_dict)
@@ -188,20 +203,31 @@ def main():
         multiproc_input = [(cluster_prediction, predicted_clusters, bootstrapped_test_networks[i]) for predicted_clusters, i in bootstrapped_cluster_predictions]
         bootstrap_cplx_cmp_metrics = p.map(comparison_helper, multiproc_input) 
         for boot_cmp in bootstrap_cplx_cmp_metrics:
-            print "bootstrapped: size %s, density %s, overlap %s, seed_method %s, fraction %s, inflation %s,  acc %s, sensitivity %s, ppv %s, mmr %s, ppi_recovered %s" % (size, density, overlap, seed_method, fraction, inflation, boot_cmp['acc'], boot_cmp['sensitivity'], boot_cmp['ppv'], boot_cmp['mmr'], boot_cmp['percent_ppi_recovered'])
+            print "bootstrapped: ii %s, size %s, density %s, overlap %s, seed_method %s, fraction %s, inflation %s,  acc %s, sensitivity %s, ppv %s, mmr %s, ppi_recovered %s, clique_precision_mean %s, clique_recall_mean %s" % (ii, size, density, overlap, seed_method, fraction, inflation, boot_cmp['acc'], boot_cmp['sensitivity'], boot_cmp['ppv'], boot_cmp['mmr'], boot_cmp['percent_ppi_recovered'], boot_cmp['clique_precision_mean'], boot_cmp['clique_recall_mean'])
 
 
         #kdrew: keeping track of the best parameter set
         if best_eval == None or best_eval < metric_dict[args.eval_metric]: 
             best_eval = metric_dict[args.eval_metric]
             best_size = size
+            best_ii = ii
             best_density = density
             best_overlap = overlap
             best_seed_method = seed_method
             best_fraction = fraction
             best_inflation = inflation
             best_cluster_prediction = cluster_prediction
-            print "best size: %s density: %s overlap: %s seed_method: %s fraction: %s inflation: %s numOfClusters: %s" % (best_size, best_density, best_overlap, best_seed_method, best_fraction, best_inflation, len(best_cluster_prediction))
+            print "best ii: %s size: %s density: %s overlap: %s seed_method: %s fraction: %s inflation: %s numOfClusters: %s" % (best_ii, best_size, best_density, best_overlap, best_seed_method, best_fraction, best_inflation, len(best_cluster_prediction))
+
+
+        #kdrew: output best cluster prediction
+        if args.output_file != None and args.output_all:
+            output_filename = "%s.ii%s.%s" % (".".join(args.output_file.split('.')[:-1]), ii,  args.output_file.split('.')[-1])
+            with open (output_filename, "w") as output_file:
+                for cluster in cluster_prediction:
+                    output_file.write(' '.join(cluster))
+                    output_file.write("\n")
+
 
 
 
@@ -253,6 +279,9 @@ def comparison_helper(parameter_tuple):
     d['ppv'] = cplx_cmp.ppv()
     d['mmr'] = cplx_cmp.mmr()
     d['percent_ppi_recovered'] = (1.0*ppi_recovered_count) / len(test_net)
+    ccmm = cplx_cmp.clique_comparison_metric_mean()
+    d['clique_precision_mean'] = ccmm['precision_mean']
+    d['clique_recall_mean'] = ccmm['recall_mean']
 
     return d
 
@@ -266,6 +295,7 @@ def cluster_helper(parameter_dict):
     overlap = parameter_dict['overlap']
     seed_method = parameter_dict['seed_method']
     fraction = parameter_dict['fraction']
+    threshold_score = parameter_dict['threshold_score']
     i = parameter_dict['i']
     inflation = parameter_dict['inflation']
 
@@ -305,6 +335,9 @@ def cluster_helper(parameter_dict):
                 for prot1, prot2 in it.combinations(clust,2):
                     try:
                         ppi_score = ppi_scores[frozenset([prot1,prot2])] 
+                        if ppi_score < threshold_score:
+                            ppi_score = 0.0
+
                     except KeyError:
                         ppi_score = 0.0
 
@@ -315,13 +348,18 @@ def cluster_helper(parameter_dict):
                 proc = sp.Popen([args.mcl_bin, fileTemp.name, '--abc', '-o', outTemp.name, '-I', inflation], stdout=sp.PIPE, stderr=sp.PIPE)
                 mcl_out, err = proc.communicate()
 
+                #print fileTemp.name
+                #print clust
                 #print mcl_out
                 #print err
 
                 outfile = open(outTemp.name,"rb")
                 for line in outfile.readlines():
+                #    print line
                     mcl_clusters.append(line.split())
                 outfile.close()
+
+                #print "\n"
 
 
             finally:
