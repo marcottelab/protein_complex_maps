@@ -131,6 +131,9 @@ class ComplexComparison(object):
         result_dict = self.clique_comparison_metric()
         precision_list = [result_dict[x]['precision'] for x in result_dict.keys()]
         recall_list = [result_dict[x]['recall'] for x in result_dict.keys()]
+
+        #print precision_list
+        #print recall_list
         
         #print "mean precision %s mean recall %s" % (np.mean(precision_list), np.mean(recall_list))
 
@@ -151,7 +154,7 @@ class ComplexComparison(object):
 
             result_dict = self.clique_comparison(size)
             #print result_dict
-            recall = 1.0*result_dict['tp'] / (result_dict['tp'] + result_dict['fn'])
+            recall = 1.0*result_dict['gs_tp'] / (result_dict['gs_tp'] + result_dict['fn'])
             precision = 1.0*result_dict['tp'] / (result_dict['tp'] + result_dict['fp'])
             #print "clique_size: %s precision: %s recall: %s" % (size, precision, recall)
             return_dict[size] = {'precision':precision,'recall':recall}
@@ -170,7 +173,10 @@ class ComplexComparison(object):
         clusters = [clust & self.get_gold_standard_proteins() for clust in self.get_clusters() if len(clust & self.get_gold_standard_proteins()) >= clique_size]
 
         #print "clusters size: %s" % (len(clusters))
-        #print clusters
+
+        #for clust in clusters:
+        #    print "clust: %s" % clust
+
 
         #kdrew: weight each cluster by the length of its overlap with the gold standard
         wrg = WeightedRandomGenerator( [misc.comb(len(clust & self.get_gold_standard_proteins()), clique_size) for clust in clusters ] )
@@ -192,7 +198,7 @@ class ComplexComparison(object):
             shuffled_l = rand.permutation(list(clust))
 
             if np.max(map(set(shuffled_l[:clique_size]).issubset,self.get_gold_standard())):
-               true_positives += 1 
+                true_positives += 1 
             else:
                 false_positives +=1
 
@@ -200,7 +206,10 @@ class ComplexComparison(object):
         #kdrew: only get gold standard complexes that are larger than or equal to the clique size
         gs_clusters = [gs_clust for gs_clust in self.get_gold_standard() if len(gs_clust) >= clique_size]
         #print "gs_clusters size: %s" % (len(gs_clusters))
-        #print gs_clusters
+
+        #for gs_clust in gs_clusters:
+            #print "gs_clust: %s" % (len(gs_clust),)
+            #print "gs_clust: %s" % (gs_clust,)
 
         #kdrew: weight each complex by size of complex
         gs_wrg = WeightedRandomGenerator( [misc.comb(len(gs_clust), clique_size) for gs_clust in gs_clusters ] )
@@ -209,9 +218,9 @@ class ComplexComparison(object):
 
             #kdrew: get a random cluster
             gs_clust = gs_clusters[gs_wrg()]
-            #print gs_clust
 
             shuffled_l = rand.permutation(list(gs_clust))
+            #print "sampled: %s" % (shuffled_l[:clique_size],)
 
             #if np.max(map(set(shuffled_l[:clique_size]).issubset,self.get_clusters())).any():
             if np.max(map( set( shuffled_l[:clique_size] ).issubset, clusters )):
@@ -219,13 +228,13 @@ class ComplexComparison(object):
             else:
                 false_negatives+=1
 
-
         #print "truepos: %s gs_truepos: %s falsepos: %s falseneg: %s" % (true_positives, gs_true_positives, false_positives, false_negatives)
 
         #assert true_positives == gs_true_positives
 
         return_dict = dict()
         return_dict['tp'] = true_positives
+        return_dict['gs_tp'] = gs_true_positives
         return_dict['fp'] = false_positives
         return_dict['fn'] = false_negatives
         return return_dict
