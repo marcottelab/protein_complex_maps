@@ -93,21 +93,29 @@ class ComplexComparisonTest(unittest.TestCase):
         np.testing.assert_almost_equal( d[2]['precision'], 0.7272727272727273, 2)
         #kdrew: estimated
         np.testing.assert_almost_equal( d[2]['precision'], 0.7272)
+
         #kdrew: actual
         np.testing.assert_almost_equal( d[2]['recall'], 0.8888888888888888, 1 )
         #kdrew: estimated
-        np.testing.assert_almost_equal( d[2]['recall'], 0.8678839957035446)
+        #kdrew: old value before bug fix on recall calculation
+        #np.testing.assert_almost_equal( d[2]['recall'], 0.8678839957035446)
+        np.testing.assert_almost_equal( d[2]['recall'], 0.8893)
+
         #kdrew: actual
         np.testing.assert_almost_equal( d[3]['precision'], 0.666666666667, 1 )
         #kdrew: estimated
         np.testing.assert_almost_equal( d[3]['precision'], 0.6771 )
+
         #kdrew: actual
         np.testing.assert_almost_equal( d[3]['recall'], 1.0 )
         #kdrew: estimated
         np.testing.assert_almost_equal( d[3]['recall'], 1.0 )
 
         ccmm = ccobj.clique_comparison_metric_mean()
-        np.testing.assert_almost_equal(ccmm['recall_mean'], 0.93259774526265293)
+        #kdrew: old value before bug fix on recall calculation
+        #np.testing.assert_almost_equal(ccmm['recall_mean'], 0.93259774526265293)
+        #kdrew: (0.8876 + 1.0) / 2
+        np.testing.assert_almost_equal(ccmm['recall_mean'], 0.94379999999999997)
         np.testing.assert_almost_equal(ccmm['precision_mean'], 0.69205000000000005)
 
 
