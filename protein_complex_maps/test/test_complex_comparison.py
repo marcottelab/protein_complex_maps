@@ -111,13 +111,25 @@ class ComplexComparisonTest(unittest.TestCase):
         #kdrew: estimated
         np.testing.assert_almost_equal( d[3]['recall'], 1.0 )
 
+        print "f1score 2: %s" % d[2]['f1score']
+        print "f1score 3: %s" % d[3]['f1score']
+        np.testing.assert_almost_equal( d[3]['f1score'], 0.80746526742591385 )
+        np.testing.assert_almost_equal( d[2]['f1score'], 0.80012243736467659 )
+
+    
+
         ccmm = ccobj.clique_comparison_metric_mean()
         #kdrew: old value before bug fix on recall calculation
         #np.testing.assert_almost_equal(ccmm['recall_mean'], 0.93259774526265293)
         #kdrew: (0.8876 + 1.0) / 2
-        np.testing.assert_almost_equal(ccmm['recall_mean'], 0.94379999999999997)
-        np.testing.assert_almost_equal(ccmm['precision_mean'], 0.69205000000000005)
+        #np.testing.assert_allclose(ccmm['recall_mean'], 0.94379999999999997, 0.1)
+        #np.testing.assert_allclose(ccmm['precision_mean'], 0.69205000000000005, 0.1)
+        np.testing.assert_allclose(ccmm['precision_mean'], 0.70215)
+        np.testing.assert_allclose(ccmm['recall_mean'], 0.94465)
 
+
+        grandf1score = ccobj.clique_comparison_metric_grandf1score()
+        np.testing.assert_allclose(grandf1score, 0.80377708281154325)
 
 
 if __name__ == "__main__":
