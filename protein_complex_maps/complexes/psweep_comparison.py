@@ -1,6 +1,7 @@
 
 import argparse
 import numpy as np
+import multiprocessing as mp
 
 import protein_complex_maps.complex_comparison as cc
 
@@ -16,6 +17,8 @@ def main():
                                             help="Filename of where the output should go")
     parser.add_argument("--id_delimin", action="store", dest="id_delimin", required=False, default='ii',
                                             help="Deliminator of identifier in filename to uniquely id the predictions, default=ii (ex. predictions_ii99.txt) ")
+    parser.add_argument("--procs", action="store", type=int, dest="procs", required=False, default=1,
+                                    help="Number processors to use (int), default=1)")
     args = parser.parse_args()
 
 
@@ -28,8 +31,41 @@ def main():
 
     gold_file.close()
 
-    pr_dict = compare2goldstandard(args.cluster_filenames, gold_standard_complexes, args.id_delimin)
+    p = mp.Pool(args.procs)
+    #kdrew: create list of inputs to pass to parallel compare2goldstandard
+    compare2goldstandard_input_list = []
+    for i, cluster_filename in enumerate(args.cluster_filenames):
+        parameter_dict = dict()
+        parameter_dict['cluster_filename'] = cluster_filename
+        parameter_dict['gs_complexes'] = gold_standard_complexes
+        parameter_dict['id_delimin'] = args.id_delimin
+        compare2goldstandard_input_list.append(parameter_dict)
     
+        #compare2goldstandard(cluster_filename, gold_standard_complexes, args.id_delimin)
+
+    #kdrew: call compare2goldstandard with pool of processors
+    compare2goldstandard_results = p.map(compare2goldstandard, compare2goldstandard_input_list)
+
+    pr_dict = dict()
+    precision_dict = dict()
+    recall_dict = dict()
+    f1score_dict = dict()
+    grand_f1score_dict = dict()
+    
+    #kdrew: put the results into dictionaries
+    for result in compare2goldstandard_results:
+        precision_dict[result['ii']] = result['precision_list']
+        recall_dict[result['ii']] = result['recall_list']
+        f1score_dict[result['ii']] = result['f1score_list']
+        grand_f1score_dict[result['ii']] = result['grand_f1score']
+
+    #kdrew: store all dictionaries into a master dictionary
+    pr_dict['precision'] = precision_dict
+    pr_dict['recall'] = recall_dict
+    pr_dict['f1score'] = f1score_dict
+    pr_dict['grand_f1score'] = grand_f1score_dict
+
+    #kdrew: output results 
     outfile = open(args.output_filename,"wb")
     outfile.write("ii$precision_list$recall_list$f1score_list$grand_f1score\n" )
     for ii in pr_dict['precision'].keys():
@@ -43,54 +79,55 @@ def main():
     outfile.close()
 
 #kdrew: id_delimin is for parsing a unique identifier from the filename, usually 'ii'
-def compare2goldstandard(cluster_filenames, gs_complexes, id_delimin):
+#def compare2goldstandard(cluster_filename, gs_complexes, id_delimin):
+def compare2goldstandard(parameter_dict):
     
-    #gs_plot_data = []
-    return_dict = dict()
-    precision_dict = dict()
-    recall_dict = dict()
-    f1score_dict = dict()
-    f1score_hmean_dict = dict()
+    cluster_filename = parameter_dict['cluster_filename']
+    gs_complexes = parameter_dict['gs_complexes']
+    id_delimin = parameter_dict['id_delimin']
+    #for i, cluster_filename in enumerate(cluster_filenames):
+
+    predicted_clusters = []
+    clpred_f = open(cluster_filename,"rb")
+    for line in clpred_f.readlines():
+        predicted_clusters.append(line.split())
+
+    clpred_f.close()
+
+    #kdrew: strip from filename the id (ii) 
+    for seg in cluster_filename.split('.'):
+        if id_delimin in seg:
+            ii = seg.split(id_delimin)[1]
+
+    cplx_compare = cc.ComplexComparison(gs_complexes, predicted_clusters)
     
-    for cluster_filename in cluster_filenames:
-        predicted_clusters = []
-        clpred_f = open(cluster_filename,"rb")
-        for line in clpred_f.readlines():
-            predicted_clusters.append(line.split())
+    result_dict = cplx_compare.clique_comparison_metric()
+    #print result_dict
+    precision_list = [result_dict[x]['precision'] for x in result_dict.keys()]
+    recall_list = [result_dict[x]['recall'] for x in result_dict.keys()]
+    f1score_list = [result_dict[x]['f1score'] for x in result_dict.keys()]
+
+    print precision_list
+    print recall_list
+    print f1score_list
     
-        clpred_f.close()
-    
-        #kdrew: strip from filename the id (ii) 
-        for seg in cluster_filename.split('.'):
-            if id_delimin in seg:
-                ii = seg.split(id_delimin)[1]
-    
-        cplx_compare = cc.ComplexComparison(gs_complexes, predicted_clusters)
-        
-        result_dict = cplx_compare.clique_comparison_metric()
-        #print result_dict
-        precision_list = [result_dict[x]['precision'] for x in result_dict.keys()]
-        recall_list = [result_dict[x]['recall'] for x in result_dict.keys()]
-        f1score_list = [result_dict[x]['f1score'] for x in result_dict.keys()]
+    #precision_dict[ii] = precision_list
+    #recall_dict[ii] = recall_list
+    #f1score_dict[ii] = f1score_list
 
-        print precision_list
-        print recall_list
-        print f1score_list
-        
-        precision_dict[ii] = precision_list
-        recall_dict[ii] = recall_list
-        f1score_dict[ii] = f1score_list
-
-        f1score_hmean_dict[ii] = cplx_compare.clique_comparison_metric_grandf1score()
-        print f1score_hmean_dict[ii]
+    #f1score_hmean_dict[ii] = cplx_compare.clique_comparison_metric_grandf1score()
+    grand_f1score = cplx_compare.clique_comparison_metric_grandf1score()
+    #print f1score_hmean_dict[ii]
 
 
-    return_dict['precision'] = precision_dict
-    return_dict['recall'] = recall_dict
-    return_dict['f1score'] = f1score_dict
-    return_dict['grand_f1score'] = f1score_hmean_dict
+    #return_dict['precision'] = precision_dict
+    #return_dict['recall'] = recall_dict
+    #return_dict['f1score'] = f1score_dict
+    #return_dict['grand_f1score'] = f1score_hmean_dict
+    #
+    #return return_dict
 
-    return return_dict
+    return {'ii':ii, 'precision_list':precision_list, 'recall_list':recall_list, 'f1score_list':f1score_list, 'grand_f1score':grand_f1score}
 
 #kdrew: reads in precision recall file and returns dictionary
 def read_pr_file(filename):
