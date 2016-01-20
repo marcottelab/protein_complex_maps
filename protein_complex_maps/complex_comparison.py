@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 
 class ComplexComparison(object):
 
-    def __init__(self, gold_standard=[], clusters=[], samples=10000):
+    def __init__(self, gold_standard=[], clusters=[], samples=10000, pseudocount=1):
         #kdrew: gold_standard and clusters are a list of complexes 
         #kdrew: each complex contains a set of ids  (if passed in a list, will be converted to set)
         self.gold_standard = [set(x) for x in gold_standard]
@@ -37,7 +37,7 @@ class ComplexComparison(object):
         self.clique_comparison_metric_results = None
         #kdrew: number of samples for clique comparison metric
         self.samples=samples
-        self.pseudocount = 1
+        self.pseudocount = pseudocount
 
     def get_gold_standard(self,):
         return self.gold_standard
@@ -177,17 +177,19 @@ class ComplexComparison(object):
         #print "max_len %s" % max_len
         for size in range(2, max_len+1):
 
+            zero_w_pseudocount = 1.0*self.pseudocount / (self.samples + 2*self.pseudocount)
+
             #kdrew: shortcut, if the last two precision and recall estimates are 0.0 then there is exceedingly small chance are a larger clique size will have a precision/recall > 0.0
             #kdrew: do not calculate, just mark the remainder clique sizes as zero
-            if size > 4 and return_dict[size-1]['precision'] == 0.0 and return_dict[size-1]['recall'] == 0.0 and return_dict[size-2]['precision'] == 0.0 and return_dict[size-2]['recall'] == 0.0:
-                return_dict[size] = {'precision':0.0,'f1score':0.0, 'recall':0.0}
+            if size > 4 and return_dict[size-1]['precision'] == zero_w_pseudocount and return_dict[size-1]['recall'] == zero_w_pseudocount and return_dict[size-2]['precision'] == zero_w_pseudocount and return_dict[size-2]['recall'] == zero_w_pseudocount:
+                return_dict[size] = {'precision':zero_w_pseudocount,'f1score':zero_w_pseudocount, 'recall':zero_w_pseudocount}
                 continue
 
             #kdrew: if clique size is greater than the max size of the gold standard, return precision 0.0 and recall 0.0 
             #kdrew: (technically recall should be NA because there are no complexes left in the gold standard but I think it makes sense to reduce it to 0.0 here)
             #kdrew: see above comment on another way of dealing with this (i.e. min_of_max_len)
             if gs_max_len < size:
-                return_dict[size] = {'precision':0.0,'f1score':0.0, 'recall':0.0}
+                return_dict[size] = {'precision':zero_w_pseudocount,'f1score':zero_w_pseudocount, 'recall':zero_w_pseudocount}
                 continue
 
             result_dict = self.clique_comparison(size)
@@ -211,10 +213,11 @@ class ComplexComparison(object):
 
     #kdrew: calculate confusion matrix between predicted clusters and gold standard complexes for specific clique sizes
     def clique_comparison(self, clique_size):
-        true_positives = 0
-        gs_true_positives = 0
-        false_positives = 0
-        false_negatives = 0
+        true_positives = self.pseudocount
+        gs_true_positives = self.pseudocount
+        false_positives = self.pseudocount
+        false_negatives = self.pseudocount
+
 
         #kdrew: only get clusters that are larger than or equal to the clique size
         clusters = [clust & self.get_gold_standard_proteins() for clust in self.get_clusters() if len(clust & self.get_gold_standard_proteins()) >= clique_size]
@@ -247,7 +250,7 @@ class ComplexComparison(object):
             if np.max(map(set(shuffled_l[:clique_size]).issubset,self.get_gold_standard())):
                 true_positives += 1 
             else:
-                false_positives +=1
+                false_positives += 1
 
 
         #kdrew: only get gold standard complexes that are larger than or equal to the clique size
@@ -274,7 +277,7 @@ class ComplexComparison(object):
             if np.max(map( set( shuffled_l[:clique_size] ).issubset, clusters )):
                 gs_true_positives += 1 
             else:
-                false_negatives+=1
+                false_negatives += 1
 
         #print "truepos: %s gs_truepos: %s falsepos: %s falseneg: %s" % (true_positives, gs_true_positives, false_positives, false_negatives)
 
