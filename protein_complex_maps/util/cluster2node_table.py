@@ -37,6 +37,7 @@ def main():
     d['clustid_key'] = []
     d['acc'] = []
     d['genename'] = []
+    d['uniprot_link'] = []
 
     for clustid, cluster in enumerate(clusters):
         for prot_id in cluster:
@@ -47,10 +48,12 @@ def main():
             d['clustid_key'].append(clust_id_key)
             try:
                 d['acc'].append(inputID2ACC_map[prot_id][0])
+                d['uniprot_link'].append("http://www.uniprot.org/uniprot/%s" % inputID2ACC_map[prot_id][0])
                 d['genename'].append(genename_map[inputID2ACC_map[prot_id][0]])
             except IndexError:
                 d['genename'].append(None)
                 d['acc'].append(None)
+                d['uniprot_link'].append(None)
 
 
 
