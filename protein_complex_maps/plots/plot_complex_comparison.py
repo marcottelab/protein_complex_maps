@@ -12,10 +12,12 @@ import argparse
 
 import protein_complex_maps.complex_comparison as cc
 
+#kdrew: method from Brohee and Helden BMC Bioinformatics, http://www.biomedcentral.com/content/pdf/1471-2105-7-488.pdf
+
 
 def main():
 
-    parser = argparse.ArgumentParser(description="Compare cluster predictions to gold standard complexes")
+    parser = argparse.ArgumentParser(description="Compare cluster predictions to gold standard complexes and plot")
     parser.add_argument("--cluster_predictions", action="store", dest="cluster_filename", required=True, 
                                             help="Filename of cluster predictions, format one cluster per line, ids space separated")
     parser.add_argument("--gold_standard", action="store", dest="gold_standard_filename", required=True, 
@@ -64,9 +66,9 @@ def main():
     #print cplx_compare.sensitivity(topN=10)
     #print cplx_compare.ppv(topN=10)
     #print cplx_compare.acc(topN=10)
-    #print cplx_compare.sensitivity()
-    #print cplx_compare.ppv()
-    #print cplx_compare.acc()
+    print "Sensitivity: %s" % cplx_compare.sensitivity()
+    print "PPV: %s" % cplx_compare.ppv()
+    print "ACC: %s" % cplx_compare.acc()
 
     sensitivity_results = []
     ppv_results = []

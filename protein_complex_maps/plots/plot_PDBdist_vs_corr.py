@@ -284,7 +284,7 @@ def calc_correlation(chain_pairs2acc, msds):
 
 	return corr_dict
 
-#kdrew: calculate distance between chains
+#kdrew: calculate surface area between chains
 def calc_surface_area(chain_pairs2acc, pisaInt):
 	sArea_dict = dict()
 	for c1, c2 in chain_pairs2acc:
@@ -303,7 +303,7 @@ def calc_surface_area(chain_pairs2acc, pisaInt):
 			if base_key1 > base_key2:
 				base_key1, base_key2 = base_key2, base_key1
 
-			#kdrew: if the same acc is represented in multiple chains, take the min dist
+			#kdrew: if the same acc is represented in multiple chains, take the max surface area
 			try:
 				sArea_dict[(base_key1, base_key2)] = max(sArea_dict[(base_key1, base_key2)], sArea)
 			except KeyError:
