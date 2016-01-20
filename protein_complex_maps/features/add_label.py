@@ -5,10 +5,6 @@ import numpy as np
 import pandas as pd
 import itertools as it
 
-import protein_complex_maps.correlation_util as cu
-import protein_complex_maps.protein_util as pu
-
-
 def main():
 
     parser = argparse.ArgumentParser(description="Adds positive and negative labels to feature matrix")

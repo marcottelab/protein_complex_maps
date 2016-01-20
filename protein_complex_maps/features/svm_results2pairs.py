@@ -5,9 +5,6 @@ import numpy as np
 import pandas as pd
 import itertools as it
 
-import protein_complex_maps.correlation_util as cu
-import protein_complex_maps.protein_util as pu
-
 #kdrew: cannot have error checking in lambda function so create a function with error checking to be called by lambda
 #kdrew: http://stackoverflow.com/questions/12451531/python-try-catch-block-inside-lambda
 def tryconvertInt(value):
