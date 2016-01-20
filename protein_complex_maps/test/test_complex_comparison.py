@@ -66,7 +66,7 @@ class ComplexComparisonTest(unittest.TestCase):
         np.testing.assert_almost_equal( ccobj.mmr(), 0.575)
 
     def testCliqueComparison(self, ):
-        ccobj = cc.ComplexComparison(self.gold_standard3, self.clusters3)
+        ccobj = cc.ComplexComparison(self.gold_standard3, self.clusters3, pseudocount=0)
 
         result_dict = ccobj.clique_comparison(clique_size=3)
         assert result_dict['tp'] == 6696
@@ -86,7 +86,7 @@ class ComplexComparisonTest(unittest.TestCase):
         #assert result_dict['fn'] == 1
 
     def testCliqueComparisonMetric(self, ):
-        ccobj = cc.ComplexComparison(self.gold_standard3, self.clusters3)
+        ccobj = cc.ComplexComparison(self.gold_standard3, self.clusters3, pseudocount=0)
         d = ccobj.clique_comparison_metric()
 
         #kdrew: actual
