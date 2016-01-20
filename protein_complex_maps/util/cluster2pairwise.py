@@ -3,8 +3,6 @@
 import argparse
 import itertools as it
 
-import protein_complex_maps.protein_util as pu
-
 def main():
 
     parser = argparse.ArgumentParser(description="Tool to convert clusters to pairs with option of adding cluster id to output pairs ")

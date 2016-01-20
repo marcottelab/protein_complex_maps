@@ -3,8 +3,6 @@
 import argparse
 import itertools as it
 
-import protein_complex_maps.protein_util as pu
-
 def main():
 
     parser = argparse.ArgumentParser(description="Tool to create table to pairwise interactions (and scores) with corresponding cluster_ids" )
