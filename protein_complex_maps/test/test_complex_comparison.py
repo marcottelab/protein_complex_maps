@@ -25,6 +25,10 @@ class ComplexComparisonTest(unittest.TestCase):
         self.gold_standard3 = [['a','b','c'],['d','e','f'],['f','g'],['a','b'],['g','i']]
         self.clusters3 = [['a','b','c'],['d','e','f','h'],['a','b'],['j','k'],['c','d'],['f','g','a']]
 
+        self.gold_standard4 = [['a','b','c','d','e','f'],['g','h','i','j','k','l','m','n'],['o','p'],['q','r'],['s','t'],['u','v']]
+        #self.clusters4 = [['a','b','c','d','e','f'],['g','h','i','j','k','l','m','n'],['a','g','o','q','s','u']]
+        self.clusters4 = [['a','b','c','d','e','f'],['g','h','i','j','k','l'],['a','g','o','q','s','u']]
+
     def testComplexComparison(self, ):
         ccobj = cc.ComplexComparison(self.gold_standard, self.clusters)
         np.testing.assert_almost_equal( ccobj.sensitivity(), 0.75)
@@ -76,6 +80,11 @@ class ComplexComparisonTest(unittest.TestCase):
         #assert result_dict['fp'] == 1
         assert result_dict['fn'] == 0
 
+        #kdrew: [a,b,c] and [d,e,f] are both in gold standard so both are true positives, 
+        #kdrew: [d,e,h],[e,f,h] and [d,f,h] are all ignored because 'h' does not exist in gold standard at all
+        #kdrew: [f,g,a] is not in gold standard but all of the proteins are so it is a false positive
+
+
         result_dict = ccobj.clique_comparison(clique_size=2)
         assert result_dict['tp'] == 7309
         assert result_dict['fp'] == 2691
@@ -84,6 +93,14 @@ class ComplexComparisonTest(unittest.TestCase):
         #assert result_dict['tp'] == 8
         #assert result_dict['fp'] == 3
         #assert result_dict['fn'] == 1
+
+    def testCliqueComparisonMetricExact(self, ):
+        ccobj = cc.ComplexComparison(self.gold_standard3, self.clusters3, pseudocount=0, exact=True)
+        d_exact = ccobj.clique_comparison_metric()
+        np.testing.assert_almost_equal( d_exact[2]['precision'], 0.7272727272727273)
+        np.testing.assert_almost_equal( d_exact[2]['recall'], 0.8888888888888888)
+        np.testing.assert_almost_equal( d_exact[3]['precision'], 0.666666666667)
+        np.testing.assert_almost_equal( d_exact[3]['recall'], 1.0 )
 
     def testCliqueComparisonMetric(self, ):
         ccobj = cc.ComplexComparison(self.gold_standard3, self.clusters3, pseudocount=0)
@@ -131,6 +148,67 @@ class ComplexComparisonTest(unittest.TestCase):
         grandf1score = ccobj.clique_comparison_metric_grandf1score()
         np.testing.assert_allclose(grandf1score, 0.80377708281154325)
 
+    def testCliqueComparisonMetricSampling(self, ):
+        print "Sampling test"
+        actual_precision = 8.0/11
+        ccobj = cc.ComplexComparison(self.gold_standard3, self.clusters3, pseudocount=0, samples=10)
+        d = ccobj.clique_comparison_metric()
+        print "10 precision: %s" % d[2]['precision']
+        print "10 diff: %s" % abs(d[2]['precision'] - actual_precision)
+        ccobj = cc.ComplexComparison(self.gold_standard3, self.clusters3, pseudocount=0, samples=100)
+        d = ccobj.clique_comparison_metric()
+        print "100 precision: %s" % d[2]['precision']
+        print "100 diff: %s" % abs(d[2]['precision'] - actual_precision)
+        ccobj = cc.ComplexComparison(self.gold_standard3, self.clusters3, pseudocount=0, samples=1000)
+        d = ccobj.clique_comparison_metric()
+        print "1k precision: %s" % d[2]['precision']
+        print "1k diff: %s" % abs(d[2]['precision'] - actual_precision)
+        ccobj = cc.ComplexComparison(self.gold_standard3, self.clusters3, pseudocount=0, samples=10000)
+        d = ccobj.clique_comparison_metric()
+        print "10k precision: %s" % d[2]['precision']
+        print "10k diff: %s" % abs(d[2]['precision'] - actual_precision)
+        ccobj = cc.ComplexComparison(self.gold_standard3, self.clusters3, pseudocount=0, samples=100000)
+        d = ccobj.clique_comparison_metric()
+        print "100k precision: %s" % d[2]['precision']
+        print "100k diff: %s" % abs(d[2]['precision'] - actual_precision)
+        #ccobj = cc.ComplexComparison(self.gold_standard3, self.clusters3, pseudocount=0, samples=1000000)
+        #d = ccobj.clique_comparison_metric()
+        #print "1m precision: %s" % d[2]['precision']
+        #print "1m diff: %s" % abs(d[2]['precision'] - actual_precision)
+        #ccobj = cc.ComplexComparison(self.gold_standard3, self.clusters3, pseudocount=0, samples=10000000)
+        #d = ccobj.clique_comparison_metric()
+        #print "10m precision: %s" % d[2]['precision']
+        #print "10m diff: %s" % abs(d[2]['precision'] - actual_precision)
+
+    def testCliqueComparisonMetricSampling2(self, ):
+        print "Sampling test 2"
+        ccobj = cc.ComplexComparison(self.gold_standard4, self.clusters4, pseudocount=0)
+        d = ccobj.clique_comparison_metric()
+        print "precision 2: %s" % d[2]['precision']
+        print "precision 3: %s" % d[3]['precision']
+        print "precision 4: %s" % d[4]['precision']
+        print "precision 5: %s" % d[5]['precision']
+        print "precision 6: %s" % d[6]['precision']
+        #print "precision 7: %s" % d[7]['precision']
+        #print "precision 8: %s" % d[8]['precision']
+
+        ccobj = cc.ComplexComparison(self.gold_standard4, self.clusters4, pseudocount=0, exact=True)
+        d_exact = ccobj.clique_comparison_metric()
+        print "precision exact 2: %s" % d_exact[2]['precision']
+        print "precision exact 3: %s" % d_exact[3]['precision']
+        print "precision exact 4: %s" % d_exact[4]['precision']
+        print "precision exact 5: %s" % d_exact[5]['precision']
+        print "precision exact 6: %s" % d_exact[6]['precision']
+        #print "precision exact 7: %s" % d_exact[7]['precision']
+        #print "precision exact 8: %s" % d_exact[8]['precision']
+
+        print "diff 2: %s" % abs(d[2]['precision'] - d_exact[2]['precision'])
+        print "diff 3: %s" % abs(d[3]['precision'] - d_exact[3]['precision'])
+        print "diff 4: %s" % abs(d[4]['precision'] - d_exact[4]['precision'])
+        print "diff 5: %s" % abs(d[5]['precision'] - d_exact[5]['precision'])
+        print "diff 6: %s" % abs(d[6]['precision'] - d_exact[6]['precision'])
+        #print "diff 7: %s" % abs(d[7]['precision'] - d_exact[7]['precision'])
+        #print "diff 8: %s" % abs(d[8]['precision'] - d_exact[8]['precision'])
 
 if __name__ == "__main__":
         unittest.main()
