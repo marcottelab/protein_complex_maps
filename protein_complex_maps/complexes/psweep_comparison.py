@@ -19,6 +19,8 @@ def main():
                                             help="Deliminator of identifier in filename to uniquely id the predictions, default=ii (ex. predictions_ii99.txt) ")
     parser.add_argument("--procs", action="store", type=int, dest="procs", required=False, default=1,
                                     help="Number processors to use (int), default=1)")
+    parser.add_argument("--samples", action="store", type=int, dest="samples", required=False, default=10000,
+                                    help="Number to samples for complex comparison, defaul=10000")
     args = parser.parse_args()
 
 
@@ -39,6 +41,7 @@ def main():
         parameter_dict['cluster_filename'] = cluster_filename
         parameter_dict['gs_complexes'] = gold_standard_complexes
         parameter_dict['id_delimin'] = args.id_delimin
+        parameter_dict['samples'] = args.samples
         compare2goldstandard_input_list.append(parameter_dict)
     
         #compare2goldstandard(cluster_filename, gold_standard_complexes, args.id_delimin)
@@ -85,6 +88,7 @@ def compare2goldstandard(parameter_dict):
     cluster_filename = parameter_dict['cluster_filename']
     gs_complexes = parameter_dict['gs_complexes']
     id_delimin = parameter_dict['id_delimin']
+    samples = parameter_dict['samples']
     #for i, cluster_filename in enumerate(cluster_filenames):
 
     predicted_clusters = []
@@ -99,7 +103,7 @@ def compare2goldstandard(parameter_dict):
         if id_delimin in seg:
             ii = seg.split(id_delimin)[1]
 
-    cplx_compare = cc.ComplexComparison(gs_complexes, predicted_clusters)
+    cplx_compare = cc.ComplexComparison(gs_complexes, predicted_clusters, samples=samples)
     
     result_dict = cplx_compare.clique_comparison_metric()
     #print result_dict
