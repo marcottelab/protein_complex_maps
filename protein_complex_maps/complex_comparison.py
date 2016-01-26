@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 
 class ComplexComparison(object):
 
-    def __init__(self, gold_standard=[], clusters=[], samples=10000, pseudocount=1):
+    def __init__(self, gold_standard=[], clusters=[], samples=10000, pseudocount=1, exact=False, max_clique=None):
         #kdrew: gold_standard and clusters are a list of complexes 
         #kdrew: each complex contains a set of ids  (if passed in a list, will be converted to set)
         self.gold_standard = [set(x) for x in gold_standard]
@@ -38,6 +38,8 @@ class ComplexComparison(object):
         #kdrew: number of samples for clique comparison metric
         self.samples=samples
         self.pseudocount = pseudocount
+        self.exact = exact
+        self.max_clique = max_clique
 
     def get_gold_standard(self,):
         return self.gold_standard
@@ -158,14 +160,16 @@ class ComplexComparison(object):
 
         return {'precision_mean':np.mean(precision_list),'recall_mean':np.mean(recall_list)}
 
+    #kdrew: calculate precision, recall and f1score for all clique sizes up to largest cluster
     def clique_comparison_metric(self, force=False):
 
         #kdrew: if already computed, just return the saved result
         if self.clique_comparison_metric_results != None and not force:
             return self.clique_comparison_metric_results
 
+        #kdrew: only evaluate on proteins that are in gold standard set
         clusters = [clust & self.get_gold_standard_proteins() for clust in self.get_clusters()]
-        max_len = np.max(map(len,clusters))
+        clust_max_len = np.max(map(len,clusters))
         gs_max_len = np.max(map(len,self.get_gold_standard()))
 
         #kdrew: find the max cluster sizes of all clusters and gold standard complexes, then find the min between the maxes 
@@ -175,6 +179,13 @@ class ComplexComparison(object):
 
         return_dict = dict()
         #print "max_len %s" % max_len
+
+        if self.max_clique == None:
+            max_len = clust_max_len
+        else:
+            #kdrew: if max_clique is set but the largest cluster is smaller, use the smaller value
+            max_len = min(self.max_clique, clust_max_len)
+
         for size in range(2, max_len+1):
 
             zero_w_pseudocount = 1.0*self.pseudocount / (self.samples + 2*self.pseudocount)
@@ -192,7 +203,11 @@ class ComplexComparison(object):
                 return_dict[size] = {'precision':zero_w_pseudocount,'f1score':zero_w_pseudocount, 'recall':zero_w_pseudocount}
                 continue
 
-            result_dict = self.clique_comparison(size)
+            if self.exact:
+                result_dict = self.clique_comparison_exact(size)
+            else:
+                result_dict = self.clique_comparison(size)
+
             #print result_dict
             recall = 1.0*result_dict['gs_tp'] / (result_dict['gs_tp'] + result_dict['fn'])
             precision = 1.0*result_dict['tp'] / (result_dict['tp'] + result_dict['fp'])
@@ -209,6 +224,34 @@ class ComplexComparison(object):
         #kdrew: save results for future retrieval
         self.clique_comparison_metric_results = return_dict
         return return_dict
+
+    def clique_comparison_exact(self,clique_size):
+        true_positives = self.pseudocount
+        gs_true_positives = self.pseudocount
+        false_positives = self.pseudocount
+        false_negatives = self.pseudocount
+
+        #kdrew: only get clusters that are larger than or equal to the clique size
+        clusters = [clust & self.get_gold_standard_proteins() for clust in self.get_clusters() if len(clust & self.get_gold_standard_proteins()) >= clique_size]
+
+        for clust in clusters:
+            is_positive_list = [ np.max(map(set(group).issubset,self.get_gold_standard())) for group in it.combinations(clust, clique_size)]
+            tp_curr = sum(is_positive_list)
+            true_positives += tp_curr
+            false_positives += len(is_positive_list) - tp_curr
+
+        for gs_clust in self.get_gold_standard():
+            is_positive_list = [ np.max(map(set(gs_group).issubset,clusters)) for gs_group in it.combinations(gs_clust, clique_size) ]
+            gs_true_positives += sum(is_positive_list)
+            false_negatives += sum(np.logical_not(is_positive_list))
+
+        return_dict = dict()
+        return_dict['tp'] = true_positives
+        return_dict['gs_tp'] = gs_true_positives
+        return_dict['fp'] = false_positives
+        return_dict['fn'] = false_negatives
+        return return_dict
+
 
 
     #kdrew: calculate confusion matrix between predicted clusters and gold standard complexes for specific clique sizes
@@ -228,12 +271,16 @@ class ComplexComparison(object):
         #    print "clust: %s" % clust
 
 
-        #kdrew: weight each cluster by the length of its overlap with the gold standard
-        wrg = WeightedRandomGenerator( [misc.comb(len(clust & self.get_gold_standard_proteins()), clique_size) for clust in clusters ] )
+        #kdrew: weight each cluster by the number of combinations of size of clique overlapping with the gold standard
+        #kdrew: this is so larger clusters with more possible combinations are sampled more
+        weights_array = [misc.comb(len(clust & self.get_gold_standard_proteins()), clique_size) for clust in clusters ] 
+        #print clique_size
+        #print weights_array
+        wrg = WeightedRandomGenerator( weights_array )
 
         for s in xrange(self.samples):
 
-            #kdrew: get a random cluster
+            #kdrew: get a random cluster weighted by the number of possible clique combinations
             clust = clusters[wrg()]
             #print clust
 
@@ -245,7 +292,8 @@ class ComplexComparison(object):
             if len(clust_intersection) <= 0:
                 continue
 
-            shuffled_l = rand.permutation(list(clust))
+            #shuffled_l = rand.permutation(list(clust))
+            shuffled_l = rand.permutation(list(clust_intersection))
 
             if np.max(map(set(shuffled_l[:clique_size]).issubset,self.get_gold_standard())):
                 true_positives += 1 
@@ -262,7 +310,7 @@ class ComplexComparison(object):
             #print "gs_clust: %s" % (len(gs_clust),)
             #print "gs_clust: %s" % (gs_clust,)
 
-        #kdrew: weight each complex by size of complex
+        #kdrew: weight each complex by number of possible combinations of clique size for each complex
         gs_wrg = WeightedRandomGenerator( [misc.comb(len(gs_clust), clique_size) for gs_clust in gs_clusters ] )
 
         for s in xrange(self.samples):
