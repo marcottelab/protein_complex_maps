@@ -467,7 +467,7 @@ def read_datafile(fhandle, header=True):
         #kdrew: eat header
         line = fhandle.readline()
         print "HEADER: %s" % line
-        assert(line.split()[1] == 'TotalCount', "Error: missing column names, check --msblender_format in msblender2elution_profile.py")
+        assert line.split()[1] == 'TotalCount', "Error: missing column names, check --msblender_format in msblender2elution_profile.py"
         fraction_list = line.split()[2:]
 	
     data = []
