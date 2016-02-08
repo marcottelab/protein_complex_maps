@@ -178,6 +178,8 @@ def get_from_uniprot( protein_ids, keyword ):
 					return_dict[line.split()[0]] = int(line.split()[1])
 				elif keyword == "organism":
 					return_dict[line.split()[0]] = line.split('\t')[1]
+				elif keyword == "protein+names":
+					return_dict[line.split()[0]] = line.split('\t')[1]
 				else:
 					try:
 						return_dict[line.split()[0]] = line.split()[1]
