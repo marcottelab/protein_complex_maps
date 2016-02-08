@@ -30,6 +30,7 @@ def main():
     inputID2ACC_map = pu.map_protein_ids(list(protid_set), args.from_id, "ACC", reviewed=args.reviewed)
     flatten_list = [item for sublist in inputID2ACC_map.values() for item in sublist]
     genename_map = pu.get_from_uniprot(flatten_list, 'genes')
+    proteinname_map = pu.get_from_uniprot(flatten_list, 'protein+names')
 
     d = dict()
     d['clustid'] = []
@@ -37,6 +38,7 @@ def main():
     d['clustid_key'] = []
     d['acc'] = []
     d['genename'] = []
+    d['proteinname'] = []
     d['uniprot_link'] = []
 
     for clustid, cluster in enumerate(clusters):
@@ -50,8 +52,13 @@ def main():
                 d['acc'].append(inputID2ACC_map[prot_id][0])
                 d['uniprot_link'].append("http://www.uniprot.org/uniprot/%s" % inputID2ACC_map[prot_id][0])
                 d['genename'].append(genename_map[inputID2ACC_map[prot_id][0]])
+                try:
+                    d['proteinname'].append(proteinname_map[inputID2ACC_map[prot_id][0]])
+                except KeyError:
+                    d['proteinname'].append(None)
             except IndexError:
                 d['genename'].append(None)
+                d['proteinname'].append(None)
                 d['acc'].append(None)
                 d['uniprot_link'].append(None)
 
