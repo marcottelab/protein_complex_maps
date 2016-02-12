@@ -146,19 +146,24 @@ def compare2goldstandard(parameter_dict):
     return {'ii':ii, 'precision_list':precision_list, 'recall_list':recall_list, 'f1score_list':f1score_list, 'grand_f1score':grand_f1score}
 
 #kdrew: reads in precision recall file and returns dictionary
-def read_pr_file(filename):
+def read_pr_file(filename, names=None):
     pr_dict1 = dict()
     pr_dict1['precision'] = dict()
     pr_dict1['recall'] = dict()
     pr_dict1['f1score'] = dict()
     pr_dict1['grand_f1score'] = dict()
 
+    print names
+
     pr_file = open(filename,"rb")
-    for line in pr_file.readlines():
+    for j, line in enumerate(pr_file.readlines()):
         if "ii$precision_list$recall_list" in line:
             #kdrew: header line, do nothing
             continue
-        ii = line.split('$')[0]
+        if names != None:
+            ii = names[j-1]
+        else:
+            ii = line.split('$')[0]
         #kdrew: fields are '$' deliminited and precision and recall lists are ',' deliminited
         precision_list = map(float,line.split('$')[1].split(','))
         recall_list = map(float,line.split('$')[2].split(','))
