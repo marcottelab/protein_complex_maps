@@ -25,6 +25,8 @@ def main():
                                             help="Protein ids in which to anaylze")
     parser.add_argument("--combine", action="store_true", dest="combine", required=False,  default=False,
                                             help="Combine all profiles")
+    parser.add_argument("--average", action="store_true", dest="average", required=False,  default=False,
+                                            help="Average all profiles")
     args = parser.parse_args()
 
     #commd_ids = ['Q86X83', 'Q9Y371', 'Q9Y6G5', 'Q9UBI1', 'Q9GZQ3', 'Q8N668',  'O60826',  'Q567U6'] 
@@ -70,6 +72,8 @@ def main():
             if args.combine:
                 ax1.plot( sec_data[i], color=individual_color, zorder=0)
                 #ax2.plot( sec_data[i], color=individual_color, zorder=-1)
+            elif args.average:
+                ax1.plot( sec_data[i], color=individual_color, zorder=0)
             else:
                 try:
                     ax1.plot( sec_data[i])
@@ -88,10 +92,16 @@ def main():
             combined_data = combined_data/combined_data.max()
             print combined_data
             total_data = total_data + sec_data[i]
+            print "!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+            print total_data
+            print "!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+
 
 
     if args.combine:
         ax1.plot( combined_data , linewidth=4, zorder=1)
+    if args.average:
+        ax1.plot( total_data/len(args.proteins), linewidth=4, zorder=1)
     else:
         #ax1.legend(sec_data.keys())
         ax1.legend([id_map[i] for i in proteins_present],prop={'size':7})
