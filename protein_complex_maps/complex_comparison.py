@@ -311,6 +311,7 @@ class ComplexComparison(object):
             #print "gs_clust: %s" % (gs_clust,)
 
         #kdrew: weight each complex by number of possible combinations of clique size for each complex
+        #kdrew: NOTE: all individual cliques should be treated equally but this might be overweighting cliques that are in multiple complexes, not sure how to fix yet 
         gs_wrg = WeightedRandomGenerator( [misc.comb(len(gs_clust), clique_size) for gs_clust in gs_clusters ] )
 
         for s in xrange(self.samples):
