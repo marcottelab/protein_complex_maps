@@ -351,6 +351,7 @@ def cluster_helper(parameter_dict):
             #kdrew: run clustering
             proc = sp.Popen(['java', '-jar', args.clustone_jar, fileTemp.name, '-s', size, '-d', density, '--max-overlap', overlap, '--seed-method', seed_method], stdout=sp.PIPE, stderr=sp.PIPE)
             clust_out, err = proc.communicate()
+            print clust_out
 
             #kdrew: probably should do some error checking 
             print err
@@ -364,6 +365,8 @@ def cluster_helper(parameter_dict):
         elif twostep_combination[0] == 'cfinder':
             proc = sp.Popen([args.cfinder_exe, '-l', args.cfinder_license, '-i', fileTemp.name, '-o', dirTemp, '-k', cliquesize, '-t', timeout ], stdout=sp.PIPE, stderr=sp.PIPE)
             clust_out, err = proc.communicate()
+            print clust_out
+            print err
             print dirTemp
 
             predicted_clusters = []
@@ -375,7 +378,7 @@ def cluster_helper(parameter_dict):
                         #print line
                         predicted_clusters.append(line.split(':')[1].split())
 
-            except IOError as e:
+            except (IOError, OSError) as e:
                 print e
 
 
