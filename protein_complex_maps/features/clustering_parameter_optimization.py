@@ -9,6 +9,10 @@ import itertools as it
 import subprocess as sp
 import multiprocessing as mp
 import tempfile as tf
+import shutil
+
+import networkx as nx
+import agglomcluster.agglomod as ag
 
 import protein_complex_maps.complex_comparison as cc
 
@@ -54,6 +58,21 @@ def main():
     parser.add_argument("--mcl_inflation", action="store", dest="mcl_inflation", nargs='+', required=False, 
                                     default=[None],
                                     help="MCL Inflation (-I) parameter, default = [None] (no 2-stage clustering), docs suggest = 1.2 - 5.0")
+    parser.add_argument("--cfinder", action="store", dest="cfinder_exe", required=False, 
+                                    default="/home/kdrew/programs/CFinder-2.0.6--1448/CFinder_commandline64",
+                                    help="Location of CFinder executable, default= /home/kdrew/programs/CFinder-2.0.6--1448/CFinder_commandline64")
+    parser.add_argument("--cfinder_license", action="store", dest="cfinder_license", required=False, 
+                                    default="/home/kdrew/programs/CFinder-2.0.6--1448/licence.txt",
+                                    help="Location of CFinder license, default= /home/kdrew/programs/CFinder-2.0.6--1448/licence.txt")
+    parser.add_argument("--cfinder_cliquesize", action="store", dest="cfinder_cliquesize", nargs='+', required=False, 
+                                    default=[None],
+                                    help="Cfinder clique size (-k) parameter, default = None (use CFinder's default setting, recommended: 3)")
+    parser.add_argument("--cfinder_timeout", action="store", dest="cfinder_timeout", nargs='+', required=False, 
+                                    default=[None],
+                                    help="Cfinder timeout (-t) parameter, default = None (use CFinder's default setting, recommended: 10)")
+    parser.add_argument("--twostep_combination", action="store", dest="twostep_combination", nargs='+', required=False, 
+                                    default=['clusterone','mcl'],
+                                    help="Combination of two step clustering, default = [clusterone,mcl], options=[clusterone,mcl,cfinder,agglomod]")
     parser.add_argument("--eval_metric", action="store", dest="eval_metric", required=False, default='mmr',
                                     help="Evaluation metric used to determine best set of parameters (mmr, acc, sensitivity, ppv, clique_precision_mean, clique_recall_mean), default=mmr")
     parser.add_argument("--output_all", action="store_true", dest="output_all", required=False, default=False,
@@ -99,6 +118,8 @@ def main():
     density_sweep = args.clusterone_density
     fraction_sweep = args.ppi_fraction
     inflation_sweep = args.mcl_inflation
+    cliquesize_sweep = args.cfinder_cliquesize
+    timeout_sweep = args.cfinder_timeout
 
     best_size = None
     best_ii = None
@@ -107,14 +128,16 @@ def main():
     best_overlap = None
     best_seed_method = None
     best_inflation = None
+    best_cliquesize = None
+    best_timeout = None
     best_eval = None
 
     p = mp.Pool(args.procs)
     network_input_list = []
-    for ii, parameters  in enumerate(it.product(size_sweep, density_sweep, fraction_sweep, overlap_sweep, seed_method_sweep, inflation_sweep )):
+    for ii, parameters  in enumerate(it.product(size_sweep, density_sweep, fraction_sweep, overlap_sweep, seed_method_sweep, inflation_sweep, cliquesize_sweep, timeout_sweep )):
         #print parameters
         #kdrew: unpack parameters
-        size, density, fraction, overlap, seed_method, inflation  = parameters
+        size, density, fraction, overlap, seed_method, inflation, cliquesize, timeout = parameters
 
         #kdrew: only take the topN ppis, assumes already sorted network (probably stupidly)
         sizeOfTopNetwork = int(len(input_network_list)*float(fraction))
@@ -135,6 +158,9 @@ def main():
         parameter_dict['fraction'] = str(fraction)
         parameter_dict['threshold_score'] = threshold_score
         parameter_dict['inflation'] = str(inflation)
+        parameter_dict['cliquesize'] = str(cliquesize)
+        parameter_dict['timeout'] = str(timeout)
+        parameter_dict['twostep_combination'] = args.twostep_combination
         parameter_dict['i'] = ii
 
         #kdrew: append to list of parameters for input into multiprocessor map
@@ -154,6 +180,9 @@ def main():
         fraction = network_input_list[ii]['fraction']
         threshold_score = network_input_list[ii]['threshold_score']
         inflation = network_input_list[ii]['inflation']
+        timeout = network_input_list[ii]['timeout']
+        cliquesize = network_input_list[ii]['cliquesize']
+        twostep_combination = network_input_list[ii]['twostep_combination']
 
         #kdrew: compare gold standard vs predicted clusters
         cplx_comparison = cc.ComplexComparison(gold_standard_complexes, cluster_prediction) 
@@ -166,7 +195,7 @@ def main():
         ccmm = cplx_comparison.clique_comparison_metric_mean()
         metric_dict['clique_precision_mean'] = ccmm['precision_mean']
         metric_dict['clique_recall_mean'] = ccmm['recall_mean']
-        print "ii %s, size %s, density %s, overlap %s, seed_method %s, fraction %s, threshold_score %s, inflation %s, acc %s, sensitivity %s, ppv %s, mmr %s, clique_precision_mean %s, clique_recall_mean %s" % (ii, size, density, overlap, seed_method, fraction, threshold_score,  inflation, metric_dict['acc'], metric_dict['sensitivity'], metric_dict['ppv'], metric_dict['mmr'], metric_dict['clique_precision_mean'],metric_dict['clique_recall_mean'])
+        print "ii %s, size %s, density %s, overlap %s, seed_method %s, fraction %s, threshold_score %s, inflation %s, cliquesize %s, timeout %s, twostep_combination: %s, acc %s, sensitivity %s, ppv %s, mmr %s, clique_precision_mean %s, clique_recall_mean %s" % (ii, size, density, overlap, seed_method, fraction, threshold_score,  inflation, cliquesize, timeout, str(twostep_combination), metric_dict['acc'], metric_dict['sensitivity'], metric_dict['ppv'], metric_dict['mmr'], metric_dict['clique_precision_mean'],metric_dict['clique_recall_mean'])
 
 
 
@@ -194,6 +223,9 @@ def main():
             parameter_dict['fraction'] = str(fraction)
             parameter_dict['threshold_score'] = threshold_score
             parameter_dict['inflation'] = str(inflation)
+            parameter_dict['timeout'] = str(timeout)
+            parameter_dict['cliquesize'] = str(cliquesize)
+            parameter_dict['twostep_combination'] = twostep_combination
             parameter_dict['i'] = i
             multiproc_input.append(parameter_dict)
 
@@ -203,7 +235,7 @@ def main():
         multiproc_input = [(cluster_prediction, predicted_clusters, bootstrapped_test_networks[i]) for predicted_clusters, i in bootstrapped_cluster_predictions]
         bootstrap_cplx_cmp_metrics = p.map(comparison_helper, multiproc_input) 
         for boot_cmp in bootstrap_cplx_cmp_metrics:
-            print "bootstrapped: ii %s, size %s, density %s, overlap %s, seed_method %s, fraction %s, inflation %s,  acc %s, sensitivity %s, ppv %s, mmr %s, ppi_recovered %s, clique_precision_mean %s, clique_recall_mean %s" % (ii, size, density, overlap, seed_method, fraction, inflation, boot_cmp['acc'], boot_cmp['sensitivity'], boot_cmp['ppv'], boot_cmp['mmr'], boot_cmp['percent_ppi_recovered'], boot_cmp['clique_precision_mean'], boot_cmp['clique_recall_mean'])
+            print "bootstrapped: ii %s, size %s, density %s, overlap %s, seed_method %s, fraction %s, inflation %s, cliquesize %s, timeout %s, twostep_combination %s, acc %s, sensitivity %s, ppv %s, mmr %s, ppi_recovered %s, clique_precision_mean %s, clique_recall_mean %s" % (ii, size, density, overlap, seed_method, fraction, inflation, cliquesize, timeout, str(twostep_combination), boot_cmp['acc'], boot_cmp['sensitivity'], boot_cmp['ppv'], boot_cmp['mmr'], boot_cmp['percent_ppi_recovered'], boot_cmp['clique_precision_mean'], boot_cmp['clique_recall_mean'])
 
 
         #kdrew: keeping track of the best parameter set
@@ -216,8 +248,11 @@ def main():
             best_seed_method = seed_method
             best_fraction = fraction
             best_inflation = inflation
+            best_cliquesize = cliquesize
+            best_timeout = timeout
+            best_twostep_combination = twostep_combination
             best_cluster_prediction = cluster_prediction
-            print "best ii: %s size: %s density: %s overlap: %s seed_method: %s fraction: %s inflation: %s numOfClusters: %s" % (best_ii, best_size, best_density, best_overlap, best_seed_method, best_fraction, best_inflation, len(best_cluster_prediction))
+            print "best ii: %s size: %s density: %s overlap: %s seed_method: %s fraction: %s inflation: %s cliquesize: %s timeout: %s twostep_combination: %s numOfClusters: %s" % (best_ii, best_size, best_density, best_overlap, best_seed_method, best_fraction, best_inflation, best_cliquesize, best_timeout, str(best_twostep_combination), len(best_cluster_prediction))
 
 
         #kdrew: output best cluster prediction
@@ -298,9 +333,13 @@ def cluster_helper(parameter_dict):
     threshold_score = parameter_dict['threshold_score']
     i = parameter_dict['i']
     inflation = parameter_dict['inflation']
+    cliquesize = parameter_dict['cliquesize']
+    timeout = parameter_dict['timeout']
+    twostep_combination = parameter_dict['twostep_combination']
 
     #kdrew: create temp file for bootstrapped input network, clusterone requires a file input
     fileTemp = tf.NamedTemporaryFile(delete=False, dir=args.temp_dir)
+    dirTemp = tf.mkdtemp(dir=args.temp_dir)
     try:
         #kdrew: write input_network or bootstrapped input network to temp file
         #fileTemp.write(input_network_str)
@@ -308,30 +347,100 @@ def cluster_helper(parameter_dict):
             fileTemp.write(bstrap_ppi)
         fileTemp.close()
 
-        #kdrew: run clustering
-        proc = sp.Popen(['java', '-jar', args.clustone_jar, fileTemp.name, '-s', size, '-d', density, '--max-overlap', overlap, '--seed-method', seed_method], stdout=sp.PIPE, stderr=sp.PIPE)
-        clustone_out, err = proc.communicate()
+        if twostep_combination[0] == 'clusterone':
+            #kdrew: run clustering
+            proc = sp.Popen(['java', '-jar', args.clustone_jar, fileTemp.name, '-s', size, '-d', density, '--max-overlap', overlap, '--seed-method', seed_method], stdout=sp.PIPE, stderr=sp.PIPE)
+            clust_out, err = proc.communicate()
+
+            #kdrew: probably should do some error checking 
+            print err
+
+            #kdrew: take output of cluster one (predicted clusters) and store them into list
+            predicted_clusters = []
+            for line in clust_out.split('\n'):
+                if len(line.split() ) > 0:
+                    predicted_clusters.append(line.split())
+
+        elif twostep_combination[0] == 'cfinder':
+            proc = sp.Popen([args.cfinder_exe, '-l', args.cfinder_license, '-i', fileTemp.name, '-o', dirTemp, '-k', cliquesize, '-t', timeout ], stdout=sp.PIPE, stderr=sp.PIPE)
+            clust_out, err = proc.communicate()
+            print dirTemp
+
+            predicted_clusters = []
+
+            try:
+                cfinder_communities_file = open("%s/k=%s/communities" % (dirTemp,cliquesize),'rb')
+                for line in cfinder_communities_file.readlines():
+                    if len(line.split() ) > 0 and '#' not in line:
+                        #print line
+                        predicted_clusters.append(line.split(':')[1].split())
+
+            except IOError as e:
+                print e
+
 
     finally:
         os.remove(fileTemp.name)
 
-    #kdrew: take output of cluster one (predicted clusters) and store them into list
-    predicted_clusters = []
-    for line in clustone_out.split('\n'):
-        if len(line.split() ) > 0:
-            predicted_clusters.append(line.split())
 
-    #kdrew: converted inflation into str for use on commandline but if None check against str(None)
-    if inflation != str(None):
-        mcl_clusters = []
-        #kdrew: for each predicted cluster, recluster using MCL
-        for clust in predicted_clusters:
-            #kdrew: for every pair in cluster find edge weight in input_network_list(?)
-            fileTemp = tf.NamedTemporaryFile(delete=False, dir=args.temp_dir)
-            outTemp = tf.NamedTemporaryFile(delete=False, dir=args.temp_dir)
-            #print fileTemp.name
-            #print outTemp.name
-            try:
+    if len(twostep_combination) >= 2:
+        if twostep_combination[1] == 'mcl':
+            print "MCL"
+            #kdrew: converted inflation into str for use on commandline but if None check against str(None)
+            if inflation != str(None):
+                mcl_clusters = []
+                #kdrew: for each predicted cluster, recluster using MCL
+                for clust in predicted_clusters:
+                    #kdrew: for every pair in cluster find edge weight in input_network_list(?)
+                    fileTemp = tf.NamedTemporaryFile(delete=False, dir=args.temp_dir)
+                    outTemp = tf.NamedTemporaryFile(delete=False, dir=args.temp_dir)
+                    #print fileTemp.name
+                    #print outTemp.name
+                    try:
+                        for prot1, prot2 in it.combinations(clust,2):
+                            try:
+                                ppi_score = ppi_scores[frozenset([prot1,prot2])] 
+                                if ppi_score < threshold_score:
+                                    ppi_score = 0.0
+
+                            except KeyError:
+                                ppi_score = 0.0
+
+                            ppi_str = "%s\t%s\t%s\n" % (prot1, prot2, ppi_score)
+                            fileTemp.write(ppi_str)
+                        fileTemp.close()
+
+                        proc = sp.Popen([args.mcl_bin, fileTemp.name, '--abc', '-o', outTemp.name, '-I', inflation], stdout=sp.PIPE, stderr=sp.PIPE)
+                        mcl_out, err = proc.communicate()
+
+                        #print fileTemp.name
+                        #print clust
+                        #print mcl_out
+                        #print err
+
+                        outfile = open(outTemp.name,"rb")
+                        for line in outfile.readlines():
+                        #    print line
+                            mcl_clusters.append(line.split())
+                        outfile.close()
+
+                        #print "\n"
+
+
+                    finally:
+                        os.remove(fileTemp.name)
+                        os.remove(outTemp.name)
+                        #pass
+                        #print "in finally"
+
+                predicted_clusters = mcl_clusters
+
+        elif twostep_combination[1] == 'agglomod':
+            print "AGGLOMOD"
+            agglomod_clusters = []
+            for clust in predicted_clusters:
+                graph = nx.Graph()
+                #kdrew: for every pair in cluster find edge weight in input_network_list(?)
                 for prot1, prot2 in it.combinations(clust,2):
                     try:
                         ppi_score = ppi_scores[frozenset([prot1,prot2])] 
@@ -341,33 +450,15 @@ def cluster_helper(parameter_dict):
                     except KeyError:
                         ppi_score = 0.0
 
-                    ppi_str = "%s\t%s\t%s\n" % (prot1, prot2, ppi_score)
-                    fileTemp.write(ppi_str)
-                fileTemp.close()
+                    graph.add_edge(prot1,prot2,weight=ppi_score)
 
-                proc = sp.Popen([args.mcl_bin, fileTemp.name, '--abc', '-o', outTemp.name, '-I', inflation], stdout=sp.PIPE, stderr=sp.PIPE)
-                mcl_out, err = proc.communicate()
+                newman = ag.NewmanGreedy(graph)
+                #print newman.quality_history
+                print newman.get_clusters()
+                agglomod_clusters += [list(x) for x in newman.get_clusters()]
 
-                #print fileTemp.name
-                #print clust
-                #print mcl_out
-                #print err
+            predicted_clusters  = agglomod_clusters
 
-                outfile = open(outTemp.name,"rb")
-                for line in outfile.readlines():
-                #    print line
-                    mcl_clusters.append(line.split())
-                outfile.close()
-
-                #print "\n"
-
-
-            finally:
-                os.remove(fileTemp.name)
-                os.remove(outTemp.name)
-                #print "in finally"
-
-        predicted_clusters = mcl_clusters
 
 
     return predicted_clusters, i
