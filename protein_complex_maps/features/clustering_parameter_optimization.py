@@ -81,6 +81,8 @@ def main():
                                     help="Number processors to use (int), default=1)")
     parser.add_argument("--temp_dir", action="store", dest="temp_dir", required=False, default=None,
                                     help="Where to store temporary files generated during processing, default=None (defaults to OS level tmp), in memory suggestion = /dev/shm/")
+    parser.add_argument("--nodelete", action="store_true", dest="nodelete", required=False, default=False,
+                                    help="When set, does not delete temporary files")
 
     args = parser.parse_args()
 
@@ -135,7 +137,7 @@ def main():
     p = mp.Pool(args.procs)
     network_input_list = []
     for ii, parameters  in enumerate(it.product(size_sweep, density_sweep, fraction_sweep, overlap_sweep, seed_method_sweep, inflation_sweep, cliquesize_sweep, timeout_sweep )):
-        #print parameters
+        print ii, parameters
         #kdrew: unpack parameters
         size, density, fraction, overlap, seed_method, inflation, cliquesize, timeout = parameters
 
@@ -162,6 +164,7 @@ def main():
         parameter_dict['timeout'] = str(timeout)
         parameter_dict['twostep_combination'] = args.twostep_combination
         parameter_dict['i'] = ii
+        parameter_dict['nodelete'] = args.nodelete 
 
         #kdrew: append to list of parameters for input into multiprocessor map
         network_input_list.append(parameter_dict)
@@ -183,6 +186,7 @@ def main():
         timeout = network_input_list[ii]['timeout']
         cliquesize = network_input_list[ii]['cliquesize']
         twostep_combination = network_input_list[ii]['twostep_combination']
+        nodelete = network_input_list[ii]['nodelete']
 
         #kdrew: compare gold standard vs predicted clusters
         cplx_comparison = cc.ComplexComparison(gold_standard_complexes, cluster_prediction) 
@@ -227,6 +231,7 @@ def main():
             parameter_dict['cliquesize'] = str(cliquesize)
             parameter_dict['twostep_combination'] = twostep_combination
             parameter_dict['i'] = i
+            parameter_dict['nodelete'] = nodelete 
             multiproc_input.append(parameter_dict)
 
         bootstrapped_cluster_predictions = p.map(cluster_helper, multiproc_input)
@@ -336,6 +341,7 @@ def cluster_helper(parameter_dict):
     cliquesize = parameter_dict['cliquesize']
     timeout = parameter_dict['timeout']
     twostep_combination = parameter_dict['twostep_combination']
+    nodelete = parameter_dict['nodelete']
 
     #kdrew: create temp file for bootstrapped input network, clusterone requires a file input
     fileTemp = tf.NamedTemporaryFile(delete=False, dir=args.temp_dir)
@@ -351,10 +357,10 @@ def cluster_helper(parameter_dict):
             #kdrew: run clustering
             proc = sp.Popen(['java', '-jar', args.clustone_jar, fileTemp.name, '-s', size, '-d', density, '--max-overlap', overlap, '--seed-method', seed_method], stdout=sp.PIPE, stderr=sp.PIPE)
             clust_out, err = proc.communicate()
-            print clust_out
+            #print clust_out
 
             #kdrew: probably should do some error checking 
-            print err
+            #print err
 
             #kdrew: take output of cluster one (predicted clusters) and store them into list
             predicted_clusters = []
@@ -365,8 +371,8 @@ def cluster_helper(parameter_dict):
         elif twostep_combination[0] == 'cfinder':
             proc = sp.Popen([args.cfinder_exe, '-l', args.cfinder_license, '-i', fileTemp.name, '-o', dirTemp, '-k', cliquesize, '-t', timeout ], stdout=sp.PIPE, stderr=sp.PIPE)
             clust_out, err = proc.communicate()
-            print clust_out
-            print err
+            #print clust_out
+            #print err
             print dirTemp
 
             predicted_clusters = []
@@ -383,7 +389,10 @@ def cluster_helper(parameter_dict):
 
 
     finally:
-        os.remove(fileTemp.name)
+	if nodelete:
+            pass
+	else:
+            os.remove(fileTemp.name)
 
 
     if len(twostep_combination) >= 2:
@@ -431,8 +440,11 @@ def cluster_helper(parameter_dict):
 
 
                     finally:
-                        os.remove(fileTemp.name)
-                        os.remove(outTemp.name)
+			if nodelete:
+			    pass
+			else:
+			    os.remove(fileTemp.name)
+                            os.remove(outTemp.name)
                         #pass
                         #print "in finally"
 
