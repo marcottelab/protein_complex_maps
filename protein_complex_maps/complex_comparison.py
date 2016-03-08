@@ -137,13 +137,13 @@ class ComplexComparison(object):
         return Acc
 
     #kdrew: harmonic mean of f1-scores across clique sizes, single score for comparison of cluster predictions to gold standard complexes
-    def clique_comparison_metric_grandf1score(self,):
+    def clique_comparison_metric_grandf1score(self,mean_func = hmean):
         result_dict = self.clique_comparison_metric()
         f1score_list = [result_dict[x]['f1score'] for x in result_dict.keys()]
 
         grand_f1score = 0.0
         if 0.0 not in f1score_list:
-            grand_f1score = hmean(f1score_list)
+            grand_f1score = mean_func(f1score_list)
 
         return grand_f1score
 
@@ -278,6 +278,8 @@ class ComplexComparison(object):
         #print weights_array
         wrg = WeightedRandomGenerator( weights_array )
 
+        #kdrew: generate set of random cliques
+        random_cliques = set()
         for s in xrange(self.samples):
 
             #kdrew: get a random cluster weighted by the number of possible clique combinations
@@ -295,7 +297,11 @@ class ComplexComparison(object):
             #shuffled_l = rand.permutation(list(clust))
             shuffled_l = rand.permutation(list(clust_intersection))
 
-            if np.max(map(set(shuffled_l[:clique_size]).issubset,self.get_gold_standard())):
+            random_cliques.add(frozenset(shuffled_l[:clique_size]))
+
+        for random_clique in random_cliques:
+            #kdrew: the max just finds if any are true, could probably use .any here
+            if np.max(map(random_clique.issubset,self.get_gold_standard())):
                 true_positives += 1 
             else:
                 false_positives += 1
@@ -312,8 +318,11 @@ class ComplexComparison(object):
 
         #kdrew: weight each complex by number of possible combinations of clique size for each complex
         #kdrew: NOTE: all individual cliques should be treated equally but this might be overweighting cliques that are in multiple complexes, not sure how to fix yet 
+        #kdrew: this should be fixed now with the random_gs_cliques set, only evaluates a clique once
         gs_wrg = WeightedRandomGenerator( [misc.comb(len(gs_clust), clique_size) for gs_clust in gs_clusters ] )
 
+        #kdrew: generate set of random cliques
+        random_gs_cliques = set()
         for s in xrange(self.samples):
 
             #kdrew: get a random cluster
@@ -322,8 +331,12 @@ class ComplexComparison(object):
             shuffled_l = rand.permutation(list(gs_clust))
             #print "sampled: %s" % (shuffled_l[:clique_size],)
 
-            #if np.max(map(set(shuffled_l[:clique_size]).issubset,self.get_clusters())).any():
-            if np.max(map( set( shuffled_l[:clique_size] ).issubset, clusters )):
+            random_gs_cliques.add(frozenset(shuffled_l[:clique_size]))
+
+        for random_clique in random_gs_cliques:
+
+            #if np.max(map( set( shuffled_l[:clique_size] ).issubset, clusters )):
+            if np.max(map( random_clique.issubset, clusters )):
                 gs_true_positives += 1 
             else:
                 false_negatives += 1
