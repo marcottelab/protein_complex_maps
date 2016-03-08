@@ -73,12 +73,16 @@ class ComplexComparisonTest(unittest.TestCase):
         ccobj = cc.ComplexComparison(self.gold_standard3, self.clusters3, pseudocount=0)
 
         result_dict = ccobj.clique_comparison(clique_size=3)
-        assert result_dict['tp'] == 6696
-        assert result_dict['fp'] == 3304
+        print "testCliqueComparison: %s" % (result_dict,)
+        #kdrew: previous way of sampling, new way below removes redudancy
+        #np.testing.assert_equal(result_dict['tp'],6696)
+        #np.testing.assert_equal(result_dict['fp'],3304)
+        np.testing.assert_equal(result_dict['tp'],2)
+        np.testing.assert_equal(result_dict['fp'],1)
         #kdrew: actual
         #assert result_dict['tp'] == 2
         #assert result_dict['fp'] == 1
-        assert result_dict['fn'] == 0
+        np.testing.assert_equal(result_dict['fn'],0)
 
         #kdrew: [a,b,c] and [d,e,f] are both in gold standard so both are true positives, 
         #kdrew: [d,e,h],[e,f,h] and [d,f,h] are all ignored because 'h' does not exist in gold standard at all
@@ -86,11 +90,16 @@ class ComplexComparisonTest(unittest.TestCase):
 
 
         result_dict = ccobj.clique_comparison(clique_size=2)
-        assert result_dict['tp'] == 7309
-        assert result_dict['fp'] == 2691
-        assert result_dict['fn'] == 1059
+        #kdrew: previous way of sampling, new way below removes redudancy
+        #np.testing.assert_equal (result_dict['tp'], 7309)
+        #np.testing.assert_equal (result_dict['fp'], 2691)
+        #np.testing.assert_equal (result_dict['fn'], 1059)
+        np.testing.assert_equal (result_dict['tp'], 7)
+        np.testing.assert_equal (result_dict['fp'], 3)
+        np.testing.assert_equal (result_dict['fn'], 1)
         #kdrew: actual
-        #assert result_dict['tp'] == 8
+        #assert result_dict['tp'] == 8 #kdrew: tp == 8 if we *are not* removing redundant cliques (ab is listed twice)
+        #assert result_dict['tp'] == 7 #kdrew: tp == 7 if we *are* removing  redundant cliques
         #assert result_dict['fp'] == 3
         #assert result_dict['fn'] == 1
 
@@ -106,22 +115,29 @@ class ComplexComparisonTest(unittest.TestCase):
         ccobj = cc.ComplexComparison(self.gold_standard3, self.clusters3, pseudocount=0)
         d = ccobj.clique_comparison_metric()
 
-        #kdrew: actual
-        np.testing.assert_almost_equal( d[2]['precision'], 0.7272727272727273, 2)
+        #kdrew: changed code to remove redundancy 8.0/11.0
+        #np.testing.assert_almost_equal( d[2]['precision'], 0.7272727272727273, 2)
+        #np.testing.assert_almost_equal( d[2]['precision'], 0.7272)
+        #kdrew: actual 7.0/10.0
+        np.testing.assert_almost_equal( d[2]['precision'], 0.7, 2)
         #kdrew: estimated
-        np.testing.assert_almost_equal( d[2]['precision'], 0.7272)
+        np.testing.assert_almost_equal( d[2]['precision'], 0.7)
 
         #kdrew: actual
-        np.testing.assert_almost_equal( d[2]['recall'], 0.8888888888888888, 1 )
+        np.testing.assert_almost_equal( d[2]['recall'], 0.875, 1 )
         #kdrew: estimated
         #kdrew: old value before bug fix on recall calculation
         #np.testing.assert_almost_equal( d[2]['recall'], 0.8678839957035446)
-        np.testing.assert_almost_equal( d[2]['recall'], 0.8893)
+        #kdrew: before removing redudancy
+        #np.testing.assert_almost_equal( d[2]['recall'], 0.8893)
+        np.testing.assert_almost_equal( d[2]['recall'], 0.875)
 
         #kdrew: actual
         np.testing.assert_almost_equal( d[3]['precision'], 0.666666666667, 1 )
         #kdrew: estimated
-        np.testing.assert_almost_equal( d[3]['precision'], 0.6771 )
+        #kdrew: old value before removing redundancy
+        #np.testing.assert_almost_equal( d[3]['precision'], 0.6771 )
+        np.testing.assert_almost_equal( d[3]['precision'], 0.666666666667)
 
         #kdrew: actual
         np.testing.assert_almost_equal( d[3]['recall'], 1.0 )
@@ -130,8 +146,11 @@ class ComplexComparisonTest(unittest.TestCase):
 
         print "f1score 2: %s" % d[2]['f1score']
         print "f1score 3: %s" % d[3]['f1score']
-        np.testing.assert_almost_equal( d[3]['f1score'], 0.80746526742591385 )
-        np.testing.assert_almost_equal( d[2]['f1score'], 0.80012243736467659 )
+        #np.testing.assert_almost_equal( d[3]['f1score'], 0.80746526742591385 )
+        #np.testing.assert_almost_equal( d[2]['f1score'], 0.80012243736467659 )
+
+        np.testing.assert_almost_equal( d[3]['f1score'], 0.80000000000024007)
+        np.testing.assert_almost_equal( d[2]['f1score'], 0.7777777777777779)
 
     
 
@@ -141,12 +160,21 @@ class ComplexComparisonTest(unittest.TestCase):
         #kdrew: (0.8876 + 1.0) / 2
         #np.testing.assert_allclose(ccmm['recall_mean'], 0.94379999999999997, 0.1)
         #np.testing.assert_allclose(ccmm['precision_mean'], 0.69205000000000005, 0.1)
-        np.testing.assert_allclose(ccmm['precision_mean'], 0.70215)
-        np.testing.assert_allclose(ccmm['recall_mean'], 0.94465)
+
+
+        #kdrew: old values before reduction of redundancy
+        #np.testing.assert_allclose(ccmm['precision_mean'], 0.70215)
+        #np.testing.assert_allclose(ccmm['recall_mean'], 0.94465)
+        #kdrew: (0.7 + 0.666666666667) / 2
+        np.testing.assert_allclose(ccmm['precision_mean'], 0.6833333333335)
+        #kdrew: (0.875 + 1.0) / 2
+        np.testing.assert_allclose(ccmm['recall_mean'], 0.9375)
 
 
         grandf1score = ccobj.clique_comparison_metric_grandf1score()
-        np.testing.assert_allclose(grandf1score, 0.80377708281154325)
+        #kdrew: old value before reduction in redundancy
+        #np.testing.assert_allclose(grandf1score, 0.80377708281154325)
+        np.testing.assert_allclose(grandf1score, 0.78873239436631382)
 
     def testCliqueComparisonMetricSampling(self, ):
         print "Sampling test"
