@@ -56,6 +56,7 @@ def main():
                 out_list = []
                 ids_str_order = "%s" % sorted([prot_pair[0],prot_pair[1]])
                 for field in args.features:
+                    #kdrew: seems inefficent 
                     out_list.append(str(feature_table[feature_table['frozenset_ids_str_order'] == ids_str_order][field].values[0] != 0.0))
 
                 fout.write("%s (pp) %s\t%s\t%s" % (id1, id2, score, "\t".join(out_list)))
