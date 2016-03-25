@@ -36,29 +36,38 @@ def main():
 
     pr_dict = pc.read_pr_file(args.pr_table, names=args.cluster_names)
 
+    #colors = ['#FF7900','660000','DDB505','C2120B']
+
     plot_prcliquesize_trajectories(pr_dict, pr_dict['recall'].keys(), plot_filename = args.plot_filename)
 
 
 
-def plot_prcliquesize_trajectories(pr_dict, psweep_indices, pr_dict2=None, plot_filename=None):
+def plot_prcliquesize_trajectories(pr_dict, psweep_indices, pr_dict2=None, plot_filename=None, colors=None):
     
     plot_data = []
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
 
+
     for ii in psweep_indices:
         precision_list = pr_dict['precision'][ii]
         recall_list = pr_dict['recall'][ii]
 
-        line, = plt.plot(recall_list, precision_list, '.-', linewidth=1, label=ii)
+        if colors != None:
+            line, = plt.plot(recall_list, precision_list, '.-', linewidth=1, label=ii, color=colors[ii])
+        else:
+            line, = plt.plot(recall_list, precision_list, '.-', linewidth=1, label=ii)
 
         for i, xy in enumerate(zip(recall_list, precision_list)):
             cliquesize = i+2
-            ax.annotate('%s' % cliquesize, xy=xy, textcoords='offset points', fontsize=6) 
+            ax.annotate('%s' % cliquesize, xy=xy, textcoords='offset points', fontsize=8) 
 
 
-    plt.legend(loc="lower right", fontsize=8)
+    ax.set_ylim([ax.get_ylim()[0]-0.01,ax.get_ylim()[1]+0.01])
+    ax.set_xlim([ax.get_xlim()[0]-0.01,ax.get_xlim()[1]+0.01])
+
+    plt.legend(loc="best", fontsize=8)
     plt.xlabel('Recall')
     plt.ylabel('Precision')
 
