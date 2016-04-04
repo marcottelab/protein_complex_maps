@@ -186,6 +186,10 @@ class ComplexComparison(object):
             #kdrew: if max_clique is set but the largest cluster is smaller, use the smaller value
             max_len = min(self.max_clique, clust_max_len)
 
+        cumulative_gs_tp = 0.0
+        cumulative_tp = 0.0
+        cumulative_fn = 0.0
+        cumulative_fp = 0.0
         for size in range(2, max_len+1):
 
             zero_w_pseudocount = 1.0*self.pseudocount / (self.samples + 2*self.pseudocount)
@@ -193,20 +197,28 @@ class ComplexComparison(object):
             #kdrew: shortcut, if the last two precision and recall estimates are 0.0 then there is exceedingly small chance are a larger clique size will have a precision/recall > 0.0
             #kdrew: do not calculate, just mark the remainder clique sizes as zero
             if size > 4 and return_dict[size-1]['precision'] == zero_w_pseudocount and return_dict[size-1]['recall'] == zero_w_pseudocount and return_dict[size-2]['precision'] == zero_w_pseudocount and return_dict[size-2]['recall'] == zero_w_pseudocount:
-                return_dict[size] = {'precision':zero_w_pseudocount,'f1score':zero_w_pseudocount, 'recall':zero_w_pseudocount}
+                return_dict[size] = {'precision':zero_w_pseudocount,'f1score':zero_w_pseudocount, 'recall':zero_w_pseudocount, 'cumulative_recall':zero_w_pseudocount, 'cumulative_precision':zero_w_pseudocount, 'numOfClusters':0}
                 continue
 
             #kdrew: if clique size is greater than the max size of the gold standard, return precision 0.0 and recall 0.0 
             #kdrew: (technically recall should be NA because there are no complexes left in the gold standard but I think it makes sense to reduce it to 0.0 here)
             #kdrew: see above comment on another way of dealing with this (i.e. min_of_max_len)
             if gs_max_len < size:
-                return_dict[size] = {'precision':zero_w_pseudocount,'f1score':zero_w_pseudocount, 'recall':zero_w_pseudocount}
+                return_dict[size] = {'precision':zero_w_pseudocount,'f1score':zero_w_pseudocount, 'recall':zero_w_pseudocount, 'cumulative_recall':zero_w_pseudocount, 'cumulative_precision':zero_w_pseudocount, 'numOfClusters':0}
                 continue
 
             if self.exact:
                 result_dict = self.clique_comparison_exact(size)
             else:
                 result_dict = self.clique_comparison(size)
+
+            cumulative_gs_tp += result_dict['gs_tp']
+            cumulative_tp += result_dict['tp']
+            cumulative_fp += result_dict['fp']
+            cumulative_fn += result_dict['fn']
+
+            cumulative_recall = 1.0*cumulative_gs_tp / (cumulative_gs_tp + cumulative_fn)
+            cumulative_precision = 1.0*cumulative_tp / (cumulative_tp + cumulative_fp)
 
             #print result_dict
             recall = 1.0*result_dict['gs_tp'] / (result_dict['gs_tp'] + result_dict['fn'])
@@ -218,7 +230,7 @@ class ComplexComparison(object):
             if precision != 0.0 and recall != 0.0:
                 f1score = hmean([recall,precision])
 
-            return_dict[size] = {'precision':precision,'recall':recall,'f1score':f1score}
+            return_dict[size] = {'precision':precision,'recall':recall,'f1score':f1score, 'cumulative_recall':cumulative_recall, 'cumulative_precision':cumulative_precision, 'numOfClusters':result_dict['numOfClusters']}
             #print return_dict[size]
 
         #kdrew: save results for future retrieval
@@ -250,6 +262,7 @@ class ComplexComparison(object):
         return_dict['gs_tp'] = gs_true_positives
         return_dict['fp'] = false_positives
         return_dict['fn'] = false_negatives
+        return_dict['numOfClusters'] = len(clusters)
         return return_dict
 
 
@@ -264,6 +277,8 @@ class ComplexComparison(object):
 
         #kdrew: only get clusters that are larger than or equal to the clique size
         clusters = [clust & self.get_gold_standard_proteins() for clust in self.get_clusters() if len(clust & self.get_gold_standard_proteins()) >= clique_size]
+
+        print "clique_size: %s, #ofClusters: %s" % (clique_size, len(clusters))
 
         #print "clusters size: %s" % (len(clusters))
 
@@ -304,6 +319,7 @@ class ComplexComparison(object):
             if np.max(map(random_clique.issubset,self.get_gold_standard())):
                 true_positives += 1 
             else:
+                print "false_positive: %s" % (random_clique,)
                 false_positives += 1
 
 
@@ -350,6 +366,7 @@ class ComplexComparison(object):
         return_dict['gs_tp'] = gs_true_positives
         return_dict['fp'] = false_positives
         return_dict['fn'] = false_negatives
+        return_dict['numOfClusters'] = len(clusters)
         return return_dict
 
 
