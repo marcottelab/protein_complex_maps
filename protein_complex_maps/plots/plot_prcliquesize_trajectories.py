@@ -73,7 +73,11 @@ def plot_prcliquesize_trajectories(pr_dict, psweep_indices, pr_dict2=None, plot_
             cliquesize = i+2
             ax.annotate('%s' % cliquesize, xy=xy, textcoords='offset points', fontsize=8) 
             if plot_numOfClusters:
-                dot, = plt.plot([recall_list[i]], [precision_list[i]], '.', markersize=np.log(numOfClusters_list[i])*10, color=line.get_color())
+                if numOfClusters_list[i] == 0:
+                    markersize = 1
+                else:                                                                   
+                    markersize = np.log(numOfClusters_list[i])*10
+                dot, = plt.plot([recall_list[i]], [precision_list[i]], '.', markersize=markersize, color=line.get_color())
 
 
     ax.set_ylim([ax.get_ylim()[0]-0.01,ax.get_ylim()[1]+0.01])
