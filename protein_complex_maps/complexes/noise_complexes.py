@@ -37,40 +37,42 @@ def shuffle_complexes(complexes, shuffle_fraction=0.1 ):
     complex_id_list = []
     protein_id_list = []
     for i, cmplex in enumerate(complexes):
+        print i
+        print cmplex
         for prot in cmplex:
             complex_id_list.append(i)
             protein_id_list.append(prot)
 
     index_list = range(len(complex_id_list))
 
-    print complex_id_list
-    print protein_id_list
-    print index_list
+    #print complex_id_list
+    #print protein_id_list
+    #print index_list
 
     #kdrew: shuffle to get a random list of protein complex membership indices
     random.shuffle(index_list)
-    print index_list
+    #print index_list
 
     #kdrew: index of the shuffled index_list of shuffle_fraction
     indexOfShuffledIds = int(len(index_list) * shuffle_fraction)
-    print indexOfShuffledIds
+    #print indexOfShuffledIds
 
     #kdrew: get top ids
     indices2shuffle = index_list[:indexOfShuffledIds]
-    print indices2shuffle
+    #print indices2shuffle
 
     #kdrew: shuffle top ids complex membership
     top_complex_id_list = [complex_id_list[x] for x in indices2shuffle]
-    print top_complex_id_list
+    #print top_complex_id_list
     random.shuffle(top_complex_id_list)
-    print top_complex_id_list
+    #print top_complex_id_list
 
     #kdrew: update the complex membership with the shuffled memberships
     for i,x in enumerate(indices2shuffle):
         complex_id_list[x] = top_complex_id_list[i]
 
-    print protein_id_list
-    print complex_id_list
+    #print protein_id_list
+    #print complex_id_list
 
     shuffled_complexes_dict = dict()
     for i, prot_id in enumerate(protein_id_list):
