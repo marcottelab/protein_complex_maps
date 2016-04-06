@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 
 class ComplexComparison(object):
 
-    def __init__(self, gold_standard=[], clusters=[], samples=10000, pseudocount=1, exact=False, max_clique=None):
+    def __init__(self, gold_standard=[], clusters=[], exclusion_complexes=[], samples=10000, pseudocount=1, exact=False, max_clique=None):
         #kdrew: gold_standard and clusters are a list of complexes 
         #kdrew: each complex contains a set of ids  (if passed in a list, will be converted to set)
         self.gold_standard = [set(x) for x in gold_standard]
@@ -29,6 +29,8 @@ class ComplexComparison(object):
             self.gold_standard_proteins = self.gold_standard_proteins.union(x)
 
         self.clusters = [set(x) for x in clusters]
+
+        self.exclusion_complexes = [set(x) for x in exclusion_complexes]
 
         #kdrew: dataframe where columns are clusters and rows are complexes(gold standard)
         self.intersection_table = None
@@ -43,6 +45,9 @@ class ComplexComparison(object):
 
     def get_gold_standard(self,):
         return self.gold_standard
+
+    def get_exclusion_complexes(self,):
+        return self.exclusion_complexes
 
     def get_gold_standard_proteins(self,):
         return self.gold_standard_proteins
@@ -243,6 +248,10 @@ class ComplexComparison(object):
         false_positives = self.pseudocount
         false_negatives = self.pseudocount
 
+        if len(self.get_exclusion_complexes()) > 0:
+            raise Exclusion_Complexes_Exception("ERROR: EXCLUSION COMPLEX functionality is not implemented for exact method (def clique_comparison_exact), use estimated (def clique_comparison)")
+
+
         #kdrew: only get clusters that are larger than or equal to the clique size
         clusters = [clust & self.get_gold_standard_proteins() for clust in self.get_clusters() if len(clust & self.get_gold_standard_proteins()) >= clique_size]
 
@@ -250,7 +259,8 @@ class ComplexComparison(object):
             is_positive_list = [ np.max(map(set(group).issubset,self.get_gold_standard())) for group in it.combinations(clust, clique_size)]
             tp_curr = sum(is_positive_list)
             true_positives += tp_curr
-            false_positives += len(is_positive_list) - tp_curr
+
+            false_positives += len(is_positive_list) - tp_curr 
 
         for gs_clust in self.get_gold_standard():
             is_positive_list = [ np.max(map(set(gs_group).issubset,clusters)) for gs_group in it.combinations(gs_clust, clique_size) ]
@@ -319,8 +329,12 @@ class ComplexComparison(object):
             if np.max(map(random_clique.issubset,self.get_gold_standard())):
                 true_positives += 1 
             else:
-                print "false_positive: %s" % (random_clique,)
-                false_positives += 1
+                if len(self.get_exclusion_complexes()) > 0 and np.max(map(random_clique.issubset,self.get_exclusion_complexes())):
+                    #print "excluded clique"
+                    continue
+                else:
+                    #print "false_positive: %s" % (' '.join(random_clique),)
+                    false_positives += 1
 
 
         #kdrew: only get gold standard complexes that are larger than or equal to the clique size
@@ -476,6 +490,11 @@ def main():
         subplots[2].set_title('PPV')
         plt.savefig(args.plot_filename)
 
+class Exclusion_Complexes_Exception(Exception):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
 
 if __name__ == "__main__":
         main()

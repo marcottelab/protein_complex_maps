@@ -13,6 +13,8 @@ def main():
                                             help="Filenames of cluster predictions")
     parser.add_argument("--gold_standard", action="store", dest="gold_standard", required=True, 
                                             help="Filename of gold standard complexes")
+    parser.add_argument("--excluded_complexes", action="store", dest="excluded_complexes", required=False, default=None,
+                                            help="Filename of benchmark complexes to be excluded from false positive calculation")
     parser.add_argument("--output_filename", action="store", dest="output_filename", required=True,
                                             help="Filename of where the output should go")
     parser.add_argument("--id_delimin", action="store", dest="id_delimin", required=False, default='ii',
@@ -41,6 +43,14 @@ def main():
 
     gold_file.close()
 
+    excluded_complexes = []
+    if args.excluded_complexes != None:
+        exclude_file = open(args.excluded_complexes,"rb")
+        for line in exclude_file.readlines():
+            excluded_complexes.append(line.split())
+
+        exclude_file.close()
+
     p = mp.Pool(args.procs)
     #kdrew: create list of inputs to pass to parallel compare2goldstandard
     compare2goldstandard_input_list = []
@@ -48,6 +58,7 @@ def main():
         parameter_dict = dict()
         parameter_dict['cluster_filename'] = cluster_filename
         parameter_dict['gs_complexes'] = gold_standard_complexes
+        parameter_dict['ex_complexes'] = excluded_complexes
         parameter_dict['id_delimin'] = args.id_delimin 
         parameter_dict['short_name'] = args.input_names[i] if args.input_names != None else None
         parameter_dict['samples'] = args.samples
@@ -111,6 +122,7 @@ def compare2goldstandard(parameter_dict):
     
     cluster_filename = parameter_dict['cluster_filename']
     gs_complexes = parameter_dict['gs_complexes']
+    ex_complexes = parameter_dict['ex_complexes']
     id_delimin = parameter_dict['id_delimin']
     short_name = parameter_dict['short_name']
     samples = parameter_dict['samples']
@@ -134,7 +146,7 @@ def compare2goldstandard(parameter_dict):
             if id_delimin in seg:
                 ii = seg.split(id_delimin)[1]
 
-    cplx_compare = cc.ComplexComparison(gs_complexes, predicted_clusters, samples=samples, exact=exact, max_clique=max_clique, pseudocount=pseudocount)
+    cplx_compare = cc.ComplexComparison(gs_complexes, predicted_clusters, exclusion_complexes=ex_complexes, samples=samples, exact=exact, max_clique=max_clique, pseudocount=pseudocount)
     
     result_dict = cplx_compare.clique_comparison_metric()
     #print result_dict
