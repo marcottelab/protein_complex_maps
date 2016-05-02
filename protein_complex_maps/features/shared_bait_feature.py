@@ -6,18 +6,43 @@ import scipy.stats as stats
 import scipy.misc as misc
 import math
 
+from rpy2.robjects.packages import importr
+from rpy2.robjects.vectors import FloatVector
+
+
+
 pd.set_option('display.height', 1000)
 pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
-def pval(k,n,m,N):
+def pval(k,n,m,N, adhoc=False):
     print "%s %s %s %s" % (k,n,m,N)
     pv = 0.0
-    for i in range(k,min(m,n)+1):
-        pi = ( misc.comb(n,i) * misc.comb((N-n), (m-i)) ) / misc.comb(N,m)
+    for i in range(k,int(min(m,n)+1)):
+        #kdrew: use adhoc choose method instead of scipy.misc.comb
+        if adhoc:
+            pi = ( choose(n,i) * choose((N-n), (m-i)) ) / choose(N,m)
+        else:
+            pi = ( misc.comb(n,i) * misc.comb((N-n), (m-i)) ) / misc.comb(N,m)
         pv += pi
     return pv
+
+#kdrew: from http://stackoverflow.com/questions/33468821/is-scipy-misc-comb-faster-than-an-ad-hoc-binomial-computation
+def choose(n, k):
+    """
+    A fast way to calculate binomial coefficients by Andrew Dalke (contrib).
+    """
+    if 0 <= k <= n:
+        ntok = 1
+        ktok = 1
+        for t in xrange(1, min(k, n - k) + 1):
+            ntok *= n
+            ktok *= t
+            n -= 1
+        return ntok // ktok
+    else:
+        return 0
 
 
 def main():
@@ -32,14 +57,16 @@ def main():
                                     help="Name of column that specify ids in feature matrix, default=gene_id")
     parser.add_argument("--bait_id_column", action="store", dest="bait_id_column", required=False, default='bait_geneid',
                                     help="Name of column that specify bait ids in feature matrix, default=bait_geneid")
+    parser.add_argument("--bh_correct", action="store_true", dest="bh_correct", required=False, default=False,
+                                    help="Benjamini-Hochberg correct pvals")
 
     args = parser.parse_args()
 
     feature_table = pd.read_csv(args.feature_matrix, sep=args.sep)
-    output_df = shared_bait_feature(feature_table, args.bait_id_column, args.id_column)
+    output_df = shared_bait_feature(feature_table, args.bait_id_column, args.id_column, args.bh_correct)
     output_df.to_csv(args.output_file)
 
-def shared_bait_feature(feature_table, bait_id_column, id_column):
+def shared_bait_feature(feature_table, bait_id_column, id_column, bh_correct=False):
 
     #kdrew: best to enforce ids as strings
     feature_table['bait_id_column_str'] = feature_table[bait_id_column].apply(str)
@@ -83,6 +110,8 @@ def shared_bait_feature(feature_table, bait_id_column, id_column):
     output_dict['gene_id2'] = []
     output_dict['pair_count'] = []
     output_dict['neg_ln_pval'] = []
+    output_dict['pval'] = []
+
     print ks
     for gene_ids_str in ks.index:
         gene_ids_clean = gene_ids_str.translate(None, "[\'],")
@@ -104,7 +133,14 @@ def shared_bait_feature(feature_table, bait_id_column, id_column):
             output_dict['gene_id2'].append(gene_ids[1])
             output_dict['pair_count'].append(k)
             output_dict['neg_ln_pval'].append(neg_ln_p)
+            output_dict['pval'].append(p)
 
+
+    if bh_correct:
+        stats = importr('stats')
+        p_adjust = stats.p_adjust(FloatVector(output_dict['pval']), method = 'BH')
+        output_dict['pval_corr'] = p_adjust
+        output_dict['neg_ln_pval_corr'] = [-1.0*math.log(p) for p in p_adjust]
 
     output_df = pd.DataFrame(output_dict)
     return output_df
