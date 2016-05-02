@@ -288,7 +288,7 @@ class ComplexComparison(object):
         #kdrew: only get clusters that are larger than or equal to the clique size
         clusters = [clust & self.get_gold_standard_proteins() for clust in self.get_clusters() if len(clust & self.get_gold_standard_proteins()) >= clique_size]
 
-        print "clique_size: %s, #ofClusters: %s" % (clique_size, len(clusters))
+        #print "clique_size: %s, #ofClusters: %s" % (clique_size, len(clusters))
 
         #print "clusters size: %s" % (len(clusters))
 
