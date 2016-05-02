@@ -281,57 +281,59 @@ def get_pdb_protein_ids( pdbid, database='pdbsws', reversible=False ):
 #kdrew: uses uniprot webservice to map ids
 #kdrew: from_id and to_id are abbreviations of dbid names which can be found: http://www.uniprot.org/faq/28
 def map_protein_ids( id_list, from_id, to_id, reviewed=False ):
-	url = 'http://www.uniprot.org/mapping/'
+    url = 'http://www.uniprot.org/mapping/'
 
-	query_str = ' '.join(id_list)
-	params = {
-		'from':'%s' % (from_id,),
-		'to':'%s' % (to_id,),
-		'format':'tab',
-		#kdrew: noticed a TypeError exception in join but not sure why
-		'query':query_str,
-	}
+    query_str = ' '.join(id_list)
+    params = {
+        'query':query_str,
+        'from':'%s' % (from_id,),
+        'to':'%s' % (to_id,),
+        'format':'tab',
+        #kdrew: noticed a TypeError exception in join but not sure why
+    }
 
-	data = urllib.urlencode(params)
-	print data
-	request = urllib2.Request(url, data)
-	contact = "kdrew@utexas.edu" 
-	request.add_header('User-Agent', 'Python %s' % contact)
-	response = urllib2.urlopen(request)
+    print query_str
+
+    data = urllib.urlencode(params)
+    print data
+    request = urllib2.Request(url, data)
+    contact = "kdrew@utexas.edu" 
+    request.add_header('User-Agent', 'Python %s' % contact)
+    response = urllib2.urlopen(request)
 
     #kdrew: put resulting map into dictionary of lists (one to many)
-	return_dict = {}
-	for line in response.readlines():
-		print line
-		if line.split()[0] != "From":
-			try:
-				if len(line.split()) > 2:
-					return_dict[line.split()[0]] = return_dict[line.split()[0]] + line.split()[1:]
-				else:
-					return_dict[line.split()[0]].append(line.split()[1])
-			except:
-				if len(line.split()) > 2:
-					return_dict[line.split()[0]] = line.split()[1:]
-				else:
-					return_dict[line.split()[0]] = [line.split()[1],] 
+    return_dict = {}
+    for line in response.readlines():
+        print line
+        if line.split()[0] != "From":
+            try:
+                if len(line.split()) > 2:
+                    return_dict[line.split()[0]] = return_dict[line.split()[0]] + line.split()[1:]
+                else:
+                    return_dict[line.split()[0]].append(line.split()[1])
+            except:
+                if len(line.split()) > 2:
+                    return_dict[line.split()[0]] = line.split()[1:]
+                else:
+                    return_dict[line.split()[0]] = [line.split()[1],] 
 
 
-	for i in id_list:
-		if i not in return_dict.keys():
-			print "No id match for %s, adding empty list" % i
-			return_dict[i] = []
+    for i in id_list:
+        if i not in return_dict.keys():
+            print "No id match for %s, adding empty list" % i
+            return_dict[i] = []
 
-	if reviewed:
-		#kdrew: flatten ids into set
-		ret_id_list = list(set([item for sublist in return_dict.values() for item in sublist]))
-		#print ret_id_list
-		is_reviewed_list = get_from_uniprot(ret_id_list, 'reviewed')
-		#print is_reviewed_list
-		unreviewed_list = [item for item in is_reviewed_list if is_reviewed_list[item] == 'unreviewed']
-		#print unreviewed_list
+    if reviewed:
+        #kdrew: flatten ids into set
+        ret_id_list = list(set([item for sublist in return_dict.values() for item in sublist]))
+        #print ret_id_list
+        is_reviewed_list = get_from_uniprot(ret_id_list, 'reviewed')
+        #print is_reviewed_list
+        unreviewed_list = [item for item in is_reviewed_list if is_reviewed_list[item] == 'unreviewed']
+        #print unreviewed_list
 
-		for i in return_dict:
-			return_dict[i] = list(set(return_dict[i]) - set(unreviewed_list))
+        for i in return_dict:
+            return_dict[i] = list(set(return_dict[i]) - set(unreviewed_list))
 
-	return return_dict
+    return return_dict
 
