@@ -54,9 +54,12 @@ def main():
     p = mp.Pool(args.procs)
     #kdrew: create list of inputs to pass to parallel compare2goldstandard
     compare2goldstandard_input_list = []
+
     for i, cluster_filename in enumerate(args.cluster_filenames):
+
         parameter_dict = dict()
         parameter_dict['cluster_filename'] = cluster_filename
+        parameter_dict['gs_boot_iteration'] = 1
         parameter_dict['gs_complexes'] = gold_standard_complexes
         parameter_dict['ex_complexes'] = excluded_complexes
         parameter_dict['id_delimin'] = args.id_delimin 
@@ -122,6 +125,7 @@ def compare2goldstandard(parameter_dict):
     
     cluster_filename = parameter_dict['cluster_filename']
     gs_complexes = parameter_dict['gs_complexes']
+    boot_iteration = parameter_dict['gs_boot_iteration'] 
     ex_complexes = parameter_dict['ex_complexes']
     id_delimin = parameter_dict['id_delimin']
     short_name = parameter_dict['short_name']
@@ -180,7 +184,7 @@ def compare2goldstandard(parameter_dict):
     #
     #return return_dict
 
-    return {'ii':ii, 'precision_list':precision_list, 'recall_list':recall_list, 'f1score_list':f1score_list, 'grand_f1score':grand_f1score, 'cumulative_precision_list':cumulative_precision_list, 'cumulative_recall_list':cumulative_recall_list, 'numOfClusters':numOfClusters_list}
+    return {'ii':ii, 'boot_iteration':boot_iteration, 'precision_list':precision_list, 'recall_list':recall_list, 'f1score_list':f1score_list, 'grand_f1score':grand_f1score, 'cumulative_precision_list':cumulative_precision_list, 'cumulative_recall_list':cumulative_recall_list, 'numOfClusters':numOfClusters_list}
 
 #kdrew: reads in precision recall file and returns dictionary
 def read_pr_file(filename, names=None):
