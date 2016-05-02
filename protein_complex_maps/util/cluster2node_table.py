@@ -27,9 +27,13 @@ def main():
         clusters.append(line.split())
         map( protid_set.add, line.split() )
 
+    print "cluster2node_table: convert to ACC"
     inputID2ACC_map = pu.map_protein_ids(list(protid_set), args.from_id, "ACC", reviewed=args.reviewed)
+    print "flatten_list"
     flatten_list = [item for sublist in inputID2ACC_map.values() for item in sublist]
+    print "cluster2node_table: get genenames"
     genename_map = pu.get_from_uniprot(flatten_list, 'genes')
+    print "cluster2node_table: get protein names"
     proteinname_map = pu.get_from_uniprot(flatten_list, 'protein+names')
 
     d = dict()
@@ -46,14 +50,14 @@ def main():
             clust_id_key = "%s_%s" % (clustid, prot_id)
 
             d['clustid'].append(clustid)
-            d['key'].append(prot_id)
+            d['key'].append(str(prot_id))
             d['clustid_key'].append(clust_id_key)
             try:
                 d['acc'].append(inputID2ACC_map[prot_id][0])
                 d['uniprot_link'].append("http://www.uniprot.org/uniprot/%s" % inputID2ACC_map[prot_id][0])
                 d['genename'].append(genename_map[inputID2ACC_map[prot_id][0]])
                 try:
-                    d['proteinname'].append(proteinname_map[inputID2ACC_map[prot_id][0]])
+                    d['proteinname'].append(proteinname_map[inputID2ACC_map[prot_id][0]].strip())
                 except KeyError:
                     d['proteinname'].append(None)
             except IndexError:
