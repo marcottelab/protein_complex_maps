@@ -29,6 +29,8 @@ class ComplexComparisonTest(unittest.TestCase):
         #self.clusters4 = [['a','b','c','d','e','f'],['g','h','i','j','k','l','m','n'],['a','g','o','q','s','u']]
         self.clusters4 = [['a','b','c','d','e','f'],['g','h','i','j','k','l'],['a','g','o','q','s','u']]
 
+        self.exclude_complexes = [['s','u','q'],['o','q']]
+
     def testComplexComparison(self, ):
         ccobj = cc.ComplexComparison(self.gold_standard, self.clusters)
         np.testing.assert_almost_equal( ccobj.sensitivity(), 0.75)
@@ -237,6 +239,28 @@ class ComplexComparisonTest(unittest.TestCase):
         print "diff 6: %s" % abs(d[6]['precision'] - d_exact[6]['precision'])
         #print "diff 7: %s" % abs(d[7]['precision'] - d_exact[7]['precision'])
         #print "diff 8: %s" % abs(d[8]['precision'] - d_exact[8]['precision'])
+
+        assert abs(d[2]['precision'] - d_exact[2]['precision'])  == 0
+        assert abs(d[3]['precision'] - d_exact[3]['precision'])  == 0 
+        assert abs(d[4]['precision'] - d_exact[4]['precision'])  == 0 
+        assert abs(d[5]['precision'] - d_exact[5]['precision'])  == 0 
+        assert abs(d[6]['precision'] - d_exact[6]['precision'])  == 0 
+
+    def testCliqueComparisonMetricExclusion(self, ):
+        print "Exclusion test"
+        ccobj = cc.ComplexComparison(self.gold_standard4, self.clusters4, self.exclude_complexes, pseudocount=0)
+        d = ccobj.clique_comparison_metric()
+        print "precision 2: %s" % d[2]['precision']
+        print "precision 3: %s" % d[3]['precision']
+        print "precision 4: %s" % d[4]['precision']
+        print "precision 5: %s" % d[5]['precision']
+        print "precision 6: %s" % d[6]['precision']
+
+        #kdrew: (tp cluster1 + tp cluster2) / (tp_c1 + tp_c2 + fp_c3 - excluded_cliques)
+        #kdrew: (15 + 15) / (15 + 15 + 15 - 4) = 0.7317073170731707
+        np.testing.assert_almost_equal( d[2]['precision'], 0.7317073170731707)
+        #kdrew: (20 + 20) / (20 + 20 + 20 - 1) = 0.6779661016949152
+        np.testing.assert_almost_equal( d[3]['precision'], 0.6779661016949152)
 
 if __name__ == "__main__":
         unittest.main()

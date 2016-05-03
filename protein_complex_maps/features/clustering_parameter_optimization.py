@@ -70,6 +70,8 @@ def main():
     parser.add_argument("--cfinder_timeout", action="store", dest="cfinder_timeout", nargs='+', required=False, 
                                     default=[None],
                                     help="Cfinder timeout (-t) parameter, default = None (use CFinder's default setting, recommended: 10)")
+    parser.add_argument("--trim2threshold", action="store_true", dest="trim2threshold", required=False, default=False,
+                                    help="Trim final clusters of subunits that do not have an edge that passes the threshold_score, default=False")
     parser.add_argument("--twostep_combination", action="store", dest="twostep_combination", nargs='+', required=False, 
                                     default=['clusterone','mcl'],
                                     help="Combination of two step clustering, default = [clusterone,mcl], options=[clusterone,mcl,cfinder,agglomod]")
@@ -163,6 +165,7 @@ def main():
         parameter_dict['cliquesize'] = str(cliquesize)
         parameter_dict['timeout'] = str(timeout)
         parameter_dict['twostep_combination'] = args.twostep_combination
+        parameter_dict['trim2threshold'] = args.trim2threshold
         parameter_dict['i'] = ii
         parameter_dict['nodelete'] = args.nodelete 
 
@@ -186,6 +189,7 @@ def main():
         timeout = network_input_list[ii]['timeout']
         cliquesize = network_input_list[ii]['cliquesize']
         twostep_combination = network_input_list[ii]['twostep_combination']
+        trim2threshold = network_input_list[ii]['trim2threshold']
         nodelete = network_input_list[ii]['nodelete']
 
         #kdrew: compare gold standard vs predicted clusters
@@ -199,7 +203,7 @@ def main():
         ccmm = cplx_comparison.clique_comparison_metric_mean()
         metric_dict['clique_precision_mean'] = ccmm['precision_mean']
         metric_dict['clique_recall_mean'] = ccmm['recall_mean']
-        print "ii %s, size %s, density %s, overlap %s, seed_method %s, fraction %s, threshold_score %s, inflation %s, cliquesize %s, timeout %s, twostep_combination: %s, acc %s, sensitivity %s, ppv %s, mmr %s, clique_precision_mean %s, clique_recall_mean %s" % (ii, size, density, overlap, seed_method, fraction, threshold_score,  inflation, cliquesize, timeout, str(twostep_combination), metric_dict['acc'], metric_dict['sensitivity'], metric_dict['ppv'], metric_dict['mmr'], metric_dict['clique_precision_mean'],metric_dict['clique_recall_mean'])
+        print "ii %s, size %s, density %s, overlap %s, seed_method %s, fraction %s, threshold_score %s, inflation %s, cliquesize %s, timeout %s, twostep_combination: %s, trim2threshold: %s, acc %s, sensitivity %s, ppv %s, mmr %s, clique_precision_mean %s, clique_recall_mean %s" % (ii, size, density, overlap, seed_method, fraction, threshold_score,  inflation, cliquesize, timeout, str(twostep_combination), str(trim2threshold), metric_dict['acc'], metric_dict['sensitivity'], metric_dict['ppv'], metric_dict['mmr'], metric_dict['clique_precision_mean'],metric_dict['clique_recall_mean'])
 
 
 
@@ -230,6 +234,7 @@ def main():
             parameter_dict['timeout'] = str(timeout)
             parameter_dict['cliquesize'] = str(cliquesize)
             parameter_dict['twostep_combination'] = twostep_combination
+            parameter_dict['trim2threshold'] = trim2threshold
             parameter_dict['i'] = i
             parameter_dict['nodelete'] = nodelete 
             multiproc_input.append(parameter_dict)
@@ -240,7 +245,7 @@ def main():
         multiproc_input = [(cluster_prediction, predicted_clusters, bootstrapped_test_networks[i]) for predicted_clusters, i in bootstrapped_cluster_predictions]
         bootstrap_cplx_cmp_metrics = p.map(comparison_helper, multiproc_input) 
         for boot_cmp in bootstrap_cplx_cmp_metrics:
-            print "bootstrapped: ii %s, size %s, density %s, overlap %s, seed_method %s, fraction %s, inflation %s, cliquesize %s, timeout %s, twostep_combination %s, acc %s, sensitivity %s, ppv %s, mmr %s, ppi_recovered %s, clique_precision_mean %s, clique_recall_mean %s" % (ii, size, density, overlap, seed_method, fraction, inflation, cliquesize, timeout, str(twostep_combination), boot_cmp['acc'], boot_cmp['sensitivity'], boot_cmp['ppv'], boot_cmp['mmr'], boot_cmp['percent_ppi_recovered'], boot_cmp['clique_precision_mean'], boot_cmp['clique_recall_mean'])
+            print "bootstrapped: ii %s, size %s, density %s, overlap %s, seed_method %s, fraction %s, inflation %s, cliquesize %s, timeout %s, twostep_combination %s, trim2threshold: %s,  acc %s, sensitivity %s, ppv %s, mmr %s, ppi_recovered %s, clique_precision_mean %s, clique_recall_mean %s" % (ii, size, density, overlap, seed_method, fraction, inflation, cliquesize, timeout, str(twostep_combination), str(trim2threshold), boot_cmp['acc'], boot_cmp['sensitivity'], boot_cmp['ppv'], boot_cmp['mmr'], boot_cmp['percent_ppi_recovered'], boot_cmp['clique_precision_mean'], boot_cmp['clique_recall_mean'])
 
 
         #kdrew: keeping track of the best parameter set
@@ -256,8 +261,9 @@ def main():
             best_cliquesize = cliquesize
             best_timeout = timeout
             best_twostep_combination = twostep_combination
+            best_trim2threshold = trim2threshold
             best_cluster_prediction = cluster_prediction
-            print "best ii: %s size: %s density: %s overlap: %s seed_method: %s fraction: %s inflation: %s cliquesize: %s timeout: %s twostep_combination: %s numOfClusters: %s" % (best_ii, best_size, best_density, best_overlap, best_seed_method, best_fraction, best_inflation, best_cliquesize, best_timeout, str(best_twostep_combination), len(best_cluster_prediction))
+            print "best ii: %s size: %s density: %s overlap: %s seed_method: %s fraction: %s inflation: %s cliquesize: %s timeout: %s twostep_combination: %s, trim2threshold: %s, numOfClusters: %s" % (best_ii, best_size, best_density, best_overlap, best_seed_method, best_fraction, best_inflation, best_cliquesize, best_timeout, str(best_twostep_combination), str(trim2threshold), len(best_cluster_prediction))
 
 
         #kdrew: output best cluster prediction
@@ -341,6 +347,7 @@ def cluster_helper(parameter_dict):
     cliquesize = parameter_dict['cliquesize']
     timeout = parameter_dict['timeout']
     twostep_combination = parameter_dict['twostep_combination']
+    trim2threshold = parameter_dict['trim2threshold']
     nodelete = parameter_dict['nodelete']
 
     #kdrew: create temp file for bootstrapped input network, clusterone requires a file input
@@ -475,8 +482,36 @@ def cluster_helper(parameter_dict):
             predicted_clusters  = agglomod_clusters
 
 
+    if trim2threshold:
+        predicted_clusters = trim_clusters2threshold(predicted_clusters, threshold_score, ppi_scores)
 
     return predicted_clusters, i
+
+
+def trim_clusters2threshold(predicted_clusters, threshold_score, ppi_scores):
+
+    trimed_clusters = []
+
+    for clust in predicted_clusters:
+        trimed_clust = []
+        for prot1 in clust:
+            prot1_max_score = 0.0
+            for prot2 in clust:
+                if prot1 != prot2:
+                    try:
+                        prot1_max_score = max( prot1_max_score, ppi_scores[frozenset([prot1,prot2])] )
+                    except KeyError:
+                        continue
+            if prot1_max_score < threshold_score:
+                print "removing prot1: %s max score: %s" % (prot1, prot1_max_score)
+            else:
+                trimed_clust.append(prot1)
+        if len(trimed_clust) >  1:
+            trimed_clusters.append(trimed_clust)
+
+    return trimed_clusters
+
+
 
 
 if __name__ == "__main__":

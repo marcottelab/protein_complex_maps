@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 
 class ComplexComparison(object):
 
-    def __init__(self, gold_standard=[], clusters=[], samples=10000, pseudocount=1, exact=False, max_clique=None):
+    def __init__(self, gold_standard=[], clusters=[], exclusion_complexes=[], samples=10000, pseudocount=1, exact=False, max_clique=None):
         #kdrew: gold_standard and clusters are a list of complexes 
         #kdrew: each complex contains a set of ids  (if passed in a list, will be converted to set)
         self.gold_standard = [set(x) for x in gold_standard]
@@ -29,6 +29,8 @@ class ComplexComparison(object):
             self.gold_standard_proteins = self.gold_standard_proteins.union(x)
 
         self.clusters = [set(x) for x in clusters]
+
+        self.exclusion_complexes = [set(x) for x in exclusion_complexes]
 
         #kdrew: dataframe where columns are clusters and rows are complexes(gold standard)
         self.intersection_table = None
@@ -43,6 +45,9 @@ class ComplexComparison(object):
 
     def get_gold_standard(self,):
         return self.gold_standard
+
+    def get_exclusion_complexes(self,):
+        return self.exclusion_complexes
 
     def get_gold_standard_proteins(self,):
         return self.gold_standard_proteins
@@ -186,6 +191,10 @@ class ComplexComparison(object):
             #kdrew: if max_clique is set but the largest cluster is smaller, use the smaller value
             max_len = min(self.max_clique, clust_max_len)
 
+        cumulative_gs_tp = 0.0
+        cumulative_tp = 0.0
+        cumulative_fn = 0.0
+        cumulative_fp = 0.0
         for size in range(2, max_len+1):
 
             zero_w_pseudocount = 1.0*self.pseudocount / (self.samples + 2*self.pseudocount)
@@ -193,20 +202,28 @@ class ComplexComparison(object):
             #kdrew: shortcut, if the last two precision and recall estimates are 0.0 then there is exceedingly small chance are a larger clique size will have a precision/recall > 0.0
             #kdrew: do not calculate, just mark the remainder clique sizes as zero
             if size > 4 and return_dict[size-1]['precision'] == zero_w_pseudocount and return_dict[size-1]['recall'] == zero_w_pseudocount and return_dict[size-2]['precision'] == zero_w_pseudocount and return_dict[size-2]['recall'] == zero_w_pseudocount:
-                return_dict[size] = {'precision':zero_w_pseudocount,'f1score':zero_w_pseudocount, 'recall':zero_w_pseudocount}
+                return_dict[size] = {'precision':zero_w_pseudocount,'f1score':zero_w_pseudocount, 'recall':zero_w_pseudocount, 'cumulative_recall':zero_w_pseudocount, 'cumulative_precision':zero_w_pseudocount, 'numOfClusters':0}
                 continue
 
             #kdrew: if clique size is greater than the max size of the gold standard, return precision 0.0 and recall 0.0 
             #kdrew: (technically recall should be NA because there are no complexes left in the gold standard but I think it makes sense to reduce it to 0.0 here)
             #kdrew: see above comment on another way of dealing with this (i.e. min_of_max_len)
             if gs_max_len < size:
-                return_dict[size] = {'precision':zero_w_pseudocount,'f1score':zero_w_pseudocount, 'recall':zero_w_pseudocount}
+                return_dict[size] = {'precision':zero_w_pseudocount,'f1score':zero_w_pseudocount, 'recall':zero_w_pseudocount, 'cumulative_recall':zero_w_pseudocount, 'cumulative_precision':zero_w_pseudocount, 'numOfClusters':0}
                 continue
 
             if self.exact:
                 result_dict = self.clique_comparison_exact(size)
             else:
                 result_dict = self.clique_comparison(size)
+
+            cumulative_gs_tp += result_dict['gs_tp']
+            cumulative_tp += result_dict['tp']
+            cumulative_fp += result_dict['fp']
+            cumulative_fn += result_dict['fn']
+
+            cumulative_recall = 1.0*cumulative_gs_tp / (cumulative_gs_tp + cumulative_fn)
+            cumulative_precision = 1.0*cumulative_tp / (cumulative_tp + cumulative_fp)
 
             #print result_dict
             recall = 1.0*result_dict['gs_tp'] / (result_dict['gs_tp'] + result_dict['fn'])
@@ -218,7 +235,7 @@ class ComplexComparison(object):
             if precision != 0.0 and recall != 0.0:
                 f1score = hmean([recall,precision])
 
-            return_dict[size] = {'precision':precision,'recall':recall,'f1score':f1score}
+            return_dict[size] = {'precision':precision,'recall':recall,'f1score':f1score, 'cumulative_recall':cumulative_recall, 'cumulative_precision':cumulative_precision, 'numOfClusters':result_dict['numOfClusters']}
             #print return_dict[size]
 
         #kdrew: save results for future retrieval
@@ -231,6 +248,10 @@ class ComplexComparison(object):
         false_positives = self.pseudocount
         false_negatives = self.pseudocount
 
+        if len(self.get_exclusion_complexes()) > 0:
+            raise Exclusion_Complexes_Exception("ERROR: EXCLUSION COMPLEX functionality is not implemented for exact method (def clique_comparison_exact), use estimated (def clique_comparison)")
+
+
         #kdrew: only get clusters that are larger than or equal to the clique size
         clusters = [clust & self.get_gold_standard_proteins() for clust in self.get_clusters() if len(clust & self.get_gold_standard_proteins()) >= clique_size]
 
@@ -238,7 +259,8 @@ class ComplexComparison(object):
             is_positive_list = [ np.max(map(set(group).issubset,self.get_gold_standard())) for group in it.combinations(clust, clique_size)]
             tp_curr = sum(is_positive_list)
             true_positives += tp_curr
-            false_positives += len(is_positive_list) - tp_curr
+
+            false_positives += len(is_positive_list) - tp_curr 
 
         for gs_clust in self.get_gold_standard():
             is_positive_list = [ np.max(map(set(gs_group).issubset,clusters)) for gs_group in it.combinations(gs_clust, clique_size) ]
@@ -250,6 +272,7 @@ class ComplexComparison(object):
         return_dict['gs_tp'] = gs_true_positives
         return_dict['fp'] = false_positives
         return_dict['fn'] = false_negatives
+        return_dict['numOfClusters'] = len(clusters)
         return return_dict
 
 
@@ -264,6 +287,8 @@ class ComplexComparison(object):
 
         #kdrew: only get clusters that are larger than or equal to the clique size
         clusters = [clust & self.get_gold_standard_proteins() for clust in self.get_clusters() if len(clust & self.get_gold_standard_proteins()) >= clique_size]
+
+        #print "clique_size: %s, #ofClusters: %s" % (clique_size, len(clusters))
 
         #print "clusters size: %s" % (len(clusters))
 
@@ -304,7 +329,12 @@ class ComplexComparison(object):
             if np.max(map(random_clique.issubset,self.get_gold_standard())):
                 true_positives += 1 
             else:
-                false_positives += 1
+                if len(self.get_exclusion_complexes()) > 0 and np.max(map(random_clique.issubset,self.get_exclusion_complexes())):
+                    #print "excluded clique"
+                    continue
+                else:
+                    #print "false_positive: %s" % (' '.join(random_clique),)
+                    false_positives += 1
 
 
         #kdrew: only get gold standard complexes that are larger than or equal to the clique size
@@ -350,6 +380,7 @@ class ComplexComparison(object):
         return_dict['gs_tp'] = gs_true_positives
         return_dict['fp'] = false_positives
         return_dict['fn'] = false_negatives
+        return_dict['numOfClusters'] = len(clusters)
         return return_dict
 
 
@@ -459,6 +490,11 @@ def main():
         subplots[2].set_title('PPV')
         plt.savefig(args.plot_filename)
 
+class Exclusion_Complexes_Exception(Exception):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
 
 if __name__ == "__main__":
         main()

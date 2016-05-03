@@ -27,6 +27,8 @@ def main():
 						help="Map ids of this type to another type, default=ENSEMBL_ID (list can be seen http://www.uniprot.org/faq/28)")
 	parser.add_argument("--map_id_to", action="store", dest="map_id_to", required=False, default="ACC",
 						help="Map ids to this type, default=ACC (list can be seen http://www.uniprot.org/faq/28)")
+	parser.add_argument("--no_map", action="store_true", dest="no_map", required=False, default=False,
+						help="Use matrix ids as identifer")
 	parser.add_argument("--input_matrix_format", action="store", dest="input_matrix_format", required=False, default="dense",
 						help="Format of input matrix file, dense, dataframe or mm, default=dense")
 
@@ -61,7 +63,7 @@ def main():
                 matrix_id_list.append(line_id)
             matrix_id_file.close()
 
-        if not args.map_pickle:
+        if not args.map_pickle and not args.no_map:
             #kdrew: use uniprot to map ids
             matrix_id2ACC_map = pu.map_protein_ids(matrix_id_list, args.map_id_from, "ACC")
             flatten_list = [item for sublist in matrix_id2ACC_map.values() for item in sublist]
@@ -87,6 +89,10 @@ def main():
                             matrix_id_map[id1] = id1
 
             pickle.dump(matrix_id_map, open(args.map_pickle_file,"wb"))
+        elif args.no_map:
+            matrix_id_map = dict()
+            for id1 in matrix_id_list:
+                matrix_id_map[id1] = id1
         else:
             matrix_id_map = pickle.load(open(args.map_pickle_file,"rb"))
 
