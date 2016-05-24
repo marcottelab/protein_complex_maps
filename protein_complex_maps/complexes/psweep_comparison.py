@@ -25,12 +25,14 @@ def main():
                                     help="Number processors to use (int), default=1)")
     parser.add_argument("--samples", action="store", type=int, dest="samples", required=False, default=10000,
                                     help="Number to samples for complex comparison, default=10000")
-    parser.add_argument("--pseudocount", action="store", type=int, dest="pseudocount", required=False, default=1,
+    parser.add_argument("--pseudocount", action="store", type=float, dest="pseudocount", required=False, default=1,
                                     help="Pseudocount to use during sampling (not strictly turned off for exact calculations), default=1")
     parser.add_argument("--max_clique", action="store", type=int, dest="max_clique", required=False, default=None,
                                     help="Value of largest clique size to calculate, default=None, (size of largest cluster)")
     parser.add_argument("--exact", action="store_true", dest="exact", required=False, default=False,
                                     help="Calculate the exact precision recall and f1scores rather than sampling (consider using --max_clique option as well), default=False")
+    parser.add_argument("--normalize_by_combinations", action="store_true", dest="normalize_by_combinations", required=False, default=False,
+                                            help="Normalize clique precision recall by the number of combinations for each cluster, default=False")
     args = parser.parse_args()
 
 
@@ -68,6 +70,7 @@ def main():
         parameter_dict['exact'] = args.exact
         parameter_dict['max_clique'] = args.max_clique
         parameter_dict['pseudocount'] = args.pseudocount
+        parameter_dict['normalize_by_combinations'] = args.normalize_by_combinations
         compare2goldstandard_input_list.append(parameter_dict)
     
         #compare2goldstandard(cluster_filename, gold_standard_complexes, args.id_delimin)
@@ -133,6 +136,7 @@ def compare2goldstandard(parameter_dict):
     exact = parameter_dict['exact']
     max_clique = parameter_dict['max_clique']
     pseudocount = parameter_dict['pseudocount']
+    normalize_by_combinations = parameter_dict['normalize_by_combinations']
     #for i, cluster_filename in enumerate(cluster_filenames):
 
     predicted_clusters = []
@@ -150,7 +154,7 @@ def compare2goldstandard(parameter_dict):
             if id_delimin in seg:
                 ii = seg.split(id_delimin)[1]
 
-    cplx_compare = cc.ComplexComparison(gs_complexes, predicted_clusters, exclusion_complexes=ex_complexes, samples=samples, exact=exact, max_clique=max_clique, pseudocount=pseudocount)
+    cplx_compare = cc.ComplexComparison(gs_complexes, predicted_clusters, exclusion_complexes=ex_complexes, samples=samples, exact=exact, max_clique=max_clique, pseudocount=pseudocount, normalize_by_combinations=normalize_by_combinations)
     
     result_dict = cplx_compare.clique_comparison_metric()
     #print result_dict
