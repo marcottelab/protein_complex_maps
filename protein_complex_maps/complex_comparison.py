@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 
 class ComplexComparison(object):
 
-    def __init__(self, gold_standard=[], clusters=[], exclusion_complexes=[], samples=10000, pseudocount=1, exact=False, max_clique=None):
+    def __init__(self, gold_standard=[], clusters=[], exclusion_complexes=[], samples=10000, pseudocount=1, exact=False, max_clique=None, remove_non_gold_standard_proteins=False, normalize_by_combinations=False):
         #kdrew: gold_standard and clusters are a list of complexes 
         #kdrew: each complex contains a set of ids  (if passed in a list, will be converted to set)
         self.gold_standard = [set(x) for x in gold_standard]
@@ -29,6 +29,12 @@ class ComplexComparison(object):
             self.gold_standard_proteins = self.gold_standard_proteins.union(x)
 
         self.clusters = [set(x) for x in clusters]
+
+        if remove_non_gold_standard_proteins:
+            self.remove_non_gold_standard_proteins()
+
+        self.normalize_by_combinations = normalize_by_combinations
+        
 
         self.exclusion_complexes = [set(x) for x in exclusion_complexes]
 
@@ -42,6 +48,18 @@ class ComplexComparison(object):
         self.pseudocount = pseudocount
         self.exact = exact
         self.max_clique = max_clique
+
+    #kdrew: this function removes proteins from any cluster which is not in the gold standard
+    def remove_non_gold_standard_proteins(self,):
+        filtered_clusters = []
+        for c in self.clusters:       
+            c_filt = c.intersection(self.gold_standard_proteins)
+            if len(c_filt) > 1:
+                filtered_clusters.append(c_filt)
+
+        self.clusters = filtered_clusters
+        return
+
 
     def get_gold_standard(self,):
         return self.gold_standard
@@ -67,9 +85,47 @@ class ComplexComparison(object):
 
     #kdrew: different metrics for comparing complexes and clusters
 
+    #kdrew: Song and Singh Bioinformatics 2009
+    #kdrew: similar to mmr_pwmmr_hmean but weights each complex evaluation by the size of the complex
+    def precision_recall_product(self,topN=None):
+        pm = self.precision_measure(topN=topN)
+        rm = self.recall_measure(topN=topN)
+        return hmean([pm,rm])
+
+    def precision_measure(self,topN=None):
+        max_df = self.prediction_wise_max_matching_ratio_distribution(topN=topN)
+        #print max_df
+        lengths = [len(x) for x in self.get_clusters()]
+        #print lengths
+        sum_weighted_max = np.sum(lengths*max_df)
+        #print sum_weighted_max
+
+        precision_measure = sum_weighted_max / np.sum(lengths)
+        return precision_measure
+
+    def recall_measure(self,topN=None):
+        max_df = self.max_matching_ratio_distribution(topN=topN)
+        #print max_df
+        lengths = [len(x) for x in self.get_gold_standard()]
+        #print lengths
+        sum_weighted_max = np.sum(lengths*max_df)
+        #print sum_weighted_max
+
+        recall_measure = sum_weighted_max / np.sum(lengths)
+        return recall_measure
+
+    def mmr_pwmmr_hmean(self,topN=None):
+        mmr = self.mmr()
+        pwmmr = self.pwmmr()
+        return hmean([mmr,pwmmr])
+
     #kdrew: convience wrapper function
     def mmr(self,topN=None):
         return self.max_matching_ratio(topN)
+
+    #kdrew: convience wrapper function
+    def pwmmr(self,topN=None):
+        return self.prediction_wise_max_matching_ratio(topN)
 
     #kdrew: method described in Yang et al. BMC Medical Genomics Integrating PPI datasets with the PPI data from biomedical literature for protein complex detection (2014)
     def max_matching_ratio(self,topN=None):
@@ -81,6 +137,17 @@ class ComplexComparison(object):
         mmr = sum_max_df / num_of_gold_complexes
         return mmr
 
+    #kdrew: calculate mmr from the view of predicted complexes
+    def prediction_wise_max_matching_ratio(self,topN=None):
+        max_df = self.prediction_wise_max_matching_ratio_distribution(topN=topN)
+        sum_max_df = max_df.sum()
+
+        num_of_clusters = len(self.get_clusters())
+
+        pwmmr = sum_max_df / num_of_clusters
+        return pwmmr
+
+
     def max_matching_ratio_distribution(self,topN=None):
         df = self.get_na_table()
         #kdrew: if we want to only do a range of clusters (topN), we probably want to slice sn_df here
@@ -90,6 +157,19 @@ class ComplexComparison(object):
         max_df = df.max(axis=1)
 
         return max_df
+
+    #kdrew: MMR calculates the max for each standard complex, 
+    #kdrew: here we calculate the max for each predicted complex
+    def prediction_wise_max_matching_ratio_distribution(self,topN=None):
+        df = self.get_na_table()
+        #kdrew: if we want to only do a range of clusters (topN), we probably want to slice sn_df here
+        if topN != None:
+            df = df.ix[:,:topN]
+        #print df
+        max_df = df.max(axis=0)
+
+        return max_df
+
 
 
     #kdrew: method from Brohee and Helden BMC Bioinformatics, http://www.biomedcentral.com/content/pdf/1471-2105-7-488.pdf
@@ -152,8 +232,7 @@ class ComplexComparison(object):
 
         return grand_f1score
 
-
-    def clique_comparison_metric_mean(self,):
+    def clique_comparison_metric_mean(self, weighted=False):
         result_dict = self.clique_comparison_metric()
         precision_list = [result_dict[x]['precision'] for x in result_dict.keys()]
         recall_list = [result_dict[x]['recall'] for x in result_dict.keys()]
@@ -163,7 +242,16 @@ class ComplexComparison(object):
         
         #print "mean precision %s mean recall %s" % (np.mean(precision_list), np.mean(recall_list))
 
-        return {'precision_mean':np.mean(precision_list),'recall_mean':np.mean(recall_list)}
+        if weighted:
+            sum_complexes = sum([result_dict[x]['numOfClusters'] for x in result_dict.keys()])
+            weights_list = [1.0*result_dict[x]['numOfClusters']/sum_complexes for x in result_dict.keys()]
+            precision_mean = np.average(precision_list, weights=weights_list)
+            recall_mean = np.average(recall_list, weights=weights_list)
+        else:
+            precision_mean = np.mean(precision_list)
+            recall_mean = np.mean(recall_list)
+
+        return {'precision_mean':precision_mean,'recall_mean':recall_mean}
 
     #kdrew: calculate precision, recall and f1score for all clique sizes up to largest cluster
     def clique_comparison_metric(self, force=False):
@@ -258,14 +346,33 @@ class ComplexComparison(object):
         for clust in clusters:
             is_positive_list = [ np.max(map(set(group).issubset,self.get_gold_standard())) for group in it.combinations(clust, clique_size)]
             tp_curr = sum(is_positive_list)
+
+            if self.normalize_by_combinations:
+                #kdrew: for each cluster weight true positives by the size of the cluster divided by the number of cliques
+                tp_curr = tp_curr * (1.0*len(clust)/misc.comb(len(clust),clique_size))
+
             true_positives += tp_curr
 
-            false_positives += len(is_positive_list) - tp_curr 
+            fp_curr = len(is_positive_list) - tp_curr 
+            if self.normalize_by_combinations:
+                #kdrew: for each cluster weight false positives by the size of the cluster divided by the number of cliques
+                fp_curr = fp_curr * (1.0*len(clust)/misc.comb(len(clust),clique_size))
+
+            false_positives += fp_curr
 
         for gs_clust in self.get_gold_standard():
             is_positive_list = [ np.max(map(set(gs_group).issubset,clusters)) for gs_group in it.combinations(gs_clust, clique_size) ]
-            gs_true_positives += sum(is_positive_list)
-            false_negatives += sum(np.logical_not(is_positive_list))
+            gs_tp_curr = sum(is_positive_list)
+            if self.normalize_by_combinations:
+                #kdrew: for each cluster weight gs true positives by the size of the gold_standard cluster divided by the number of cliques
+                gs_tp_curr = gs_tp_curr * (1.0*len(gs_clust)/misc.comb(len(gs_clust),clique_size))
+            gs_true_positives += gs_tp_curr
+
+            fn_curr = sum(np.logical_not(is_positive_list))
+            if self.normalize_by_combinations:
+                #kdrew: for each cluster weight false negatives by the size of the gold_standard cluster divided by the number of cliques
+                fn_curr = fn_curr * (1.0*len(gs_clust)/misc.comb(len(gs_clust),clique_size))
+            false_negatives += fn_curr
 
         return_dict = dict()
         return_dict['tp'] = true_positives
@@ -305,6 +412,7 @@ class ComplexComparison(object):
 
         #kdrew: generate set of random cliques
         random_cliques = set()
+        random_clique_weights = dict()
         for s in xrange(self.samples):
 
             #kdrew: get a random cluster weighted by the number of possible clique combinations
@@ -323,18 +431,26 @@ class ComplexComparison(object):
             shuffled_l = rand.permutation(list(clust_intersection))
 
             random_cliques.add(frozenset(shuffled_l[:clique_size]))
+            #kdrew: for each random cluster clique, weight by the size of the random cluster divided by the number of cliques
+            random_clique_weights[frozenset(shuffled_l[:clique_size])] = (1.0*len(clust)/misc.comb(len(clust),clique_size)) 
 
         for random_clique in random_cliques:
             #kdrew: the max just finds if any are true, could probably use .any here
             if np.max(map(random_clique.issubset,self.get_gold_standard())):
-                true_positives += 1 
+                if self.normalize_by_combinations:
+                    true_positives += 1 * random_clique_weights[random_clique]
+                else:
+                    true_positives += 1 
             else:
                 if len(self.get_exclusion_complexes()) > 0 and np.max(map(random_clique.issubset,self.get_exclusion_complexes())):
                     #print "excluded clique"
                     continue
                 else:
                     #print "false_positive: %s" % (' '.join(random_clique),)
-                    false_positives += 1
+                    if self.normalize_by_combinations:
+                        false_positives += 1 * random_clique_weights[random_clique]
+                    else:
+                        false_positives += 1
 
 
         #kdrew: only get gold standard complexes that are larger than or equal to the clique size
@@ -353,6 +469,7 @@ class ComplexComparison(object):
 
         #kdrew: generate set of random cliques
         random_gs_cliques = set()
+        random_gs_clique_weights = dict()
         for s in xrange(self.samples):
 
             #kdrew: get a random cluster
@@ -362,14 +479,21 @@ class ComplexComparison(object):
             #print "sampled: %s" % (shuffled_l[:clique_size],)
 
             random_gs_cliques.add(frozenset(shuffled_l[:clique_size]))
+            random_gs_clique_weights[frozenset(shuffled_l[:clique_size])] = (1.0*len(gs_clust)/misc.comb(len(gs_clust),clique_size)) 
 
         for random_clique in random_gs_cliques:
 
             #if np.max(map( set( shuffled_l[:clique_size] ).issubset, clusters )):
             if np.max(map( random_clique.issubset, clusters )):
-                gs_true_positives += 1 
+                if self.normalize_by_combinations:
+                    gs_true_positives += 1 * random_gs_clique_weights[random_clique]
+                else:
+                    gs_true_positives += 1 
             else:
-                false_negatives += 1
+                if self.normalize_by_combinations:
+                    false_negatives += 1 * random_gs_clique_weights[random_clique]
+                else:
+                    false_negatives += 1
 
         #print "truepos: %s gs_truepos: %s falsepos: %s falseneg: %s" % (true_positives, gs_true_positives, false_positives, false_negatives)
 
@@ -458,6 +582,14 @@ def main():
                                             help="Filename of gold standard complexes, format one complex per line, ids space separated")
     parser.add_argument("--plot_filename", action="store", dest="plot_filename", required=False, default=None,
                                             help="Filename for plotting histograms of metrics")
+    parser.add_argument("--remove_non_gold_standard_proteins", action="store_true", dest="remove_non_gold_standard_proteins", required=False, default=False,
+                                            help="Flag to remove proteins from clusters that are not in the gold standard, default=False")
+    parser.add_argument("--normalize_by_combinations", action="store_true", dest="normalize_by_combinations", required=False, default=False,
+                                            help="Normalize clique precision recall by the number of combinations for each cluster, default=False")
+    parser.add_argument("--excluded_complexes", action="store", dest="excluded_complexes", required=False, default=None,
+                                            help="Filename of benchmark complexes to be excluded from false positive calculation, default=None")
+    parser.add_argument("--pseudocount", action="store", type=float, dest="pseudocount", required=False, default=1,
+                                            help="Set pseudocount for clique sampling, default=1")
 
     args = parser.parse_args()
 
@@ -465,19 +597,37 @@ def main():
     gold_file = open(args.gold_standard_filename,"rb")
     for line in gold_file.readlines():
         gold_standard_complexes.append(line.split())
+    gold_file.close()
 
     predicted_clusters = []
     clpred_f = open(args.cluster_filename,"rb")
     for line in clpred_f.readlines():
         predicted_clusters.append(line.split())
+    clpred_f.close()
 
-    cplx_compare = ComplexComparison(gold_standard_complexes, predicted_clusters)
+    excluded_complexes = []
+    if args.excluded_complexes != None:
+        exclude_file = open(args.excluded_complexes,"rb")
+        for line in exclude_file.readlines():
+            excluded_complexes.append(line.split())
+
+        exclude_file.close()
+
+    cplx_compare = ComplexComparison(gold_standard_complexes, predicted_clusters, remove_non_gold_standard_proteins=args.remove_non_gold_standard_proteins, exclusion_complexes=excluded_complexes, normalize_by_combinations=args.normalize_by_combinations, pseudocount=args.pseudocount)
     print "Sensitivity: %s" % cplx_compare.sensitivity()
     print "PPV: %s" % cplx_compare.ppv()
     print "ACC: %s" % cplx_compare.acc()
     print "MMR: %s" % cplx_compare.mmr()
+    print "PWMMR: %s" % cplx_compare.pwmmr()
+    print "MMR_PWMMR_hmean: %s" % cplx_compare.mmr_pwmmr_hmean()
+    print "Precision measure: %s" % cplx_compare.precision_measure()
+    print "Recall measure: %s" % cplx_compare.recall_measure()
+    print "Precision Recall product: %s" % cplx_compare.precision_recall_product()
     ccmm = cplx_compare.clique_comparison_metric_mean()
     print "Clique Precision Mean: %s Recall Mean: %s" % (ccmm['precision_mean'],ccmm['recall_mean'])
+    ccmm = cplx_compare.clique_comparison_metric_mean(weighted=True)
+    print "Clique Weighted Precision Mean: %s Weighted Recall Mean: %s" % (ccmm['precision_mean'],ccmm['recall_mean'])
+    print "Clique Weighted hmean: %s" % (hmean([ccmm['precision_mean'],ccmm['recall_mean']]))
 
 
     if args.plot_filename != None:
