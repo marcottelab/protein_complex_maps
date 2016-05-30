@@ -1,0 +1,33 @@
+<html>
+<title>Human Protein Complex Map</title>
+
+<p>
+Proteins don't work alone.  Find out what other proteins your favorite protein works with.
+</p>
+
+<h3>Search for a protein:</h3>
+
+<form method="POST" action="/search">
+    {{ form.hidden_tag() }}
+    {{ form.genename.label }} {{ form.genename(size=50) }}
+    <br/>
+    {{ form.submit }}
+</form>
+
+<ul>
+{% for comp in complexes %}
+<li>
+<strong>{{ comp.complex_id|safe }}</strong>
+<br>
+    {% for prot in comp.proteins %}
+    &nbsp <strong>{{ prot.genename|safe }}</strong>, {{prot.proteinname}}
+        <br>
+    {% else %}
+    &nbsp    <em> No proteins</em>
+    {% endfor %}
+{% else %}
+<em>No complexes</em>
+{% endfor %}
+</ul>
+</html>
+
