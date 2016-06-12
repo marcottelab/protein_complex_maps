@@ -40,6 +40,7 @@ def main():
         except IndexError:
             continue
 
+    print "read input files"
     fout = open(args.out_filename,"wb")
 
     if args.feature_matrix != None:
@@ -48,6 +49,7 @@ def main():
             #kdrew: create frozenset_ids_str_order column
             feature_table['frozenset_ids'] = map(frozenset,feature_table[[args.id_columns[0],args.id_columns[1]]].values)
             feature_table['frozenset_ids_str_order'] = feature_table['frozenset_ids'].apply(list).apply(sorted).apply(str)
+            feature_table = feature_table.set_index(['frozenset_ids_str_order'])
 
         if args.header_names != None:
             fout.write("id1\tscore\t%s\n" % "\t".join(args.header_names))
@@ -55,6 +57,8 @@ def main():
             fout.write("id1\tscore\t%s\n" % "\t".join(args.features))
     else:
         fout.write("id1\tscore\n")
+
+    print "Wrote Header"
 
     for clustid, cluster in enumerate(clusters):
         for prot_pair in it.combinations(cluster,2):
@@ -69,10 +73,12 @@ def main():
                 ids_str_order = "%s" % sorted([prot_pair[0],prot_pair[1]])
                 for field in args.features:
                     if args.write_value:
-                        out_list.append(str(feature_table[feature_table['frozenset_ids_str_order'] == ids_str_order][field].values[0]))
+                        #out_list.append(str(feature_table[feature_table['frozenset_ids_str_order'] == ids_str_order][field].values[0]))
+                        out_list.append(str( feature_table.loc[ids_str_order][field] ) )
                     else:
                         #kdrew: seems inefficent 
-                        out_list.append(str(feature_table[feature_table['frozenset_ids_str_order'] == ids_str_order][field].values[0] != 0.0))
+                        #out_list.append(str(feature_table[feature_table['frozenset_ids_str_order'] == ids_str_order][field].values[0] != 0.0))
+                        out_list.append(str( feature_table.loc[ids_str_order][field] != 0.0))
 
                 fout.write("%s (pp) %s\t%s\t%s" % (id1, id2, score, "\t".join(out_list)))
             else:
