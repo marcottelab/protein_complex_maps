@@ -52,9 +52,9 @@
         </div>
         <div id="navbar" class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
-            <li class="active"><a href="/">Home</a></li>
+            <li><a href="/">Home</a></li>
             <li><a href="/about">About</a></li>
-            <li><a href="/download">Download</a></li>
+            <li class="active"><a href="/download">Download</a></li>
             <!--
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Dropdown <span class="caret"></span></a>
@@ -86,62 +86,54 @@
 
 
       <div class="page-header">
-        <h1>Search for a protein</h1>
+        <h1>Download</h1>
       </div>
-    <form method="POST" action="/search">
-        {{ form.hidden_tag() }}
-        {{ form.genename.label }} {{ form.genename(size=50) }}
-        <br>
-        <br>
-        {{ form.enrichment.label }} {{ form.enrichment(size=50) }}
-        <br/>
-        <br/>
-        {{ form.protein.label }} {{ form.protein(size=50) }}
-        <br/>
-        <br/>
-        {{ form.submit }}
-    </form>
-
-    <p>
-
-    <ul>
-
-    {% for comp in complexes %}
-        <h3>Complex: {{ comp.complex_link()|safe }} </h3>
-        <h3>Proteins:</h3>
-        <table class="table table-striped">
-            <thead>
-            <tr>
-                <th>Genename</th>
-                <th>Complexes</th>
-                <th>Protein Name</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for prot in comp.proteins %}
-                <tr>
-                    <td>{{ prot.uniprot_link()|safe }}</td>
-                    <td>
-                        {% for comp in prot.complexes %}
-                            {{ comp.complex_link()|safe }}
-                        {% else %}
-                            <em> No complexes</em>
-                        {% endfor %}
-                    </td>
-                    <td> {{prot.proteinname}}</td>
-                </tr>
-            {% else %}
-                <em> No proteins</em>
-            {% endfor %}
-            </tbody>
-        </table>
-        <br>
-    {% else %}
-        <em>No complexes</em>
-    {% endfor %}
-
-    </ul>
-
+      <h4>Complex Map Files</h4>
+      <br>
+      <ul>
+          <li><a href="/static/downloads/clusters.txt" target="_blank">Protein Complex Map</a>
+              <ul>
+                  <li>Description: Complexes generated from two stage clustering of fully intergrated protein interaction network</li>
+                  <li>Format: geneid geneid geneid ... (one complex per line)</li>
+              </ul>                                                                            
+          </li>
+          <li><a href="/static/downloads/pairsWprob.txt" target="_blank">Protein Interaction Network with probability scores</a>
+              <ul>
+                  <li>Description: Co-complex protein pairs that are observed in the protein complex map with the corresponding svm probability score. </li>
+                  <li>Format: geneid [tab] geneid [tab] score</li>
+              </ul>
+          </li>
+      </ul>
+      <br>
+      <h4>Additional database input files</h4>
+      <br>
+      <ul>
+          <li><a href="/static/downloads/nodeTable.txt" target="_blank">Node Table</a>
+              <ul>
+                  <li>Description: Cluster ids and additional identifiers for proteins in the complex map</li>
+                  <li>Format: acc,clustid,clustid_key,genename,key(geneid),proteinname,uniprot_link</li>
+              </ul>
+          </li>
+          <li><a href="/static/downloads/enrichment.txt" target="_blank">Enrichment Table</a>
+              <ul>
+                  <li>Description: Output from gprofiler for each complex</li>
+                  <li>Format: complex: [id] [newline] #  signf   corr. p-value   T   Q   Q&T Q&T/Q   Q&T/T   term ID     t type  t group    t name and depth in group        Q&T list</li>
+              </ul>
+          </li>
+          <li><a href="/static/downloads/edges.txt" target="_blank">Edge Table</a>
+              <ul>
+                  <li>Description: List of edges in the complex map with svm probability score and boolean values for each evidence type determining support for the edge</li>
+                  <li>Format: id1   score   fractions   bioplex hein    bioplex_prey    hein_prey </li>
+              </ul>
+          </li>
+      </ul>
+      <br>
+      <h4>Cytoscape Network</h4>
+      <br>
+      <ul>
+          <li><a href="/static/downloads/human_protein_complex_map.cys" target="_blank">Cytoscape Network</a></li>
+      </ul>
+      
 
     <!-- Bootstrap core JavaScript
     ================================================== -->

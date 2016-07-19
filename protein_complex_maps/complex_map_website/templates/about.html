@@ -52,9 +52,9 @@
         </div>
         <div id="navbar" class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
-            <li class="active"><a href="/">Home</a></li>
-            <li><a href="/about">About</a></li>
-            <li><a href="/download">Download</a></li>
+            <li><a href="/">Home</a></li>
+            <li class="active"><a href="#about">About</a></li>
+            <li><a href="download">Download</a></li>
             <!--
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Dropdown <span class="caret"></span></a>
@@ -86,61 +86,25 @@
 
 
       <div class="page-header">
-        <h1>Search for a protein</h1>
+        <h1>About</h1>
       </div>
-    <form method="POST" action="/search">
-        {{ form.hidden_tag() }}
-        {{ form.genename.label }} {{ form.genename(size=50) }}
-        <br>
-        <br>
-        {{ form.enrichment.label }} {{ form.enrichment(size=50) }}
-        <br/>
-        <br/>
-        {{ form.protein.label }} {{ form.protein(size=50) }}
-        <br/>
-        <br/>
-        {{ form.submit }}
-    </form>
+      <p>
+      Proteins interact with each other and organize themselves into macromolecular machines (ie. complexes) to carry out essential functions of the cell.  We have a good understanding of a few complexes such as the proteasome and the ribosome but currently we have an incomplete view of all protein complexes as well as their functions.  The <strong>Human Protein Complex Map</strong> attempts to address this lack of understanding by integrating several large scale protein interaction datasets to obtain the most comprehensive view of protein complexes.  Specifically, we integrated two large scale affinity purification mass spectrometry (AP/MS) datasets from Bioplex and Hein et al. with our dataset of large scale biochemical fractionations (Wan et al) and produced a complex map with over 4k complexes.  
+      </p>
+      <br>
 
-    <p>
+      <h4>References</h4>
+      <ul>
+          <li><a href="http://www.ncbi.nlm.nih.gov/pubmed/26344197" target="_blank">Wan, Borgeson et al. Panorama of ancient metazoan macromolecular complexes. Nature. 2015 Sep 17;525(7569):339-44. doi: 10.1038/nature14877. Epub 2015 Sep 7.</a></li>
+          <li><a href="http://www.ncbi.nlm.nih.gov/pubmed/26496610" target="_blank">Hein et al. A human interactome in three quantitative dimensions organized by stoichiometries and abundances. Cell. 2015 Oct 22;163(3):712-23. doi: 10.1016/j.cell.2015.09.053. Epub 2015 Oct 22.</a></li>
+          <li><a href="http://www.ncbi.nlm.nih.gov/pubmed/26186194" target="_blank">Huttlin et al. The BioPlex Network: A Systematic Exploration of the Human Interactome. Cell. 2015 Jul 16;162(2):425-40. doi: 10.1016/j.cell.2015.06.043.</a></li>
 
-    <ul>
+      </ul>
+      <br>
 
-    {% for comp in complexes %}
-        <h3>Complex: {{ comp.complex_link()|safe }} </h3>
-        <h3>Proteins:</h3>
-        <table class="table table-striped">
-            <thead>
-            <tr>
-                <th>Genename</th>
-                <th>Complexes</th>
-                <th>Protein Name</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for prot in comp.proteins %}
-                <tr>
-                    <td>{{ prot.uniprot_link()|safe }}</td>
-                    <td>
-                        {% for comp in prot.complexes %}
-                            {{ comp.complex_link()|safe }}
-                        {% else %}
-                            <em> No complexes</em>
-                        {% endfor %}
-                    </td>
-                    <td> {{prot.proteinname}}</td>
-                </tr>
-            {% else %}
-                <em> No proteins</em>
-            {% endfor %}
-            </tbody>
-        </table>
-        <br>
-    {% else %}
-        <em>No complexes</em>
-    {% endfor %}
-
-    </ul>
+      <h4>Contact</h4>
+      &nbsp proteincomplexmap (at) gmail.com
+      <br>
 
 
     <!-- Bootstrap core JavaScript
