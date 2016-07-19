@@ -104,7 +104,8 @@
 
 {% for comp in complexes %}
     <h3>Complex: {{ comp.complex_link()|safe }}</h3>
-    <h3>Proteins:</h3>
+    <a href="#Proteins" class="btn btn-default" data-toggle="collapse">Proteins</a>
+    <div id="Proteins" class="collapse in">
         <table class="table table-striped">
             <thead>
             <tr>
@@ -114,86 +115,93 @@
             </tr>
             </thead>
             <tbody>
-        {% for prot in comp.proteins %}
-            <tr>
-                <td>{{ prot.uniprot_link()|safe }}</td>
-                <td>
-                    {% for comp in prot.complexes %}
-                        {{ comp.complex_link()|safe }}
-                    {% else %}
-                        <em> No complexes</em>
-                    {% endfor %}
-                </td>
-                <td> {{prot.proteinname}}</td>
-            </tr>
-        {% else %}
-            <em> No proteins</em>
-        {% endfor %}
-        </tbody>
-    </table>
+            {% for prot in comp.proteins %}
+                <tr>
+                    <td>{{ prot.uniprot_link()|safe }}</td>
+                    <td>
+                        {% for comp in prot.complexes %}
+                            {{ comp.complex_link()|safe }}
+                        {% else %}
+                            <em> No complexes</em>
+                        {% endfor %}
+                    </td>
+                    <td> {{prot.proteinname}}</td>
+                </tr>
+            {% else %}
+                <em> No proteins</em>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
     <br>
-    <h3>Enrichments:</h3>
-    <table class="table table-striped">
-        <thead>
-        <tr>
-            <th>Term ID</th>
-            <th>Corrected Pval</th>
-            <th>Fraction Complex Coverage</th>
-            <th>Proteins</th>
-            <th>Term Name</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for enrichment in comp.enrichments %}
+    <br>
+    <a href="#Enrichments" class="btn btn-default" data-toggle="collapse">Enrichments</a>
+    <div id="Enrichments" class="collapse">
+        <table class="table table-striped">
+            <thead>
             <tr>
-                <td>&nbsp {{ enrichment.term_id|safe }}</td>
-                <td> {{ enrichment.corr_pval|safe }}</td>
-                <td> {{ enrichment.qandt_by_q|safe }}</td>
-                <td>
-                    {% for protein in enrichment.get_proteins() %}
-                        {{ protein.uniprot_link()|safe }}
-                    {% else %}
-                        <em> No proteins</em>
-                    {% endfor %}
-                </td>
-                <td> {{ enrichment.t_name|safe }}</td>
+                <th>Term ID</th>
+                <th>Corrected Pval</th>
+                <th>Fraction Complex Coverage</th>
+                <th>Proteins</th>
+                <th>Term Name</th>
             </tr>
-        {% else %}
-            &nbsp    <em> No enrichments</em>
-        {% endfor %}
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+            {% for enrichment in comp.enrichments %}
+                <tr>
+                    <td>&nbsp {{ enrichment.term_id|safe }}</td>
+                    <td> {{ enrichment.corr_pval|safe }}</td>
+                    <td> {{ enrichment.qandt_by_q|safe }}</td>
+                    <td>
+                        {% for protein in enrichment.get_proteins() %}
+                            {{ protein.uniprot_link()|safe }}
+                        {% else %}
+                            <em> No proteins</em>
+                        {% endfor %}
+                    </td>
+                    <td> {{ enrichment.t_name|safe }}</td>
+                </tr>
+            {% else %}
+                &nbsp    <em> No enrichments</em>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <br>
     <br>
 
-    <h3>Edges:</h3>
-    <table class="table table-striped">
-        <thead>
-        <tr>
-            <th>Protein 1 </th>
-            <th>Protein 2 </th>
-            <th>Score </th>
-            <th>Evidence </th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for edge in comp.edges() %}
+    <a href="#Edges" class="btn btn-default" data-toggle="collapse">Edges</a>
+    <div id="Edges" class="collapse">
+        <table class="table table-striped">
+            <thead>
             <tr>
-                <td>&nbsp {{ edge.get_proteins()[0].uniprot_link()|safe }}</td>
-                <td>&nbsp {{ edge.get_proteins()[1].uniprot_link()|safe }}</td>
-                <td> {{ edge.score|safe }}</td>
-                <td>
-                    {% for evidence in edge.evidences %}
-                        {{ evidence.evidence_type|safe }} &nbsp &nbsp 
-                    {% else %}
-                        <em> No Evidences</em>
-                    {% endfor %}
-                </td>
+                <th>Protein 1 </th>
+                <th>Protein 2 </th>
+                <th>Score </th>
+                <th>Evidence </th>
             </tr>
-        {% else %}
-            &nbsp    <em> No edges</em>
-        {% endfor %}
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+            {% for edge in comp.edges() %}
+                <tr>
+                    <td>&nbsp {{ edge.get_proteins()[0].uniprot_link()|safe }}</td>
+                    <td>&nbsp {{ edge.get_proteins()[1].uniprot_link()|safe }}</td>
+                    <td> {{ edge.score|safe }}</td>
+                    <td>
+                        {% for evidence in edge.evidences %}
+                            {{ evidence.evidence_type|safe }} &nbsp &nbsp 
+                        {% else %}
+                            <em> No Evidences</em>
+                        {% endfor %}
+                    </td>
+                </tr>
+            {% else %}
+                &nbsp    <em> No edges</em>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
     <br>
 {% else %}
