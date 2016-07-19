@@ -34,7 +34,7 @@ def displayComplexesForGeneName():
     form = SearchForm()
     #kdrew: do error checking
     try:
-        protein = db.session.query(cdb.Protein).filter_by(genename=func.upper(genename)).one()
+        protein = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.genename)==func.upper(genename))).one()
         complexes = protein.complexes.all()
     except NoResultFound:
         complexes = []
