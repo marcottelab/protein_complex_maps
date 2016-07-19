@@ -110,6 +110,10 @@ def searchComplexes():
             return redirect(url_for('displayComplexesForProtein', protein=form.protein.data))
 
 
+    #kdrew: added hoping it would fix redirect problem on stale connections
+    return render_template('index.html', form=form, complexes=complexes)
+
+
 
 if __name__ == "__main__":
     db.create_all()  # make our sqlalchemy tables
