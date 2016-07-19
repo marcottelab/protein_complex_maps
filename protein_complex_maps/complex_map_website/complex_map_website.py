@@ -113,6 +113,14 @@ def searchComplexes():
     #kdrew: added hoping it would fix redirect problem on stale connections
     return render_template('index.html', form=form, complexes=complexes)
 
+@app.route("/about")
+def displayAbout():
+    return render_template('about.html')
+
+@app.route("/download")
+def displayDownload():
+    return render_template('download.html')
+
 
 
 if __name__ == "__main__":
