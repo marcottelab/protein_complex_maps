@@ -69,7 +69,10 @@ class Protein(db.Model):
     complexes = db.relationship('Complex', secondary='protein_complex_mapping',  back_populates='proteins', lazy='dynamic')
 
     def uniprot_link(self,):
-        retstr = "<a href=%s target=\"_blank\">%s</a>" % (self.uniprot_url, self.genename)
+        if self.genename == "":
+            retstr = self.gene_id
+        else:
+            retstr = "<a href=%s target=\"_blank\">%s</a>" % (self.uniprot_url, self.genename)
         return retstr
 
 class Edge(db.Model):
