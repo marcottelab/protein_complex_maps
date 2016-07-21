@@ -88,6 +88,11 @@
       <div class="page-header">
         <h1>Search for a protein</h1>
       </div>
+    <!--kdrew: problem with stale CSRF tokens, this prints error message
+    {% if form.errors %}
+        {{ form.errors }}
+    {% endif %}
+    -->
     <form method="POST" action="/search">
         {{ form.hidden_tag() }}
         {{ form.genename.label }} {{ form.genename(size=50) }}
