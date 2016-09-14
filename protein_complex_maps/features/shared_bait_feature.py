@@ -1,11 +1,11 @@
-
+from __future__ import print_function
 import argparse
 import numpy as np
 import pandas as pd
 import scipy.stats as stats
 import scipy.misc as misc
 import math
-
+import logging 
 from rpy2.robjects.packages import importr
 from rpy2.robjects.vectors import FloatVector
 
@@ -17,7 +17,7 @@ pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
 def pval(k,n,m,N, adhoc=False):
-    print "%s %s %s %s" % (k,n,m,N)
+    logger.info("%s %s %s %s" % (k,n,m,N))
     pv = 0.0
     for i in range(k,int(min(m,n)+1)):
         #kdrew: use adhoc choose method instead of scipy.misc.comb
@@ -45,6 +45,22 @@ def choose(n, k):
         return 0
 
 
+def setup_log():
+
+    LOG_FILENAME = 'shared_bait_features.log'
+    global logger
+    logger = logging.getLogger()
+    filehandler = logging.FileHandler(LOG_FILENAME, mode="w")
+    formatter = logging.Formatter('%(message)s')
+    filehandler.setFormatter(formatter)
+
+    if not logger.handlers:
+        logger.addHandler(filehandler)
+
+
+    logger.setLevel(logging.INFO)
+
+
 def main():
     parser = argparse.ArgumentParser(description="Calculates pval for prey prey interactions in bait prey data")
     parser.add_argument("--input_feature_matrix", action="store", dest="feature_matrix", required=True, 
@@ -62,9 +78,11 @@ def main():
 
     args = parser.parse_args()
 
+    setup_log()
+
     feature_table = pd.read_csv(args.feature_matrix, sep=args.sep)
     output_df = shared_bait_feature(feature_table, args.bait_id_column, args.id_column, args.bh_correct)
-    output_df.to_csv(args.output_file)
+    output_df.to_csv(args.output_file, index=False)
 
 def shared_bait_feature(feature_table, bait_id_column, id_column, bh_correct=False):
 
@@ -74,7 +92,7 @@ def shared_bait_feature(feature_table, bait_id_column, id_column, bh_correct=Fal
     #kdrew: merge table to itself to get pairs of proteins with same bait
     feature_shared_bait_table = feature_table.merge(feature_table, on='bait_id_column_str')
 
-    print feature_shared_bait_table
+    logger.info(feature_shared_bait_table)
 
     feature_shared_bait_table['gene_id1_str'] = feature_shared_bait_table[id_column+'_x'].apply(str)
     feature_shared_bait_table['gene_id2_str'] = feature_shared_bait_table[id_column+'_y'].apply(str)
@@ -112,12 +130,12 @@ def shared_bait_feature(feature_table, bait_id_column, id_column, bh_correct=Fal
     output_dict['neg_ln_pval'] = []
     output_dict['pval'] = []
 
-    print ks
+    logger.info(ks)
     for gene_ids_str in ks.index:
         gene_ids_clean = gene_ids_str.translate(None, "[\'],")
         gene_ids = gene_ids_clean.split()
         if len(gene_ids) == 2:
-            print gene_ids
+            logger.info(gene_ids) #cdm print out pairs of gene IDs
             k = ks[gene_ids_str]
             m = ms[gene_ids[0]]
             n = ms[gene_ids[1]]

@@ -24,9 +24,11 @@ def main():
 
     args = parser.parse_args()
 
+    
 
     feature_table = pd.read_csv(args.feature_matrix,sep=args.sep)
 
+    print "opened feature matrix %s" % args.feature_matrix
     if args.label_column in feature_table.columns:
         label_vector = feature_table[args.label_column]
         feature_table_wolabel = feature_table.drop(args.label_column,axis=1)
@@ -36,7 +38,7 @@ def main():
         label_vector = feature_table[feature_table.columns[0]]
         feature_table_wolabel = feature_table.drop(feature_table.columns[0],axis=1)
         
-
+    print args.features
     if args.features != None:
         feature_table_trim = feature_table_wolabel[args.features]
     else:

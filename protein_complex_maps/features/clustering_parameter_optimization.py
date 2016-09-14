@@ -12,10 +12,15 @@ import multiprocessing as mp
 import tempfile as tf
 import shutil
 
+
+sys.path.append('/project/cmcwhite/protein_complex_maps/protein_complex_maps')
+
+
+
 import networkx as nx
 import agglomcluster.agglomod as ag
 
-import protein_complex_maps.complex_comparison as cc
+import complex_comparison as cc
 
 def main():
 
@@ -145,7 +150,7 @@ def main():
     p = mp.Pool(args.procs)
     network_input_list = []
     for ii, parameters  in enumerate(it.product(size_sweep, density_sweep, fraction_sweep, overlap_sweep, seed_method_sweep, inflation_sweep, cliquesize_sweep, timeout_sweep, threshold_score_sweep )):
-        print ii, parameters
+        #/print ii, parameters
         sys.stdout.flush()
         #kdrew: unpack parameters
         size, density, fraction, overlap, seed_method, inflation, cliquesize, timeout, threshold_score = parameters
@@ -193,14 +198,14 @@ def main():
         parameter_dict['nodelete'] = args.nodelete 
 
         #kdrew: append to list of parameters for input into multiprocessor map
-        network_input_list.append(parameter_dict)
-
+        network_input_list.append(parameter_dict) 
+    #print network_input_list
     #kdrew: call clustering on parameter combinations
     cluster_predictions = p.map(cluster_helper, network_input_list)
 
     #kdrew: iterate through clustering results, returns tuple of prediction and number of iteration (ii)
     for cluster_prediction, ii in cluster_predictions:
-
+        print "ii", ii
         network_list = network_input_list[ii]['network_list']
         size = network_input_list[ii]['size']
         density = network_input_list[ii]['density']
@@ -215,27 +220,36 @@ def main():
         trim2threshold = network_input_list[ii]['trim2threshold']
         nodelete = network_input_list[ii]['nodelete']
 
+        print "ii %s, size %s, density %s, overlap %s, seed_method %s, fraction %s, threshold_score %s, inflation %s, cliquesize %s, timeout %s, twostep_combination: %s, trim2threshold: %s" % (ii, size, density, overlap, seed_method, fraction, threshold_score,  inflation, cliquesize, timeout, str(twostep_combination), str(trim2threshold))
+
+
+
         #kdrew: compare gold standard vs predicted clusters
         cplx_comparison = cc.ComplexComparison(gold_standard_complexes, cluster_prediction) 
         cplx_comparison_normalize = cc.ComplexComparison(gold_standard_complexes, cluster_prediction, normalize_by_combinations=True, pseudocount=0.00001) 
 
-        metric_dict = dict()
-        metric_dict['acc'] = cplx_comparison.acc() 
-        metric_dict['sensitivity'] = cplx_comparison.sensitivity() 
-        metric_dict['ppv'] = cplx_comparison.ppv() 
-        metric_dict['mmr'] = cplx_comparison.mmr() 
-        metric_dict['precision_recall_product'] = cplx_comparison.precision_recall_product() 
-        ccmm = cplx_comparison.clique_comparison_metric_mean()
-        metric_dict['clique_precision_mean'] = ccmm['precision_mean']
-        metric_dict['clique_recall_mean'] = ccmm['recall_mean']
+        print cplx_comparison
 
-        ccmm_normalize = cplx_comparison_normalize.clique_comparison_metric_mean()
-        metric_dict['clique_precision_mean_normalize'] = ccmm_normalize['precision_mean']
-        metric_dict['clique_recall_mean_normalize'] = ccmm_normalize['recall_mean']
-        ccmm_normalize_weighted = cplx_comparison_normalize.clique_comparison_metric_mean(weighted=True)
-        metric_dict['clique_precision_mean_normalize_weighted'] = ccmm_normalize_weighted['precision_mean']
-        metric_dict['clique_recall_mean_normalize_weighted'] = ccmm_normalize_weighted['recall_mean']
+        try:  
+            metric_dict = dict()
+            metric_dict['acc'] = cplx_comparison.acc() 
+            metric_dict['sensitivity'] = cplx_comparison.sensitivity() 
+            metric_dict['ppv'] = cplx_comparison.ppv() 
+            metric_dict['mmr'] = cplx_comparison.mmr() 
+            metric_dict['precision_recall_product'] = cplx_comparison.precision_recall_product() 
+            ccmm = cplx_comparison.clique_comparison_metric_mean()
+            metric_dict['clique_precision_mean'] = ccmm['precision_mean']
+            metric_dict['clique_recall_mean'] = ccmm['recall_mean']
 
+            ccmm_normalize = cplx_comparison_normalize.clique_comparison_metric_mean()
+            metric_dict['clique_precision_mean_normalize'] = ccmm_normalize['precision_mean']
+            metric_dict['clique_recall_mean_normalize'] = ccmm_normalize['recall_mean']
+            ccmm_normalize_weighted = cplx_comparison_normalize.clique_comparison_metric_mean(weighted=True)
+            metric_dict['clique_precision_mean_normalize_weighted'] = ccmm_normalize_weighted['precision_mean']
+            metric_dict['clique_recall_mean_normalize_weighted'] = ccmm_normalize_weighted['recall_mean']
+        except Exception as e:
+            print e
+            continue
 
         print "ii %s, size %s, density %s, overlap %s, seed_method %s, fraction %s, threshold_score %s, inflation %s, cliquesize %s, timeout %s, twostep_combination: %s, trim2threshold: %s, acc %s, sensitivity %s, ppv %s, mmr %s, precision_recall_product %s, clique_precision_mean %s, clique_recall_mean %s, clique_precision_mean_normalize %s, clique_recall_mean_normalize %s, clique_precision_mean_normalize_weighted %s, clique_recall_mean_normalize_weighted %s" % (ii, size, density, overlap, seed_method, fraction, threshold_score,  inflation, cliquesize, timeout, str(twostep_combination), str(trim2threshold), metric_dict['acc'], metric_dict['sensitivity'], metric_dict['ppv'], metric_dict['mmr'], metric_dict['precision_recall_product'], metric_dict['clique_precision_mean'],metric_dict['clique_recall_mean'], metric_dict['clique_precision_mean_normalize'], metric_dict['clique_recall_mean_normalize'], metric_dict['clique_precision_mean_normalize_weighted'], metric_dict['clique_recall_mean_normalize_weighted'])
         #sys.stdout.flush()

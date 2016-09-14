@@ -1,0 +1,6 @@
+
+
+python scripts/get_wideform_group.py identified_elutions/At_Col_0_indark_201505_elution_arath_euNOG.csv eggnog_output/arath.euNOG_orthology.tab
+
+python scripts/get_wideform_prot.py identified_elutions/At_Col_0_indark_201505_elution_arath_proteins.csv 
+
