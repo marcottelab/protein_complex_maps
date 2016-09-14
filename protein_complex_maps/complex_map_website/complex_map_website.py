@@ -34,7 +34,7 @@ def displayComplexesForGeneName():
     form = SearchForm()
     #kdrew: do error checking
     try:
-        protein = db.session.query(cdb.Protein).filter_by(genename=func.upper(genename)).one()
+        protein = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.genename)==func.upper(genename))).one()
         complexes = protein.complexes.all()
     except NoResultFound:
         complexes = []
@@ -108,6 +108,18 @@ def searchComplexes():
             return redirect(url_for('displayComplexesForEnrichment', enrichment=form.enrichment.data))
         elif len(form.protein.data) > 0:
             return redirect(url_for('displayComplexesForProtein', protein=form.protein.data))
+
+
+    #kdrew: added hoping it would fix redirect problem on stale connections
+    return render_template('index.html', form=form, complexes=complexes)
+
+@app.route("/about")
+def displayAbout():
+    return render_template('about.html')
+
+@app.route("/download")
+def displayDownload():
+    return render_template('download.html')
 
 
 
