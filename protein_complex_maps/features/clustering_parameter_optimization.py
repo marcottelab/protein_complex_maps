@@ -92,6 +92,10 @@ def main():
 
     args = parser.parse_args()
 
+    if not os.path.isfile(args.clustone_jar):
+        raise IOError("File not found: %s" % args.clustone_jar)
+
+
     #kdrew: read gold standard into list
     gstd_file = open(args.gold_standard_filename,"rb")
     gold_standard_complexes = []
