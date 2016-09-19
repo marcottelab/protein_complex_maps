@@ -1,2 +1,11 @@
 *.pyc
 *.swp
+*.swo
+*.txt
+*.tab
+*.tmp
+tmp
+tmp*
+*.fasta
+*.Rhistory
+
