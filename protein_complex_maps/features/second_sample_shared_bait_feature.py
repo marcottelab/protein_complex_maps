@@ -6,15 +6,16 @@ import scipy.stats as stats
 import scipy.misc as misc
 import math
 import logging 
+import random
 from rpy2.robjects.packages import importr
 from rpy2.robjects.vectors import FloatVector
+from multiprocessing import Pool
 
 
-
-pd.set_option('display.height', 1000)
-pd.set_option('display.max_rows', 500)
-pd.set_option('display.max_columns', 500)
-pd.set_option('display.width', 1000)
+#pd.set_option('display.height', 1000)
+#pd.set_option('display.max_rows', 500)
+#pd.set_option('display.max_columns', 500)
+#pd.set_option('display.width', 1000)
 
 def pval(k,n,m,N, adhoc=False):
     #logger.info("%s %s %s %s" % (k,n,m,N))
@@ -61,31 +62,7 @@ def setup_log(logname):
     logger.setLevel(logging.INFO)
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Calculates pval for prey prey interactions in bait prey data")
-    parser.add_argument("--input_feature_matrix", action="store", dest="feature_matrix", required=True, 
-                                    help="Filename of input feature matrix")
-    parser.add_argument("--output_file", action="store", dest="output_file", required=True, 
-                                    help="Filename of output matrix")
-    parser.add_argument("--sep", action="store", dest="sep", required=False, default='$',
-                                    help="Separator for reading csv, default=$")
-    parser.add_argument("--id_column", action="store", dest="id_column", required=False, default='gene_id',
-                                    help="Name of column that specify ids in feature matrix, default=gene_id")
-    parser.add_argument("--bait_id_column", action="store", dest="bait_id_column", required=False, default='bait_geneid',
-                                    help="Name of column that specify bait ids in feature matrix, default=bait_geneid")
-    parser.add_argument("--bh_correct", action="store_true", dest="bh_correct", required=False, default=False,
-                                    help="Benjamini-Hochberg correct pvals")
-    parser.add_argument("--logname", action="store", dest="logname", required=False, default='shared_bait_feature.log',
-                                    help="filename for logging, default=shared_bait_feature.log")
-    args = parser.parse_args()
-
-    setup_log(args.logname)
-
-    feature_table = pd.DataFrame(pd.read_csv(args.feature_matrix, sep=args.sep))
-    output_df = shared_bait_feature(feature_table, args.bait_id_column, args.id_column, args.bh_correct)
-    output_df.to_csv(args.output_file, index=False)
-
-def shared_bait_feature(feature_table, bait_id_column, id_column, bh_correct=False):
+def shared_bait_feature(feature_table, bait_id_column='Fraction', id_column='GroupID', bh_correct=False):
     print(feature_table)
     print(feature_table.columns.values)
     #kdrew: best to enforce ids as strings
@@ -186,7 +163,7 @@ def shared_bait_feature(feature_table, bait_id_column, id_column, bh_correct=Fal
                  logger.info(str(e))
                  continue
              
- 
+    return output_dict 
 
     if bh_correct:
         stats = importr('stats')
@@ -194,11 +171,126 @@ def shared_bait_feature(feature_table, bait_id_column, id_column, bh_correct=Fal
         output_dict['pval_corr'] = p_adjust
         output_dict['neg_ln_pval_corr'] = [-1.0*math.log(p) for p in p_adjust]
 
-    output_df = pd.DataFrame(output_dict)
-    return output_df
+    #output_df = pd.DataFrame(output_dict)
+    return output_dict
+
+
+def subsampling(feature_table, bait_id_column):
+
+
+    random.seed()
+    #grouped = feature_shared_bait_table.groupby('bait_id_column_str')
+
+    #sample_size = len(grouped)
+    #logger.info("number of fractions")
+    #logger.info(str(sample_size))
+    #logger.info(grouped.head)
+    #sample_dfs = []
+    sub_tables = []
+    print(feature_table)
+     
+
+    for s in range(0,20):
+       print(s)
+       logger.info(str(s))
+       #sampled_df = random.sample(grouped['bait_id_column_str'], 3)
+       #logger.info(sampled_df)
+       #logger.info("colname")
+       #sampled_df = random.sample(grouped.indices, 3)
+       #logger.info("indices")
+       #logger.info(sampled_df)
+
+
+       #df_list  = map(lambda df_i: grouped.get_group(df_i),sampled_df)
+       #sampled_df = pd.concat(df_list, axis=0, join='outer')    
+
+       sample_size = int(0.3 * len(feature_table.Fraction.unique()))
+       logger.info("sample_size: ", str(sample_size))
+
+       selected_names = np.random.choice(feature_table.Fraction.unique(), sample_size, replace=False)
+       sub_table = feature_table[feature_table.Fraction.isin(selected_names)]
+       print(type(sub_table))
+       print(sub_table.shape)
+       logger.info(sub_table.head)
+       #sub_table2 = sub_table.drop_duplicates()
+       sub_tables.append(sub_table)
+
+
+       #logger.info("starting hypergeo")
+       #sub_table = feature_shared_bait_table.sample(frac=0.3, axis=1)     
+       logger.info("sub_table")
+       #logger.info(sub_table.head)
+       logger.info(sub_table.shape)
+       #logger.info(feature_shared_bait_table.shape)
+       #sample_dict = hypergeo(sub_table)  
+       #sample_df = pd.DataFrame(sample_dict)
+       #sample_dfs.append(sample_df)
+       #sub_df = pd.DataFrame.from_records(sub_table)
+
+
+    return sub_tables
+
+
+
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Calculates pval for prey prey interactions in bait prey data")
+    parser.add_argument("--input_feature_matrix", action="store", dest="feature_matrix", required=True, 
+                                    help="Filename of input feature matrix")
+    parser.add_argument("--output_file", action="store", dest="output_file", required=True, 
+                                    help="Filename of output matrix")
+    parser.add_argument("--sep", action="store", dest="sep", required=False, default='$',
+                                    help="Separator for reading csv, default=$")
+    parser.add_argument("--id_column", action="store", dest="id_column", required=False, default='gene_id',
+                                    help="Name of column that specify ids in feature matrix, default=gene_id")
+    parser.add_argument("--bait_id_column", action="store", dest="bait_id_column", required=False, default='bait_geneid',
+                                    help="Name of column that specify bait ids in feature matrix, default=bait_geneid")
+    parser.add_argument("--bh_correct", action="store_true", dest="bh_correct", required=False, default=False,
+                                    help="Benjamini-Hochberg correct pvals")
+    parser.add_argument("--logname", action="store", dest="logname", required=False, default='shared_bait_feature.log',
+                                    help="filename for logging, default=shared_bait_feature.log")
+    args = parser.parse_args()
 
+    setup_log(args.logname)
+
+    feature_table = pd.DataFrame(pd.read_csv(args.feature_matrix, sep=args.sep))
+    #output_df = shared_bait_feature(feature_table, args.bait_id_column, args.id_column, args.bh_correct)
+    #output_df.to_csv(args.output_file, index=False)
+
+
+    sample_dfs = subsampling(feature_table, args.bait_id_column)
+
+    print(sample_dfs)
+    pool = Pool(processes=5)
+
+    
+    list_of_dicts = pool.map(shared_bait_feature, sample_dfs)
+    logger.info("number of trials")
+    #logger.info(len(sample_dfs))
+
+    concat_df = pd.DataFrame()
+
+
+    for f in list_of_dicts:
+
+        tmp_df = pd.DataFrame.from_records(f)
+        concat_df = concat_df.append(tmp_df)
+
+
+    concat_df.to_csv("temp_min2_concatdf_sampled", index=False)
+    logger.info("concat_df")
+    logger.info(concat_df.head)
+    logger.info(concat_df.shape)
+    #df = df.c.str.split('|', expand=True).stack().reset_index(-1, drop=True).replace(' ', np.nan).dropna().reset_index()
+
+    #output_df = concat_df.groupby(['bait_id_column_str', 'group'])['neg_ln_pval'].median()
+    output_df = concat_df.groupby(['gene_id1','gene_id2'])['neg_ln_pval'].median()
+
+    logger.info(output_df)
+    output_df = output_df.reset_index()
+    #output_df = pd.DataFrame(output_dict)
+
+
+    output_df.to_csv(args.output_file, index=False)
 
 

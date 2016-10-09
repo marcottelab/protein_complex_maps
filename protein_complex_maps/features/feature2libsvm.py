@@ -1,4 +1,4 @@
-
+import sys
 import argparse
 import pickle
 import numpy as np
@@ -11,20 +11,21 @@ def main():
     parser = argparse.ArgumentParser(description="Converts a dataframe of features to libsvm format")
     parser.add_argument("--input_feature_matrix", action="store", dest="feature_matrix", required=True, 
                                     help="Filename of input feature matrix")
-    parser.add_argument("--output_file", action="store", dest="out_filename", required=False, default=None, 
+    parser.add_argument("--libsvm0_output_file", action="store", required=False, default=None, 
                                     help="Filename of output file, default=None which prints to stdout")
+    parser.add_argument("--libsvm1_output_file", action="store", required=False, default=None, 
+                                    help="Filename of output file, default=None which prints to stdout")
+
     parser.add_argument("--features", action="store", dest="features", nargs='+', required=False, default=None, 
                                     help="Names of features to output, default=all")
     parser.add_argument("--label_column", action="store", dest="label_column", required=False, default='label', 
                                     help="Name of label column, default='label' if present, else 1st column")
-    parser.add_argument("--keep_labels", action="store", dest="keep_labels", nargs='+', required=False, default=None,
-                                    help="Only keep rows with these labels, default = keep all")
+    #parser.add_argument("--keep_labels", action="store", dest="keep_labels", nargs='+', required=False, default=None,
+                                   # help="Only keep rows with these labels, default = keep all")
     parser.add_argument("--sep", action="store", dest="sep", required=False, default='$',
                                     help="Column separator for input file, default=$")
 
     args = parser.parse_args()
-
-    
 
     feature_table = pd.read_csv(args.feature_matrix,sep=args.sep)
 
@@ -47,21 +48,31 @@ def main():
     print feature_table_trim
     print label_vector
 
-    outfile = open(args.out_filename,"wb")
+
+    libsvm0_outfile = open(args.libsvm0_output_file,"wb")
+    libsvm1_outfile = open(args.libsvm1_output_file,"wb")
+  
 
     for i,index in enumerate(feature_table_trim.index):
 
         #kdrew: allows the ability to only keep rows with certain labels
-        if args.keep_labels != None and str(label_vector[i]) not in args.keep_labels:
-            continue 
+        #if args.keep_labels != None and str(label_vector[i]) not in args.keep_labels:
+        #    continue 
 
-        outfile.write("%s " % label_vector[i])
-        #print feature_table_trim.ix[index]
-        [outfile.write("%s:%s " % (i+1,x)) for i,x in enumerate(feature_table_trim.ix[index])]
-        outfile.write("\n")
+        if label_vector[i] == 0:
+            libsvm0_outfile.write("%s " % label_vector[i])
+            [libsvm0_outfile.write("%s:%s " % (i+1,x)) for i,x in enumerate(feature_table_trim.ix[index])]
+            libsvm0_outfile.write("\n")
 
-    outfile.close()
-        
+        elif label_vector[i] in [1,-1]:
+            libsvm1_outfile.write("%s " % label_vector[i])
+            [libsvm1_outfile.write("%s:%s " % (i+1,x)) for i,x in enumerate(feature_table_trim.ix[index])]
+            libsvm1_outfile.write("\n")
+
+
+    libsvm0_outfile.close()
+    libsvm1_outfile.close()
+       
 
 
 

@@ -21,6 +21,7 @@ echo 2 orysj
 python $BASEDIR/scripts/combine_elution_group.py orysj euNOG RiceL_IEX_raw_wide_elution_orysj_euNOG.csv Rice_201505_uniprot_raw_wide_elution_orysj_euNOG.csv
 
 
+exit 1
 
 echo broccoli euNOG
 echo 3 braol
