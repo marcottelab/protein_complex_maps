@@ -3,16 +3,19 @@ import sys
 import argparse
 
 
-def make_labels(annotation, profile, outfile, join_on):
+def make_labels(annotation, profile, outfile, join_on, sep1, sep2):
 
    #output from get_elution_ids.py
-   annot=pd.read_csv(annotation, index_col=False, sep="\t")
   
+   annot=pd.read_csv(annotation, index_col=False, sep=sep1)
+   print(annot)  
 
    annot = annot.set_index([join_on])
 
-   prof = pd.read_csv(profile, index_col=False, sep="\t")
+   prof = pd.read_csv(profile, index_col=False, sep=sep2)
+   print(prof)
    prof = prof.set_index([join_on])
+
 
    annotated = prof.join(annot, how="left")
    print annotated 
@@ -105,11 +108,13 @@ parser.add_argument('annotation_file', action="store", type=str)
 parser.add_argument('target_profile', action="store", type=str)
 parser.add_argument('outfile', action="store", type=str)
 parser.add_argument('join_on', action="store", type=str)
+parser.add_argument('sep1', action="store", type=str)
+parser.add_argument('sep2', action="store", type=str)
 
 
 inputs = parser.parse_args()
 
-make_labels(inputs.annotation_file, inputs.target_profile, inputs.outfile, inputs.join_on)
+make_labels(inputs.annotation_file, inputs.target_profile, inputs.outfile, inputs.join_on, inputs.sep1, inputs.sep2)
 
 
 

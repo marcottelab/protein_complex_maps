@@ -3,7 +3,7 @@ import pandas as pd
 import sys
 import argparse
 import logging
-def create_tables(species, level, experiment, orthology_file, elution_file, peptide_file):
+def create_tables(species, level, experiment, orthology_file, elution_file, peptide_file, contam_file):
     '''
     Break this  into multiple functions
     Break into 
@@ -30,7 +30,7 @@ def create_tables(species, level, experiment, orthology_file, elution_file, pept
     #experiment = elution_file.replace(".csv", "")
     #:experiment = experiment.split("/")[-1]
 
-    
+       
     peps = pd.DataFrame(pd.read_csv(peptide_file)) 
     print("Peptide file loaded")
     #Remove undistinguishable isoleucine/leucine with J
@@ -41,16 +41,49 @@ def create_tables(species, level, experiment, orthology_file, elution_file, pept
     peps = peps.set_index(['ProteinID'])
  
     print(peps)
-    
+
+    contam = pd.DataFrame(pd.read_csv(contam_file))
+    contam['Peptide'] = contam['Peptide'].str.replace('I', 'J')
+    contam['Peptide'] = contam['Peptide'].str.replace('L', 'J')
+    contam_list = contam['Peptide'].tolist()
+  
+    #print(contam_list)
+
     
     frac = pd.DataFrame(pd.read_csv(elution_file))
     #Remove undistinguishable isoleucine/leucine
     frac['Peptide'] = frac['Peptide'].str.replace('I', 'J')
     frac['Peptide'] = frac['Peptide'].str.replace('L', 'J')
     frac['Peptide'] = frac['Peptide'].str.replace('*', '')
+    contam=contam.set_index(['Peptide'])
 
-    frac = frac.set_index(['Peptide'])
+
+
+    #print(frac.shape)
+    #print("pre")
+    #print(frac[frac['Peptide']=="TNAENEFVTJK"])
+    #print(contam[contam['Peptide']=="TNAENEFVTJK"])
+    frac = frac[~frac.isin(contam_list)]
+    #print("post")
+    #print(frac[frac['Peptide']=="TNAENEFVTJK"])
+    #print(frac.shape)
+
+    print("find pep")
     
+    frac = frac.set_index(['Peptide'])
+
+    #print(contam)
+    #print(frac)
+
+    #join_contam = contam.join(frac, how="inner")
+    #print(join_contam)
+    #print(join_contam.shape)
+    #print("DONE")
+
+   
+    
+
+
     prot = pd.DataFrame(pd.read_csv(orthology_file, sep="\t"))
     prot = prot.set_index(['ProteinID'])
     
@@ -219,7 +252,8 @@ parser.add_argument('experiment', action="store", type=str)
 parser.add_argument('orthology_file', action="store", type=str)
 parser.add_argument('elution_file', action="store", type=str)
 parser.add_argument('peptides_file', action="store", type=str)
- 
+parser.add_argument('contam_file', action="store", type=str)
+
 
 inputs = parser.parse_args()
 
@@ -228,7 +262,7 @@ print(inputs.phylogenetic_level)
 print("experiment", inputs.experiment)
 print(inputs.orthology_file)
 
-create_tables(inputs.species_code, inputs.phylogenetic_level, inputs.experiment, inputs.orthology_file, inputs.elution_file, inputs.peptides_file)
+create_tables(inputs.species_code, inputs.phylogenetic_level, inputs.experiment, inputs.orthology_file, inputs.elution_file, inputs.peptides_file, inputs.contam_file)
 
 
 
