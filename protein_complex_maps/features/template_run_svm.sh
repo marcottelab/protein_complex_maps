@@ -1,6 +1,8 @@
 
-PROJECT_DIR=/project/cmcwhite/protein_complex_maps/protein_complex_maps/orthology_proteomics/
+#PROJECT_DIR=/project/cmcwhite/protein_complex_maps/protein_complex_maps/orthology_proteomics/
 
+PROJECT_DIR=/scratch/03491/cmcwhite/protein_complex_maps/protein_complex_maps
+PROGRAM_DIR=/home1/03491/cmcwhite
 EXP_ID=$1
 FEATURES=$2
 FEATURE_MATRIX=$3
@@ -16,26 +18,41 @@ echo $NEG_TRAIN_PPIS
 FEATURE_STR=$(cat $FEATURES | tr '\n' ' ')
 echo $FEATURE_STR
 
+
+
+#~3hrs maybe less for largemem to add a new feature in the step before this
 #I'd like to be able to get from new feature to feature selection overnight
 #Taking a while...
-python /project/cmcwhite/protein_complex_maps/protein_complex_maps/features/add_label.py --input_feature_matrix $FEATURE_MATRIX --input_positives $POS_TRAIN_PPIS --input_negatives $NEG_TRAIN_PPIS --id_columns ID1 ID2 --output_file ${EXP_ID}_corumtrain_labeled.txt --fillna 0.0 --sep ,
+
+echo "adding label"
+python $PROJECT_DIR/features/add_label.py --input_feature_matrix $FEATURE_MATRIX --input_positives $POS_TRAIN_PPIS --input_negatives $NEG_TRAIN_PPIS --id_column ID --output_file ${EXP_ID}_corumtrain_labeled.txt --fillna 0.0 --sep ,
 
 echo "Label added"
 
 #Taking 30min - 1hr (maybe more) until it gets to writing the file 
 #Can I speed this up?
 #Writing file takes 5ever
-python /project/cmcwhite/protein_complex_maps/protein_complex_maps/features/feature2libsvm.py --input_feature_matrix $FEATURE_MATRIX --libsvm0_output_file ${EXP_ID}_corumtrain_labeled.libsvm0.txt.test  --libsvm1_output_file ${EXP_ID}_corumtrain_labeled.libsvm1.txt.test --features $FEATURE_STR --label_column label --sep ,
+
+#Using all features
+python $PROJECT_DIR/features/feature2libsvm.py --input_feature_matrix $FEATURE_MATRIX --libsvm0_output_file ${EXP_ID}_corumtrain_labeled.libsvm0.txt.test  --libsvm1_output_file ${EXP_ID}_corumtrain_labeled.libsvm1.txt.test --label_column label --sep ,
+
+echo "Converted to LIBSVM format"
+
+#--features argument just for selection features hopefully
+#python $PROJECT_DIR/features/feature2libsvm.py --input_feature_matrix $FEATURE_MATRIX --libsvm0_output_file ${EXP_ID}_corumtrain_labeled.libsvm0.txt.test  --libsvm1_output_file ${EXP_ID}_corumtrain_labeled.libsvm1.txt.test --features $FEATURE_STR --label_column label --sep ,
+echo "Converting to LIBSVM format done"
 
 #Convert these to bash inputs
 #claire: scale training
 echo "scale training"
-/home/kdrew/programs/libsvm-3.20/svm-scale -s ${EXP_ID}_corumtrain_labeled.libsvm1.scale_parameters ${EXP_ID}_corumtrain_labeled.libsvm1.txt > ${EXP_ID}_corumtrain_labeled.libsvm1.scale.txt
+$PROGRAM_DIR/libsvm/svm-scale -s ${EXP_ID}_corumtrain_labeled.libsvm1.scale_parameters ${EXP_ID}_corumtrain_labeled.libsvm1.txt > ${EXP_ID}_corumtrain_labeled.libsvm1.scale.txt
+echo "scale training done"
+
 
 #claire: scale unlabeled (w/ test set) by trainâscale parameters
 echo "scale unlabeled by training parameters"
-/home/kdrew/programs/libsvm-3.20/svm-scale -r ${EXP_ID}_corumtrain_labeled.libsvm1.scale_parameters ${EXP_ID}_corumtrain_labeled.libsvm0.txt > ${EXP_ID}_corumtrain_labeled.libsvm0.scaleByTrain.txt
-
+$PROGRAM_DIR/libsvm/svm-scale -r ${EXP_ID}_corumtrain_labeled.libsvm1.scale_parameters ${EXP_ID}_corumtrain_labeled.libsvm0.txt > ${EXP_ID}_corumtrain_labeled.libsvm0.scaleByTrain.txt
+echo "scaling unlabed by training parameter done"
 
 echo "DONE"
 ##Movde this to the next step after feature selection (grid_search.sh)
