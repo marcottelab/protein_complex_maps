@@ -96,9 +96,19 @@ def main():
     all_ppis = pd.DataFrame(pd.concat([pos_ppis, neg_ppis]))
     print(all_ppis)
     print(type(all_ppis))
+    #index needs to be non iterable
+    #applying tuple made "[","E","N"... etc. 
+    #Try joining into spaces separated
+    #MAKES "[ ' E N O G 4 1 0 I D X 2 ' ,   ' E N O G 4 1 0 I D X ...
+    #This next one should work
+    all_ppis['ID'] = all_ppis['ID'].apply("".join)
+
+
     all_ppis = all_ppis.set_index(['ID'])
 
     feature_table = pd.DataFrame(pd.read_table(args.feature_matrix, sep=args.sep))
+    feature_table['ID'] = feature_table['ID'].apply("".join)
+
     feature_table = feature_table.set_index(['ID'])
 
     print(feature_table)
@@ -111,7 +121,7 @@ def main():
 
 
     labeled_feature_table = feature_table.join(all_ppis, how="left")   
-
+    labeled_feature_table['label'] = labeled_feature_table['label'].fillna(0)
   
 
     #kdrew: testing

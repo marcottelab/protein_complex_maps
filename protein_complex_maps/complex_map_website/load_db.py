@@ -15,6 +15,9 @@ def main():
 
     #kdrew: /home/kdrew/data/protein_complex_maps/v35_features/corum_split/v35_revisit/revisitTrain_fromHopper/blake_bioplex_prey_hein_prey_revisitTrain/trim_subunits/blake_bioplex_prey_hein_prey_revisitTrain_corum_train_allComplexesCore_trainSplit_noTestOverlap_psweep7.ii149.clusterone_agglomod.ii94.reduced.trimThreshold_reduced.nodeTable.txt
 
+  
+    #cdm :db_data/blake_bioplex_prey_hein_prey_revisitTrain_corum_train_allComplexesCore_trainSplit_noTestOverlap_psweep7.ii149.clusterone_agglomod.ii94.reduced.trimThreshold_reduced.nodeTable.txt
+
     args = parser.parse_args()
 
     db = cdb.get_db()

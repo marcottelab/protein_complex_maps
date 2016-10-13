@@ -25,16 +25,19 @@ echo $FEATURE_STR
 #Taking a while...
 
 echo "adding label"
-python $PROJECT_DIR/features/add_label.py --input_feature_matrix $FEATURE_MATRIX --input_positives $POS_TRAIN_PPIS --input_negatives $NEG_TRAIN_PPIS --id_column ID --output_file ${EXP_ID}_corumtrain_labeled.txt --fillna 0.0 --sep ,
+#python $PROJECT_DIR/features/add_label.py --input_feature_matrix $FEATURE_MATRIX --input_positives $POS_TRAIN_PPIS --input_negatives $NEG_TRAIN_PPIS --id_column ID --output_file ${EXP_ID}_corumtrain_labeled.txt --fillna 0.0 --sep ,
 
 echo "Label added"
+
+#exit
 
 #Taking 30min - 1hr (maybe more) until it gets to writing the file 
 #Can I speed this up?
 #Writing file takes 5ever
 
 #Using all features
-python $PROJECT_DIR/features/feature2libsvm.py --input_feature_matrix $FEATURE_MATRIX --libsvm0_output_file ${EXP_ID}_corumtrain_labeled.libsvm0.txt.test  --libsvm1_output_file ${EXP_ID}_corumtrain_labeled.libsvm1.txt.test --label_column label --sep ,
+python $PROJECT_DIR/features/feature2libsvm.py --input_feature_matrix ${EXP_ID}_corumtrain_labeled.txt --libsvm0_output_file ${EXP_ID}_corumtrain_labeled.libsvm0.txt  --libsvm1_output_file ${EXP_ID}_corumtrain_labeled.libsvm1.txt --label_column label --sep ,
+
 
 echo "Converted to LIBSVM format"
 
