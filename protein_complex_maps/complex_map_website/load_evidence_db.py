@@ -52,6 +52,7 @@ def main():
             edge = cdb.get_or_create(db, cdb.Edge, 
                                         protein_key = p1.id,
                                         protein_key2 = p2.id,
+                                        in_complex = 1
                                         score = score,
                                         )
             db.session.add(edge)

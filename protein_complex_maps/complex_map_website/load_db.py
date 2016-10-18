@@ -5,6 +5,9 @@ import itertools as it
 
 import csv
 
+import sys
+print(sys.path)
+
 import protein_complex_maps.complex_map_website.complex_db as cdb
 
 def main():

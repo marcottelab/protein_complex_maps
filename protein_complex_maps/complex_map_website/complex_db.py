@@ -11,6 +11,9 @@ app.config['SECRET_KEY'] = 'please, tell nobody'
 
 db = SQLAlchemy(app)
 
+def drop_table(tablename):
+    tablename.drop()
+
 def get_db():
     return db
 
@@ -56,7 +59,14 @@ class Complex(db.Model):
 
         return sorted(list(set(es)), key=lambda es: es.score, reverse=True)
 
-        
+class Conversion(db.Model):
+    """A mapping between different ID types"""
+    id = db.Column(db.Integer, primary_key=True)
+    gene_id = db.Column(db.String(63))
+    proteinname = db.Column(db.String(63))
+    genename = db.Column(db.String(63)) 
+    uniprot_acc = db.Column(db.String(63))
+       
 
 class Protein(db.Model):
     """A single protein"""
@@ -80,14 +90,35 @@ class Edge(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     protein_key = db.Column(db.Integer, db.ForeignKey('protein.id') )
     protein_key2 = db.Column(db.Integer, db.ForeignKey('protein.id') )
-    score = db.Column(db.Float)
+    in_complex = db.Column(db.Integer)
+    score =db.Column(db.Float)
 
     evidences = db.relationship('Evidence', lazy='dynamic')
+    #protein_key_genename = db.relationship('Edge', primaryjoin='Edge.protein_key'=='Conversion.genename', foreign_keys='Conversion.genename')
+    #protein_key2_genename = db.relationship('Edge', primaryjoin='Edge.protein_key2'=='Conversion.genename', foreign_keys='Conversion.genename')
 
     def get_proteins(self,):
         prot1 = db.session.query(Protein).filter(Protein.id==self.protein_key).first()
         prot2 = db.session.query(Protein).filter(Protein.id==self.protein_key2).first()
         return (prot1, prot2)
+
+'''class Edge2(db.Model):
+    """Not necessarily complexes protein protein edge threshold svm score 0.2"""
+    id = db.Column(db.Integer, primary_key=True)
+    protein_key = db.Column(db.Integer, db.ForeignKey('protein.id') )
+    protein_key2 = db.Column(db.Integer, db.ForeignKey('protein.id') )
+    #score = db.Column(db.Float)
+    svmscore =db.Column(db.Float)
+
+    #evidences = db.relationship('Evidence', lazy='dynamic')
+
+    def get_proteins(self,):
+        prot1 = db.session.query(Protein).filter(Protein.id==self.protein_key).first()
+        prot2 = db.session.query(Protein).filter(Protein.id==self.protein_key2).first()
+        return (prot1, prot2)
+'''
+
+
 
 class Evidence(db.Model):
     id = db.Column(db.Integer, primary_key=True)
