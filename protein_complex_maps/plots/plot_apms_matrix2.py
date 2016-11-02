@@ -86,6 +86,7 @@ def main():
             #kdrew: for each inputted dataset, merge mapping
             clusters_df_exp_merge = clusters_df[(clusters_df.dataset == ds)].merge(mapping_df, how="left", left_on="experiment_id", right_on="geneid_map")
 
+            clusters_df_exp_merge = clusters_df_exp_merge[['id','genename']].drop_duplicates()
             #kdrew: set id to be index for updating full matrix
             clusters_df_exp_merge.set_index('id', inplace=True)
             #kdrew: update experiment_id in full matrix to be genename
