@@ -582,14 +582,14 @@ def main():
                                             help="Filename of gold standard complexes, format one complex per line, ids space separated")
     parser.add_argument("--plot_filename", action="store", dest="plot_filename", required=False, default=None,
                                             help="Filename for plotting histograms of metrics")
-    parser.add_argument("--remove_non_gold_standard_proteins", action="store_true", dest="remove_non_gold_standard_proteins", required=False, default=False,
-                                            help="Flag to remove proteins from clusters that are not in the gold standard, default=False")
-    parser.add_argument("--normalize_by_combinations", action="store_true", dest="normalize_by_combinations", required=False, default=False,
-                                            help="Normalize clique precision recall by the number of combinations for each cluster, default=False")
+    parser.add_argument("--remove_non_gold_standard_proteins", action="store_true", dest="remove_non_gold_standard_proteins", required=False, default=True,
+                                            help="Flag to remove proteins from clusters that are not in the gold standard, default=True")
+    parser.add_argument("--normalize_by_combinations", action="store_true", dest="normalize_by_combinations", required=False, default=True,
+                                            help="Normalize clique precision recall by the number of combinations for each cluster, default=True")
     parser.add_argument("--excluded_complexes", action="store", dest="excluded_complexes", required=False, default=None,
                                             help="Filename of benchmark complexes to be excluded from false positive calculation, default=None")
-    parser.add_argument("--pseudocount", action="store", type=float, dest="pseudocount", required=False, default=1,
-                                            help="Set pseudocount for clique sampling, default=1")
+    parser.add_argument("--pseudocount", action="store", type=float, dest="pseudocount", required=False, default=0.00001,
+                                            help="Set pseudocount for clique sampling, default=0.00001")
 
     args = parser.parse_args()
 
@@ -614,20 +614,40 @@ def main():
         exclude_file.close()
 
     cplx_compare = ComplexComparison(gold_standard_complexes, predicted_clusters, remove_non_gold_standard_proteins=args.remove_non_gold_standard_proteins, exclusion_complexes=excluded_complexes, normalize_by_combinations=args.normalize_by_combinations, pseudocount=args.pseudocount)
-    print "Sensitivity: %s" % cplx_compare.sensitivity()
-    print "PPV: %s" % cplx_compare.ppv()
-    print "ACC: %s" % cplx_compare.acc()
-    print "MMR: %s" % cplx_compare.mmr()
-    print "PWMMR: %s" % cplx_compare.pwmmr()
-    print "MMR_PWMMR_hmean: %s" % cplx_compare.mmr_pwmmr_hmean()
-    print "Precision measure: %s" % cplx_compare.precision_measure()
-    print "Recall measure: %s" % cplx_compare.recall_measure()
-    print "Precision Recall product: %s" % cplx_compare.precision_recall_product()
+    #print "Sensitivity: %s" % cplx_compare.sensitivity()
+    #print "PPV: %s" % cplx_compare.ppv()
+    #print "ACC: %s" % cplx_compare.acc()
+    #print "MMR: %s" % cplx_compare.mmr()
+    #print "PWMMR: %s" % cplx_compare.pwmmr()
+    #print "MMR_PWMMR_hmean: %s" % cplx_compare.mmr_pwmmr_hmean()
+    #print "Precision measure: %s" % cplx_compare.precision_measure()
+    #print "Recall measure: %s" % cplx_compare.recall_measure()
+    #print "Precision Recall product: %s" % cplx_compare.precision_recall_product()
+    #ccmm = cplx_compare.clique_comparison_metric_mean()
+    #print "Clique Precision Mean: %s Recall Mean: %s" % (ccmm['precision_mean'],ccmm['recall_mean'])
+    #ccmm = cplx_compare.clique_comparison_metric_mean(weighted=True)
+    #print "Clique Weighted Precision Mean: %s Weighted Recall Mean: %s" % (ccmm['precision_mean'],ccmm['recall_mean'])
+    #print "Clique Weighted hmean (F-weighted K-Clique): %s" % (hmean([ccmm['precision_mean'],ccmm['recall_mean']]))
+
+    sensitivity = cplx_compare.sensitivity()
+    ppv = cplx_compare.ppv()
+    acc = cplx_compare.acc()
+    mmr = cplx_compare.mmr()
+    pwmmr = cplx_compare.pwmmr()
+    pwmmr_hmean = cplx_compare.mmr_pwmmr_hmean()
+    precision_measure = cplx_compare.precision_measure()
+    recall_measure = cplx_compare.recall_measure()
+    precision_recall_product = cplx_compare.precision_recall_product()
     ccmm = cplx_compare.clique_comparison_metric_mean()
-    print "Clique Precision Mean: %s Recall Mean: %s" % (ccmm['precision_mean'],ccmm['recall_mean'])
-    ccmm = cplx_compare.clique_comparison_metric_mean(weighted=True)
-    print "Clique Weighted Precision Mean: %s Weighted Recall Mean: %s" % (ccmm['precision_mean'],ccmm['recall_mean'])
-    print "Clique Weighted hmean: %s" % (hmean([ccmm['precision_mean'],ccmm['recall_mean']]))
+    clique_pr_mean = ccmm['precision_mean']
+    clique_re_mean = ccmm['recall_mean']
+    clique_f1grand = cplx_compare.clique_comparison_metric_grandf1score(mean_func=np.mean)
+    wccmm = cplx_compare.clique_comparison_metric_mean(weighted=True)
+    clique_weighted_pr_mean = wccmm['precision_mean']
+    clique_weighted_re_mean = wccmm['recall_mean']
+    clique_weighted_hmean = hmean([wccmm['precision_mean'],wccmm['recall_mean']])
+    print "Sensitivity\tPPV\tACC\tMMR\tPWMMR\tMMR_PWMMR_hmean\tPrecision measure\tRecall measure\tPrecision Recall product\tClique Precision Mean\tRecall Mean\tF-Grand K-Clique\tClique Weighted Precision Mean\tWeighted Recall Mean\tClique Weighted hmean (F-weighted K-Clique)\n"
+    print "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" % (sensitivity, ppv, acc, mmr, pwmmr, pwmmr_hmean, precision_measure, recall_measure, precision_recall_product, clique_pr_mean, clique_re_mean, clique_f1grand, clique_weighted_pr_mean, clique_weighted_re_mean, clique_weighted_hmean) 
 
 
     if args.plot_filename != None:
