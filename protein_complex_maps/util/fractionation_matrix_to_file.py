@@ -29,6 +29,8 @@ def main():
 						help="Filename of output file, default=None which prints to stdout")
 	parser.add_argument("--dataframe", action="store_true", dest="dataframe", required=False, default=False, 
 						help="Flag to output dataframe with row and column names")
+	parser.add_argument("--map_name", action="store", dest="map_name", required=False, default=None, 
+						help="Output mapped ids instead of master list ids, default=None")
 	args = parser.parse_args()
 
 	msds = pickle.load( open( args.msds_filename, "rb" ) )
@@ -46,13 +48,13 @@ def main():
             if args.dataframe:
                 bin_data_set = nu.binary(data_set, args.threshold)
                 msds.set_data_matrix(bin_data_set)
-                msds.get_data_frame().to_csv(args.out_filename)
+                msds.get_data_frame(map_ids=args.use_map_ids).T.to_csv(args.out_filename)
             else:
                 data_set = nu.binary(data_set, args.threshold)
                 np.savetxt(args.out_filename, data_set, fmt='%d')
         else:
             if args.dataframe:
-                msds.get_data_frame().to_csv(args.out_filename)
+                msds.get_data_frame(map_name=args.map_name).T.to_csv(args.out_filename)
             else:
                 np.savetxt(args.out_filename, data_set)
 
