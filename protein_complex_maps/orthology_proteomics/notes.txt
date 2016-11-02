@@ -1,0 +1,20 @@
+
+Inputs come from HMM_proteome_annotation, and MSblender mzxml files
+
+Zea Mays outside data from http://comp-sysbio.org/ppim/
+
+consolidate_MSblender_output_alt.sh is for mzxml from MSBlender. Change script to take command line inputs
+
+
+TODO
+break get_elution_ids into 1 script to get unique peptides, and another script to interpret experiments
+
+    Write much better readme for this process
+
+    But, start reorganizing after processing the next three experiments
+
+
+prevruns.sh in the log of previous run. 
+
+
+

@@ -66,6 +66,8 @@ def main():
                         fout.write("%s_%s" % (clustid, prot_pair[0]))
                         fout.write("\t")
                         fout.write("%s_%s" % (clustid, prot_pair[1]))
+                        fout.write("\t")
+                        fout.write("%s\t%s" % (prot_pair[0], prot_pair[1]))
                         fout.write("\n")
                         output_sets.append(set(["%s_%s" % (clustid, prot_pair[0]),"%s_%s" % (clustid, prot_pair[1])]))
                 else:
