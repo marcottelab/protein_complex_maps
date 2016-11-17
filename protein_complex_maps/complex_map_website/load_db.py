@@ -38,23 +38,20 @@ def main():
         proteinname = line[5].strip()
         uniprot_link = line[6]
 
-        c = cdb.get_or_create(db, cdb.Complex, complex_id=clustid)
         p = cdb.get_or_create(db, cdb.Protein, gene_id = geneid, uniprot_acc=acc, genename=genename, proteinname=proteinname, uniprot_url=uniprot_link)
-        db.session.add(c)
         db.session.add(p)
-        db.session.commit()
 
-        print "complex id: %s" % c.id
-        print "protein id: %s" % p.id
-        pcm = cdb.get_or_create(db, cdb.ProteinComplexMapping, protein_key=p.id, complex_key=c.id)
-        db.session.add(pcm)
-        db.session.commit()
+        if clustid != '':
+            c = cdb.get_or_create(db, cdb.Complex, complex_id=clustid)
+            db.session.add(c)
+            db.session.commit()
 
+            print "complex id: %s" % c.id
+            print "protein id: %s" % p.id
+            pcm = cdb.get_or_create(db, cdb.ProteinComplexMapping, protein_key=p.id, complex_key=c.id)
+            db.session.add(pcm)
+            db.session.commit()
 
-    #u = models.User(nickname='john', email='john@email.com')
-
-    #db.session.add(u)
-    #db.session.commit()
 
 if __name__ == "__main__":
     main()
