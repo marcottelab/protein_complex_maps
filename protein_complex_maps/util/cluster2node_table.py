@@ -2,8 +2,8 @@ import sys
 import argparse
 import itertools as it
 import pandas as pd
-sys.path.append('/project/cmcwhite/protein_complex_maps/protein_complex_maps')
-import protein_util as pu
+#sys.path.append('/project/cmcwhite/protein_complex_maps/protein_complex_maps')
+import protein_complex_maps.protein_util as pu
 
 def main():
 
@@ -16,6 +16,8 @@ def main():
                                             help="input id type, (P_ENTREZGENEID, ENSEMBL_ID,etc)")
     parser.add_argument("--reviewed", action="store_true", dest="reviewed", required=False, default=False,
                                             help="map only to reviewed ids, default=False")
+    parser.add_argument("--no_clusterid", action="store_true", dest="no_clusterid", required=False, default=False,
+                                            help="Do not put in cluster id, default=False")
     args = parser.parse_args()
 
     protid_set = set()
@@ -48,9 +50,18 @@ def main():
         for prot_id in cluster:
             clust_id_key = "%s_%s" % (clustid, prot_id)
 
-            d['clustid'].append(clustid)
+            if args.no_clusterid:
+                d['clustid'].append(None)
+            else:
+                d['clustid'].append(clustid)
+
             d['key'].append(str(prot_id))
-            d['clustid_key'].append(clust_id_key)
+
+            if args.no_clusterid:
+                d['clustid_key'].append(None)
+            else:
+                d['clustid_key'].append(clust_id_key)
+
             try:
                 d['acc'].append(inputID2ACC_map[prot_id][0])
                 d['uniprot_link'].append("http://www.uniprot.org/uniprot/%s" % inputID2ACC_map[prot_id][0])
