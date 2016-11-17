@@ -102,6 +102,10 @@
     </form>
  
 
+    {% if error %}
+        <h3>{{error}}</h3>
+    {% endif %}
+
 <ul>
 
 {% for comp in complexes %}
@@ -124,7 +128,9 @@
                         {% for comp in prot.complexes %}
                             {{ comp.complex_link()|safe }}
                         {% else %}
+                        <!--
                             <em> No complexes</em>
+                          -->
                         {% endfor %}
                     </td>
                     <td> {{prot.proteinname}}</td>
@@ -207,7 +213,9 @@
 
     <br>
 {% else %}
+    <!--
     <em>No complexes</em>
+      -->
 {% endfor %}
 
 </ul>
