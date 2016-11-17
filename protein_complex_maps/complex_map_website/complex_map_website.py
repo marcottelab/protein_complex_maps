@@ -33,18 +33,31 @@ def displayComplexesForGeneName():
     genename = request.args.get('genename')
     form = SearchForm()
     #kdrew: do error checking
+    error=None
+    try: 
+        #kdrew: tests to see if genename is a valid genename
+        protein = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.genename) == func.upper(genename))).one()
+    except NoResultFound:
+        #kdrew: input genename is not valid, flash message
+        error = "Could not find given genename"
+
+        return render_template('index.html', form=form, complexes=[], error=error)
+
     try:
-        protein = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.genename)==func.upper(genename))).one()
         complexes = protein.complexes.all()
     except NoResultFound:
         complexes = []
 
-    return render_template('index.html', form=form, complexes=complexes)
+    if len(complexes) == 0:
+        error = "No complexes found for given genename"
+
+    return render_template('index.html', form=form, complexes=complexes, error=error)
 
 @app.route("/displayComplexesForEnrichment")
 def displayComplexesForEnrichment():
     enrichment = request.args.get('enrichment')
     form = SearchForm()
+    error=None
     #print enrichment
     #kdrew: do error checking
     try:
@@ -57,15 +70,18 @@ def displayComplexesForEnrichment():
         else:
             complexes = db.session.query(cdb.Complex).filter(cdb.Complex.id.in_(enrichment_complex_keys_set)).all()
     except NoResultFound:
-        print "NoResultFound"
         complexes = []
 
-    return render_template('index.html', form=form, complexes=complexes)
+    if len(complexes) == 0:
+        error = "No complexes found for given enrichment term"
+
+    return render_template('index.html', form=form, complexes=complexes, error=error)
 
 @app.route("/displayComplexesForProtein")
 def displayComplexesForProtein():
     protein_search = request.args.get('protein')
     form = SearchForm()
+    error = None
     #print protein
     #kdrew: do error checking
     complexes = []
@@ -79,22 +95,28 @@ def displayComplexesForProtein():
         complexes = list(set(complexes))
 
     except NoResultFound:
-        print "NoResultFound"
         complexes = []
 
-    return render_template('index.html', form=form, complexes=complexes)
+    if len(complexes) == 0:
+        error = "No complexes found for given search term"
+
+    return render_template('index.html', form=form, complexes=complexes, error=error)
 
 @app.route("/displayComplexes")
 def displayComplexes():
     complex_key = request.args.get('complex_key')
     form = SearchForm()
+    error=None
     #kdrew: do error checking
     try:
         complexes = db.session.query(cdb.Complex).filter_by(complex_id=complex_key).all()
     except NoResultFound:
         complexes = []
 
-    return render_template('complex.html', form=form, complexes=complexes)
+    if len(complexes) == 0:
+        error = "No complexes found"
+
+    return render_template('complex.html', form=form, complexes=complexes, error=error)
 
 
 @app.route(u'/search', methods=[u'POST'])
