@@ -33,6 +33,7 @@ class Complex(db.Model):
     """A single complex"""
     id = db.Column(db.Integer, primary_key=True)
     complex_id = db.Column(db.Integer, unique=True)
+    #kdrew: uses table name for ProteinComplexMapping class (annoying sqlalchemy magic)
     proteins = db.relationship('Protein', secondary='protein_complex_mapping', back_populates='complexes', lazy='dynamic')
     enrichments = db.relationship('ComplexEnrichment', lazy='dynamic')
 
@@ -57,22 +58,38 @@ class Complex(db.Model):
         return sorted(list(set(es)), key=lambda es: es.score, reverse=True)
 
         
+class Gene(db.Model):
+    """A gene"""
+    id = db.Column(db.Integer, primary_key=True)
+    gene_id = db.Column(db.String(63))
+    genename = db.Column(db.String(255))
+    protein_key = db.Column(db.Integer, db.ForeignKey('protein.id'))
 
 class Protein(db.Model):
     """A single protein"""
     id = db.Column(db.Integer, primary_key=True)
     gene_id = db.Column(db.String(63))
     uniprot_acc = db.Column(db.String(63))
-    genename = db.Column(db.String(255))
+    #genename = db.Column(db.String(255))
     proteinname = db.Column(db.String(255))
     uniprot_url = db.Column(db.String(255))
+    #kdrew: uses table name for ProteinComplexMapping class (annoying sqlalchemy magic)
     complexes = db.relationship('Complex', secondary='protein_complex_mapping',  back_populates='proteins', lazy='dynamic')
+    genenames = db.relationship('Gene', lazy='dynamic')
+
+    def genename(self,):
+        gnames = [g for g in self.genenames]
+        if len(gnames) > 0:
+            return gnames[0].genename
+        else:
+            return self.gene_id
 
     def uniprot_link(self,):
-        if self.genename == "":
-            retstr = self.gene_id
-        else:
-            retstr = "<a href=%s target=\"_blank\">%s</a>" % (self.uniprot_url, self.genename)
+        retstr = "<a href=%s target=\"_blank\">%s</a>" % (self.uniprot_url, 'UniProt')
+        return retstr
+
+    def ncbi_link(self,):
+        retstr = "<a href=https://www.ncbi.nlm.nih.gov/gene/%s target=\"_blank\">%s</a>" % (self.gene_id, 'NCBI')
         return retstr
 
 class Edge(db.Model):
@@ -94,7 +111,6 @@ class Evidence(db.Model):
     edge_key = db.Column(db.Integer, db.ForeignKey('edge.id'))
     evidence_type = db.Column(db.String(255))
     
-
 
 class ProteinComplexMapping(db.Model):
     """A mapping between proteins and complexes"""
