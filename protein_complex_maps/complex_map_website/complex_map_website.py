@@ -19,7 +19,8 @@ class SearchForm(Form):
     submit = SubmitField(u'Search')
 
 from flask import render_template
-from flask import url_for, redirect, request
+from flask import url_for, redirect, request, jsonify
+
 
 @app.route("/")
 def root(complexes=[]):
@@ -36,10 +37,13 @@ def displayComplexesForGeneName():
     error=None
     try: 
         #kdrew: tests to see if genename is a valid genename
-        protein = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.genename) == func.upper(genename))).one()
+        #protein = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.genename) == func.upper(genename))).one()
+        gene = db.session.query(cdb.Gene).filter((func.upper(cdb.Gene.genename) == func.upper(genename))).one()
+        protein = db.session.query(cdb.Protein).filter((cdb.Protein.gene_id == gene.gene_id)).one()
+
     except NoResultFound:
         #kdrew: input genename is not valid, flash message
-        error = "Could not find given genename"
+        error = "Could not find given genename: %s" % genename
 
         return render_template('index.html', form=form, complexes=[], error=error)
 
@@ -49,7 +53,7 @@ def displayComplexesForGeneName():
         complexes = []
 
     if len(complexes) == 0:
-        error = "No complexes found for given genename"
+        error = "No complexes found for given genename: %s" % genename
 
     return render_template('index.html', form=form, complexes=complexes, error=error)
 
@@ -73,7 +77,7 @@ def displayComplexesForEnrichment():
         complexes = []
 
     if len(complexes) == 0:
-        error = "No complexes found for given enrichment term"
+        error = "No complexes found for given enrichment term: %s" % enrichment
 
     return render_template('index.html', form=form, complexes=complexes, error=error)
 
@@ -98,7 +102,7 @@ def displayComplexesForProtein():
         complexes = []
 
     if len(complexes) == 0:
-        error = "No complexes found for given search term"
+        error = "No complexes found for given search term: %s" % protein_search
 
     return render_template('index.html', form=form, complexes=complexes, error=error)
 
@@ -114,7 +118,7 @@ def displayComplexes():
         complexes = []
 
     if len(complexes) == 0:
-        error = "No complexes found"
+        error = "No complexes found: %s" % complex_key
 
     return render_template('complex.html', form=form, complexes=complexes, error=error)
 
