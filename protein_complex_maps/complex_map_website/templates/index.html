@@ -93,6 +93,11 @@
         {{ form.errors }}
     {% endif %}
     -->
+
+    
+
+
+
     <form method="POST" action="/search">
         {{ form.hidden_tag() }}
         {{ form.genename.label }} {{ form.genename(size=50) }}
@@ -124,12 +129,13 @@
                 <th>Genename</th>
                 <th>Complexes</th>
                 <th>Protein Name</th>
+                <th>Links</th>
             </tr>
         </thead>
         <tbody>
             {% for prot in comp.proteins %}
                 <tr>
-                    <td>{{ prot.uniprot_link()|safe }}</td>
+                    <td>{{ prot.genename() }}</td>
                     <td>
                         {% for comp in prot.complexes %}
                             {{ comp.complex_link()|safe }}
@@ -140,6 +146,7 @@
                         {% endfor %}
                     </td>
                     <td> {{prot.proteinname}}</td>
+                    <td>{{ prot.uniprot_link()|safe }} &nbsp {{ prot.ncbi_link()|safe }}</td>
                 </tr>
             {% else %}
                 <em> No proteins</em>
