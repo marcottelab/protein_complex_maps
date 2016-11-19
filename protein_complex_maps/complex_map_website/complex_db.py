@@ -85,7 +85,10 @@ class Protein(db.Model):
             return self.gene_id
 
     def uniprot_link(self,):
-        retstr = "<a href=%s target=\"_blank\">%s</a>" % (self.uniprot_url, 'UniProt')
+        if self.uniprot_url != "":
+            retstr = "<a href=%s target=\"_blank\">%s</a>" % (self.uniprot_url, 'UniProt')
+        else:
+            retstr = ""
         return retstr
 
     def ncbi_link(self,):
