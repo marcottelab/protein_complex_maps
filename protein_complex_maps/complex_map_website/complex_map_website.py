@@ -48,7 +48,7 @@ def displayComplexesForGeneName():
         return render_template('index.html', form=form, complexes=[], error=error)
 
     try:
-        complexes = protein.complexes.all()
+        complexes = protein.complexes
     except NoResultFound:
         complexes = []
 
@@ -93,7 +93,7 @@ def displayComplexesForProtein():
         proteins = db.session.query(cdb.Protein).filter(cdb.Protein.proteinname.like('%'+protein_search+'%')).all()
         for protein in proteins:
             print protein
-            complexes = complexes + protein.complexes.all()
+            complexes = complexes + protein.complexes
 
         #kdrew: remove redudant complexes
         complexes = list(set(complexes))
@@ -113,14 +113,14 @@ def displayComplexes():
     error=None
     #kdrew: do error checking
     try:
-        complexes = db.session.query(cdb.Complex).filter_by(complex_id=complex_key).all()
+        comp = db.session.query(cdb.Complex).filter_by(complex_id=complex_key).one()
     except NoResultFound:
-        complexes = []
+        comp = None
 
-    if len(complexes) == 0:
+    if comp == None:
         error = "No complexes found: %s" % complex_key
 
-    return render_template('complex.html', form=form, complexes=complexes, error=error)
+    return render_template('complex.html', form=form, comp=comp, error=error)
 
 
 @app.route(u'/search', methods=[u'POST'])
@@ -151,6 +151,6 @@ def displayDownload():
 
 if __name__ == "__main__":
     db.create_all()  # make our sqlalchemy tables
-    app.run()
+    app.run(threaded=True)
 
 
