@@ -36,6 +36,9 @@ def main():
         id1 = split_line[0]
         prot1 = id1.split('(pp)')[0].split('_')[1].strip()
         prot2 = id1.split('(pp)')[1].split('_')[1].strip()
+        #kdrew: enforce order on protein ids
+        if prot2 < prot1:
+            prot2, prot1 = prot1, prot2
         score = float(split_line[1])
         evidence_dict = dict()
         evidence_dict['fraction'] = ('True' in split_line[2])
