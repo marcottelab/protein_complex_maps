@@ -45,7 +45,7 @@ def main():
     args = parser.parse_args()
 
    #kdrew: read in raw data
-    data_df = pd.read_csv(args.data_filename)
+    data_df = pd.read_csv(args.data_filename,dtype={'experiment_id':str})
 
     #kdrew: updating "unnamed" column name to "id"
     data_df.columns = ['id'] + [x for x in data_df.columns[1:]]
@@ -63,7 +63,7 @@ def main():
         cluster_df['clusterid'] = i
         clusters_df = pd.concat([clusters_df,cluster_df])
 
-    clusters_df['experiment_id'] = clusters_df['experiment_id'].astype(int).astype(str)
+    #clusters_df['experiment_id'] = clusters_df['experiment_id'].astype(int).astype(str)
 
 
     if args.mapping_file != None:
@@ -160,6 +160,8 @@ def main():
     #kdrew: remove labels on clustermap axes
     cm.ax_heatmap.set_xlabel('')
     cm.ax_heatmap.set_ylabel('')
+
+    plt.gcf().subplots_adjust(bottom=0.45)
 
     if args.plot_filename is None:
         print "plot_filename is None"
