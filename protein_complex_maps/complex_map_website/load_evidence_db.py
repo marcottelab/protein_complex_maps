@@ -36,9 +36,6 @@ def main():
         id1 = split_line[0]
         prot1 = id1.split('(pp)')[0].split('_')[1].strip()
         prot2 = id1.split('(pp)')[1].split('_')[1].strip()
-        #kdrew: enforce order on protein ids
-        if prot2 < prot1:
-            prot2, prot1 = prot1, prot2
         score = float(split_line[1])
         evidence_dict = dict()
         evidence_dict['fraction'] = ('True' in split_line[2])
@@ -50,6 +47,9 @@ def main():
         p1 = db.session.query(cdb.Protein).filter_by(gene_id=prot1).first()
         p2 = db.session.query(cdb.Protein).filter_by(gene_id=prot2).first()
         if p1 and p2:
+            #kdrew: enforce order on protein ids
+            if p2.id < p1.id:
+                p2, p1 = p1, p2
             print "protein id1: %s" % p1.id
             print "protein id2: %s" % p2.id
             edge = cdb.get_or_create(db, cdb.Edge, 

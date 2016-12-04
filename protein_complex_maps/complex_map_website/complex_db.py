@@ -48,13 +48,16 @@ class Complex(db.Model):
     #kdrew: seems like there should be a better way of doing this, either 1) combining protein keys as a single index or 2) storing mapping between complex and edges directly
     def edges(self,):
         es = []
-        #for prot1, prot2 in it.combinations(self.proteins,2):
-        #    edge = db.session.query(Edge).filter((and_(Edge.protein_key == prot1.id, Edge.protein_key2 == prot2.id) | and_(Edge.protein_key == prot2.id,Edge.protein_key2 == prot1.id))).first()
-        #    #es = es + edge
-        #    if edge != None:
-        #        es.append(edge)
-        edges = [db.session.query(Edge).filter((and_(Edge.protein_key == prot1.id, Edge.protein_key2 == prot2.id) | and_(Edge.protein_key == prot2.id,Edge.protein_key2 == prot1.id))).first() for prot1, prot2 in it.combinations(self.proteins,2)]
-        es = [e for e in edges if e != None]
+        for prot1, prot2 in it.combinations(self.proteins,2):
+            #kdrew: edge table enforces order
+            if prot2.id < prot1.id:
+                prot2, prot1 = prot1, prot2
+            edge = db.session.query(Edge).filter( and_(Edge.protein_key == prot1.id, Edge.protein_key2 == prot2.id) ).first()
+            if edge != None:
+                es.append(edge)
+
+        #edges = [db.session.query(Edge).filter((and_(Edge.protein_key == prot1.id, Edge.protein_key2 == prot2.id) | and_(Edge.protein_key == prot2.id,Edge.protein_key2 == prot1.id))).first() for prot1, prot2 in it.combinations(self.proteins,2)]
+        #es = [e for e in edges if e != None]
 
         return sorted(list(set(es)), key=lambda es: es.score, reverse=True)
 
