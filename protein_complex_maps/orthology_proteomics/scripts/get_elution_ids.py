@@ -84,6 +84,7 @@ def create_tables(species, level, experiment, orthology_file, elution_file, pept
     
 
 
+
     prot = pd.DataFrame(pd.read_csv(orthology_file, sep="\t"))
     prot = prot.set_index(['ProteinID'])
     

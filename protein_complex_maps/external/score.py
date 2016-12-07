@@ -177,7 +177,8 @@ def traver_corr(mat, repeat=100, norm='columns', verbose=True):
 
 def spearman_rho(mat, metric='spearman', norm_rows=True, norm_cols=True):
     norm_mat = ut.normalize_fracs(mat, norm_rows, norm_cols)
-    rho, pval = stats.spearmanr(norm_mat)
+    #Bad values was default axis = 0, trying 1
+    rho, pval = stats.spearmanr(norm_mat, axis=1)
     return rho
  
 def pdist_score(mat, metric='euclidean', norm_rows=True,
@@ -185,7 +186,9 @@ def pdist_score(mat, metric='euclidean', norm_rows=True,
     norm_mat = ut.normalize_fracs(mat, norm_rows, norm_cols)
     dists = spatial.distance.pdist(norm_mat, metric=metric)
     dist_mat = spatial.distance.squareform(dists)
-    score_mat = 1 - np.nan_to_num(dist_mat)
+    np.savetxt("dist_mat", dist_mat, delimiter='\t')
+    #max value is root 2
+    score_mat = 1.414213562373 - np.nan_to_num(dist_mat)
     return score_mat
 
    

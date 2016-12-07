@@ -34,6 +34,14 @@ def order_identifiers():
 
     df = df[['ID', 'corr']]
 
+
+    df['ID']= df['ID'].astype(str)  
+    df['ID'] = df['ID'].str.replace('[', '') 
+    df['ID'] = df['ID'].str.replace(']', '') 
+    df['ID'] = df['ID'].str.replace(',', '') 
+    df['ID'] = df['ID'].str.replace("'", "")
+
+
     
 
     df.to_csv(args.outfile, sep='\t', header=False, index=False)

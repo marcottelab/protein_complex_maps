@@ -23,13 +23,6 @@ import pandas as pd
 #Load boston housing dataset as an example
 
 
-#boston = load_boston()
-#print boston
-#X = boston["data"]
-#Y = boston["target"]
-#names = boston["feature_names"]
-#print names
-
 
 #def RFE_select()
 #model = LogisticRegression()
@@ -115,12 +108,24 @@ def main():
     names = open(args.feature_names, "r").readline().rstrip("\n").split(",")
 
     print(names)
-
-    
+  
     print("change to dense")
     X_dense = X.toarray()
     final =pd.DataFrame()
- 
+
+
+    print(X_dense)
+   
+    #boston = load_boston()
+    #print(boston)
+    #X = boston["data"]
+    #Y = boston["target"]
+    #names = boston["feature_names"]
+    #print(names)
+
+
+   
+
     for model in (AdaBoostClassifier(), AdaBoostRegressor(), GradientBoostingClassifier(), GradientBoostingRegressor(), RandomForestClassifier(), RandomTreesEmbedding(), RandomForestRegressor(), ExtraTreesClassifier(), ExtraTreesRegressor()):
 
         final = final.append(template_ens(model, X_dense, Y, names))

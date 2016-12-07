@@ -1,4 +1,5 @@
 from __future__ import print_function
+import ast
 import argparse
 import pickle
 import numpy as np
@@ -39,12 +40,9 @@ def main():
     #    feature_table = pd.read_csv(args.feature_matrix,sep=args.sep)
 
 
-    pos_ppis = pd.DataFrame(pd.read_table(args.positives, sep="\t", header=None))
-    pos_ppis.columns = ['A', 'B']
+    pos_ppis = pd.DataFrame(pd.read_table(args.positives, sep=",", header=None))
+    pos_ppis.columns = ['ID']
     print(pos_ppis)
-    pos_ppis['ID'] = map(sorted, zip(pos_ppis['A'].values, pos_ppis['B'].values))
-    pos_ppis = pos_ppis.drop(['A', 'B'], axis=1)
-    pos_ppis = pos_ppis[['ID']]
     print("size of pos_pos_ppis: %s" % len(pos_ppis))
     pos_ppis['label'] = 1
     #pos_ppis = pos_ppis.set_index(['ID'])
@@ -76,12 +74,9 @@ def main():
         #for line in negative_file.readlines():
         #    if len(line.split()) >= 2:
 
-    neg_ppis = pd.DataFrame(pd.read_table(args.negatives, sep="\t", header=None))
-    neg_ppis.columns = ['A', 'B']
+    neg_ppis = pd.DataFrame(pd.read_table(args.negatives, sep=",", header=None))
+    neg_ppis.columns = ['ID']
     print(neg_ppis)
-    neg_ppis['ID'] = map(sorted, zip(neg_ppis['A'].values, neg_ppis['B'].values))
-    neg_ppis = neg_ppis.drop(['A', 'B'], axis=1)
-    neg_ppis = neg_ppis[['ID']]
     neg_ppis['label'] = -1
 
     
@@ -101,27 +96,38 @@ def main():
     #Try joining into spaces separated
     #MAKES "[ ' E N O G 4 1 0 I D X 2 ' ,   ' E N O G 4 1 0 I D X ...
     #This next one should work
-    all_ppis['ID'] = all_ppis['ID'].apply("".join)
+    #all_ppis['ID'] = all_ppis['ID'].apply(" ".join)
 
 
     all_ppis = all_ppis.set_index(['ID'])
-
+    print(all_ppis.head)
+  
     feature_table = pd.DataFrame(pd.read_table(args.feature_matrix, sep=args.sep))
-    feature_table['ID'] = feature_table['ID'].apply("".join)
+    #feature_table['ID'] = feature_table['ID'].apply(ast.literal_eval)
+    #feature_table['ID'] = feature_table['ID'].apply(" ".join)
 
     feature_table = feature_table.set_index(['ID'])
 
-    print(feature_table)
+    print(feature_table.head)
     print(type(feature_table))    
 
     if args.fillna != None:
         feature_table = feature_table.fillna(float(args.fillna))
 
 
-
-
     labeled_feature_table = feature_table.join(all_ppis, how="left")   
+
+    print("pos/neg")
+    #print(labeled_feature_table[labeled_feature_table['label']==-1])
+    #print(labeled_feature_table[labeled_feature_table['label']==1])
+    #print(labeled_feature_table[labeled_feature_table['label']=='1'])
+    #print(labeled_feature_table[labeled_feature_table['label']==-'1'])
+
+
+
     labeled_feature_table['label'] = labeled_feature_table['label'].fillna(0)
+
+
   
 
     #kdrew: testing

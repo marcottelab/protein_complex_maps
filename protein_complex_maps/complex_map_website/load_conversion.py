@@ -37,16 +37,26 @@ def main():
             print count
         count = count + 1    
         #if 'complex:' i        #print line
-        split_line = line.split('\t')
-        genename = split_line[0]
-        proteinname = split_line[1]
-        gene_id = split_line[2]
-        uniprot_acc = split_line[3].strip()
+        split_line = line.split(',')
+        uniprot_acc = split_line[0].strip()
+        entryname = split_line[1]
+        #proteinname = split_line[2]
+        genename = split_line[3]
+        group_id = split_line[4]
+        group_annotation = split_line[5].strip()
+     
+
+
+
+ 
         convert = cdb.get_or_create(db, cdb.Conversion,
                                         genename = genename,
-                                        proteinname = proteinname,
-                                        gene_id = gene_id,
+                                        #proteinname = proteinname,
                                         uniprot_acc = uniprot_acc,
+                                        entryname = entryname,
+                                        group_id = group_id,
+                                        group_annotation = group_annotation,
+
                                         )
         db.session.add(convert)
         db.session.commit()

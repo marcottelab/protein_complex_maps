@@ -109,91 +109,93 @@ def main():
         print len(thresholds)
 
 
-        indexOf1 = next(x[0] for x in enumerate(thresholds) if x[1] >= 0.1) 
-        indexOf2 = next(x[0] for x in enumerate(thresholds) if x[1] >= 0.2) 
-        indexOf3 = next(x[0] for x in enumerate(thresholds) if x[1] >= 0.3) 
-        indexOf4 = next(x[0] for x in enumerate(thresholds) if x[1] >= 0.4) 
-        indexOf5 = next(x[0] for x in enumerate(thresholds) if x[1] >= 0.5) 
-        indexOf6 = next(x[0] for x in enumerate(thresholds) if x[1] >= 0.6) 
-        indexOf7 = next(x[0] for x in enumerate(thresholds) if x[1] >= 0.7) 
-        indexOf8 = next(x[0] for x in enumerate(thresholds) if x[1] >= 0.8) 
-        indexOf9 = next(x[0] for x in enumerate(thresholds) if x[1] >= 0.9) 
-        indexOf10 = next(x[0] for x in enumerate(thresholds) if x[1] >= 1.0) 
-        print thresholds[indexOf1]
-        print indexOf1
-        print thresholds[indexOf2]
-        print indexOf2
-        print thresholds[indexOf3]
-        print indexOf3
-        print thresholds[indexOf4]
-        print indexOf4
-        print thresholds[indexOf10]
-        print indexOf10
+        if args.plot_thresholds:
+		indexOf1 = next(x[0] for x in enumerate(thresholds) if x[1] >= 0.1) 
+		indexOf2 = next(x[0] for x in enumerate(thresholds) if x[1] >= 0.2) 
+		indexOf3 = next(x[0] for x in enumerate(thresholds) if x[1] >= 0.3) 
+		indexOf4 = next(x[0] for x in enumerate(thresholds) if x[1] >= 0.4) 
+		indexOf5 = next(x[0] for x in enumerate(thresholds) if x[1] >= 0.5) 
+		indexOf6 = next(x[0] for x in enumerate(thresholds) if x[1] >= 0.6) 
+		indexOf7 = next(x[0] for x in enumerate(thresholds) if x[1] >= 0.7) 
+		indexOf8 = next(x[0] for x in enumerate(thresholds) if x[1] >= 0.8) 
+		indexOf9 = next(x[0] for x in enumerate(thresholds) if x[1] >= 0.9) 
+		indexOf10 = next(x[0] for x in enumerate(thresholds) if x[1] >= 1.0) 
 
-        #print thresholds[indexOf1-1]
-        #print thresholds[indexOf10-1]
+		print thresholds[indexOf1]
+		print indexOf1
+		print thresholds[indexOf2]
+		print indexOf2
+		print thresholds[indexOf3]
+		print indexOf3
+		print thresholds[indexOf4]
+		print indexOf4
+		print thresholds[indexOf10]
+		print indexOf10
 
-        threshold_precisions = []
-        threshold_recalls = []
-        print "threshold 0.1"
-        print "precision: %s" % precision[indexOf1]
-        print "recall: %s" % recall[indexOf1]
-        threshold_precisions.append(precision[indexOf1])
-        threshold_recalls.append(recall[indexOf1])
-        
-        print "threshold 0.2"
-        print "precision: %s" % precision[indexOf2]
-        print "recall: %s" % recall[indexOf2]
-        threshold_precisions.append(precision[indexOf2])
-        threshold_recalls.append(recall[indexOf2])
-        
-        print "threshold 0.3"
-        print "precision: %s" % precision[indexOf3]
-        print "recall: %s" % recall[indexOf3]
-        threshold_precisions.append(precision[indexOf3])
-        threshold_recalls.append(recall[indexOf3])
-        
-        print "threshold 0.4"
-        print "precision: %s" % precision[indexOf4]
-        print "recall: %s" % recall[indexOf4]
-        threshold_precisions.append(precision[indexOf4])
-        threshold_recalls.append(recall[indexOf4])
-        
-        print "threshold 0.5"
-        print "precision: %s" % precision[indexOf5]
-        print "recall: %s" % recall[indexOf5]
-        threshold_precisions.append(precision[indexOf5])
-        threshold_recalls.append(recall[indexOf5])
-        
-        print "threshold 0.6"
-        print "precision: %s" % precision[indexOf6]
-        print "recall: %s" % recall[indexOf6]
-        threshold_precisions.append(precision[indexOf6])
-        threshold_recalls.append(recall[indexOf6])
-        
-        print "threshold 0.7"
-        print "precision: %s" % precision[indexOf7]
-        print "recall: %s" % recall[indexOf7]
-        threshold_precisions.append(precision[indexOf7])
-        threshold_recalls.append(recall[indexOf7])
+		#print thresholds[indexOf1-1]
+		#print thresholds[indexOf10-1]
 
-        print "threshold 0.8"
-        print "precision: %s" % precision[indexOf8]
-        print "recall: %s" % recall[indexOf8]
-        threshold_precisions.append(precision[indexOf8])
-        threshold_recalls.append(recall[indexOf8])
-        
-        print "threshold 0.9"
-        print "precision: %s" % precision[indexOf9]
-        print "recall: %s" % recall[indexOf9]
-        threshold_precisions.append(precision[indexOf9])
-        threshold_recalls.append(recall[indexOf9])
+		threshold_precisions = []
+		threshold_recalls = []
+		print "threshold 0.1"
+		print "precision: %s" % precision[indexOf1]
+		print "recall: %s" % recall[indexOf1]
+		threshold_precisions.append(precision[indexOf1])
+		threshold_recalls.append(recall[indexOf1])
+		
+		print "threshold 0.2"
+		print "precision: %s" % precision[indexOf2]
+		print "recall: %s" % recall[indexOf2]
+		threshold_precisions.append(precision[indexOf2])
+		threshold_recalls.append(recall[indexOf2])
+		
+		print "threshold 0.3"
+		print "precision: %s" % precision[indexOf3]
+		print "recall: %s" % recall[indexOf3]
+		threshold_precisions.append(precision[indexOf3])
+		threshold_recalls.append(recall[indexOf3])
+		
+		print "threshold 0.4"
+		print "precision: %s" % precision[indexOf4]
+		print "recall: %s" % recall[indexOf4]
+		threshold_precisions.append(precision[indexOf4])
+		threshold_recalls.append(recall[indexOf4])
+		
+		print "threshold 0.5"
+		print "precision: %s" % precision[indexOf5]
+		print "recall: %s" % recall[indexOf5]
+		threshold_precisions.append(precision[indexOf5])
+		threshold_recalls.append(recall[indexOf5])
+		
+		print "threshold 0.6"
+		print "precision: %s" % precision[indexOf6]
+		print "recall: %s" % recall[indexOf6]
+		threshold_precisions.append(precision[indexOf6])
+		threshold_recalls.append(recall[indexOf6])
+		
+		print "threshold 0.7"
+		print "precision: %s" % precision[indexOf7]
+		print "recall: %s" % recall[indexOf7]
+		threshold_precisions.append(precision[indexOf7])
+		threshold_recalls.append(recall[indexOf7])
 
-        print "threshold 1.0"
-        print "precision: %s" % precision[indexOf10]
-        print "recall: %s" % recall[indexOf10]
-        threshold_precisions.append(precision[indexOf10])
-        threshold_recalls.append(recall[indexOf10])
+		print "threshold 0.8"
+		print "precision: %s" % precision[indexOf8]
+		print "recall: %s" % recall[indexOf8]
+		threshold_precisions.append(precision[indexOf8])
+		threshold_recalls.append(recall[indexOf8])
+		
+		print "threshold 0.9"
+		print "precision: %s" % precision[indexOf9]
+		print "recall: %s" % recall[indexOf9]
+		threshold_precisions.append(precision[indexOf9])
+		threshold_recalls.append(recall[indexOf9])
+
+		print "threshold 1.0"
+		print "precision: %s" % precision[indexOf10]
+		print "recall: %s" % recall[indexOf10]
+		threshold_precisions.append(precision[indexOf10])
+		threshold_recalls.append(recall[indexOf10])
 
 
         label = args.results_wprob[i]
