@@ -1,0 +1,2 @@
+cat features_atobsc_euNOG_feature_select_scaled.out_RandomTreesEmbedding_top24thresholdnum | sort -n | tr '\n' ',' | sed 's/,/,$/g' | sed "s/,[$]$/}' top24RTE.atobsc.txt/" | sed "s/^/awk -F' ' '{print $/" >>  feature_selecting_commands.sh
+cat features_atobsc_euNOG_feature_select_scaled.out_RandomTreesEmbedding_zerothresholdnum | sort -n | tr '\n' ',' | sed 's/,/,$/g' | sed "s/,[$]$/}' over0RTE.atobsc.txt/" | sed "s/^/awk -F' ' '{print $/" >>  feature_selecting_commands.sh
