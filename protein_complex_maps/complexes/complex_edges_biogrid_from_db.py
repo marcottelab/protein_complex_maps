@@ -48,34 +48,44 @@ def main():
             evidence_codes.append("Co-fractionation")
 
         edge_sum = 0
+        PMID_set = set()
         edge_class = ""
         if 'bioplex'in evidence_list:
             edge_sum+=1
             edge_class = 'BioPlex'
+            PMID_set.add("26186194")
         if 'hein' in evidence_list:
             edge_sum+=1
             if edge_sum > 1:
                 edge_class = 'Multiple_Evidences'
             else:
-                edge_class = 'Hein'
+                edge_class = 'Hein et al.'
+            PMID_set.add("26496610")
         if 'fraction' in evidence_list:
             edge_sum+=1
             if edge_sum > 1:
                 edge_class = 'Multiple_Evidences'
             else:
-                edge_class = 'Fraction'
+                edge_class = 'Wan et al.'
+            PMID_set.add("26344197")
         if 'bioplex_prey' in evidence_list and 'bioplex' not in evidence_list:
             edge_sum+=1
             if edge_sum > 1:
                 edge_class = 'Multiple_Evidences'
             else:
                 edge_class = 'Matrix_Model'
+            PMID_set.add("26186194")
         if 'hein_prey' in evidence_list and 'hein' not in evidence_list:
             edge_sum+=1
             if edge_sum > 1 and edge_class != 'Matrix_Model':
                 edge_class = 'Multiple_Evidences'
             else:
                 edge_class = 'Matrix_Model'    
+            PMID_set.add("26496610")
+
+        pmid_str = ""
+        if len(PMID_set) >0:
+            pmid_str = "(PMIDs: %s)" % (' '.join(list(PMID_set))) 
 
         output_str = output_str + args.field_delimiter.join(["%s"]*10) % (
                                                             prots[0].gene_id,
@@ -87,8 +97,9 @@ def main():
                                                             edge.score, 
                                                             "", #kdrew: Modifications
                                                             "", #kdrew: Phenotypes
-                                                            edge_class #Comment
+                                                            "%s %s" % (edge_class, pmid_str) #Comment
                                                             ) + "\n" 
+
         proteins.add(prots[0].gene_id)
         proteins.add(prots[1].gene_id)
         protein_edges.add(frozenset([prots[0].gene_id,prots[1].gene_id]))
