@@ -38,8 +38,7 @@ def displayComplexesForGeneName():
     try: 
         #kdrew: tests to see if genename is a valid genename
         #protein = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.genename) == func.upper(genename))).one()
-        gene = db.session.query(cdb.Gene).filter((func.upper(cdb.Gene.genename) == func.upper(genename))).one()
-        protein = db.session.query(cdb.Protein).filter((cdb.Protein.gene_id == gene.gene_id)).one()
+        genes = db.session.query(cdb.Gene).filter((func.upper(cdb.Gene.genename) == func.upper(genename))).all()
 
     except NoResultFound:
         #kdrew: input genename is not valid, flash message
@@ -47,13 +46,26 @@ def displayComplexesForGeneName():
 
         return render_template('index.html', form=form, complexes=[], error=error)
 
-    try:
-        complexes = protein.complexes
-    except NoResultFound:
-        complexes = []
+    complexes = []
+    for gene in genes:
+        try:
+            protein = db.session.query(cdb.Protein).filter((cdb.Protein.gene_id == gene.gene_id)).one()
+
+        except NoResultFound:
+            #kdrew: input genename is not valid, flash message
+            error = "Could not find given genename: %s" % genename
+
+            return render_template('index.html', form=form, complexes=[], error=error)
+
+        try:
+            complexes = complexes + protein.complexes
+        except NoResultFound:
+            continue
 
     if len(complexes) == 0:
         error = "No complexes found for given genename: %s" % genename
+
+    complexes = list(set(complexes))
 
     return render_template('index.html', form=form, complexes=complexes, error=error)
 
