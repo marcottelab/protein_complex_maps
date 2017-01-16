@@ -150,7 +150,7 @@ def get_sequences_uniprot( protein_ids, seqrecord=False ):
 
 	return seq_map
 
-def get_from_uniprot( protein_ids, keyword ):
+def get_from_uniprot( protein_ids, keyword, return_list=False ):
 	return_dict = dict()
 
 	#kdrew: sometimes uniprot accs have added '-1' that does not play well with this webservice
@@ -181,10 +181,16 @@ def get_from_uniprot( protein_ids, keyword ):
 				elif keyword == "protein+names":
 					return_dict[line.split()[0]] = line.split('\t')[1]
 				else:
-					try:
-						return_dict[line.split()[0]] = line.split()[1]
-					except IndexError:
-						return_dict[line.split()[0]] = None
+                                        if return_list:
+                                                try:
+                                                        return_dict[line.split()[0]] = line.split()[1:]
+                                                except IndexError:
+                                                        return_dict[line.split()[0]] = []
+                                        else:
+                                                try:
+                                                        return_dict[line.split()[0]] = line.split()[1]
+                                                except IndexError:
+                                                        return_dict[line.split()[0]] = None
 
 
 	return return_dict

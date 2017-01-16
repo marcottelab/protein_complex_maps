@@ -4,8 +4,10 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func, or_, and_
 
+import itertools as it
+
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db/test.db'
 
 app.config['SECRET_KEY'] = 'please, tell nobody'
 
@@ -32,62 +34,86 @@ def get_or_create(db, model, **kwargs):
 class Complex(db.Model):
     """A single complex"""
     id = db.Column(db.Integer, primary_key=True)
-    complex_id = db.Column(db.Integer, unique=True)
-    proteins = db.relationship('Protein', secondary='protein_complex_mapping', back_populates='complexes', lazy='dynamic')
-    enrichments = db.relationship('ComplexEnrichment', lazy='dynamic')
+    complex_id = db.Column(db.Integer, unique=True, index=True)
+    #kdrew: uses table name for ProteinComplexMapping class (annoying sqlalchemy magic)
+    proteins = db.relationship('Protein', secondary='protein_complex_mapping', back_populates='complexes')
+    enrichments = db.relationship('ComplexEnrichment')
+
 
     def complex_link(self,):
         retstr = "<a href=displayComplexes?complex_key=%s>%s</a>" % (self.complex_id, self.complex_id)
         return retstr
 
+    #kdrew: a bit of a bottleneck when serving pages, has to generate all combinations of proteins in complex and then search for combination in edge table
+    #kdrew: seems like there should be a better way of doing this, either 1) combining protein keys as a single index or 2) storing mapping between complex and edges directly
     def edges(self,):
         es = []
-        pairs = set()
-        for prot1 in self.proteins:
-            for prot2 in self.proteins:
-                #kdrew: check to see if the pair has already been entered
-                if frozenset((prot1,prot2)) not in pairs:
-                    edge = db.session.query(Edge).filter((and_(Edge.protein_key == prot1.id, Edge.protein_key2 == prot2.id) | and_(Edge.protein_key == prot2.id,Edge.protein_key2 == prot1.id))).first()
-                    #es = es + edge
-                    if edge != None:
-                        es.append(edge)
-                        #kdrew: add pair of prot ids to keep track of edges already added
-                        pairs.add(frozenset((prot1,prot2)))
+        for prot1, prot2 in it.combinations(self.proteins,2):
+            #kdrew: edge table enforces order
+            if prot2.id < prot1.id:
+                prot2, prot1 = prot1, prot2
+            edge = db.session.query(Edge).filter( and_(Edge.protein_key == prot1.id, Edge.protein_key2 == prot2.id) ).first()
+            if edge != None:
+                es.append(edge)
+
+        #edges = [db.session.query(Edge).filter((and_(Edge.protein_key == prot1.id, Edge.protein_key2 == prot2.id) | and_(Edge.protein_key == prot2.id,Edge.protein_key2 == prot1.id))).first() for prot1, prot2 in it.combinations(self.proteins,2)]
+        #es = [e for e in edges if e != None]
 
         return sorted(list(set(es)), key=lambda es: es.score, reverse=True)
 
         
+class Gene(db.Model):
+    """A gene"""
+    id = db.Column(db.Integer, primary_key=True)
+    gene_id = db.Column(db.String(63), index=True)
+    genename = db.Column(db.String(255), index=True)
+    protein_key = db.Column(db.Integer, db.ForeignKey('protein.id'))
+
 
 class Protein(db.Model):
     """A single protein"""
     id = db.Column(db.Integer, primary_key=True)
-    gene_id = db.Column(db.String(63))
-    uniprot_acc = db.Column(db.String(63))
-    genename = db.Column(db.String(255))
+    gene_id = db.Column(db.String(63), index=True)
+    uniprot_acc = db.Column(db.String(63), index=True)
+    #genename = db.Column(db.String(255))
     proteinname = db.Column(db.String(255))
     uniprot_url = db.Column(db.String(255))
-    complexes = db.relationship('Complex', secondary='protein_complex_mapping',  back_populates='proteins', lazy='dynamic')
+    #kdrew: uses table name for ProteinComplexMapping class (annoying sqlalchemy magic)
+    complexes = db.relationship('Complex', secondary='protein_complex_mapping',  back_populates='proteins')
+    genenames = db.relationship('Gene')
+
+    def genename(self,):
+        gnames = [g for g in self.genenames]
+        if len(gnames) > 0:
+            return gnames[0].genename
+        else:
+            return self.gene_id
 
     def uniprot_link(self,):
-        if self.genename == "":
-            retstr = self.gene_id
+        if self.uniprot_url != "":
+            retstr = "<a href=%s target=\"_blank\">%s</a>" % (self.uniprot_url, 'UniProt')
         else:
-            retstr = "<a href=%s target=\"_blank\">%s</a>" % (self.uniprot_url, self.genename)
+            retstr = ""
+        return retstr
+
+    def ncbi_link(self,):
+        retstr = "<a href=https://www.ncbi.nlm.nih.gov/gene/%s target=\"_blank\">%s</a>" % (self.gene_id, 'NCBI')
         return retstr
 
 class Edge(db.Model):
     """A protein protein edge"""
     id = db.Column(db.Integer, primary_key=True)
-    protein_key = db.Column(db.Integer, db.ForeignKey('protein.id') )
-    protein_key2 = db.Column(db.Integer, db.ForeignKey('protein.id') )
+    protein_key = db.Column(db.Integer, db.ForeignKey('protein.id'), index=True )
+    protein_key2 = db.Column(db.Integer, db.ForeignKey('protein.id'), index=True )
     score = db.Column(db.Float)
 
-    evidences = db.relationship('Evidence', lazy='dynamic')
+    evidences = db.relationship('Evidence')
 
     def get_proteins(self,):
-        prot1 = db.session.query(Protein).filter(Protein.id==self.protein_key).first()
-        prot2 = db.session.query(Protein).filter(Protein.id==self.protein_key2).first()
-        return (prot1, prot2)
+        #prot1 = db.session.query(Protein).filter(Protein.id==self.protein_key).first()
+        #prot2 = db.session.query(Protein).filter(Protein.id==self.protein_key2).first()
+        prots = db.session.query(Protein).filter(Protein.id.in_([self.protein_key,self.protein_key2])).all()
+        return prots
 
 class Evidence(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -95,9 +121,9 @@ class Evidence(db.Model):
     evidence_type = db.Column(db.String(255))
     
 
-
 class ProteinComplexMapping(db.Model):
     """A mapping between proteins and complexes"""
+    __tablename__ = 'protein_complex_mapping'
     protein_key = db.Column(db.Integer, db.ForeignKey('protein.id'), primary_key=True)
     complex_key = db.Column(db.Integer, db.ForeignKey('complex.id'), primary_key=True)
 
@@ -120,10 +146,7 @@ class ComplexEnrichment(db.Model):
     qandt_list = db.Column(db.String(255))
 
     def get_proteins(self,):
-        proteins = []
-        for acc in self.qandt_list.split(','):
-            prot = db.session.query(Protein).filter_by(uniprot_acc=acc).first()
-            proteins.append(prot)
+        proteins = db.session.query(Protein).filter(Protein.uniprot_acc.in_(self.qandt_list.split(','))).all()
         return proteins
 
 

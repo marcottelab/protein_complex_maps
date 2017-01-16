@@ -1,7 +1,6 @@
 *.pyc
 *.swp
 *.swo
-*.txt
 *.tab
 *.tmp
 tmp

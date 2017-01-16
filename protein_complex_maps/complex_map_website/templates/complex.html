@@ -9,7 +9,7 @@
     <meta name="author" content="">
     <link rel="icon" href="../bootstrap-3.3.6/docs/favicon.ico">
 
-    <title>Human Protein Complex Map: Complex View</title>
+    <title>hu.MAP: Complex View</title>
 
     <link href="../static/styles/test.css" rel="stylesheet">
 
@@ -48,7 +48,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="/">Human Protein Complex Map</a>
+          <a class="navbar-brand" href="/">hu.MAP</a>
         </div>
         <div id="navbar" class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
@@ -78,9 +78,9 @@
 
       <!-- Main jumbotron for a primary marketing message or call to action -->
       <div class="theme">
-        <h1>Human Protein Complex Map: Complex View</h1>
+        <h1>hu.MAP: Complex View</h1>
         <p> 
-            Proteins don't work alone.  Find out what other proteins your favorite protein works with.
+            A Definitive Human Protein Complex Map
         </p>
       </div>
 
@@ -102,113 +102,112 @@
     </form>
  
 
+    {% if error %}
+        <h3>{{error}}</h3>
+    {% endif %}
+
 <ul>
-
-{% for comp in complexes %}
-    <h3>Complex: {{ comp.complex_link()|safe }}</h3>
-    <a href="#Proteins" class="btn btn-default" data-toggle="collapse">Proteins</a>
-    <div id="Proteins" class="collapse in">
-        <table class="table table-striped">
-            <thead>
+<h3>Complex: {{ comp.complex_link()|safe }}</h3>
+<a href="#Proteins" class="btn btn-default" data-toggle="collapse">Proteins</a>
+<div id="Proteins" class="collapse in">
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Genename</th>
+            <th>Complexes</th>
+            <th>Protein Name</th>
+            <th>Links</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for prot in comp.proteins %}
             <tr>
-                <th>Genename</th>
-                <th>Complexes</th>
-                <th>Protein Name</th>
+                <td>{{ prot.genename() }}</td>
+                <td>
+                    {% for comp in prot.complexes %}
+                        {{ comp.complex_link()|safe }}
+                    {% else %}
+                    {% endfor %}
+                </td>
+                <td> {{prot.proteinname}}</td>
+                <td>{{ prot.uniprot_link()|safe }} &nbsp {{ prot.ncbi_link()|safe }}</td>
             </tr>
-            </thead>
-            <tbody>
-            {% for prot in comp.proteins %}
-                <tr>
-                    <td>{{ prot.uniprot_link()|safe }}</td>
-                    <td>
-                        {% for comp in prot.complexes %}
-                            {{ comp.complex_link()|safe }}
-                        {% else %}
-                            <em> No complexes</em>
-                        {% endfor %}
-                    </td>
-                    <td> {{prot.proteinname}}</td>
-                </tr>
-            {% else %}
-                <em> No proteins</em>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    <br>
-    <br>
-    <a href="#Enrichments" class="btn btn-default" data-toggle="collapse">Enrichments</a>
-    <div id="Enrichments" class="collapse">
-        <table class="table table-striped">
-            <thead>
+        {% else %}
+            <em> No proteins</em>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+<br>
+<br>
+<a href="#Enrichments" class="btn btn-default" data-toggle="collapse">Enrichments</a>
+<div id="Enrichments" class="collapse">
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Term ID</th>
+            <th>Corrected Pval</th>
+            <th>Fraction Complex Coverage</th>
+            <th>Proteins</th>
+            <th>Term Name</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for enrichment in comp.enrichments %}
             <tr>
-                <th>Term ID</th>
-                <th>Corrected Pval</th>
-                <th>Fraction Complex Coverage</th>
-                <th>Proteins</th>
-                <th>Term Name</th>
+                <td>&nbsp {{ enrichment.term_id|safe }}</td>
+                <td> {{ enrichment.corr_pval|safe }}</td>
+                <td> {{ enrichment.qandt_by_q|safe }}</td>
+                <td>
+                    {% for protein in enrichment.get_proteins() %}
+                        {{ protein.genename() }}
+                    {% else %}
+                        <em> No proteins</em>
+                    {% endfor %}
+                </td>
+                <td> {{ enrichment.t_name|safe }}</td>
             </tr>
-            </thead>
-            <tbody>
-            {% for enrichment in comp.enrichments %}
-                <tr>
-                    <td>&nbsp {{ enrichment.term_id|safe }}</td>
-                    <td> {{ enrichment.corr_pval|safe }}</td>
-                    <td> {{ enrichment.qandt_by_q|safe }}</td>
-                    <td>
-                        {% for protein in enrichment.get_proteins() %}
-                            {{ protein.uniprot_link()|safe }}
-                        {% else %}
-                            <em> No proteins</em>
-                        {% endfor %}
-                    </td>
-                    <td> {{ enrichment.t_name|safe }}</td>
-                </tr>
-            {% else %}
-                &nbsp    <em> No enrichments</em>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    <br>
-    <br>
-
-    <a href="#Edges" class="btn btn-default" data-toggle="collapse">Edges</a>
-    <div id="Edges" class="collapse">
-        <table class="table table-striped">
-            <thead>
+        {% else %}
+            &nbsp    <em> No enrichments</em>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+<br>
+<br>
+<a href="#Edges" class="btn btn-default" data-toggle="collapse">Edges</a>
+<div id="Edges" class="collapse">
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Protein 1 </th>
+            <th>Protein 2 </th>
+            <th>Score </th>
+            <th>Evidence </th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for edge in comp.edges() %}
             <tr>
-                <th>Protein 1 </th>
-                <th>Protein 2 </th>
-                <th>Score </th>
-                <th>Evidence </th>
+                <td>&nbsp {{ edge.get_proteins()[0].genename() }}</td>
+                <td>&nbsp {{ edge.get_proteins()[1].genename() }}</td>
+                <td> {{ edge.score|safe }}</td>
+                <td>
+                    {% for evidence in edge.evidences %}
+                        {{ evidence.evidence_type|safe }} &nbsp &nbsp 
+                    {% else %}
+                        <em> No Evidences</em>
+                    {% endfor %}
+                </td>
             </tr>
-            </thead>
-            <tbody>
-            {% for edge in comp.edges() %}
-                <tr>
-                    <td>&nbsp {{ edge.get_proteins()[0].uniprot_link()|safe }}</td>
-                    <td>&nbsp {{ edge.get_proteins()[1].uniprot_link()|safe }}</td>
-                    <td> {{ edge.score|safe }}</td>
-                    <td>
-                        {% for evidence in edge.evidences %}
-                            {{ evidence.evidence_type|safe }} &nbsp &nbsp 
-                        {% else %}
-                            <em> No Evidences</em>
-                        {% endfor %}
-                    </td>
-                </tr>
-            {% else %}
-                &nbsp    <em> No edges</em>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
+        {% else %}
+            &nbsp    <em> No edges</em>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
 
-    <br>
-{% else %}
-    <em>No complexes</em>
-{% endfor %}
+<br>
 
 </ul>
     <!-- Bootstrap core JavaScript
