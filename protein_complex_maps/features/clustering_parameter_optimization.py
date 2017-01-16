@@ -13,14 +13,14 @@ import tempfile as tf
 import shutil
 
 
-sys.path.append('/project/cmcwhite/protein_complex_maps/protein_complex_maps')
+#sys.path.append('/project/cmcwhite/protein_complex_maps/protein_complex_maps')
 
 
 
 import networkx as nx
 import agglomcluster.agglomod as ag
 
-import complex_comparison as cc
+import protein_complex_maps.complex_comparison as cc
 
 def main():
 
@@ -61,14 +61,14 @@ def main():
     parser.add_argument("--ppi_threshold_score", action="store", dest="ppi_threshold_score", nargs='+', required=False, 
                                     default=[1.0,0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2,0.1],
                                     help="Use ppis with score higher or equal to threshold score, default = 1.0 0.9 0.8 0.7 0.6 0.5 0.4 0.3 0.2 0.1")
-    parser.add_argument("--clixo", action="store", dest="clixo_bin", required=False, 
-                                    default='~/programs/mhk7-clixo_0.3-a2b23b0/clixo',
+    parser.add_argument("--clixo_bin", action="store", dest="clixo_bin", required=False, 
+                                    default='~/programs/mhk7-clixo_0.3-a2b23b0/clixo')
     parser.add_argument("--clixo_alpha", action="store", dest="clixo_alpha", nargs='+', required=False, 
                                     default=[None],
-                                    help="Clixo Alpha parameter, default = [0]")
+                                    help="Clixo Alpha parameter, default = None")
     parser.add_argument("--clixo_beta", action="store", dest="clixo_beta", nargs='+', required=False, 
                                     default=[None],
-                                    help="Clixo Beta parameter, default = [0.5]")
+                                    help="Clixo Beta parameter, default = None")
     parser.add_argument("--mcl", action="store", dest="mcl_bin", required=False, 
                                     default='mcl',
                                     help="Location of mcl binary, default = 'mcl' ")
@@ -493,8 +493,8 @@ def cluster_helper(parameter_dict):
             except (IOError, OSError) as e:
                 print e
 
-        elif twostep_combination[0] = 'clixo':
-            proc = sp.Popen([args.clixo_bin, clixo_alpha, clixo_beta], stdout=sp.PIPE, stderr=sp.PIPE)
+        elif twostep_combination[0] == 'clixo':
+            proc = sp.Popen([args.clixo_bin, fileTemp.name, clixo_alpha, clixo_beta], stdout=sp.PIPE, stderr=sp.PIPE)
             clust_out, err = proc.communicate()
             #print clust_out
             #print err
@@ -503,6 +503,7 @@ def cluster_helper(parameter_dict):
             for line in clust_out.split('\n'):
                 if "Valid cluster:" in line:
                     gene_list = line.split()[3]
+                    #print gene_list
                     predicted_clusters.append(gene_list.split(','))
 
     finally:
