@@ -61,6 +61,14 @@ def main():
     parser.add_argument("--ppi_threshold_score", action="store", dest="ppi_threshold_score", nargs='+', required=False, 
                                     default=[1.0,0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2,0.1],
                                     help="Use ppis with score higher or equal to threshold score, default = 1.0 0.9 0.8 0.7 0.6 0.5 0.4 0.3 0.2 0.1")
+    parser.add_argument("--clixo", action="store", dest="clixo_bin", required=False, 
+                                    default='~/programs/mhk7-clixo_0.3-a2b23b0/clixo',
+    parser.add_argument("--clixo_alpha", action="store", dest="clixo_alpha", nargs='+', required=False, 
+                                    default=[None],
+                                    help="Clixo Alpha parameter, default = [0]")
+    parser.add_argument("--clixo_beta", action="store", dest="clixo_beta", nargs='+', required=False, 
+                                    default=[None],
+                                    help="Clixo Beta parameter, default = [0.5]")
     parser.add_argument("--mcl", action="store", dest="mcl_bin", required=False, 
                                     default='mcl',
                                     help="Location of mcl binary, default = 'mcl' ")
@@ -83,7 +91,7 @@ def main():
                                     help="Trim final clusters of subunits that do not have an edge that passes the threshold_score, default=False")
     parser.add_argument("--twostep_combination", action="store", dest="twostep_combination", nargs='+', required=False, 
                                     default=['clusterone','mcl'],
-                                    help="Combination of two step clustering, default = [clusterone,mcl], options=[clusterone,mcl,cfinder,agglomod]")
+                                    help="Combination of two step clustering, default = [clusterone,mcl], options=[clusterone,mcl,cfinder,agglomod,clixo]")
     parser.add_argument("--eval_metric", action="store", dest="eval_metric", required=False, default='mmr',
                                     help="Evaluation metric used to determine best set of parameters (mmr, acc, sensitivity, ppv, clique_precision_mean, clique_recall_mean), default=mmr")
     parser.add_argument("--output_all", action="store_true", dest="output_all", required=False, default=False,
@@ -136,6 +144,8 @@ def main():
     fraction_sweep = args.ppi_fraction
     threshold_score_sweep = args.ppi_threshold_score
     inflation_sweep = args.mcl_inflation
+    clixo_alpha_sweep = args.clixo_alpha
+    clixo_beta_sweep = args.clixo_beta
     cliquesize_sweep = args.cfinder_cliquesize
     timeout_sweep = args.cfinder_timeout
 
@@ -147,17 +157,19 @@ def main():
     best_overlap = None
     best_seed_method = None
     best_inflation = None
+    best_clixo_alpha = None
+    best_clixo_beta = None
     best_cliquesize = None
     best_timeout = None
     best_eval = None
 
     p = mp.Pool(args.procs)
     network_input_list = []
-    for ii, parameters  in enumerate(it.product(size_sweep, density_sweep, fraction_sweep, overlap_sweep, seed_method_sweep, inflation_sweep, cliquesize_sweep, timeout_sweep, threshold_score_sweep )):
+    for ii, parameters  in enumerate(it.product(size_sweep, density_sweep, fraction_sweep, overlap_sweep, seed_method_sweep, inflation_sweep, clixo_alpha_sweep, clixo_beta_sweep, cliquesize_sweep, timeout_sweep, threshold_score_sweep )):
         #/print ii, parameters
         sys.stdout.flush()
         #kdrew: unpack parameters
-        size, density, fraction, overlap, seed_method, inflation, cliquesize, timeout, threshold_score = parameters
+        size, density, fraction, overlap, seed_method, inflation, clixo_alpha, clixo_beta, cliquesize, timeout, threshold_score = parameters
         threshold_score = float(threshold_score)
 
         if threshold_score == None:
@@ -194,6 +206,8 @@ def main():
         parameter_dict['fraction'] = str(fraction)
         parameter_dict['threshold_score'] = threshold_score
         parameter_dict['inflation'] = str(inflation)
+        parameter_dict['clixo_alpha'] = str(clixo_alpha)
+        parameter_dict['clixo_beta'] = str(clixo_beta)
         parameter_dict['cliquesize'] = str(cliquesize)
         parameter_dict['timeout'] = str(timeout)
         parameter_dict['twostep_combination'] = args.twostep_combination
@@ -218,13 +232,15 @@ def main():
         fraction = network_input_list[ii]['fraction']
         threshold_score = network_input_list[ii]['threshold_score']
         inflation = network_input_list[ii]['inflation']
+        clixo_alpha = network_input_list[ii]['clixo_alpha']
+        clixo_beta = network_input_list[ii]['clixo_beta']
         timeout = network_input_list[ii]['timeout']
         cliquesize = network_input_list[ii]['cliquesize']
         twostep_combination = network_input_list[ii]['twostep_combination']
         trim2threshold = network_input_list[ii]['trim2threshold']
         nodelete = network_input_list[ii]['nodelete']
 
-        print "ii %s, size %s, density %s, overlap %s, seed_method %s, fraction %s, threshold_score %s, inflation %s, cliquesize %s, timeout %s, twostep_combination: %s, trim2threshold: %s" % (ii, size, density, overlap, seed_method, fraction, threshold_score,  inflation, cliquesize, timeout, str(twostep_combination), str(trim2threshold))
+        print "ii %s, size %s, density %s, overlap %s, seed_method %s, fraction %s, threshold_score %s, inflation %s, clixo_alpha %s, clixo_beta %s, cliquesize %s, timeout %s, twostep_combination: %s, trim2threshold: %s" % (ii, size, density, overlap, seed_method, fraction, threshold_score,  inflation, clixo_alpha, clixo_beta, cliquesize, timeout, str(twostep_combination), str(trim2threshold))
 
 
 
@@ -255,7 +271,7 @@ def main():
             print e
             continue
 
-        print "ii %s, size %s, density %s, overlap %s, seed_method %s, fraction %s, threshold_score %s, inflation %s, cliquesize %s, timeout %s, twostep_combination: %s, trim2threshold: %s, acc %s, sensitivity %s, ppv %s, mmr %s, precision_recall_product %s, clique_precision_mean %s, clique_recall_mean %s, clique_precision_mean_normalize %s, clique_recall_mean_normalize %s, clique_precision_mean_normalize_weighted %s, clique_recall_mean_normalize_weighted %s" % (ii, size, density, overlap, seed_method, fraction, threshold_score,  inflation, cliquesize, timeout, str(twostep_combination), str(trim2threshold), metric_dict['acc'], metric_dict['sensitivity'], metric_dict['ppv'], metric_dict['mmr'], metric_dict['precision_recall_product'], metric_dict['clique_precision_mean'],metric_dict['clique_recall_mean'], metric_dict['clique_precision_mean_normalize'], metric_dict['clique_recall_mean_normalize'], metric_dict['clique_precision_mean_normalize_weighted'], metric_dict['clique_recall_mean_normalize_weighted'])
+        print "ii %s, size %s, density %s, overlap %s, seed_method %s, fraction %s, threshold_score %s, inflation %s, clixo_alpha %s, clixo_beta %s,cliquesize %s, timeout %s, twostep_combination: %s, trim2threshold: %s, acc %s, sensitivity %s, ppv %s, mmr %s, precision_recall_product %s, clique_precision_mean %s, clique_recall_mean %s, clique_precision_mean_normalize %s, clique_recall_mean_normalize %s, clique_precision_mean_normalize_weighted %s, clique_recall_mean_normalize_weighted %s" % (ii, size, density, overlap, seed_method, fraction, threshold_score,  inflation, clixo_alpha, clixo_beta, cliquesize, timeout, str(twostep_combination), str(trim2threshold), metric_dict['acc'], metric_dict['sensitivity'], metric_dict['ppv'], metric_dict['mmr'], metric_dict['precision_recall_product'], metric_dict['clique_precision_mean'],metric_dict['clique_recall_mean'], metric_dict['clique_precision_mean_normalize'], metric_dict['clique_recall_mean_normalize'], metric_dict['clique_precision_mean_normalize_weighted'], metric_dict['clique_recall_mean_normalize_weighted'])
         #sys.stdout.flush()
 
 
@@ -284,6 +300,8 @@ def main():
             parameter_dict['fraction'] = str(fraction)
             parameter_dict['threshold_score'] = threshold_score
             parameter_dict['inflation'] = str(inflation)
+            parameter_dict['clixo_alpha'] = str(clixo_alpha)
+            parameter_dict['clixo_beta'] = str(clixo_beta)
             parameter_dict['timeout'] = str(timeout)
             parameter_dict['cliquesize'] = str(cliquesize)
             parameter_dict['twostep_combination'] = twostep_combination
@@ -298,7 +316,7 @@ def main():
         multiproc_input = [(cluster_prediction, predicted_clusters, bootstrapped_test_networks[i]) for predicted_clusters, i in bootstrapped_cluster_predictions]
         bootstrap_cplx_cmp_metrics = p.map(comparison_helper, multiproc_input) 
         for boot_cmp in bootstrap_cplx_cmp_metrics:
-            print "bootstrapped: ii %s, size %s, density %s, overlap %s, seed_method %s, fraction %s, threshold_score %s, inflation %s, cliquesize %s, timeout %s, twostep_combination %s, trim2threshold: %s,  acc %s, sensitivity %s, ppv %s, mmr %s, ppi_recovered %s, precision_recall_product %s, clique_precision_mean %s, clique_recall_mean %s, clique_precision_mean_normalize %s, clique_recall_mean_normalize %s, clique_precision_mean_normalize_weighted %s, clique_recall_mean_normalize_weighted %s" % (ii, size, density, overlap, seed_method, fraction, threshold_score, inflation, cliquesize, timeout, str(twostep_combination), str(trim2threshold), boot_cmp['acc'], boot_cmp['sensitivity'], boot_cmp['ppv'], boot_cmp['mmr'], boot_cmp['percent_ppi_recovered'], metric_dict['precision_recall_product'], boot_cmp['clique_precision_mean'], boot_cmp['clique_recall_mean'], metric_dict['clique_precision_mean_normalize'], metric_dict['clique_recall_mean_normalize'], metric_dict['clique_precision_mean_normalize_weighted'], metric_dict['clique_recall_mean_normalize_weighted'])
+            print "bootstrapped: ii %s, size %s, density %s, overlap %s, seed_method %s, fraction %s, threshold_score %s, inflation %s, clixo_alpha %s, clixo_beta %s, cliquesize %s, timeout %s, twostep_combination %s, trim2threshold: %s,  acc %s, sensitivity %s, ppv %s, mmr %s, ppi_recovered %s, precision_recall_product %s, clique_precision_mean %s, clique_recall_mean %s, clique_precision_mean_normalize %s, clique_recall_mean_normalize %s, clique_precision_mean_normalize_weighted %s, clique_recall_mean_normalize_weighted %s" % (ii, size, density, overlap, seed_method, fraction, threshold_score, inflation, clixo_alpha, clixo_beta, cliquesize, timeout, str(twostep_combination), str(trim2threshold), boot_cmp['acc'], boot_cmp['sensitivity'], boot_cmp['ppv'], boot_cmp['mmr'], boot_cmp['percent_ppi_recovered'], metric_dict['precision_recall_product'], boot_cmp['clique_precision_mean'], boot_cmp['clique_recall_mean'], metric_dict['clique_precision_mean_normalize'], metric_dict['clique_recall_mean_normalize'], metric_dict['clique_precision_mean_normalize_weighted'], metric_dict['clique_recall_mean_normalize_weighted'])
 
 
         #kdrew: keeping track of the best parameter set
@@ -312,12 +330,14 @@ def main():
             best_fraction = fraction
             best_threshold_score = threshold_score
             best_inflation = inflation
+            best_clixo_alpha = clixo_alpha
+            best_clixo_beta = clixo_beta
             best_cliquesize = cliquesize
             best_timeout = timeout
             best_twostep_combination = twostep_combination
             best_trim2threshold = trim2threshold
             best_cluster_prediction = cluster_prediction
-            print "best ii: %s size: %s density: %s overlap: %s seed_method: %s fraction: %s threshold_score: %s inflation: %s cliquesize: %s timeout: %s twostep_combination: %s, trim2threshold: %s, numOfClusters: %s" % (best_ii, best_size, best_density, best_overlap, best_seed_method, best_fraction, best_threshold_score, best_inflation, best_cliquesize, best_timeout, str(best_twostep_combination), str(trim2threshold), len(best_cluster_prediction))
+            print "best ii: %s size: %s density: %s overlap: %s seed_method: %s fraction: %s threshold_score: %s inflation: %s clixo_alpha: %s, clixo_beta: %s,cliquesize: %s timeout: %s twostep_combination: %s, trim2threshold: %s, numOfClusters: %s" % (best_ii, best_size, best_density, best_overlap, best_seed_method, best_fraction, best_threshold_score, best_inflation, best_clixo_alpha, best_clixo_beta, best_cliquesize, best_timeout, str(best_twostep_combination), str(trim2threshold), len(best_cluster_prediction))
 
 
         #kdrew: output best cluster prediction
@@ -411,6 +431,8 @@ def cluster_helper(parameter_dict):
     fraction = parameter_dict['fraction']
     threshold_score = parameter_dict['threshold_score']
     i = parameter_dict['i']
+    clixo_alpha = parameter_dict['clixo_alpha']
+    clixo_beta = parameter_dict['clixo_beta']
     inflation = parameter_dict['inflation']
     cliquesize = parameter_dict['cliquesize']
     timeout = parameter_dict['timeout']
@@ -471,6 +493,17 @@ def cluster_helper(parameter_dict):
             except (IOError, OSError) as e:
                 print e
 
+        elif twostep_combination[0] = 'clixo':
+            proc = sp.Popen([args.clixo_bin, clixo_alpha, clixo_beta], stdout=sp.PIPE, stderr=sp.PIPE)
+            clust_out, err = proc.communicate()
+            #print clust_out
+            #print err
+
+            predicted_clusters = []
+            for line in clust_out.split('\n'):
+                if "Valid cluster:" in line:
+                    gene_list = line.split()[3]
+                    predicted_clusters.append(gene_list.split(','))
 
     finally:
 	if nodelete:
