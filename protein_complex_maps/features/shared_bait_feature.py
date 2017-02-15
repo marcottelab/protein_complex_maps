@@ -17,7 +17,7 @@ pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
 def pval(k,n,m,N, adhoc=False):
-    logger.info("%s %s %s %s" % (k,n,m,N))
+    #logger.info("%s %s %s %s" % (k,n,m,N))
     pv = 0.0
     for i in range(k,int(min(m,n)+1)):
         #kdrew: use adhoc choose method instead of scipy.misc.comb
