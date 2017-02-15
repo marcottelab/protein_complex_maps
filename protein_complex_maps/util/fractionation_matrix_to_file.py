@@ -1,11 +1,15 @@
 
 import sys
+sys.setrecursionlimit(10000)
 import numpy as np
 import argparse
 import pickle
 import pandas
 import gc
 #from guppy import hpy
+
+from scipy.spatial.distance import pdist
+from scipy.spatial.distance import squareform
 
 import protein_complex_maps.correlation_util as cu
 import protein_complex_maps.protein_util as pu
@@ -29,6 +33,10 @@ def main():
 						help="Filename of output file, default=None which prints to stdout")
 	parser.add_argument("--dataframe", action="store_true", dest="dataframe", required=False, default=False, 
 						help="Flag to output dataframe with row and column names")
+	parser.add_argument("--break2blocks", action="store_true", dest="break2blocks", required=False, default=False, 
+						help="Break up dataset into blocks based on correlation above defined threshold, default = False")
+	parser.add_argument("--blocks_threshold", action="store", type=float, dest="blocks_threshold", required=False, default=0.5, 
+						help="Correlation threshold to break dataset into blocks, default = 0.5")
 	parser.add_argument("--map_name", action="store", dest="map_name", required=False, default=None, 
 						help="Output mapped ids instead of master list ids, default=None")
 	args = parser.parse_args()
@@ -36,11 +44,43 @@ def main():
 	msds = pickle.load( open( args.msds_filename, "rb" ) )
 	print "after msds"
 
+
+
 	if args.proteins != None:
-		data_set, new_id_map = msds.get_subdata_matrix(args.proteins, ignoreNonExistingIds=args.ignore_missing) 
+            data_set, new_id_map = msds.get_subdata_matrix(args.proteins, ignoreNonExistingIds=args.ignore_missing) 
 	else:
-		data_set = msds.get_data_matrix()
-		new_id_map = msds.get_name2index()
+            data_set = msds.get_data_matrix()
+            new_id_map = msds.get_name2index()
+
+        if args.break2blocks:
+            #kdrew: create correlation matrix
+            #cormat = squareform(pdist(data_set, "correlation"))
+            cormat = np.corrcoef(data_set)
+            #kdrew: cluster
+            clusters = []
+            #kdrew: create list of ids to manipulate
+            ids = new_id_map.keys()[:]
+            while len(ids) > 0:
+                #kdrew: generate new data_sets
+                cur_i = ids.pop()
+                #print "cur_i: %s" % cur_i
+                #print "cormat array: %s" % cormat[cur_i]
+                cluster = correlation_indices(cur_i, cormat, args.blocks_threshold, set([cur_i]))
+                print "cluster: %s" % cluster 
+                clusters.append(cluster)
+                for j in cluster:
+                    try:
+                        ids.remove(j)
+                    except ValueError:
+                        continue
+
+            for cluster in clusters:
+                proteins = []
+                for i in cluster:
+                    proteins.append(new_id_map[i])
+                print proteins
+
+                
 
 
 
@@ -64,6 +104,24 @@ def main():
             map_out_handle.write("%s\n" % (new_id_map[i]))
         
 	map_out_handle.close()
+
+def correlation_indices(i, cormat, threshold, processed=set()):
+    #print "correlation_index i: %s" % i
+    cor_ids = np.nonzero( cormat[i] > threshold )
+    #print "cor_ids: %s" % cor_ids
+    cor_ids_return_set= set(cor_ids[0])
+    processed.add(i)
+    if len(cor_ids[0]) > 0:
+        for j in cor_ids[0]:
+            if j not in processed:
+                processed.add(j)
+                #print "j:%s" % j
+                cor_ids_return_set = cor_ids_return_set.union(correlation_indices(j,cormat,threshold, processed))
+
+    cor_ids_return_set.add(i)
+    return cor_ids_return_set 
+    
+    
 
 if __name__ == "__main__":
 	main()
