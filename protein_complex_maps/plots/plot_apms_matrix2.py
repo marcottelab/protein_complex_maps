@@ -39,6 +39,10 @@ def main():
                                             help="List of datasets to convert experiment_ids to genenames")
     parser.add_argument("--baits_in_cluster_only", action="store_true", dest="baits_in_cluster_only", required=False, default=False, 
                                             help="Only show baits present in cluster, default=False")
+    parser.add_argument("--no_xlabels", action="store_true", dest="no_xlabels", required=False, default=False, 
+                                            help="Do not show x labels for each experiment, default=False")
+    parser.add_argument("--stagger", action="store_true", dest="stagger", required=False, default=False, 
+                                            help="Stagger y labels for each experiment, default=False")
     parser.add_argument("--clustering_metric", action="store", dest="clustering_metric", required=False, default='correlation', 
                                             help="Clustering metric, default=correlation")
 
@@ -82,23 +86,40 @@ def main():
         clusters_df_merge.set_index('id', inplace=True)
 
 
+        df_list = []
         for ds in args.map_datasets:
+            #print "ds: %s\n" % ds
             #kdrew: for each inputted dataset, merge mapping
             clusters_df_exp_merge = clusters_df[(clusters_df.dataset == ds)].merge(mapping_df, how="left", left_on="experiment_id", right_on="geneid_map")
 
             clusters_df_exp_merge = clusters_df_exp_merge[['id','genename']].drop_duplicates()
             #kdrew: set id to be index for updating full matrix
             clusters_df_exp_merge.set_index('id', inplace=True)
-            #kdrew: update experiment_id in full matrix to be genename
-            clusters_df_merge['experiment_id'].update(clusters_df_exp_merge['genename'])
 
+            #kdrew: slice out current dataset
+            clusters_df_merge_ds = clusters_df_merge[clusters_df_merge['dataset'] == ds]
+            #kdrew: update experiment_id in full matrix to be genename
+            clusters_df_merge_ds['experiment_id'].update(clusters_df_exp_merge['genename'])
+            pd.set_option('display.max_rows', len(clusters_df_exp_merge))
+            #print clusters_df_merge_ds
+            pd.reset_option('display.max_rows')
+            df_list.append(clusters_df_merge_ds)
+
+        #kdrew: recombine individual datasets
+        clusters_df_merge = pd.concat(df_list)
+
+        #pd.set_option('display.max_rows', len(clusters_df_merge))
+        #pd.set_option('display.max_columns', 500)
+        #print clusters_df_merge
+        #pd.reset_option('display.max_rows')
+        #pd.reset_option('display.max_columns')
         #kdrew: make pivot with genename as index
         clusters_pivot = pd.pivot_table(clusters_df_merge, values='abundance',rows=['clusterid','genename'],cols=['dataset','experiment_id'])
 
     else:
         clusters_pivot = pd.pivot_table(clusters_df, values='abundance',rows=['clusterid','geneid'],cols=['dataset','experiment_id'])
 
-    sns.set_context("paper", font_scale=0.6, rc={"lines.linewidth": 2.5})
+    sns.set_context("paper", font_scale=0.4, rc={"lines.linewidth": 2.5})
 
     #kdrew: create linkage matrix outside of clustermap, didn't seem to work as expected, clustering was off 
     #row_linkage, col_linkage = (hc.linkage(sp.distance.pdist(x), method='single') for x in (clusters_pivot.values, clusters_pivot.values.T))
@@ -113,7 +134,8 @@ def main():
 
     #kdrew: setup colors for rows and columns based on clusterid and dataset respectively
     #current_palette = sns.color_palette("Paired")
-    current_palette = sns.color_palette(['#d6604d','#fddbc7','#d1e5f0','#4393c3','#053061'])
+    #current_palette = sns.color_palette(['#d6604d','#fddbc7','#d1e5f0','#4393c3','#053061'])
+    current_palette = sns.color_palette(['#da534a','#58a5a7','#dbb429','#4393c3','#053061'])
 
     if len(args.map_datasets) > 0:
         col_colors = [current_palette[args.map_datasets.index(x[0])] for x in clusters_pivot.T.index]
@@ -121,7 +143,8 @@ def main():
         col_colors = [current_palette[i] for i, x in enumerate(clusters_pivot.T.index)]
 
     #clusters_palette = sns.color_palette("Paired")
-    clusters_palette = sns.color_palette(['#67001f','#d6604d','#fddbc7','#d1e5f0','#4393c3'])
+    #clusters_palette = sns.color_palette(['#67001f','#d6604d','#fddbc7','#d1e5f0','#4393c3'])
+    clusters_palette = sns.color_palette(['#d1e5f0'])
 
     row_colors = [clusters_palette[-1*(1+args.cluster_ids.index(x[0]))] for x in clusters_pivot.index]
 
@@ -129,24 +152,30 @@ def main():
     #cmap = sns.cubehelix_palette(as_cmap=True)
 
     #kdrew: plot clustermap
-    cm = sns.clustermap(clusters_pivot, col_cluster=False, cmap=cmap, col_colors=col_colors, row_colors=row_colors, row_cluster=True, cbar_kws={"label": "Percentile"}, metric=args.clustering_metric, figsize=(20, 7))
+    cm = sns.clustermap(clusters_pivot, col_cluster=False, cmap=cmap, col_colors=col_colors, row_colors=row_colors, row_cluster=True, cbar_kws={"label": "Rank Percentile"}, metric=args.clustering_metric, figsize=(20, 7))
 
     #kdrew: setup legend for colors on rows (cluster ids) and columns (datasets)
     for i, clusterid in enumerate(args.cluster_ids):
             cm.ax_row_dendrogram.bar(0, 0, color=clusters_palette[-1*(1+i)],
                                                 label=clusterid, linewidth=0)
-            cm.ax_row_dendrogram.legend(loc="center left", ncol=1, fontsize=10)
+            cm.ax_row_dendrogram.legend(loc="center left", ncol=1, fontsize=6)
 
     for i, dataset in enumerate(args.map_datasets):
             cm.ax_col_dendrogram.bar(0, 0, color=current_palette[i],
                                                 label=dataset, linewidth=0)
-            cm.ax_col_dendrogram.legend(loc="lower center", ncol=1, fontsize=10)
+            cm.ax_col_dendrogram.legend(loc="lower center", ncol=1, fontsize=6)
 
 
     #kdrew: relabel rows
     ylabels = [y.get_text().split('-')[1] for y in cm.ax_heatmap.yaxis.get_majorticklabels()]
     cm.ax_heatmap.set_yticklabels(ylabels)
-    plt.setp(cm.ax_heatmap.get_yticklabels(), fontsize=10)
+    plt.setp(cm.ax_heatmap.get_yticklabels(), fontsize=6)
+    cm.ax_heatmap.yaxis.tick_left()
+
+    print "####"
+    for x in cm.ax_heatmap.xaxis.get_majorticklabels():
+        print x.get_text() 
+    print "####"
 
     #kdrew: relabel columns
     xlabels = [x.get_text().split('-')[1] for x in cm.ax_heatmap.xaxis.get_majorticklabels()]
@@ -154,8 +183,56 @@ def main():
     #kdrew: only show labels for baits that were also in clusters
     if args.baits_in_cluster_only:
         xlabels = [x if x in ylabels else ' ' for x in xlabels]
-    cm.ax_heatmap.set_xticklabels(xlabels)
-    plt.setp(cm.ax_heatmap.get_xticklabels(), fontsize=10)
+
+    #kdrew: getting super hacky here
+    #kdrew: for small number of experiments the columns are large so there is no overlap of labels 
+    #kdrew: but requires staggering if number of experiments grows large (picking 100 was a guess)
+    if len(xlabels) < 100:
+        labels_in_row_threshold  = 0
+    else:
+        labels_in_row_threshold = 6
+
+    #kdrew: for small clusters (<5 subunits), use small initial offset (keeps xlabels close to plot), otherwise make larger offset so labels don't overlap plot
+    if len(ylabels) < 5:
+        initial_offset = -0.1
+    else:
+        initial_offset = -1.0
+
+    if not args.no_xlabels:
+        if args.stagger:
+            #kdrew: annotate column labels 
+            #kdrew: stagger moves the text lower
+            #kdrew: empties_in_row keeps track of when to move labels back closer to start label position
+            stagger = 0
+            empties_in_row = 0
+            labels_in_row = 0
+            for i,x in enumerate(cm.ax_heatmap.xaxis.get_majorticklocs()):
+                #print "stagger, empties, labels"
+                #print stagger
+                #print empties_in_row
+                #print labels_in_row
+                if xlabels[i] != ' ':
+                    empties_in_row = 0
+                    #cm.ax_heatmap.annotate(xlabels[i], xy=(x, 0), xytext=(x, -0.5-stagger), rotation=90, fontsize=4,)
+                    cm.ax_heatmap.annotate(xlabels[i], xy=(x, 0), xytext=(x, initial_offset-stagger), rotation=90, fontsize=4,)
+                            #arrowprops=dict(facecolor='black', width=0.25, headwidth=0.5, shrink=0.05),)
+                    stagger+= 1+.1*len(xlabels[i])
+                    labels_in_row+=1
+
+                    #kdrew: reset labels in row
+                    if labels_in_row > labels_in_row_threshold:
+                        stagger = 0
+                        labels_in_row = 0
+
+                else:
+                    labels_in_row = 0
+                    empties_in_row+=1
+                    if empties_in_row > 4:
+                        stagger = 0
+            cm.ax_heatmap.set_xticklabels([' ' for x in xlabels])
+        else:
+            cm.ax_heatmap.set_xticklabels(xlabels)
+            plt.setp(cm.ax_heatmap.get_xticklabels(), fontsize=2)
 
     #kdrew: remove labels on clustermap axes
     cm.ax_heatmap.set_xlabel('')
@@ -167,7 +244,7 @@ def main():
         print "plot_filename is None"
         plt.show()
     else:
-        plt.savefig(args.plot_filename)
+        plt.savefig(args.plot_filename, dpi=300)
 
 
 if __name__ == "__main__":
