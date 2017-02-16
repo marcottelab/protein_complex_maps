@@ -119,7 +119,7 @@ def main():
     else:
         clusters_pivot = pd.pivot_table(clusters_df, values='abundance',rows=['clusterid','geneid'],cols=['dataset','experiment_id'])
 
-    sns.set_context("paper", font_scale=0.4, rc={"lines.linewidth": 2.5})
+    #sns.set_context("paper", font_scale=1.0, rc={"lines.linewidth": 2.5})
 
     #kdrew: create linkage matrix outside of clustermap, didn't seem to work as expected, clustering was off 
     #row_linkage, col_linkage = (hc.linkage(sp.distance.pdist(x), method='single') for x in (clusters_pivot.values, clusters_pivot.values.T))
@@ -152,24 +152,28 @@ def main():
     #cmap = sns.cubehelix_palette(as_cmap=True)
 
     #kdrew: plot clustermap
-    cm = sns.clustermap(clusters_pivot, col_cluster=False, cmap=cmap, col_colors=col_colors, row_colors=row_colors, row_cluster=True, cbar_kws={"label": "Rank Percentile"}, metric=args.clustering_metric, figsize=(20, 7))
+    cm = sns.clustermap(clusters_pivot, col_cluster=False, cmap=cmap, col_colors=col_colors, row_colors=row_colors, row_cluster=True, cbar_kws={"label": "Rank Percentile"}, metric=args.clustering_metric, figsize=(20, 10))
+    #cm = sns.clustermap(clusters_pivot, col_cluster=False, cmap=cmap, col_colors=col_colors, row_colors=row_colors, row_cluster=True, cbar_kws={"label": "Rank Percentile"}, metric=args.clustering_metric, figsize=(len(clusters_pivot.columns)/10,len(clusters_pivot.index))) 
+    #cm = sns.clustermap(clusters_pivot, col_cluster=False, cmap=cmap, col_colors=col_colors, row_colors=row_colors, row_cluster=True, cbar_kws={"label": "Rank Percentile"}, metric=args.clustering_metric)
 
     #kdrew: setup legend for colors on rows (cluster ids) and columns (datasets)
     for i, clusterid in enumerate(args.cluster_ids):
             cm.ax_row_dendrogram.bar(0, 0, color=clusters_palette[-1*(1+i)],
                                                 label=clusterid, linewidth=0)
-            cm.ax_row_dendrogram.legend(loc="center left", ncol=1, fontsize=6)
+            cm.ax_row_dendrogram.legend(loc="center left", ncol=1, fontsize=10)
 
     for i, dataset in enumerate(args.map_datasets):
             cm.ax_col_dendrogram.bar(0, 0, color=current_palette[i],
                                                 label=dataset, linewidth=0)
-            cm.ax_col_dendrogram.legend(loc="lower center", ncol=1, fontsize=6)
+            cm.ax_col_dendrogram.legend(loc="lower center", ncol=1, fontsize=10)
 
 
     #kdrew: relabel rows
     ylabels = [y.get_text().split('-')[1] for y in cm.ax_heatmap.yaxis.get_majorticklabels()]
     cm.ax_heatmap.set_yticklabels(ylabels)
-    plt.setp(cm.ax_heatmap.get_yticklabels(), fontsize=6)
+    plt.setp(cm.ax_heatmap.get_yticklabels(), fontsize=8)
+    #kdrew: some reasons this doesn't work
+    plt.setp(cm.ax_heatmap.get_yticklabels(), rotation=0)
     cm.ax_heatmap.yaxis.tick_left()
 
     print "####"
@@ -183,6 +187,8 @@ def main():
     #kdrew: only show labels for baits that were also in clusters
     if args.baits_in_cluster_only:
         xlabels = [x if x in ylabels else ' ' for x in xlabels]
+    if args.no_xlabels:
+        xlabels = [' ' for x in xlabels]
 
     #kdrew: getting super hacky here
     #kdrew: for small number of experiments the columns are large so there is no overlap of labels 
@@ -198,53 +204,53 @@ def main():
     else:
         initial_offset = -1.0
 
-    if not args.no_xlabels:
-        if args.stagger:
-            #kdrew: annotate column labels 
-            #kdrew: stagger moves the text lower
-            #kdrew: empties_in_row keeps track of when to move labels back closer to start label position
-            stagger = 0
-            empties_in_row = 0
-            labels_in_row = 0
-            for i,x in enumerate(cm.ax_heatmap.xaxis.get_majorticklocs()):
-                #print "stagger, empties, labels"
-                #print stagger
-                #print empties_in_row
-                #print labels_in_row
-                if xlabels[i] != ' ':
-                    empties_in_row = 0
-                    #cm.ax_heatmap.annotate(xlabels[i], xy=(x, 0), xytext=(x, -0.5-stagger), rotation=90, fontsize=4,)
-                    cm.ax_heatmap.annotate(xlabels[i], xy=(x, 0), xytext=(x, initial_offset-stagger), rotation=90, fontsize=4,)
-                            #arrowprops=dict(facecolor='black', width=0.25, headwidth=0.5, shrink=0.05),)
-                    stagger+= 1+.1*len(xlabels[i])
-                    labels_in_row+=1
+    if args.stagger:
+        #kdrew: annotate column labels 
+        #kdrew: stagger moves the text lower
+        #kdrew: empties_in_row keeps track of when to move labels back closer to start label position
+        stagger = 0
+        empties_in_row = 0
+        labels_in_row = 0
+        for i,x in enumerate(cm.ax_heatmap.xaxis.get_majorticklocs()):
+            #print "stagger, empties, labels"
+            #print stagger
+            #print empties_in_row
+            #print labels_in_row
+            if xlabels[i] != ' ':
+                empties_in_row = 0
+                #cm.ax_heatmap.annotate(xlabels[i], xy=(x, 0), xytext=(x, -0.5-stagger), rotation=90, fontsize=4,)
+                cm.ax_heatmap.annotate(xlabels[i], xy=(x, 0), xytext=(x, initial_offset-stagger), rotation=90, fontsize=10,)
+                        #arrowprops=dict(facecolor='black', width=0.25, headwidth=0.5, shrink=0.05),)
+                stagger+= 1+.1*len(xlabels[i])
+                labels_in_row+=1
 
-                    #kdrew: reset labels in row
-                    if labels_in_row > labels_in_row_threshold:
-                        stagger = 0
-                        labels_in_row = 0
-
-                else:
+                #kdrew: reset labels in row
+                if labels_in_row > labels_in_row_threshold:
+                    stagger = 0
                     labels_in_row = 0
-                    empties_in_row+=1
-                    if empties_in_row > 4:
-                        stagger = 0
-            cm.ax_heatmap.set_xticklabels([' ' for x in xlabels])
-        else:
-            cm.ax_heatmap.set_xticklabels(xlabels)
-            plt.setp(cm.ax_heatmap.get_xticklabels(), fontsize=2)
+
+            else:
+                labels_in_row = 0
+                empties_in_row+=1
+                if empties_in_row > 4:
+                    stagger = 0
+        cm.ax_heatmap.set_xticklabels([' ' for x in xlabels])
+    else:
+        cm.ax_heatmap.set_xticklabels(xlabels)
+        plt.setp(cm.ax_heatmap.get_xticklabels(), fontsize=10)
 
     #kdrew: remove labels on clustermap axes
     cm.ax_heatmap.set_xlabel('')
     cm.ax_heatmap.set_ylabel('')
 
-    plt.gcf().subplots_adjust(bottom=0.45)
+    #plt.gcf().subplots_adjust(bottom=0.45)
 
     if args.plot_filename is None:
         print "plot_filename is None"
         plt.show()
     else:
-        plt.savefig(args.plot_filename, dpi=300)
+        #plt.savefig(args.plot_filename, dpi=300)
+        cm.savefig(args.plot_filename, dpi=300)
 
 
 if __name__ == "__main__":
