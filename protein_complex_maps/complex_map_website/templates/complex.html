@@ -33,7 +33,6 @@
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 
-
   </head>
 
   <body role="document">
@@ -138,6 +137,7 @@
         </tbody>
     </table>
 </div>
+
 <br>
 <br>
 <a href="#Enrichments" class="btn btn-default" data-toggle="collapse">Enrichments</a>
@@ -173,6 +173,7 @@
         </tbody>
     </table>
 </div>
+
 <br>
 <br>
 <a href="#Edges" class="btn btn-default" data-toggle="collapse">Edges</a>
@@ -183,7 +184,14 @@
             <th>Protein 1 </th>
             <th>Protein 2 </th>
             <th>Score </th>
-            <th>Evidence </th>
+            <th>Evidence <button class="btn btn-default btn-xs" onclick="evidenceFunction()">?</button>
+            <script>
+                function evidenceFunction() {
+                    alert("Edge Evidence Key\n\nbioplex = bait-prey relationship in Bioplex\n\nhein = bait-prey relationship in Hein et al.\n\nbioplex_prey = prey-prey relationship in Bioplex\n\nhein_prey = prey-prey relationship in Hein et al.\n\nfraction = co-elution relationship in Wan et al.\n ");
+                }
+            </script>                                                    
+            </th>
+
         </tr>
         </thead>
         <tbody>
@@ -206,6 +214,7 @@
         </tbody>
     </table>
 </div>
+
 <br>
 <br>
 <a href="#Images" class="btn btn-default" data-toggle="collapse">Images</a>
