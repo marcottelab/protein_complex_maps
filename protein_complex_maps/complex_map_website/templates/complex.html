@@ -79,7 +79,7 @@
       <div class="theme">
         <h1>hu.MAP: Complex View</h1>
         <p> 
-            A Definitive Human Protein Complex Map
+            Human Protein Complex Map
         </p>
       </div>
 
@@ -187,7 +187,7 @@
             <th>Evidence <button class="btn btn-default btn-xs" onclick="evidenceFunction()">?</button>
             <script>
                 function evidenceFunction() {
-                    alert("Edge Evidence Key\n\nbioplex = bait-prey relationship in Bioplex\n\nhein = bait-prey relationship in Hein et al.\n\nbioplex_prey = prey-prey relationship in Bioplex\n\nhein_prey = prey-prey relationship in Hein et al.\n\nfraction = co-elution relationship in Wan et al.\n ");
+                    alert("Edge Evidence Key\n\nbioplex = bait-prey relationship in Bioplex, bait(s) in parentheses\n\nhein = bait-prey relationship in Hein et al., bait(s) in parentheses\n\nbioplex_prey = prey-prey relationship in Bioplex\n\nhein_prey = prey-prey relationship in Hein et al.\n\nfraction = co-elution relationship in Wan et al.\n\nNote: Evidence listed does not necessiarily mean positive evidence but rather only means there is data for this particular pair of proteins");
                 }
             </script>                                                    
             </th>
@@ -219,6 +219,13 @@
 <br>
 <a href="#Images" class="btn btn-default" data-toggle="collapse">Images</a>
 <div id="Images" class="collapse">
+<br>
+    <button class="btn btn-default btn-xs" onclick="imageFunction()">?</button>
+    <script>
+    function imageFunction() {
+    alert("ClusterMap shows raw data support across available experiments for given complex.\n\nPercentile Rank scores were calculated based on Bioplex zscore, Hein prey.bait.correlation and Wan spectral counts.\n\nOnly experiments for which one or more of the subunits are present are displayed");
+    }
+    </script>                                                    
 <br>
 Click to enlarge
 <br>
