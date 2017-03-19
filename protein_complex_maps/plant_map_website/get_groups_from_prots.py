@@ -9,10 +9,13 @@ def get_groups(input_list, conversion_tbl):
 
     
     for ID in input_list:
+        print ID
         output = conversion_tbl[conversion_tbl['ProteinID'].str.contains(ID)]
         groupID = output['ID'].tolist()[0]
+        print groupID
         groups.append(groupID)
-    
+
+    print(groups)  
     return groups    
 
 

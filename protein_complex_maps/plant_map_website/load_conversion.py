@@ -14,7 +14,7 @@ def main():
     parser = argparse.ArgumentParser(description="Loads a conversion table")
 
     parser.add_argument("--conversion_file", action="store", dest="conversion_file", required=True,
-                                    help="Four column tab-separated table of genename, proteinname, gene_id, uniprot_acc")
+                                    help="At least 3 column tab-separated file of eggnogID Species ProteinID")
 
 
 
@@ -37,16 +37,14 @@ def main():
             print count
         count = count + 1    
         #if 'complex:' i        #print line
-        split_line = line.split(',')
-        genename = split_line[0]
-        proteinname = split_line[1]
-        gene_id = split_line[2]
-        uniprot_acc = split_line[3].strip()
+        split_line = line.split('\t')
+        GroupID = split_line[0]
+        Species = split_line[1]
+        ProteinID = split_line[2].strip("\n")
         convert = cdb.get_or_create(db, cdb.Conversion,
-                                        genename = genename,
-                                        proteinname = proteinname,
-                                        gene_id = gene_id,
-                                        uniprot_acc = uniprot_acc,
+                                        GroupID = GroupID,
+                                        Species = Species,
+                                        ProteinID = ProteinID,
                                         )
         db.session.add(convert)
         db.session.commit()

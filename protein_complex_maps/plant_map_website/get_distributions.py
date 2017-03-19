@@ -2,11 +2,12 @@ import pandas as pd
 import logging
 import matplotlib.pyplot as plt
 import seaborn as sns
-import protein_complex_maps.complex_map_website.complex_db as cdb
+import complex_db as cdb
+#import GroupID_complex_maps.complex_map_website.complex_db as cdb
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy import func, or_
 import argparse
-
+from get_groups_from_prots import get_groups
 
 db = cdb.get_db()
 #app = cdb.get_app()
@@ -25,25 +26,60 @@ def make_data_frame(query, columns):
     return pd.DataFrame([make_row(x) for x in query])
 
 
-def get_protein_interactions(bait):
+def annotate_nodes(nodes, annots, bait, df_all_prots):
+     '''bait in terms of euNOG
+     '''
+     print "starting annotate_nodes"
+     #nodes = nodes.set_index(['GroupID'])
+     annots = annots.set_index(['GroupID'])
+     #bait_series = pd.Series(bait)
+
+     bait_df = pd.DataFrame(True, index=bait, columns = ['Bait'])
+     print(bait_df)
+
+     nodes_tmp = nodes.join(annots, how='left')
+     print "first nodes_tmp"
+     print nodes_tmp
+     nodes_tmp = nodes_tmp.join(bait_df, how='left')
+     print "second one"
+     print nodes_tmp
+     nodes_scores = nodes_tmp.join(df_all_prots, how='outer', rsuffix="bla")
+     print "df_all_prots"
+     print(df_all_prots)
+     nodes_scores.index.name = 'GroupID'
+     nodes_scores = nodes_scores.reset_index()
+     #print(nodes_scores)
+     nodes_mean = nodes_scores.groupby(['GroupID'])['score'].mean()
+     nodes_annotated =nodes_tmp.join(nodes_mean, how="left")
+     nodes_annotated = nodes_annotated.sort_values(['Degree', 'score'], ascending=[False, False])
+     nodes_annotated = nodes_annotated.drop_duplicates()
+     nodes_annotated['score'][nodes_annotated.Bait == True] = "-"
+     nodes_annotated['Bait'][nodes_annotated.Bait != True] = "-"
+
+     #print(nodes_annotated)
+     return nodes_annotated
+
+
+
+def get_GroupID_interactions(bait):
     '''
     This query takes a list of bait IDs in a 'known' complex and finds protins which fit in with them
     '''
     #print(bait)
     try:
           
-        bg_interactions = db.session.query(cdb.Edge).filter((cdb.Edge.protein_key2.in_(bait) | cdb.Edge.protein_key.in_(bait))).all()
-        bg_query  =  make_data_frame(bg_interactions, ['protein_key', 'protein_key2', 'in_complex', 'score'])
+        bg_interactions = db.session.query(cdb.Edge).filter((cdb.Edge.GroupID_key2.in_(bait) | cdb.Edge.GroupID_key.in_(bait))).all()
+        bg_query  =  make_data_frame(bg_interactions, ['GroupID_key', 'GroupID_key2', 'in_complex', 'score'])
         #print("pull down")
-        #print(bg_query)
+        print(bg_query)
 
         #print("median score from query", bg_query['score'].median())
 
-        #print("each protein median correlation")
-        all_prots = pd.concat([bg_query[['protein_key', 'score']], bg_query[['protein_key2', 'score']]])
-        all_prots['protein_key'] = all_prots['protein_key'].fillna(all_prots['protein_key2'])
+        #print("each GroupID median correlation")
+        all_prots = pd.concat([bg_query[['GroupID_key', 'score']], bg_query[['GroupID_key2', 'score']]])
+        all_prots['GroupID_key'] = all_prots['GroupID_key'].fillna(all_prots['GroupID_key2'])
         #print(all_prots)
-        df_all_prots = pd.DataFrame(bg_query.groupby(['protein_key'])['score'].median()).sort_values(by='score', ascending=False)
+        df_all_prots = pd.DataFrame(bg_query.groupby(['GroupID_key'])['score'].median()).sort_values(by='score', ascending=False)
         #print(df_all_prots)
         return(df_all_prots)
 
@@ -52,15 +88,15 @@ def get_protein_interactions(bait):
      
 def get_baitbait_interactions(bait):
     '''
-    Find interactions between input bait complex proteins
+    Find interactions between input bait complex GroupIDs
     '''
     try:
         
-        bait_interactions = db.session.query(cdb.Edge).filter(cdb.Edge.protein_key2.in_(bait), cdb.Edge.protein_key.in_(bait)).all()
-
-        bait_query  =  make_data_frame(bait_interactions, ['protein_key', 'protein_key2', 'in_complex', 'score'])
+        bait_interactions = db.session.query(cdb.Edge).filter(cdb.Edge.GroupID_key2.in_(bait), cdb.Edge.GroupID_key.in_(bait)).all()
+        print bait_interactions
+        bait_query  =  make_data_frame(bait_interactions, ['GroupID_key', 'GroupID_key2', 'in_complex', 'score'])
         #print("interactions among baits")
-        #print(bait_query)
+        print(bait_query)
 
         bait_median  = bait_query['score'].median()
         bait_std  = bait_query['score'].std()
@@ -82,18 +118,18 @@ def annotate_baitbait(bait_query, df_predicted):
         '''
         print("annotating bait_query")
         bait_query['bait_bait'] = True
-        bait_query_annot = bait_query[['bait_bait', 'protein_key','protein_key2', 'score']]
+        bait_query_annot = bait_query[['bait_bait', 'GroupID_key','GroupID_key2', 'score']]
         print(bait_query_annot)
-        bait_query_annot = bait_query_annot.set_index(['protein_key', 'protein_key2', 'score'])
+        bait_query_annot = bait_query_annot.set_index(['GroupID_key', 'GroupID_key2', 'score'])
 
-        df_predicted = df_predicted.set_index(['protein_key', 'protein_key2', 'score'])
+        df_predicted = df_predicted.set_index(['GroupID_key', 'GroupID_key2', 'score'])
 
         baitbait_annotated = df_predicted.join(bait_query_annot, how="outer")
         baitbait_annotated = baitbait_annotated.reset_index()
         print(baitbait_annotated)
         return baitbait_annotated
 
-def predict_complex_members(lower_one_std_bound, df_all_prots):
+def predict_complex_members(bait, lower_one_std_bound, df_all_prots):
         '''
         Get interactions with score above median- 1 std of bait-bait interactions
         '''
@@ -107,18 +143,18 @@ def predict_complex_members(lower_one_std_bound, df_all_prots):
         pooled_interactions = bait + annots 
         print(pooled_interactions)
 
-        final_interactions = db.session.query(cdb.Edge).filter(cdb.Edge.protein_key2.in_(pooled_interactions), cdb.Edge.protein_key.in_(pooled_interactions)).all()
+        final_interactions = db.session.query(cdb.Edge).filter(cdb.Edge.GroupID_key2.in_(pooled_interactions), cdb.Edge.GroupID_key.in_(pooled_interactions)).all()
       
-        pd_total= make_data_frame(final_interactions,  ['protein_key', 'protein_key2', 'in_complex', 'score'])
+        pd_total= make_data_frame(final_interactions,  ['GroupID_key', 'GroupID_key2', 'in_complex', 'score'])
         print(pd_total)
         #df_predicted = pd_total[pd_total.values in bait]
         #print(df_predicted)
 
 
         #Get high scoring interactions
-        final_interactions = db.session.query(cdb.Edge).filter(cdb.Edge.protein_key2.in_(bait) | cdb.Edge.protein_key.in_(bait)). filter(cdb.Edge.score >= lower_one_std_bound).all()
+        final_interactions = db.session.query(cdb.Edge).filter(cdb.Edge.GroupID_key2.in_(bait) | cdb.Edge.GroupID_key.in_(bait)). filter(cdb.Edge.score >= lower_one_std_bound).all()
 
-        df_predicted= make_data_frame(final_interactions,  ['protein_key', 'protein_key2', 'in_complex', 'score'])
+        df_predicted= make_data_frame(final_interactions,  ['GroupID_key', 'GroupID_key2', 'in_complex', 'score'])
         print(df_predicted)
         print(bait)
         return df_predicted
@@ -127,49 +163,48 @@ def make_annots():
 
 
      annotation_query = db.session.query(cdb.Conversion).all()
-     annots = make_data_frame(annotation_query, ['genename', 'proteinname', 'gene_id', 'uniprot_acc'])
+     annots = make_data_frame(annotation_query, ['GroupID', 'ProteinID', 'Species'])
      annots = annots.convert_objects(convert_numeric=True)
 
-     annots = annots[~annots['gene_id'].isnull()]
+     #Maybe not needed
+     #annots = annots[~annots['gene_id'].isnull()]
      return annots
 
-def annotate_table(baitbait_annotated, annots):
+def annotate_table(baitbait_annotated):
 
         '''
         So, database held in SQL. Pandas for working with it
         SQLalchemy output needs to be parsed into table after join
         Too much hassle
         '''
-       
-        print(annots['gene_id'])
+        eggnog_annots = pd.read_csv("all_annotations.csv")      
 
-        #cdm Can also choose proteinname, uniprot_acc
-        annots = annots[['gene_id', 'genename']]
-        print(annots['gene_id'].dtype) 
-        #cdm gene_id = Entrez gene id
-        annots= annots.set_index(['gene_id'])
+        eggnog_annots = eggnog_annots[['GroupID', 'Annotation']]
+        eggnog_annots= eggnog_annots.set_index(['GroupID'])
         #cdm Index column needs to match target
-        annots.index.names =["protein_key"]
-        print(annots)
-        print(baitbait_annotated['protein_key'].dtype) 
-        baitbait_annotated = baitbait_annotated.set_index(['protein_key'])
+        eggnog_annots.index.names =["GroupID_key"]
+        print(eggnog_annots)
+        print(baitbait_annotated['GroupID_key'].dtype) 
+        baitbait_annotated = baitbait_annotated.set_index(['GroupID_key'])
         print(baitbait_annotated)
     
-        protein_key1_annot = baitbait_annotated.join(annots, how="left")
-        protein_key1_annot = protein_key1_annot.reset_index()
-        print(protein_key1_annot) 
+        GroupID_key1_annot = baitbait_annotated.join(eggnog_annots, how="left")
+        GroupID_key1_annot = GroupID_key1_annot.reset_index()
+        print(GroupID_key1_annot) 
         #cdm Same thing for the second interaction partner
-        protein_key1_annot = protein_key1_annot.set_index(['protein_key2'])
+        GroupID_key1_annot = GroupID_key1_annot.set_index(['GroupID_key2'])
         print("start pandas")
 
-        annots.index.names = ['protein_key2']
-        protein_key2_annot = protein_key1_annot.join(annots, how = "left", rsuffix="2")
-        protein_key2_annot = protein_key2_annot.reset_index()
+        eggnog_annots.index.names = ['GroupID_key2']
+        GroupID_key2_annot = GroupID_key1_annot.join(eggnog_annots, how = "left", rsuffix="2")
+        GroupID_key2_annot = GroupID_key2_annot.reset_index()
  
         #cdm Order columns
-        final_annotated = protein_key2_annot[['score','genename','genename2', 'protein_key', 'protein_key2', 'bait_bait']]
+        final_annotated = GroupID_key2_annot[['score','Annotation','Annotation2', 'GroupID_key', 'GroupID_key2', 'bait_bait']]
        
         final_annotated = final_annotated.sort_values(by='score', ascending = False)
+        final_annotated['bait_bait'][final_annotated.bait_bait != True] = "-"
+
         return final_annotated
 
 def load_args():
@@ -180,9 +215,10 @@ def load_args():
     #print enrichmenti
    parser = argparse.ArgumentParser(description="Adds positive and negative labels to feature matrix")
    parser.add_argument("--bait_complex", action="store", dest="bait", required=True, 
-                  help="A space separating string of geneIDs to use as a bait complex")
+                  help="A space separating string of ids to use as a bait complex")
    parser.add_argument("--format", action="store", dest="id_format", required=True, 
-                  help="gene_id, genename, or uniprot_acc")
+                  help="groupid")
+
    parser.add_argument("--logname", action="store", dest="logname", required=False, default='shared_bait_feature.log',
                                     help="filename for logging, default=shared_bait_feature.log")
 
@@ -192,10 +228,10 @@ def load_args():
 def run_process(bait, annots):
 
  
-    #Get all interactions containing at least one bait protein
-    df_all_prots = get_protein_interactions(bait)
+    #Get all interactions containing at least one bait GroupID
+    df_all_prots = get_GroupID_interactions(bait)
 
-    #Get all interactions between two bait proteins
+    #Get all interactions between two bait GroupIDs
     bait_query = get_baitbait_interactions(bait)[0]
 
 
@@ -208,15 +244,15 @@ def run_process(bait, annots):
     lower_one_std_bound = get_baitbait_interactions(bait)[1]
 
     #Predict interactions above lower score limit for predictions
-    df_predicted = predict_complex_members(lower_one_std_bound, df_all_prots)
+    df_predicted = predict_complex_members(bait, lower_one_std_bound, df_all_prots)
 
     #Annotate all interactions by whether they are bait-bait
     baitbait_annotated = annotate_baitbait(bait_query, df_predicted)
     #Annotate final table with genenames
-    final_annotated = annotate_table(baitbait_annotated, annots)
+    #Change to this annotate with some other property
+    final_annotated = annotate_table(baitbait_annotated)
 
-
-    return final_annotated
+    return final_annotated, df_all_prots
   
 def sampling_process(bait):
     print(bait)
@@ -240,17 +276,17 @@ def sampling_process(bait):
           print("and an arrow point to where input dist is")
   
 
-    total_int = get_protein_interactions(bait) 
+    total_int = get_GroupID_interactions(bait) 
     print(len(total_int.index))
     trimlist = []
     #full_query = len(bait_query.index)
     #print(len(bait_query.index))
     for index in range(len(bait)):
         #Not using pop because not deleting item permanently
-        print("gene ID", bait[index])
+        print("GroupID", bait[index])
         bait_subset = bait[:index] + bait[index+1 :]
         #print(bait_subset)
-        samp_total_int = get_protein_interactions(bait_subset) 
+        samp_total_int = get_GroupID_interactions(bait_subset) 
         lost =len(samp_total_int.index)
         #print(lost, len(total_int.index))
         prop_02_interactions = 1 - float(lost)/len(total_int.index)
@@ -307,95 +343,29 @@ if __name__ == "__main__":
     args = load_args()
 
     setup_log(args.logname)
+
     bait  = args.bait.split(" ")
 
+    #GroupID ProteinID Species
     annots = make_annots()
-    if args.id_format != 'gene_id':
+
+    if args.id_format != 'GroupID':
        try:
-          bait = convert_id(bait, annots, args.id_format)
+          print "converting..."
+          print bait
+          bait = get_groups(bait, annots) 
+          print bait
+          #bait = convert_id(bait, annots, args.id_format)
        except Exception as e:
            print(e)
-  
-    bait = sampling_process(bait)
-    final_annotated = run_process(bait, annots)
+    #bait should now be in GroupID formate
+    print bait  
+
+    postsamp_bait = sampling_process(bait)
+    final_annotated = run_process(postsamp_bait, annots)
     
 
     final_annotated.to_csv("query_output.txt", sep = "\t", index= False)
 
-
-
-
-
-
-
-   #app.run()
-
-    #OFD subcomplex
-    #bait = ['8481', '5108', '79848', '197335', '64770'] 
- # '8481 5108 79848 197335 64770'
-    #JBW full list
-    #This really is a process for user determined gold standard proteins
-    #bait = ['123872', '352909', '161582', '54919', '25804', '1981', '10146', '10963', '9987', '3189', '283237', '150275', '63892', '10985', '8382', '26150', '120935', '10963']
-#'123872 352909 161582 54919 25804 1981 10146 10963 9987 3189 283237 150275 63892 10985 8382 26150 120935 10963'
-
-    #EIF3 full complex members A-M
-    #bait = ['10480', '27335', '3646', '51386', '72868', '8661', '8662', '8663', '8664', '8665', '8666', '8667', '8668', '8669']
-# 10480 27335 3646 51386 72868 8661 8662 8663 8664 8665 8666 8667 8668 8669 
-
-def annotate_from_sql():
-        #CDM trying to get protein name annotations... stuck
-        tester2 = db.session.query(cdb.Edge, cdb.Protein).filter(cdb.Edge.protein_key2.in_(bait), cdb.Edge.protein_key.in_(bait)).all()
-        #pd_tester2 = make_data_frame(tester2, [ 'protein_key', 'protein_key2', 'in_complex', 'score'])
-        for row in tester2:
-            print(row.Protein.proteinname)
-            print(row.Edge.protein_key)
-            print(row.Edge.protein_key2)
-            print(row.Edge.score)
-        #print(tester2.__table__.columns)
-        #print(pd_tester2)
-
-
-        #pd_tester2 = make_data_frame(tester2, [ 'protein_key', 'protein_key2', 'in_complex', 'score'])
-
-        print(pd_tester2)
-
-        #genenames_etc = db.session.filter(cdb.Protein).filter(cdb.Protein.gene_id=="3024")
-        #print(genenames_etc)
-
- 
-        #print(bg_query.sort(['score'], ascending = 0).head)
-
-       #complexes = []
-    #return render_template('index.html', form=form, complexes=complexes)
-
-
-
-def annotate_table2(baitbait_annotated):
-        '''
-        Working away from pandas joins to sql query
-        Nope, this is way too slow.
-        Pandas Joins.
-        '''   
-        print("start sql")
-        joined_key1 = db.session.query(cdb.Edge, cdb.Conversion).filter(cdb.Conversion.gene_id==cdb.Edge.protein_key).all()#.add_columns(cdb.Conversion.proteinname)
-        print("end sql")
-        #print(dir(joined_key1))
-        #for g in joined_key1:
-        #    print "", g
-        #    for m in g.Edge:
-        #        print 2 * " ", m
-        #        for i in m.Conversion:
-        ##            print 4 * " ", i
-        #for x in joined_key1:
-            #print(dir(x.Edge))
-          #  print(x.Conversion.proteinname, x.Edge.protein_key)
-         #   #print(dir(x.
-            #print(x.Edge.genename)      
-
-        df_joined= make_data_frame(joined_key1, ['protein_key', 'protein_key2','proteinname', 'in_complex', 'score'])
-        print(df_joined)
-        # .group_by(cdb.Edge.gene_id.first()) 
-        joined_key2 = db.session.query(cdb.Edge, cdb.Conversion).filter(cdb.Conversion.gene_id==cdb.Edge.protein_key2).all()#.add_columns(cdb.Conversion.proteinname)
-        print(dir(joined))
 
 

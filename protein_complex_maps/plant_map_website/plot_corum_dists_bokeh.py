@@ -22,72 +22,44 @@ def interaction_share(data_dict1, title1, data_dict2, title2):
 
     plt.show()
 
-def get_network(pairs, id1, id2):
-    #print(pairs)
+def draw_network(pairs, baitlist):
+    print(pairs)
         #print(nodes)
-    
     #https://plot.ly/ipython-notebooks/networks/
     G=nx.Graph()
    
 
     rowlist = []
-
-
-
     for index, row in pairs.iterrows(): 
-         if str(row[id1]) == "":
-               val1 = "None"
-         else:
-               val1 = str(row[id1])
-         if str(row[id2]) == "":
-               val2 = "None"
-         else:
-               val2 = str(row[id2])
-
-
-         str_row = val1 +" " + val2 + " " + str(row['score'])
-         #print(str_row)
+         str_row = str(row['genename']) +" " + str(row['genename2']) + " " + str(row['score'])
+         print(str_row)
          rowlist = rowlist + [str_row]
-    #print(rowlist)  
+  
     
 
 
     G = nx.parse_edgelist(rowlist, nodetype = str, data=(('weight',float),))
-    #print(dir(G))
-
-    return G
-
-def draw_network(G, baitlist, mindegree = 1, showplot=False):
-    #print(colorvalues)
-    #print(G.edges)
-    outdeg = G.degree()
-    to_remove = [n for n in outdeg if outdeg[n] < mindegree]
-    G.remove_nodes_from(to_remove)
-
     colorvalues =[]
 
     for node in G.nodes():
        if node in baitlist:
             colorvalues = colorvalues + ["#5ab4ac"]
-            #print(node, "b")
+            print(node, "b")
        else:
             colorvalues = colorvalues + ["#d8b365"]
-            #print(node, "r")
-
-
-
-
+            print(node, "r")
+    print(colorvalues)
+ 
     weights = [G[u][v]['weight']*4 for u,v in G.edges()]
     pos=nx.spring_layout(G, weight=1)
     nx.draw(G, pos=pos, node_color=colorvalues, edge_color='#bdbdbd', width=weights, with_labels=True)
-    if showplot == True:
-        plt.show()
-    return weights, pos, colorvalues
+    plt.show()
+    return
 
 
 
 def corum_plots(data_file, inp_lower, inp_median, inp_stdev, inp_mean, lower_list, median_list, stdev_list, mean_list):
-    #print(data_file)
+
     data = np.genfromtxt(data_file,delimiter=",")
     #print(data)
 
@@ -99,8 +71,7 @@ def corum_plots(data_file, inp_lower, inp_median, inp_stdev, inp_mean, lower_lis
     #median = data[:,1]
     #lower_limit = data[:,2]
     #mean = data[:,3]
-    print("data for plotting")
-    #print(data)
+
 
     num_bins = 20
     # the histogram of the data

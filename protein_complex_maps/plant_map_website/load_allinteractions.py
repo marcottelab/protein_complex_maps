@@ -45,14 +45,14 @@ def main():
             print count
         count = count + 1    
         #if 'complex:' i        #print line
-        split_line = line.split('\t')
+        split_line = line.split(' ')
         #print split_line
-        prot1 = split_line[0]
-        prot2 = split_line[1]
+        group1 = split_line[0]
+        group2 = split_line[1]
         score = float(split_line[2].strip())
         edge = cdb.get_or_create(db, cdb.Edge,
-                                        protein_key = prot1,
-                                        protein_key2 = prot2,
+                                        GroupID_key = group1,
+                                        GroupID_key2 = group2,
                                         in_complex = 0, 
                                         score = score,
                                         )
