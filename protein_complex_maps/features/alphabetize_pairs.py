@@ -3,6 +3,9 @@ import argparse
 import pandas as pd
 
 
+#python ../../scripts/alphabetize_pairs.py --feature_pairs arathtraesorysjbraolselml_euNOG_corum_train_labeled.libsvm1.scale.resultsWprob_c32_g0078125_pairs_noself_nodups_wprob.txt --outfile old_arathtraesorysjbraolselml_interactions.tmp
+
+
 def order_identifiers():
     '''
     This function takes a file of pairwise ID features:
@@ -15,15 +18,26 @@ def order_identifiers():
     '''
 
 
-    parser = argparse.ArgumentParser(description="Selects multiiple selections of columns from a list")
+    parser = argparse.ArgumentParser(description="Selects multiple selections of columns from a list")
     parser.add_argument("--feature_pairs", action="store", dest= "df", required=True)
     parser.add_argument("--outfile", action="store", required=True)
+    parser.add_argument("--sep", action = "store",dest='sep' , required=True)
+    parser.add_argument("--numcol", action="store", type=int, dest="valcol", required=False, default=2, help="If there is a third column beyond pairwise ids")
     args = parser.parse_args()
- 
+    print(args.valcol)
+    if args.valcol == 3:
+        print("Three columns")
+
+
     print("opening df")
-    df = pd.read_table(args.df, sep="\t", header=None)
+    df = pd.read_table(args.df, sep=args.sep, header=None)
     print(df)
-    df.columns = ['A', 'B', 'corr']
+    if args.valcol == 3:
+
+        df.columns = ['A', 'B', 'corr']
+
+    else:
+        df.columns = ['A', 'B']
 
     print(df)
 
@@ -31,23 +45,20 @@ def order_identifiers():
 
     df = df.drop(['A', 'B'], axis=1)
 
+    if args.valcol==3:
+        df = df[['ID', 'corr']]
 
-    df = df[['ID', 'corr']]
-
-
-    df['ID']= df['ID'].astype(str)  
-    df['ID'] = df['ID'].str.replace('[', '') 
-    df['ID'] = df['ID'].str.replace(']', '') 
-    df['ID'] = df['ID'].str.replace(',', '') 
-    df['ID'] = df['ID'].str.replace("'", "")
-
-
-    
-
-    df.to_csv(args.outfile, sep='\t', header=False, index=False)
+    else:
+        df = df[['ID']]
+   
+    #Change list format entries to string entries 
+    df['ID'] = df['ID'].apply(lambda x: ' '.join(x))
+  
 
 
-    print(df)
+    df.to_csv(args.outfile, header=False, index=False)
+
+
 
 if __name__ == "__main__":
     order_identifiers()

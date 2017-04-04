@@ -294,11 +294,14 @@ def main():
 
         bootstrapped_cluster_predictions = p.map(cluster_helper, multiproc_input)
 
+        #clique_precision_recall_product = 
+
+
         #kdrew: compare full clustered set vs bootstrapped clusters
         multiproc_input = [(cluster_prediction, predicted_clusters, bootstrapped_test_networks[i]) for predicted_clusters, i in bootstrapped_cluster_predictions]
         bootstrap_cplx_cmp_metrics = p.map(comparison_helper, multiproc_input) 
         for boot_cmp in bootstrap_cplx_cmp_metrics:
-            print "bootstrapped: ii %s, size %s, density %s, overlap %s, seed_method %s, fraction %s, threshold_score %s, inflation %s, cliquesize %s, timeout %s, twostep_combination %s, trim2threshold: %s,  acc %s, sensitivity %s, ppv %s, mmr %s, ppi_recovered %s, precision_recall_product %s, clique_precision_mean %s, clique_recall_mean %s, clique_precision_mean_normalize %s, clique_recall_mean_normalize %s, clique_precision_mean_normalize_weighted %s, clique_recall_mean_normalize_weighted %s" % (ii, size, density, overlap, seed_method, fraction, threshold_score, inflation, cliquesize, timeout, str(twostep_combination), str(trim2threshold), boot_cmp['acc'], boot_cmp['sensitivity'], boot_cmp['ppv'], boot_cmp['mmr'], boot_cmp['percent_ppi_recovered'], metric_dict['precision_recall_product'], boot_cmp['clique_precision_mean'], boot_cmp['clique_recall_mean'], metric_dict['clique_precision_mean_normalize'], metric_dict['clique_recall_mean_normalize'], metric_dict['clique_precision_mean_normalize_weighted'], metric_dict['clique_recall_mean_normalize_weighted'])
+            print "bootstrapped: ii %s, size %s, density %s, overlap %s, seed_method %s, fraction %s, threshold_score %s, inflation %s, cliquesize %s, timeout %s, twostep_combination %s, trim2threshold: %s,  acc %s, sensitivity %s, ppv %s, mmr %s, ppi_recovered %s, precision_recall_product %s, clique_precision_mean %s, clique_recall_mean %s, clique_precision_mean_normalize %s, clique_recall_mean_normalize %s, clique_precision_mean_normalize_weighted %s, clique_recall_mean_normalize_weighted %s, numOfClusters %s" % (ii, size, density, overlap, seed_method, fraction, threshold_score, inflation, cliquesize, timeout, str(twostep_combination), str(trim2threshold), boot_cmp['acc'], boot_cmp['sensitivity'], boot_cmp['ppv'], boot_cmp['mmr'], boot_cmp['percent_ppi_recovered'], metric_dict['precision_recall_product'], boot_cmp['clique_precision_mean'], boot_cmp['clique_recall_mean'], metric_dict['clique_precision_mean_normalize'], metric_dict['clique_recall_mean_normalize'], metric_dict['clique_precision_mean_normalize_weighted'], metric_dict['clique_recall_mean_normalize_weighted'], len(cluster_prediction)
 
 
         #kdrew: keeping track of the best parameter set

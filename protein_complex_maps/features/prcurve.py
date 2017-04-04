@@ -51,6 +51,8 @@ def main():
 
     positive_file = open(args.positives,"rb")
 
+   
+
     all_proteins = set()
     ppis = set()
     neg_ppis = set()
@@ -83,22 +85,38 @@ def main():
                 neg_ppis.add(ppi_str)
 
 
+    #tmp_outfilepos = open('atobsc3_arathtraesoryshbraoselml_pos.txt', "w")
+    #tmp_outfileneg = open('atobsc3_arathtraesoryshbraoselml_neg.txt', "w")
+
     for i, results_dict in enumerate(results_dict_list):
         true_array = []
         prob_array = []
+        true_length = 0
+        neg_length = 0
         for result_pair in results_dict.keys():
             if args.threshold == None or args.threshold <= results_dict[result_pair]:
                 if result_pair in ppis:
+                    #tmp_outfilepos.write(result_pair + '\t' + str(results_dict[result_pair]) +"\n")
+
+
                     true_array.append(1)
                     prob_array.append(results_dict[result_pair])
+                    true_length = true_length + 1
                 elif result_pair in neg_ppis:
+                    #tmp_outfileneg.write(result_pair + '\t' + str(results_dict[result_pair]) +"\n")
                     true_array.append(-1)
                     prob_array.append(results_dict[result_pair])
+                    neg_length = neg_length + 1
 
-
+        print "Num Trues"
+        print str(true_length)
+        print "Num Negs"
+        print str(neg_length)
         print len(true_array)
         print len(prob_array)
 
+        #tmp_outfileneg.close()
+        #tmp_outfileneg.close()
         precision, recall, thresholds = precision_recall_curve(true_array, prob_array) 
         #average_precision = average_precision_score(true_array, prob_array)
 
