@@ -14,7 +14,7 @@ cd eggnog_output
 tail -n +2 ${spec}.${level}_tophit.txt | cat > ${spec}.${level}_orthology.tmp
 tail -n +2 ${spec}.${level}_nonhits.txt | cat >> ${spec}.${level}_orthology.tmp
 
-echo "GroupID	Rank	Level	Species	ProteinID	evalue	QueryRange	ProteomeID	Hitlength	Sequence	Annotation" > ${spec}.${level}_orthology.tmp2
+echo -e "GroupID\tRank\tLevel\tSpecies\tProteinID\tevalue\tQueryRange\tProteomeID\tHitlength\tSequence\tAnnotation" > ${spec}.${level}_orthology.tmp2
 
 
 sort -u ${spec}.${level}_orthology.tmp >> ${spec}.${level}_orthology.tmp2

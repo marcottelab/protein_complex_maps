@@ -8,10 +8,10 @@ def make_wide(identified_elution):
    #output from get_elution_ids.py
    elut=pd.read_csv(identified_elution, index_col=False)
    
-   elut= elut[['FractionID', 'ProteinID', 'Total_SpecCounts']]
+   elut= elut[['FractionID', 'ID', 'Total_SpecCounts']]
 
    #changing from long to wide format for elution profiles
-   wide = elut.pivot(index='ProteinID', columns = 'FractionID', values='Total_SpecCounts')  
+   wide = elut.pivot(index='ID', columns = 'FractionID', values='Total_SpecCounts')  
    #print wide
 
    wide = wide.fillna(0)

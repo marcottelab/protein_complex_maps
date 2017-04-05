@@ -1,0 +1,31 @@
+
+PROJECT_DIR=/project/cmcwhite/protein_complex_maps/protein_complex_maps/orthology_proteomics/
+
+#First run, had home/kevin instead of home/kdrew for location of libsvm 
+#Commented out already run lines
+
+#claire: add label train
+#python /project/cmcwhite/protein_complex_maps/protein_complex_maps/features/add_label.py --input_feature_matrix $PROJECT_DIR/correlation_elutions/arathtraesorysjbraolselml_euNOG_feature_matrix.txt --input_positives $PROJECT_DIR/corum/nonredundant_allComplexesCore_mammals_euNOG_merged06.train_ppis.txt --input_negatives $PROJECT_DIR/corum/nonredundant_allComplexesCore_mammals_euNOG_merged06.neg_train_ppis.txt --id_columns ID1 ID2 --output_file $PROJECT_DIR/interaction_network/arathtraesorysjbraolselml_euNOG_corum_train_labeled.txt --fillna 0.0 --sep ,
+
+#claire: add label test
+#python /project/cmcwhite/protein_complex_maps/protein_complex_maps/features/add_label.py --input_feature_matrix $PROJECT_DIR/correlation_elutions/arathtraesorysjbraolselml_euNOG_feature_matrix.txt --input_positives  $PROJECT_DIR/corum/nonredundant_allComplexesCore_mammals_euNOG_merged06.test_ppis.txt --input_negatives  $PROJECT_DIR/corum/nonredundant_allComplexesCore_mammals_euNOG_merged06.neg_test_ppis.txt --id_columns ID1 ID2 --output_file $PROJECT_DIR/interaction_network/arathtraesorysjbraolselml_euNOG_corum_test_labeled.txt --fillna 0.0 --sep ,
+
+
+#claire: convert to libsvm format training set
+#python /project/cmcwhite/protein_complex_maps/protein_complex_maps/features/feature2libsvm.py --input_feature_matrix $PROJECT_DIR/interaction_network/arathtraesorysjbraolselml_euNOG_corum_train_labeled.txt --output_file $PROJECT_DIR/interaction_network/arathtraesorysjbraolselml_euNOG_corum_train_labeled.libsvm1.txt --features arath_euNOG_concat.txt.corr_poisson arathtraesorysjbraolselml_euNOG_concat.txt.corr_poisson At_Col_0_indark_201505_raw_wide_elution_arath_euNOG.txt.corr_poisson At_Col_0_indark_fraction_201504_raw_wide_elution_arath_euNOG.txt.corr_poisson At_Col_0_leaf_fraction_2014_raw_wide_elution_arath_euNOG.txt.corr_poisson At_Col_0_leaf_fraction_2015_raw_wide_elution_arath_euNOG.txt.corr_poisson orsyj_RiceL_IEX_raw_wide_elution_orysj_euNOG.csv_concat.txt.corr_poisson Rice_201505_uniprot_raw_wide_elution_orysj_euNOG.txt.corr_poisson RiceL_IEX_raw_wide_elution_orysj_euNOG.txt.corr_poisson traes_euNOG_concat.txt.corr_poisson wgSEC1_raw_wide_elution_traes_euNOG.txt.corr_poisson wheatgermIEX_raw_wide_elution_traes_euNOG.txt.corr_poisson WheatGermSEC_07-2015_raw_wide_elution_traes_euNOG.txt.corr_poisson Broccolinuclei_6-2016_raw_wide_elution_braol_euNOG.txt.corr_poisson OP_SelaginellaSEC_20160309_raw_wide_elution_selml_euNOG.txt.corr_poisson --label_column label --keep_labels -1 1 --sep ,
+
+#claire: convert to libsvm format unlabeled set and test set
+#python /project/cmcwhite/protein_complex_maps/protein_complex_maps/features/feature2libsvm.py --input_feature_matrix $PROJECT_DIR/interaction_network/arathtraesorysjbraolselml_euNOG_corum_train_labeled.txt --output_file $PROJECT_DIR/interaction_network/arathtraesorysjbraolselml_euNOG_corum_train_labeled.libsvm0.txt --features arath_euNOG_concat.txt.corr_poisson arathtraesorysjbraolselml_euNOG_concat.txt.corr_poisson At_Col_0_indark_201505_raw_wide_elution_arath_euNOG.txt.corr_poisson At_Col_0_indark_fraction_201504_raw_wide_elution_arath_euNOG.txt.corr_poisson At_Col_0_leaf_fraction_2014_raw_wide_elution_arath_euNOG.txt.corr_poisson At_Col_0_leaf_fraction_2015_raw_wide_elution_arath_euNOG.txt.corr_poisson orsyj_RiceL_IEX_raw_wide_elution_orysj_euNOG.csv_concat.txt.corr_poisson Rice_201505_uniprot_raw_wide_elution_orysj_euNOG.txt.corr_poisson RiceL_IEX_raw_wide_elution_orysj_euNOG.txt.corr_poisson traes_euNOG_concat.txt.corr_poisson wgSEC1_raw_wide_elution_traes_euNOG.txt.corr_poisson wheatgermIEX_raw_wide_elution_traes_euNOG.txt.corr_poisson WheatGermSEC_07-2015_raw_wide_elution_traes_euNOG.txt.corr_poisson Broccolinuclei_6-2016_raw_wide_elution_braol_euNOG.txt.corr_poisson OP_SelaginellaSEC_20160309_raw_wide_elution_selml_euNOG.txt.corr_poisson --label_column label --keep_labels 0 --sep ,
+
+
+#claire: scale training
+#/home/kdrew/programs/libsvm-3.20/svm-scale -s $PROJECT_DIR/interaction_network/arathtraesorysjbraolselml_euNOG_corum_train_labeled.libsvm1.scale_parameters $PROJECT_DIR/interaction_network/arathtraesorysjbraolselml_euNOG_corum_train_labeled.libsvm1.txt > $PROJECT_DIR/interaction_network/arathtraesorysjbraolselml_euNOG_corum_train_labeled.libsvm1.scale.txt
+
+#claire: scale unlabeled (w/ test set) by trainâscale parameters
+#/home/kdrew/programs/libsvm-3.20/svm-scale -r $PROJECT_DIR/interaction_network/arathtraesorysjbraolselml_euNOG_corum_train_labeled.libsvm1.scale_parameters $PROJECT_DIR/interaction_network/arathtraesorysjbraolselml_euNOG_corum_train_labeled.libsvm0.txt > $PROJECT_DIR/interaction_network/arathtraesorysjbraolselml_euNOG_corum_train_labeled.libsvm0.scaleByTrain.txt
+
+
+#Went ahead with this step before $PROJECT_DIR/interaction_network/arathtraesorysjbraolselml_euNOG_corum_train_labeled.libsvm1.scale.txt was finished
+##claire: parameter sweep using training set
+python /home/kdrew/programs/libsvm-3.20/tools/grid.py $PROJECT_DIR/interaction_network/arathtraesorysjbraolselml_euNOG_corum_train_labeled.libsvm1.scale.txt
+

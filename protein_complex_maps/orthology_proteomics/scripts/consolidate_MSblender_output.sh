@@ -1,27 +1,28 @@
+#bash scripts/consolidate_MSblender_output.sh pep_counts_folder/Hs_hekN_1108 Hs_hekN_1108 elutions
+#/pep_counts_folder/
+pep_count_dir=$1
+expID=$2
+#/elutions
+elution_dir=$3
 
-BASEDIR=/project/kdrew/data/msblender_runs
-=
-#for exp in At_Col_0_indark_201505 wgSEC1  WheatGermSEC_07-2015_repr_unmapped_cdhit95 RiceL_IEX wgSEC1_repr_unmapped_cdhit95 WheatGermSEC_07-2015_uniprot wheatgermIEX WheatGermSEC_07-2015
 
-for exp in Rice_201505_uniprot At_Col_0_indark_fraction_201504 At_Col_0_leaf_fraction_2014 At_Col_0_leaf_fraction_2015 
+
+
+
+echo "ExperimentID,FractionID,Peptide,PeptideCount" >  $elution_dir/${expID}_elution.csv
+
+for pep in $pep_count_dir/*.pep_count_mFDRpsm001
 do
-   rm /project/cmcwhite/protein_complex_maps/protein_complex_maps/orthology_proteomics/elutions/${exp}_elution.csv
-   echo "ExperimentID,FractionID,Peptide,PeptideCount" >  /project/cmcwhite/protein_complex_maps/protein_complex_maps/orthology_proteomics/elutions/${exp}_elution.csv
 
-   cd $BASEDIR/${exp}  
-   for dir in *-Results
-   do
-       #echo "you are here"
-       pwd
-       cd $dir
-       #echo $exp
-       #echo $dir
-       info=`echo $exp,$dir`
-       echo $info
-       tail -n +3 msblender.pep_count_mFDRpsm001 | awk -F'\t' -v OFS=',' -v info="$info" '{print info, $1, $2}'  >> /project/cmcwhite/protein_complex_maps/protein_complex_maps/orthology_proteomics/elutions/${exp}_elution.csv
-       #rm msblender.pep_count_mFDRpsm001.tmp 
-       cd ../
-   done
-   cd ../
+    #echo "you are here"
+    #pwd
+    #echo $expID
+    pep_name=${pep##*/}
+  
+    frac=${pep_name%.pep_count_mFDRpsm001}
+    #echo $dir
+    info=`echo $expID,$frac`
+    echo $info
+    tail -n +3 $pep | awk -F'\t' -v OFS=',' -v info="$info" '{print info, $1, $2}'  >> $elution_dir/${expID}_elution.csv
 done
 

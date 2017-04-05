@@ -4,11 +4,12 @@ import numpy as np
 from scipy import spatial
 import os
 from scipy import sparse
+from scipy import stats
 from collections import defaultdict
 import operator
 import utils as ut
 import elution as el
-import orth
+#import orth
 
 
 
@@ -147,7 +148,8 @@ def scorekey_elution(score, elut, recalc_id2inds):
         score_mat = precalc_scores(fscore)
     return score_mat, new_id2inds, new_prots
 
-def traver_corr(mat, repeat=1000, norm='columns', verbose=True):
+def traver_corr(mat, repeat=100, norm='columns', verbose=True):
+    # Changed from repeat=1000 to repeat=100
     # As described in supplementary information in paper.
     # Randomly draw from poisson(C=A+1/M) for each cell
     # where A = the observed count and M is the total fractions
@@ -171,13 +173,25 @@ def traver_corr(mat, repeat=1000, norm='columns', verbose=True):
                                         range(repeat))) / repeat)
     return avg_result
 
+
+
+def spearman_rho(mat, metric='spearman', norm_rows=True, norm_cols=True):
+    norm_mat = ut.normalize_fracs(mat, norm_rows, norm_cols)
+    #Bad values was default axis = 0, trying 1
+    rho, pval = stats.spearmanr(norm_mat, axis=1)
+    return rho
+ 
 def pdist_score(mat, metric='euclidean', norm_rows=True,
         norm_cols=True):
     norm_mat = ut.normalize_fracs(mat, norm_rows, norm_cols)
     dists = spatial.distance.pdist(norm_mat, metric=metric)
     dist_mat = spatial.distance.squareform(dists)
-    score_mat = 1 - np.nan_to_num(dist_mat)
+    np.savetxt("dist_mat", dist_mat, delimiter='\t')
+    #max value is root 2
+    score_mat = 1.414213562373 - np.nan_to_num(dist_mat)
     return score_mat
+
+   
 
 def poisson_repeat(mat, repeat=200, **kwargs):
     # As described in supplementary information in paper.
@@ -307,12 +321,16 @@ if __name__ == '__main__':
     elif method in ['euclidean']:
         corr = pdist_score(elut.mat, norm_rows=True, norm_cols=True,
                 metric=method)
+    elif method in ['spearman']:
+        corr = spearman_rho(elut.mat, norm_rows=True, norm_cols=True, metric=method)
+
     #elif method == 'dotproduct':
         #corr = elut.mat * elut.mat.T
     #elif method == 'corrcoef':
         #corr = np.corrcoef(elut.mat)
-    #elif method == 'cov':
-        #corr = np.cov(elut.mat)
+    elif method == 'cov':
+        corr = np.cov(elut.mat)
     fileout = fname+'.corr_'+method
     np.savetxt(fileout, corr, delimiter='\t')
+
 
