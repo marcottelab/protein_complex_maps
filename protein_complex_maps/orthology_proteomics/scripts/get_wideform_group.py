@@ -9,10 +9,10 @@ def make_wide(identified_elution, orthology_file):
    #output from get_elution_ids.py
    elut=pd.read_csv(identified_elution, index_col=False)
    
-   elut= elut[['FractionID', 'GroupID', 'Total_SpecCounts']]
+   elut= elut[['FractionID', 'ID', 'Total_SpecCounts']]
 
    #changing from long to wide format for elution profiles
-   wide = elut.pivot(index='GroupID', columns = 'FractionID', values='Total_SpecCounts')  
+   wide = elut.pivot(index='ID', columns = 'FractionID', values='Total_SpecCounts')  
    #print wide
 
    wide = wide.fillna(0)
@@ -26,14 +26,14 @@ def make_wide(identified_elution, orthology_file):
 
    #saving and importing csv fixes header columns from pivot format
    wide2 = pd.read_csv(raw_outfile)
-   wide2 = wide2.set_index(['GroupID'])
+   wide2 = wide2.set_index(['ID'])
 
    #Pull annotations from orthology file (eggnog_output)
    annot = pd.read_csv(orthology_file, sep="\t")
-   annot = annot[['GroupID', 'ProteinID', 'Annotation']]
+   annot = annot[['ID', 'ProteinID', 'Annotation']]
 
    #put one protein per line
-   annotmulti = annot.set_index(['GroupID']) 
+   annotmulti = annot.set_index(['ID']) 
 
    multirow_wide = annotmulti.join(wide, how = "inner")
 
@@ -42,17 +42,17 @@ def make_wide(identified_elution, orthology_file):
    multirow_wide.to_csv(multirow_outfile)
 
    #Consolidate proteins from a group into one row
-   alt_wide_labels = annot.groupby(['GroupID',  'Annotation'])['ProteinID'].apply(lambda x: ' '.join(x)).reset_index()
+   alt_wide_labels = annot.groupby(['ID',  'Annotation'])['ProteinID'].apply(lambda x: ' '.join(x)).reset_index()
 
    #Get annotations and 
    #ungrouped_alt_wide = annot.join(wide, how = "right")
 
    #ungrouped_alt_wide = ungrouped_alt_wide.reset_index()
    #http://stackoverflow.com/questions/27298178/concatenate-strings-from-several-rows-using-pandas-groupby
-   #alt_wide_labels = ungrouped_alt_wide.groupby(['GroupID',  'Annotation'])['ProteinID'].apply(lambda x: ' '.join(x)).reset_index()
+   #alt_wide_labels = ungrouped_alt_wide.groupby(['ID',  'Annotation'])['ProteinID'].apply(lambda x: ' '.join(x)).reset_index()
 #   print grouped_elut
 
-   alt_wide_labels = alt_wide_labels.set_index(["GroupID"])
+   alt_wide_labels = alt_wide_labels.set_index(["ID"])
    alt_wide = alt_wide_labels.join(wide, how = "inner")
    print alt_wide
    #print alt_wide
