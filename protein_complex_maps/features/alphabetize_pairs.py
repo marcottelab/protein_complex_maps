@@ -20,41 +20,14 @@ def order_identifiers():
 
     parser = argparse.ArgumentParser(description="Selects multiple selections of columns from a list")
     parser.add_argument("--feature_pairs", action="store", dest= "df", required=True)
-    parser.add_argument("--outfile", action="store", required=True)
+    parser.add_argument("--outfile", action="store", required=True, 
+                                    help="Filename of comma separated output")
     parser.add_argument("--sep", action = "store",dest='sep' , required=True)
-    parser.add_argument("--numcol", action="store", type=int, dest="valcol", required=False, default=2, help="If there is a third column beyond pairwise ids")
+    parser.add_argument("--columns", nargs='+', action="store", type=int, dest="columns2alphabetize", required=False, default=[0,1], 
+                                    help="List of columns to alphabetize, default = 0,1")
     args = parser.parse_args()
-    print(args.valcol)
-    if args.valcol == 3:
-        print("Three columns")
-
-
-    print("opening df")
     df = pd.read_table(args.df, sep=args.sep, header=None)
-    print(df)
-    if args.valcol == 3:
-
-        df.columns = ['A', 'B', 'corr']
-
-    else:
-        df.columns = ['A', 'B']
-
-    print(df)
-
-    df['ID'] = map(sorted, zip(df['A'].values, df['B'].values))
-
-    df = df.drop(['A', 'B'], axis=1)
-
-    if args.valcol==3:
-        df = df[['ID', 'corr']]
-
-    else:
-        df = df[['ID']]
-   
-    #Change list format entries to string entries 
-    df['ID'] = df['ID'].apply(lambda x: ' '.join(x))
-  
-
+    df[df.columns[args.columns2alphabetize]] = df[df.columns[args.columns2alphabetize]].apply(sorted,axis=1)
 
     df.to_csv(args.outfile, header=False, index=False)
 
