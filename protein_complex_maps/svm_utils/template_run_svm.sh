@@ -29,20 +29,15 @@ echo "adding label"
 
 echo "Label added"
 
+#exit
+
 #Taking 30min - 1hr (maybe more) until it gets to writing the file 
 #Can I speed this up?
 #Writing file takes 5ever
 
 #Using all features
-#Very very slow, over 48 hours even with 10k chunks
+python $PROJECT_DIR/features/feature2libsvm.py --input_feature_matrix ${EXP_ID}_corumtrain_labeled.txt --libsvm0_output_file ${EXP_ID}_corumtrain_labeled.libsvm0.txt  --libsvm1_output_file ${EXP_ID}_corumtrain_labeled.libsvm1.txt --label_column label --sep ,
 
-#python $PROJECT_DIR/features/feature2libsvm.py --input_feature_matrix  ${EXP_ID}_corumtrain_labeled.txt --libsvm0_output_file ${EXP_ID}_corumtrain_labeled.libsvm0.txt.large2  --libsvm1_output_file ${EXP_ID}_corumtrain_labeled.libsvm1.txt.large2 --label_column label --sep ,
-
-
-#Need to write script to generate convert_feature2libsm.sh based on column number
-
-#Final approach -> break feature into chunks, so awk script in bash
-#Did manual grep to make libsvm1.txt and libsvm0.txt
 
 echo "Converted to LIBSVM format"
 
