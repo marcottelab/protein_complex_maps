@@ -134,7 +134,8 @@ def main():
         corr_mat = np.loadtxt(corr_matrix_filename)
     elif args.corr_format == "read_csv":
         #kdrew: indices are embedded in the file
-        corr_mat = pd.read_csv(corr_matrix_filename, sep='\t', index_col=0)
+        corr_mat = pd.read_csv(corr_matrix_filename, sep='\t', index_col=0, compression='gzip')
+        print "Max: %s Min: %s" % (corr_mat.max(), corr_mat.min())
     else:
         print "unrecognized corr_format: %s" % args.corr_format
         return -1
@@ -210,8 +211,11 @@ def main():
         #kdrew: load pisa file
         pisaInt = pdbu.PISA_Interfaces( args.pisa_dir+'/'+pdbid+'_pisa', pdbid=pdbid )
 
-        for acc1, acc2 in it.combinations(pdb_mb_matrix_id_list,2):
+        print "##############"
+        #for acc1, acc2 in it.combinations(pdb_mb_matrix_id_list,2):
+        for acc1, acc2 in it.combinations(set(pdb_mb_matrix_id_list),2):
             surface_area = pisaInt.surface_area_by_acc(acc1, acc2, base_species=args.base_species)
+            print "acc1: %s acc2: %s sarea: %s" % (acc1, acc2, surface_area)
             if surface_area != None:
                 interaction_list.append(1)
             else:
@@ -252,7 +256,7 @@ def main():
                 if args.corr_format == "loadtxt":
                     pdb_mb_dict[pdbid].append((acc1,acc2,mb_mat[mb_matrix_id_dict[acc1],mb_matrix_id_dict[acc2]],is_interaction,surface_area,pdbid,corr_mat[matrix_id_list.index(acc1), matrix_id_list.index(acc2)]))
                 elif args.corr_format == "read_csv":
-                    pdb_mb_dict[pdbid].append((acc1,acc2,mb_mat[mb_matrix_id_dict[acc1],mb_matrix_id_dict[acc2]],is_interaction,surface_area,pdbid,corr_mat[mb_matrix_uniprot_map_rev[acc1]][mb_matrix_uniprot_map_rev[acc2]]))
+                    pdb_mb_dict[pdbid].append((acc2base_species[acc1],acc2base_species[acc2],acc1,acc2,mb_mat[mb_matrix_id_dict[acc1],mb_matrix_id_dict[acc2]],is_interaction,surface_area,pdbid,corr_mat[mb_matrix_uniprot_map_rev[acc1]][mb_matrix_uniprot_map_rev[acc2]]))
 
     precision, recall, thresholds = precision_recall_curve(interaction_list, correlation_list)
     area = auc(recall, precision)
@@ -296,8 +300,9 @@ def main():
     for pdbid in pdb_mb_dict:
         #print pdbid
         for i in pdb_mb_dict[pdbid]:
-            #acc1,acc2,mb_score,is_interaction,surface_area,pdbid,nd_score,pearson_correlation
-            print "%s %s %s %s %s %s %s %s" % i
+            #acc1_species, acc2_species, acc1_human,acc2_human,mb_score,is_interaction,surface_area,pdbid,pearson_correlation
+            #print "%s %s %s %s %s %s %s %s" % i
+            print "%s %s %s %s %s %s %s %s %s" % i
 
 
 if __name__ == "__main__":
