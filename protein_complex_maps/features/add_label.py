@@ -12,9 +12,9 @@ def main():
     parser.add_argument("--input_feature_matrix", action="store", dest="feature_matrix", required=True, 
                                     help="Filename of input feature matrix")
     parser.add_argument("--input_positives", action="store", dest="positives", required=True, 
-                                    help="Filenanme of positive pairs")
+                                    help="Filename of positive pairs")
     parser.add_argument("--input_negatives", action="store", dest="negatives", required=False, default=None,
-                                    help="Filenanme of negative pairs, default = None (generated from processing positives)")
+                                    help="Filename of negative pairs, default = None (generated from processing positives)")
     parser.add_argument("--sep", action="store", dest="sep", required=False, default='$',
                                     help="Separator for reading csv, default=$")
     parser.add_argument("--id_column", action="store", dest="id_column", required=False, default = "ID", 
