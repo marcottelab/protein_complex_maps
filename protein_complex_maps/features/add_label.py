@@ -1,10 +1,13 @@
 from __future__ import print_function
+import sys
 import ast
 import argparse
 import pickle
 import numpy as np
 import pandas as pd
 import itertools as it
+
+import protein_complex_maps.features.alphabetize_pairs as ap
 
 def main():
 
@@ -17,16 +20,18 @@ def main():
                                     help="Filename of negative pairs, default = None (generated from processing positives)")
     parser.add_argument("--sep", action="store", dest="sep", required=False, default='$',
                                     help="Separator for reading csv, default=$")
-    parser.add_argument("--id_column", action="store", dest="id_column", required=False, default = "ID", 
-                                    help="a that specifies the id in feature matrix (ex. ID")
+    parser.add_argument("--ppi_sep", action="store", dest="ppi_sep", required=False, default=',',
+                                    help="Separator for input_positives and input_negatives files, default=,")
+    parser.add_argument("--id_column", action="store", nargs='+', dest="id_column", required=False, default = ["ID"], 
+                                    help="column(s) that specifies the id in feature matrix (ex. ID), can pass in multiple columns")
     parser.add_argument("--output_file", action="store", dest="out_filename", required=False, default=None, 
                                     help="Filename of output file, default=None which prints to stdout")
     parser.add_argument("--fillna", action="store", dest="fillna", required=False, default=None, 
                                     help="If set, fills NAs with input value")
-    parser.add_argument("--int_convert", action="store_true", dest="int_convert", required=False, default=False, 
-                                    help="Convert id_column to int")
-    parser.add_argument("--index_col0", action="store_true", dest="index_col0", required=False, default=False, 
-                                    help="input_feature_matrix includes unnamed index column at position 0")
+    #parser.add_argument("--int_convert", action="store_true", dest="int_convert", required=False, default=False, 
+    #                                help="Convert id_column to int")
+    #parser.add_argument("--index_col0", action="store_true", dest="index_col0", required=False, default=False, 
+    #                                help="input_feature_matrix includes unnamed index column at position 0")
     args = parser.parse_args()
 
 
@@ -40,11 +45,14 @@ def main():
     #    feature_table = pd.read_csv(args.feature_matrix,sep=args.sep)
 
 
-    pos_ppis = pd.DataFrame(pd.read_table(args.positives, sep=",", header=None))
-    pos_ppis.columns = ['ID']
+    pos_ppis = pd.DataFrame(pd.read_table(args.positives, sep=args.ppi_sep, header=None))
+    pos_ppis.columns = ['ID1','ID2']
+    if not ap.alphabetized_check(pos_ppis, ['ID1','ID2']):
+        sys.exit("ERROR: input_positives are not alphabetized, please run alphabetize_pairs.py")
     print(pos_ppis)
     print("size of pos_pos_ppis: %s" % len(pos_ppis))
     pos_ppis['label'] = 1
+    pos_ppis['ID'] = pos_ppis['ID1'] + '_' + pos_ppis['ID2']
     #pos_ppis = pos_ppis.set_index(['ID'])
     #positive_file = open(args.positives,"rb")
 
@@ -74,10 +82,13 @@ def main():
         #for line in negative_file.readlines():
         #    if len(line.split()) >= 2:
 
-    neg_ppis = pd.DataFrame(pd.read_table(args.negatives, sep=",", header=None))
-    neg_ppis.columns = ['ID']
+    neg_ppis = pd.DataFrame(pd.read_table(args.negatives, sep=args.ppi_sep, header=None))
+    neg_ppis.columns = ['ID1','ID2']
+    if not ap.alphabetized_check(neg_ppis, ['ID1','ID2']):
+        sys.exit("ERROR: input_negatives are not alphabetized, please run alphabetize_pairs.py")
     print(neg_ppis)
     neg_ppis['label'] = -1
+    neg_ppis['ID'] = neg_ppis['ID1'] + '_' + neg_ppis['ID2']
 
     
     print("size of neg_ppis: %s" % len(neg_ppis))
@@ -105,6 +116,11 @@ def main():
     feature_table = pd.DataFrame(pd.read_table(args.feature_matrix, sep=args.sep))
     #feature_table['ID'] = feature_table['ID'].apply(ast.literal_eval)
     #feature_table['ID'] = feature_table['ID'].apply(" ".join)
+
+    if not ap.alphabetized_check(feature_table, args.id_column):
+        sys.exit("ERROR: feature_matrix is not alphabetized, please run alphabetize_pairs.py")
+    #kdrew: if multiple ids were passed in, combine into a string
+    feature_table['ID'] = feature_table[args.id_column].apply(lambda x: '_'.join(map(str,x)), axis=1)
 
     feature_table = feature_table.set_index(['ID'])
 
