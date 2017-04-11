@@ -1,11 +1,11 @@
 
 ########
-#Divide libsvm1(test set) into segments
-make_test_train_div_u30.sh
+#Divide libsvm1 (training set) into segments
+make_leaveout_train_div.sh
 #Divides whole training file into 6 segments. 
 #  Each possible set of 5 segments is used to train, predicting on the 6th
-train_test_divide.py
-# This script is called by make_test_train_div_u30.sh
+train_leaveout_divide.py
+# This script is called by make_leaveout_train_div.sh
 
 ########
 # Make training command file and run it on TACC
@@ -21,7 +21,7 @@ run_training.sbatch
 create_testing_commands.sh
 # A script to create the commands file for submitting to TACC
 run_testing.sbatch
-# TACC submit file. Runs x_test_COMMANDS.sh made by creating_testing_commands
+# TACC submit file. Runs x_leaveout_COMMANDS.sh made by creating_testing_commands
 
 ########
 # Make pr command file and run it on TACC
