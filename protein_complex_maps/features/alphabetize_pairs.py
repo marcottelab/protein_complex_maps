@@ -5,8 +5,15 @@ import pandas as pd
 
 #python ../../scripts/alphabetize_pairs.py --feature_pairs arathtraesorysjbraolselml_euNOG_corum_train_labeled.libsvm1.scale.resultsWprob_c32_g0078125_pairs_noself_nodups_wprob.txt --outfile old_arathtraesorysjbraolselml_interactions.tmp
 
+def alphabetized_check(df, column_ids, sample_size=1000):
+    print(column_ids)
+    df_sample = df.sample(sample_size)
+    df_sample['alpha_id1'] = df_sample[column_ids].apply(sorted,axis=1)[column_ids[0]]
+    ret_value = all(df_sample['alpha_id1'] == df_sample[column_ids[0]])
+    return ret_value
 
-def order_identifiers():
+
+def main():
     '''
     This function takes a file of pairwise ID features:
     A B value
@@ -29,11 +36,13 @@ def order_identifiers():
     df = pd.read_table(args.df, sep=args.sep, header=None)
     df[df.columns[args.columns2alphabetize]] = df[df.columns[args.columns2alphabetize]].apply(sorted,axis=1)
 
-    df.to_csv(args.outfile, header=False, index=False)
+    df.to_csv(args.outfile, header=False, index=False, sep=args.sep)
+
+
 
 
 
 if __name__ == "__main__":
-    order_identifiers()
+    main()
 
 
