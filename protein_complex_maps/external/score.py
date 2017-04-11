@@ -10,6 +10,7 @@ import operator
 import utils as ut
 import elution as el
 #import orth
+from scipy.stats import pearsonr
 
 
 
@@ -148,6 +149,37 @@ def scorekey_elution(score, elut, recalc_id2inds):
         score_mat = precalc_scores(fscore)
     return score_mat, new_id2inds, new_prots
 
+#kdrew: function to add poisson noise to two arrays and calculate pearson correlation over multiple trials
+def poisson_correlation(x,y, repeat=100, norm='columns'):
+    x = np.array(x)
+    y = np.array(y)
+    running_sum = 0.0
+    for i in range(repeat):
+        M = len(x)
+        Cx = x + 1.0/M
+        Cy = y + 1.0/M
+        poisson_array_x = np.array(np.zeros(M))
+        poisson_array_y = np.array(np.zeros(M))
+
+        for j in range(M):
+            poisson_array_x[j] = np.random.poisson(Cx[j])
+            poisson_array_y[j] = np.random.poisson(Cy[j])
+
+        #print poisson_array_x
+        #print poisson_array_y
+
+        if norm=='columns': 
+            poisson_array_x = np.nan_to_num(poisson_array_x / np.sum(poisson_array_x, 0))
+            poisson_array_y = np.nan_to_num(poisson_array_y / np.sum(poisson_array_y, 0))
+        elif norm=='rows': 
+            poisson_array_x = np.nan_to_num(poisson_array_x / np.sum(poisson_array_x, 1))
+            poisson_array_y = np.nan_to_num(poisson_array_y / np.sum(poisson_array_y, 1))
+
+        corr = np.nan_to_num(pearsonr(poisson_array_x, poisson_array_y)[0])
+        running_sum += corr
+
+    return 1.0*running_sum/repeat
+
 def traver_corr(mat, repeat=100, norm='columns', verbose=True):
     # Changed from repeat=1000 to repeat=100
     # As described in supplementary information in paper.
@@ -158,7 +190,9 @@ def traver_corr(mat, repeat=100, norm='columns', verbose=True):
     def poisson_corr(mat, iteration_display, norm):
         if verbose: print iteration_display
         M = mat.shape[1]
-        C = mat + 1/M
+        #kdrew: shouldn't this be C = mat + 1.0/M
+        #C = mat + 1/M
+        C = mat + 1.0/M
         poisson_mat = np.matrix(np.zeros(C.shape))
         for i in range(C.shape[0]):
             for j in range(M):
@@ -172,8 +206,6 @@ def traver_corr(mat, repeat=100, norm='columns', verbose=True):
     avg_result = (reduce(operator.add, (poisson_corr(mat, i, norm=norm) for i in
                                         range(repeat))) / repeat)
     return avg_result
-
-
 
 def spearman_rho(mat, metric='spearman', norm_rows=True, norm_cols=True):
     norm_mat = ut.normalize_fracs(mat, norm_rows, norm_cols)
