@@ -17,6 +17,8 @@ def main():
                                             help="Jiccard similarity threshold on which to merge")
     parser.add_argument("--remove_largest", action="store_true", dest="remove_largest", required=False, default=False,
                                             help="Instead of merging similar clusters, remove largest")
+    parser.add_argument("--complex_size_threshold", type=int, action="store", dest="complex_size", required=False, default=None,
+                                    help="Size threshold for complexes, throws out complexes greater than value, default does not threshold")
 
     args = parser.parse_args()
 
@@ -26,6 +28,11 @@ def main():
         #kdrew: ignore singletons
         if len(line.split()) > 1:
             in_predicted_clusters.add(frozenset(line.split()))
+
+    #kdrew: threshold on the number of subunits a complex can have, ie. throws out large complex, None keeps all complexes
+    if args.complex_size != None:
+        in_predicted_clusters = [c for c in in_predicted_clusters if len(c) <= args.complex_size]
+
 
     merged_count = 0
     final_clusters = None
