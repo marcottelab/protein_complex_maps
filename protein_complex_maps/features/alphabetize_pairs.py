@@ -1,4 +1,4 @@
-from __future__ import print_function
+#from __future__ import print_function
 import argparse
 import pandas as pd
 
@@ -6,7 +6,6 @@ import pandas as pd
 #python ../../scripts/alphabetize_pairs.py --feature_pairs arathtraesorysjbraolselml_euNOG_corum_train_labeled.libsvm1.scale.resultsWprob_c32_g0078125_pairs_noself_nodups_wprob.txt --outfile old_arathtraesorysjbraolselml_interactions.tmp
 
 def alphabetized_check(df, column_ids, sample_size=1000):
-    print(column_ids)
     #kdrew: sample a portion of the passed in dataframe
     df_sample = df.sample(sample_size)
     #kdrew: alphabetize the passed in columns and record the first column in 'alpha_id1'
