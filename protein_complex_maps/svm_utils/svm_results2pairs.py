@@ -71,7 +71,7 @@ def main():
     print only_features_results
     print " "
 
-    only_features_results_sorted = only_features_results.sort('svm_pos_prob',ascending=False)
+    only_features_results_sorted = only_features_results.sort_values(by='svm_pos_prob',ascending=False)
     print only_features_results_sorted
     print " "
     del only_features_results
