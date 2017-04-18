@@ -64,10 +64,20 @@ def main():
     divided_file_dict = divide_file(input_df, args.n, args.seed)
 
     #kdrew: output each training and leaveout set for both postives and negatives
-    for key_name in divided_file_dict:
-        for i, df in enumerate(divided_file_dict[key_name]):
-            specific_output_filename = args.output_filename + "." + key_name + str(i) + ".txt"
-            df.to_csv(specific_output_filename, sep=args.sep, index=False)
+    for i in xrange(args.n):
+        #kdrew: output concatenated positive and negative training
+        df_pos = divided_file_dict['pos_train'][i]
+        df_neg = divided_file_dict['neg_train'][i]
+        df = pd.concat([df_pos, df_neg])
+        specific_output_filename = args.output_filename + ".train" + str(i) + ".txt"
+        df.to_csv(specific_output_filename, sep=args.sep, index=False)
+
+        #kdrew: output concatenated positive and negative leaveout
+        df_pos = divided_file_dict['pos_leaveout'][i]
+        df_neg = divided_file_dict['neg_leaveout'][i]
+        df = pd.concat([df_pos, df_neg])
+        specific_output_filename = args.output_filename + ".leaveout" + str(i) + ".txt"
+        df.to_csv(specific_output_filename, sep=args.sep, index=False)
 
     #kdrew: output leaveout ppis
     for i, df in enumerate(divided_file_dict['pos_leaveout']):
