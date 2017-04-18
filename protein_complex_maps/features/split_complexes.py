@@ -63,8 +63,7 @@ def main():
 
 
 #kdrew: split complexes into test and training, return orthogonal ppi sets
-#kdrew: TODO return orthogonal complex sets
-def split_complexes(complexes):
+def split_complexes(complexes): 
 
     #kdrew: randomly shuffle complexes 
     np.random.shuffle(complexes)
