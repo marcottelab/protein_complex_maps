@@ -5,6 +5,9 @@ mpl.use('Agg')
 import matplotlib.mlab as mlab
 import matplotlib.pyplot as plt
 
+import re
+import operator
+
 import argparse
 import pickle
 import pandas as pd
@@ -26,14 +29,69 @@ def main():
                                     help="Filename of output file")
     parser.add_argument("--threshold_recall", action="store", type=float, dest="threshold_recall", required=False, 
                                     help="Only calculate predictions at recall threshold")
+    parser.add_argument("--parse_filename", action="store_true", dest="parse_filename", required=False, default=False,
+            help="Search filename for parameters and leaveout set id, (example results: leaveout0 and c2.0_g0.5, example ppis: leaveout_ppis0), default=False")
 
     args = parser.parse_args()
+
+    leaveout_regex = r"leaveout[0-9]+"
+    leaveout_ppis_regex = r"leaveout_ppis[0-9]+"
+    c_regex = r"c[0-9]+\.[0-9]+"
+    g_regex = r"g[0-9]+\.[0-9]+"
+    cg_dict = dict()
+    pos_dict = dict()
+    neg_dict = dict()
+    if args.parse_filename:
+        for rfile in args.results_wprob:
+            leaveout_match = re.findall(leaveout_regex, rfile)[0]
+            leaveout_id = leaveout_match[-1]
+            c_match = re.findall(c_regex, rfile)[0]
+            g_match = re.findall(g_regex, rfile)[0]
+            try:
+                cg_dict[(c_match, g_match)][leaveout_id] = rfile
+            except KeyError:
+                cg_dict[(c_match, g_match)] = dict()
+                cg_dict[(c_match, g_match)][leaveout_id] = rfile
+
+        for pfile in args.positives:
+            leaveout_ppis_match = re.findall(leaveout_ppis_regex, pfile)[0]
+            leaveout_id = leaveout_ppis_match[-1]
+            pos_dict[leaveout_id] = pfile
+        for nfile in args.negatives:
+            leaveout_neg_ppis_match = re.findall(leaveout_ppis_regex, nfile)[0]
+            leaveout_id = leaveout_neg_ppis_match[-1]
+            neg_dict[leaveout_id] = nfile
+
+        #print cg_dict
+        #print pos_dict
+        #print neg_dict
+
+        cg_results = dict()
+        for cg_pair in cg_dict:
+            results_wprob_filenames = []
+            positives_filenames = []
+            negatives_filenames = []
+            for k in cg_dict[cg_pair]:
+                results_wprob_filenames.append(cg_dict[cg_pair][k])
+                positives_filenames.append(pos_dict[k])
+                negatives_filenames.append(neg_dict[k])
+
+
+            cg_results[cg_pair] = calc_metric_files(results_wprob_filenames, positives_filenames, negatives_filenames)
+
+        for item in sorted(cg_results.items(), key=operator.itemgetter(1)):
+            k = item[0]
+            print "cg: %s mean pr auc: %s" % (k, cg_results[k]) 
+    else:
+        print "mean pr auc: %s" % calc_metric_files(args.results_wprob, args.positives, args.negatives)
+
+def calc_metric_files(results_wprob_filenames, positives_filenames, negatives_filenames):
 
     results_dict_list = []
     all_proteins_list = []
     ppi_list = []
     neg_ppi_list = []
-    for i, filename in enumerate(args.results_wprob):
+    for i, filename in enumerate(results_wprob_filenames):
         results_dict = dict()
         results_file = open(filename,"rb")
         for line in results_file.readlines():
@@ -49,7 +107,7 @@ def main():
         results_dict_list.append(results_dict)
 
 
-        positive_file = open(args.positives[i], "rb")
+        positive_file = open(positives_filenames[i], "rb")
         all_proteins = set()
         ppis = set()
         neg_ppis = set()
@@ -67,7 +125,7 @@ def main():
 
 
         #kdrew: generate negative list by generating all pairs of proteins in positives but edges are not in positive list
-        if args.negatives == None:
+        if negatives_filenames == None:
             for cpair in it.combinations(all_proteins,2):
                 pair = str(sorted(list(frozenset(cpair))))
                 if pair not in ppis:
@@ -75,7 +133,7 @@ def main():
                     neg_ppis.add(pair)
         else:
             #kdrew: readin from file
-            negative_file = open(args.negatives[i],"rb")
+            negative_file = open(negatives_filenames[i],"rb")
             for line in negative_file.readlines():
                 if len(line.split()) >= 2:
                     id1 = line.split()[0]
@@ -85,8 +143,9 @@ def main():
 
         neg_ppi_list.append(neg_ppis)
 
-    precision_list = []
-    recall_list = []
+    return calc_mean_pr_auc(results_dict_list, ppi_list, neg_ppi_list)
+
+def calc_mean_pr_auc(results_dict_list, ppi_list, neg_ppi_list):
     prauc_list = []
     for i, results_dict in enumerate(results_dict_list):
         true_array = []
@@ -104,21 +163,13 @@ def main():
                 prob_array.append(results_dict[result_pair])
                 neg_length = neg_length + 1
 
-        #print "Num Trues"
-        #print str(true_length)
-        #print "Num Negs"
-        #print str(neg_length)
-        #print len(true_array)
-        #print len(prob_array)
-
         precision, recall, thresholds = precision_recall_curve(true_array, prob_array) 
         aps = average_precision_score(true_array, prob_array)
         prauc_list.append(aps)
-        #print "precision: %s" % (list(precision),)
-        #print "recall: %s" % (list(recall),)
-        print "pr_auc: %s" % (aps,)
 
-    print "mean pr auc: %s" % np.mean(prauc_list)
+        #print "pr_auc: %s" % (aps,)
+
+    return np.mean(prauc_list)
 
 
 if __name__ == "__main__":
