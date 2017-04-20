@@ -48,7 +48,7 @@ bare_sparklines <- function(z, return_leg=FALSE){
         ylab(z[[args$id_column]][1]) +
         geom_line(alpha=0.9) +
         scale_linetype_manual(values=c("solid","F1")) + 
-        scale_color_manual(values= c("firebrick2","black","dodgerblue4","#8b104e")) 
+        scale_color_manual(values= c("black", "firebrick2","black","dodgerblue4","#8b104e")) 
     #kdrew: return 
     if(return_leg){
         plt <- plt + theme(legend.title=element_blank(), legend.text=element_text(size=6), legend.position="bottom" )
@@ -99,7 +99,10 @@ mapping_df <- read.table(args$id_mapping, header=TRUE, sep=',')
 
 #kdrew: filter to just the proteins we are interested in
 fractionation_tidy_trim_df <- fractionation_tidy_full_df %>% filter(ID %in% args$protein_ids)
-fractionation_tidy_trim_df_dummy <- fractionation_tidy_full_df %>% filter(ID == args$protein_ids[1])
+#fractionation_tidy_trim_df_dummy <- head(fractionation_tidy_trim_df,1) #%>% filter(ID == args$protein_ids[1])
+fractionation_tidy_trim_df_dummy <- fractionation_tidy_trim_df %>% filter(ID == fractionation_tidy_trim_df$ID[1])
+print(tbl_df(fractionation_tidy_trim_df))
+print(fractionation_tidy_trim_df$fraction)
 
 fractionation_tidy_trim_df <- fractionation_tidy_trim_df %>% left_join(mapping_df, by=c("ID"="Entry"))
 

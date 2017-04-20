@@ -1,12 +1,21 @@
-from __future__ import print_function
+#from __future__ import print_function
 import argparse
 import pandas as pd
 
 
 #python ../../scripts/alphabetize_pairs.py --feature_pairs arathtraesorysjbraolselml_euNOG_corum_train_labeled.libsvm1.scale.resultsWprob_c32_g0078125_pairs_noself_nodups_wprob.txt --outfile old_arathtraesorysjbraolselml_interactions.tmp
 
+def alphabetized_check(df, column_ids, sample_size=1000):
+    #kdrew: sample a portion of the passed in dataframe
+    df_sample = df.sample(sample_size)
+    #kdrew: alphabetize the passed in columns and record the first column in 'alpha_id1'
+    df_sample['alpha_id1'] = df_sample[column_ids].apply(sorted,axis=1)[column_ids[0]]
+    #kdrew: check to see if all of the first alphabetized ids are the same as the first passed in id column
+    ret_value = all(df_sample['alpha_id1'] == df_sample[column_ids[0]])
+    return ret_value
 
-def order_identifiers():
+
+def main():
     '''
     This function takes a file of pairwise ID features:
     A B value
@@ -20,47 +29,22 @@ def order_identifiers():
 
     parser = argparse.ArgumentParser(description="Selects multiple selections of columns from a list")
     parser.add_argument("--feature_pairs", action="store", dest= "df", required=True)
-    parser.add_argument("--outfile", action="store", required=True)
+    parser.add_argument("--outfile", action="store", required=True, 
+                                    help="Filename of comma separated output")
     parser.add_argument("--sep", action = "store",dest='sep' , required=True)
-    parser.add_argument("--numcol", action="store", type=int, dest="valcol", required=False, default=2, help="If there is a third column beyond pairwise ids")
+    parser.add_argument("--columns", nargs='+', action="store", type=int, dest="columns2alphabetize", required=False, default=[0,1], 
+                                    help="List of columns to alphabetize, default = 0,1")
     args = parser.parse_args()
-    print(args.valcol)
-    if args.valcol == 3:
-        print("Three columns")
-
-
-    print("opening df")
     df = pd.read_table(args.df, sep=args.sep, header=None)
-    print(df)
-    if args.valcol == 3:
+    df[df.columns[args.columns2alphabetize]] = df[df.columns[args.columns2alphabetize]].apply(sorted,axis=1)
 
-        df.columns = ['A', 'B', 'corr']
-
-    else:
-        df.columns = ['A', 'B']
-
-    print(df)
-
-    df['ID'] = map(sorted, zip(df['A'].values, df['B'].values))
-
-    df = df.drop(['A', 'B'], axis=1)
-
-    if args.valcol==3:
-        df = df[['ID', 'corr']]
-
-    else:
-        df = df[['ID']]
-   
-    #Change list format entries to string entries 
-    df['ID'] = df['ID'].apply(lambda x: ' '.join(x))
-  
+    df.to_csv(args.outfile, header=False, index=False, sep=args.sep)
 
 
-    df.to_csv(args.outfile, header=False, index=False)
 
 
 
 if __name__ == "__main__":
-    order_identifiers()
+    main()
 
 
