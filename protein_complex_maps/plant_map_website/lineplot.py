@@ -127,13 +127,15 @@ def make_protein_sparklines(groups, spec, spec_longform, conversion_tbl):
     print "Start make_protein_sparklines"
     print groups
     print spec
+    groups = list(set(groups)) 
+    print groups
     groups = ["fraction", "fraction_order", "experiment", "spec"] + groups
+    print groups
     #groups = ["ENOG410IDXB" , "ENOG410IDXK", "ENOG410IDXN"]
     plots = []
    
-   
     groupdf  = feather.read_dataframe("formatted_plants_euNOG_concat.csv.feather")
-    #print groupdf.head
+    print groupdf.head
 
     if spec != "All plants":
         groupdf = groupdf[groupdf['spec'] == spec]

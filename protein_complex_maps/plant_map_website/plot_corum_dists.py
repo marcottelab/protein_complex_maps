@@ -4,6 +4,20 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import networkx as nx
 import pandas as pd
+
+from bokeh.embed import components
+from bokeh.plotting import figure, gridplot, GridSpec, hplot
+from bokeh.charts import Histogram, output_file, show
+
+#from bokeh.plotting import figure, 
+#from bokeh.resources import INLINE
+#from bokeh.util.string import encode_utf8
+from bokeh.models import HoverTool, ColumnDataSource, Span
+#from bokeh.util.browser import view
+
+
+
+
 def interaction_share(data_dict1, title1, data_dict2, title2):
 
     sns.set_style("whitegrid", {"axes.grid": False})
@@ -57,13 +71,25 @@ def get_network(pairs, id1, id2):
 
     return G
 
-def draw_network(G, baitlist, mindegree = 1, showplot=False):
+
+def filter_nodes(G, mindegree = 1):
     #print(colorvalues)
     #print(G.edges)
+    print "degree troubleshooting"
+    print mindegree
+    print type(mindegree)
     outdeg = G.degree()
-    to_remove = [n for n in outdeg if outdeg[n] < mindegree]
+    print G.degree()
+    to_remove = [n for n in outdeg if outdeg[n] < int(mindegree)]
     G.remove_nodes_from(to_remove)
+    print "after removing"
+    print G.degree()
+    print G.nodes()
 
+    return G
+
+def draw_network(G, baitlist, showplot=False):
+   
     colorvalues =[]
 
     for node in G.nodes():
@@ -86,9 +112,107 @@ def draw_network(G, baitlist, mindegree = 1, showplot=False):
 
 
 
+
+
+def bokeh_network(G, weights, pos, colorvalues, annot_dict):
+        tools =   'wheel_zoom,reset, hover, pan, save'
+        labels = [ str(v) for v in G.nodes() ]
+        annotations = []
+        for lab in labels:
+             annotations.append(annot_dict[lab])
+        print annotations
+
+
+        print labels
+        vx, vy = zip(*[ pos[v] for v in G.nodes() ])
+        xs, ys = [], []
+        for (a, b) in G.edges():
+            x0, y0 = pos[a]
+            x1, y1 = pos[b]
+            xs.append([x0, x1])
+            ys.append([y0, y1])
+        print ("positions")
+        print pos
+        print xs, ys 
+        hover = HoverTool(names=["circles"])
+
+        f = figure(plot_width=800, plot_height=700,
+                   x_axis_type=None, y_axis_type=None,
+                   outline_line_color=None,
+                   tools=tools, x_range=[-0.1, 1.1])
+
+        sourceDS = ColumnDataSource(
+            data=dict(
+                xname=vx,
+                yname=vy,
+                name = labels,
+                annot = annotations
+             )
+        )
+        print sourceDS
+        hover= f.select_one(HoverTool)
+        #hover.tooltips = [
+        #("name", "@name"), ("degree", "@degree_label"), ("annotation", "@annot")]
+        hover.tooltips = [
+        ("Annotation", "@annot")]
+
+
+         #f.circle(vx, vy, size=18, name="circles",line_color=colorvalues, fill_color=colorvalues)
+        f.circle('xname', 'yname', source=sourceDS, name="circles", size=21 ,line_color=colorvalues, fill_color=colorvalues)
+        f.multi_line(xs, ys, line_color="#bdbdbd", line_width=weights)
+        f.text(vx, vy, text=labels,
+               text_font_size="18px", text_align="center", text_baseline="middle")
+
+
+        return components(f)
+
+def hist_and_spans(data, stat, input_stat, stat_list, tools):
+   
+    data = pd.DataFrame(data[stat].dropna())
+    #data = data[stat].replace('NA', 'NaN')
+    #data = data.fillna('')
+    print data.to_string()
+    hist = figure(width=300, height=300, tools = tools)
+    hist = Histogram(data, values=stat, bins=50)
+    #Add vlines inp_median
+    for s in stat_list: 
+        if s:
+            hist.add_layout(Span(location=s, line_color='green', dimension='height'))
+    if input_stat:    
+        hist.add_layout(Span(location=input_stat, line_color='red', dimension='height'))
+
+
+    return hist
+def corum_plots_bokeh(data_file,  inp_lower, inp_median, inp_stdev, inp_mean, lower_list, median_list, stdev_list, mean_list):
+    tools = 'xwheel_zoom,reset, hover'
+    #data = np.genfromtxt(data_file,delimiter=" ")
+    data = pd.DataFrame(pd.read_csv(data_file, sep=",", header=None)) 
+    data.columns = ['lower', 'median', 'stdev', 'mean']
+    print(data)
+
+    hist1 = hist_and_spans(data, 'median', inp_median, median_list, tools)
+    hist2 = hist_and_spans(data, 'mean', inp_mean, mean_list, tools)
+    print inp_stdev, stdev_list
+    print inp_lower, lower_list
+   
+    #hist3 = hist_and_spans(data, 'stdev', inp_stdev, stdev_list, tools)
+    #hist4 = hist_and_spans(data, 'lower', inp_lower, lower_list, tools)
+    p = hplot(hist1, hist2)
+    #p = gridplot([hist1, hist2], [hist3, hist4])
+   #plt.axvline(x=inp_median, color='r')
+    #for med in median_list:
+    #   plt.axvline(x=med, color='r', alpha=0.4)
+    return components(p)
+ #   output_file("histogram_single.html", title="histogram_single.py example")
+
+#    show(hist4)
+
+
+
+ 
 def corum_plots(data_file, inp_lower, inp_median, inp_stdev, inp_mean, lower_list, median_list, stdev_list, mean_list):
     #print(data_file)
-    data = np.genfromtxt(data_file,delimiter=",")
+    data = np.genfromtxt(data_file,delimiter=" ")
     #print(data)
 
     sns.set_style("whitegrid", {"axes.grid": False})

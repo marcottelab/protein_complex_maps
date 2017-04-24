@@ -1,4 +1,6 @@
 import random
+from bs4 import BeautifulSoup
+from collections import OrderedDict
 #import protein_complex_maps.plant_map_website.complex_db as cdb
 import complex_db as cdb
 import pandas as pd
@@ -24,15 +26,8 @@ from make_conv_tables import make_conversion_tables
 from get_distributions import sampling_process, run_process, annotate_nodes
 import plot_corum_dists as pcd
 
-
-from bokeh.embed import components
-from bokeh.plotting import figure, gridplot, GridSpec
-
-#from bokeh.plotting import figure
 from bokeh.resources import INLINE
 from bokeh.util.string import encode_utf8
-#from bokeh.util.browser import view
-
 
 #PLOT_OPTIONS = dict(plot_width=800, plot_height=300)
 #SCATTER_OPTIONS = dict(size=12, alpha=0.5)
@@ -197,7 +192,7 @@ def searchComplexes():
 #testing viz
 
 
-@app.route('/finder')
+@app.route('/finder', methods=['GET', 'POST'])
 def polynomial():
     """ Very simple embedding of a polynomial chart
     """
@@ -206,75 +201,131 @@ def polynomial():
     args = request.args
     # Get all the form arguments in the url with defaults
     proteins =  getitem(args, 'proteins', 'F4JY76_ARATH EIF3K_ARATH B3H7J6_ARATH')
-
+    degree = getitem(args, 'deg', 2)
+    name1 = getitem(args, 'name1', 1)
+    print name1
     protein_list = proteins.split(" ")
     protein_list = valid_query(protein_list, conversion_tbl)
     input_protein_species = identify_species(protein_list, conversion_tbl)
     protein_table, group_table = make_conversion_tables(protein_list, conversion_tbl, input_protein_species)
     complexes = get_groups(protein_list, conversion_tbl)
+    print "COMPLEXES"   
     print complexes
+    complex_str = " ".join(complexes)
+    checks = request.form.getlist('name1')
+    print checks
+    if checks:
+        complexes = checks  
+        print complexes
+
       
     
-    final_annotated, df_all_prots=run_process(complexes, conversion_tbl)
+    final_annotated, df_all_prots =run_process(complexes, conversion_tbl)
+    med_score, mean_score, suggestions = sampling_process(complexes)
 
+    suggestion_str = "\n".join(suggestions)
+   
     print("Draw network")
     #print(bait_group_annotations)
     #full_network = final_annotated[['Annotation','Annotation2','score']]
     #G=pcd.get_network(full_network, 'Annotation', 'Annotation2')
     #pcd.draw_network(G, bait_group_annotations, 2)
 
-    full_network = final_annotated[['GroupID_key','GroupID_key2','score']]
-    G = pcd.get_network(full_network, 'GroupID_key', 'GroupID_key2')
-    weights,pos, colorvalues =  pcd.draw_network(G, complexes, 2)
+    try:
 
-    #testing bokeh network
+        full_network = final_annotated[['GroupID_key','GroupID_key2','score']]
+        G = pcd.get_network(full_network, 'GroupID_key', 'GroupID_key2')
 
+
+        print(G.degree())
+        nodes = pd.DataFrame.from_dict(G.degree(), orient='index')
+        nodes.columns = ['Degree']
+        print nodes
+        annots = pd.read_csv("all_annotations.csv")
+        nodes_annotated = annotate_nodes(nodes, annots, complexes, df_all_prots)
+
+        #print(nodes_annotated)
+       
+        nodes_annotated = nodes_annotated.sort_values(['Degree', 'score'], ascending=False)
+        nodes_annotated = nodes_annotated.reset_index()
+
+        #nodes_annotated_dict = nodes_annotated[['index', 'Annotation']].to_dict()
+
+        nodes_annotated_dict =  dict(zip(nodes_annotated['index'], nodes_annotated['Annotation']))
+        #print(nodes_annotated_dict)
+
+        #print(nodes_annotated)
+        nodes_table = nodes_annotated.to_html(classes='ResultsTbl', index=False)      
+        nodes_soup = BeautifulSoup(nodes_table, 'html.parser')
+        #print nodes_soup
+        #print "SOUP"
+        #print nodes_soup
+        result = ""
+        result = result + '<table border="1" class="dataframe ResultsTbl"><thead><tr style="text-align: right;"><th>index</th><th>Degree</th><th>Code</th><th>Annotation</th><th>Bait</th><th>score</th><th>select</th></tr></thead><tbody>'
+
+        rows = nodes_soup.findAll('tr')
+        header=True
+        for row in rows:
+            cols = row.findAll('td')
+            #print cols
+            n = 0
+            #if header==True:
+               #to_add = "<th>Select</th>"
+               #result = result + to_add
+               #header =  False
+ 
+            result = result  + "<tr>"     
+            for col in cols:
+                result = result + str(col)
+                if n ==0:
+                     vallabel = col.text
+                if n == 5:
+                    #if header== True:
+                    #    to_add = "<th>Select</th>"
+                    #    result = result + to_add
+                    #    header =  False
+                    #else:
+                     #print dir(col) 
+                     #vallabel = col.text
+                     if vallabel in complexes:
+                         add_check = ' checked="Checked"' 
+                     else:
+                         add_check = ''
+                     print vallabel
+                     to_add = '<td> <input type="checkbox" name="name1" value="' + vallabel + '"' + add_check + ' />&nbsp; </td>'
+                     result = result + to_add +"</tr>"
+                n = n + 1           
+        result = result + '</tbody></table>'
+        #print result
+        nodes_table = result
+
+        G = pcd.filter_nodes(G, degree)
+        weights,pos, colorvalues =  pcd.draw_network(G, complexes, degree)   
+        #print weights, pos, colorvalues
+
+        network_script, network_div = pcd.bokeh_network(G, weights, pos, colorvalues, nodes_annotated_dict)
     
-    
-    labels = [ str(v) for v in G.nodes() ]
-    vx, vy = zip(*[ pos[v] for v in G.nodes() ])
-    xs, ys = [], []
-    for (a, b) in G.edges():
-        x0, y0 = pos[a]
-        x1, y1 = pos[b]
-        xs.append([x0, x1])
-        ys.append([y0, y1])
-    print pos
-    f = figure(plot_width=800, plot_height=700,
-               x_axis_type=None, y_axis_type=None,
-               outline_line_color=None,
-               tools=[], toolbar_location=None)
-    f.multi_line(xs, ys, line_color="#bdbdbd", line_width=weights)
-    f.circle(vx, vy, size=18, line_color=colorvalues, fill_color=colorvalues)
-    f.text(vx, vy, text=labels,
-           text_font_size="18px", text_align="center", text_baseline="middle")
+       # print request.form['reselect_query']   
+        ##
+        #if request.method == 'POST':
 
-    network_script, network_div = components(f)
+        formData = request.values if request.method == "POST" else request.values
+        response = "Form Contents <pre>%s</pre>" % "<br/>\n".join(["%s:%s" % item for item in formData.items()] )
 
-
-    ##
-
-    print(G.degree())
-    nodes = pd.DataFrame.from_dict(G.degree(), orient='index')
-    nodes.columns = ['Degree']
-    print nodes
-    annots = pd.read_csv("all_annotations.csv")
-    nodes_annotated = annotate_nodes(nodes, annots, complexes, df_all_prots)
-    print(nodes_annotated)
-    nodes_annotated = nodes_annotated.sort_values(['Degree'], ascending=False)
-    nodes_annotated = nodes_annotated.reset_index()
-    print(nodes_annotated)
-    nodes_table = nodes_annotated.to_html(classes='ResultsTbl', index=False)
-    results_table = final_annotated.to_html(classes='ResultsTbl', index=False)
-
-        #cdm gene_id = Entrez gene id
-
-
+        print response
+    except Exception as e:
+        print e
+        nodes_table = ""
+        results_table = ""
+        #results_table = df_all_interactions.to_html(classes='ResultsTbl', index=False) 
+ 
+        network_script = ""
+        network_div = ""
     # Create a polynomial line graph with those arguments
     #x = list(range(_from, to + 1))
     #fig = figure(title="Polynomial")
     #fig.line(x, [i ** 2 for i in x], color=color, line_width=2)
-
+    results_table = final_annotated.to_html(classes='ResultsTbl', index=False) 
     js_resources = INLINE.render_js()
     css_resources = INLINE.render_css()
 
@@ -287,7 +338,12 @@ def polynomial():
         prot_tbl=protein_table,
         nodes_tbl=nodes_table,
         results_tbl=results_table,
+        deg=degree,
         js_resources=js_resources,
+        median=med_score,
+        mean=mean_score,
+        suggest=suggestion_str,
+        bait=complex_str,
         css_resources=css_resources,
     )
     return encode_utf8(html)
