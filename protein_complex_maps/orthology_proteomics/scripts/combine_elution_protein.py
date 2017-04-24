@@ -2,8 +2,8 @@ import sys
 import pandas as pd
 def join_elutions(elut1, elut2):
 
-    elut1 = elut1.set_index(['ProteinID'])
-    elut2 = elut2.set_index(['ProteinID'])
+    elut1 = elut1.set_index(['ID'])
+    elut2 = elut2.set_index(['ID'])
     final = elut1.join(elut2, how = "outer")
     final = final.reset_index()
     return final

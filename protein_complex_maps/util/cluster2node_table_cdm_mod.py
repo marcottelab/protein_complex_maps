@@ -100,13 +100,13 @@ def main():
 
     full_table = all_prots.join(one_prot, how = "left")
     split_table = full_table['ProteinID'].str.split("|", return_type='frame')
-    split_table=split_table[[2]]
+    split_table=split_table[[1]]
 
 
     
     final_annot = full_table.join(split_table, how="left")
     print final_annot
-    final_annot = final_annot[['AllMembers', 2]]
+    final_annot = final_annot[['AllMembers', 1]]
     final_annot.columns= ['AllMembers', 'Entry']
 #    final_annot = final_annot.set_index(["GroupID"])
     df = df.set_index(["GroupID"])
@@ -115,17 +115,18 @@ def main():
 
     annot1 = df.join(final_annot, how="left")
     print annot1
-    egg=pd.read_csv(args.egg_filename, index_col=False, sep="\t")
+    egg=pd.read_csv(args.egg_filename, index_col=False, sep=",")
  
 
-    egg = egg[['GroupID', 'eggNOG_annotation', 'A', 'B', 'C']]
     egg = egg.set_index(["GroupID"])
 
     annot2 = annot1.join(egg)
     annot2 = annot2.reset_index()
 
     annot2 = annot2.set_index(['Entry'])
+
     arath=pd.read_csv(args.arath_filename, index_col=False, sep="\t")
+
     arath = arath.set_index(['Entry'])
 
     annot3 = annot2.join(arath, how="left")

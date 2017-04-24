@@ -1,9 +1,10 @@
+from __future__ import print_function
 import pandas as pd
 import sys
 import argparse
 
 
-def make_labels(eggnog):
+def make_labels(eggnog, outfile):
 
    #output from get_eggion_ids.py
    egg=pd.read_csv(eggnog, index_col=False, sep="\t")
@@ -54,20 +55,22 @@ def make_labels(eggnog):
 
    full_table = all_prots.join(one_prot, how = "left")
    split_table = full_table['ProteinID'].str.split("|", return_type='frame')
-   split_table=split_table[[2]]
+   print(split_table)
+   #get accession number
+   split_table=split_table[[1]]
+
+   #if key == 'acc' or key == 'entry':
+   #      split_table = pd.DataFrame(df.row.str.split('|',1).tolist(),
+   #                                  columns = ['cat','acc', 'entry'])
+
+
 
    final = full_table.join(split_table, how="left")
-   final = final[['Eggnog_annotation', 'AllMembers', 2]]
-   final.columns= ['Eggnog_annotation', 'AllMembers', 'Entry']
-
- 
-
-
+   final = final[['Eggnog_annotation', 'AllMembers', 1]]
+   final.columns= ['Eggnog_annotation', 'AllMembers', 'Accession'] 
+   
    #print full_table
-   outfile = eggnog.replace("_orthology", "_map_annotations")
 
-
-   print outfile
    final.to_csv(outfile, sep="\t")
 
 
@@ -93,9 +96,10 @@ parser = argparse.ArgumentParser(description='Short sample app')
 
 #parser.add_argument('identified_eggion', action="store", type=str)
 parser.add_argument('orthology_file', action="store", type=str)
+parser.add_argument('outfile', action="store", type=str)
 inputs = parser.parse_args()
 
-make_labels(inputs.orthology_file)
+make_labels(inputs.orthology_file, inputs.outfile)
 
 
 
