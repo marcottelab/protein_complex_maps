@@ -1,0 +1,142 @@
+<!bootstrap-3.3.6/docs/DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../bootstrap-3.3.6/docs/favicon.ico">
+
+    <title>plant.MAP</title>
+
+
+    <!--<link href="../static/styles/test.css" rel="stylesheet"> -->
+    <link href="../static/styles/styles.css" rel="stylesheet">
+
+
+
+    <!-- Bootstrap core CSS -->
+    <link href="../static/styles//bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap theme -->
+    <link href="../static/styles//bootstrap-theme.min.css" rel="stylesheet">
+
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <link href="../static/styles/ie10-viewport-bug-workaround.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="../static/styles/theme.css" rel="stylesheet">
+
+
+
+    <script src="../static/js/ie-emulation-modes-warning.js"></script>
+
+    <!--<script src="../static/js/sorttable.js"></script> -->
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+
+  </head>
+
+  <body role="document">
+
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">plant.MAP</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/">Home</a></li>
+            <li><a href="/proteinquery">ProteinQuery</a></li>
+
+            <li class="active"><a href="/finder">InteractionFinder</a></li>
+            <li><a href="/about">About</a></li>
+            <li><a href="/download">Download</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container theme-showcase" role="main">
+
+      <!-- Main jumbotron for a primary marketing message or call to action -->
+      <div class="jumbotron">
+        <h1>plant.MAP</h1>
+        <p> 
+            Co-Eluting Proteins in Plants
+        </p>
+      </div>
+
+
+      <div class="page-header">
+
+    {{ js_resources|indent(4)|safe }}
+
+    {{ css_resources|indent(4)|safe }}
+
+    <form name="prot_query" id = "prot_query" method='GET'>
+        <textarea cols="30" rows="10" name="proteins">{{ proteins }}</textarea>
+        <button type="submit">Query proteins</button>
+    </form>
+
+
+    {{ net_script | safe }}
+      <h4>Input protein-to-Orthogroup mapping</h4>
+    {{ prot_tbl | indent(4) | safe  }}
+
+
+
+   <h4>Results</h4>
+
+
+
+   <form name='degree_query' id='degree_query' method='GET'>
+      Degree cutoff for network
+      <input type="number" name="deg" min="1">
+      <button type="submit">Change degree</button>
+      <!--<input type="submit">-->
+   </form>
+
+    {{ net_div | safe }}
+    <p>
+    <p>Query: {{ bait | safe}}</p>
+    <p>The mean score between queries is {{ mean }} </p>
+    <p>The median score between queries is {{ median }} </p>
+    <p>{{ suggest }} </p>
+    </p>
+
+
+
+    <form name='reselect_nodes' method='POST'> 
+     <button type="submit">Requery with selected</button> 
+    {{ nodes_tbl | safe   }}
+    </form> 
+
+    {{ results_tbl | safe }}
+
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script>window.jQuery || document.write('<script src="../static/js/jquery.min.js"><\/script>')</script>
+    <script src="../static/js/bootstrap.min.js"></script>
+    <script src="../static/js/docs.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="../static/js/ie10-viewport-bug-workaround.js"></script>
+  </body>
+</html>
