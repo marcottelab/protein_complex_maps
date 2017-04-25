@@ -4,10 +4,12 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import networkx as nx
 import pandas as pd
-
+import get_distributions as gd
 from bokeh.embed import components
 from bokeh.plotting import figure, gridplot, GridSpec, hplot
 from bokeh.charts import Histogram, output_file, show
+from bs4 import BeautifulSoup
+
 
 #from bokeh.plotting import figure, 
 #from bokeh.resources import INLINE
@@ -75,16 +77,16 @@ def get_network(pairs, id1, id2):
 def filter_nodes(G, mindegree = 1):
     #print(colorvalues)
     #print(G.edges)
-    print "degree troubleshooting"
-    print mindegree
-    print type(mindegree)
+    #print "degree troubleshooting"
+    #print mindegree
+    #print type(mindegree)
     outdeg = G.degree()
-    print G.degree()
+    #print G.degree()
     to_remove = [n for n in outdeg if outdeg[n] < int(mindegree)]
     G.remove_nodes_from(to_remove)
-    print "after removing"
-    print G.degree()
-    print G.nodes()
+    #print "after removing"
+    #print G.degree()
+    #print G.nodes()
 
     return G
 
@@ -120,10 +122,10 @@ def bokeh_network(G, weights, pos, colorvalues, annot_dict):
         annotations = []
         for lab in labels:
              annotations.append(annot_dict[lab])
-        print annotations
+        #print annotations
 
 
-        print labels
+        #print labels
         vx, vy = zip(*[ pos[v] for v in G.nodes() ])
         xs, ys = [], []
         for (a, b) in G.edges():
@@ -131,12 +133,12 @@ def bokeh_network(G, weights, pos, colorvalues, annot_dict):
             x1, y1 = pos[b]
             xs.append([x0, x1])
             ys.append([y0, y1])
-        print ("positions")
-        print pos
-        print xs, ys 
+        #print ("positions")
+        #print pos
+        #print xs, ys 
         hover = HoverTool(names=["circles"])
 
-        f = figure(plot_width=800, plot_height=700,
+        f = figure(plot_width=600, plot_height=400,
                    x_axis_type=None, y_axis_type=None,
                    outline_line_color=None,
                    tools=tools, x_range=[-0.1, 1.1])
@@ -149,7 +151,7 @@ def bokeh_network(G, weights, pos, colorvalues, annot_dict):
                 annot = annotations
              )
         )
-        print sourceDS
+        #print sourceDS
         hover= f.select_one(HoverTool)
         #hover.tooltips = [
         #("name", "@name"), ("degree", "@degree_label"), ("annotation", "@annot")]
@@ -171,7 +173,7 @@ def hist_and_spans(data, stat, input_stat, stat_list, tools):
     data = pd.DataFrame(data[stat].dropna())
     #data = data[stat].replace('NA', 'NaN')
     #data = data.fillna('')
-    print data.to_string()
+    #print data.to_string()
     hist = figure(width=300, height=300, tools = tools)
     hist = Histogram(data, values=stat, bins=50)
     #Add vlines inp_median
@@ -188,12 +190,12 @@ def corum_plots_bokeh(data_file,  inp_lower, inp_median, inp_stdev, inp_mean, lo
     #data = np.genfromtxt(data_file,delimiter=" ")
     data = pd.DataFrame(pd.read_csv(data_file, sep=",", header=None)) 
     data.columns = ['lower', 'median', 'stdev', 'mean']
-    print(data)
+    #print(data)
 
     hist1 = hist_and_spans(data, 'median', inp_median, median_list, tools)
     hist2 = hist_and_spans(data, 'mean', inp_mean, mean_list, tools)
-    print inp_stdev, stdev_list
-    print inp_lower, lower_list
+    #print inp_stdev, stdev_list
+    #print inp_lower, lower_list
    
     #hist3 = hist_and_spans(data, 'stdev', inp_stdev, stdev_list, tools)
     #hist4 = hist_and_spans(data, 'lower', inp_lower, lower_list, tools)
@@ -223,7 +225,7 @@ def corum_plots(data_file, inp_lower, inp_median, inp_stdev, inp_mean, lower_lis
     #median = data[:,1]
     #lower_limit = data[:,2]
     #mean = data[:,3]
-    print("data for plotting")
+    #print("data for plotting")
     #print(data)
 
     num_bins = 20
@@ -290,6 +292,76 @@ def load_args():
 
     args = parser.parse_args()
     return args
+
+def networking(final_annotated, complexes, degree, df_all_prots):
+
+        full_network = final_annotated[['GroupID_key','GroupID_key2','score']]
+        G = get_network(full_network, 'GroupID_key', 'GroupID_key2')
+
+
+        nodes = pd.DataFrame.from_dict(G.degree(), orient='index')
+        nodes.columns = ['Degree']
+        annots = pd.read_csv("all_annotations.csv")
+        nodes_annotated = gd.annotate_nodes(nodes, annots, complexes, df_all_prots)
+
+
+        nodes_annotated = nodes_annotated.sort_values(['Degree', 'score'], ascending=False)
+        nodes_annotated = nodes_annotated.reset_index()
+
+
+        nodes_annotated_dict =  dict(zip(nodes_annotated['index'], nodes_annotated['Annotation']))
+
+        nodes_table = nodes_annotated.to_html(classes='ResultsTbl', index=False) 
+        nodes_soup = BeautifulSoup(nodes_table, 'html.parser')
+        result = ""
+        result = result + '<table border="1" class="dataframe ResultsTbl"><thead><tr style="text-align: right;"><th>index</th><th>Degree</th><th>Code</th><th>Annotation</th><th>Bait</th><th>score</th><th>select</th></tr></thead><tbody>'
+
+        rows = nodes_soup.findAll('tr')
+        header=True
+        for row in rows:
+            cols = row.findAll('td')
+            #print cols
+            n = 0
+
+            result = result  + "<tr>"
+            for col in cols:
+                result = result + str(col)
+                if n ==0:
+                     vallabel = col.text
+                if n == 5:
+                     if vallabel in complexes:
+                         add_check = ' checked="Checked"'
+                     else:
+                         add_check = ''
+                     #print vallabel
+                     to_add = '<td> <input type="checkbox" name="name1" value="' + vallabel + '"' + add_check + ' />&nbsp; </td>'
+                     result = result + to_add +"</tr>"
+                n = n + 1
+        result = result + '</tbody></table>'
+        #print result
+        nodes_table = result
+
+        G = filter_nodes(G, degree)
+        weights,pos, colorvalues =  draw_network(G, complexes, degree)
+        #print weights, pos, colorvalues
+
+        network_script, network_div = bokeh_network(G, weights, pos, colorvalues, nodes_annotated_dict)
+
+
+        return nodes_table, network_script, network_div
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

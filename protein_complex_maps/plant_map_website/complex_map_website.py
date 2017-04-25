@@ -6,7 +6,7 @@ import complex_db as cdb
 import pandas as pd
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy import func, or_
-import networkx as nx
+#import networkx as nx
 
 db = cdb.get_db()
 app = cdb.get_app()
@@ -26,6 +26,7 @@ from make_conv_tables import make_conversion_tables
 from get_distributions import sampling_process, run_process, annotate_nodes
 import plot_corum_dists as pcd
 
+
 from bokeh.resources import INLINE
 from bokeh.util.string import encode_utf8
 
@@ -44,6 +45,15 @@ def getitem(obj, item, default):
         return default
     else:
         return obj[item]
+
+def getitems(obj, item, default):
+    if item not in obj:
+        return default
+    else:
+        print obj.values()
+        print obj
+        return obj.getlist(item) 
+       
 
 
 class SearchForm(Form):
@@ -192,127 +202,77 @@ def searchComplexes():
 #testing viz
 
 
+#Breaking up functions
+
+
 @app.route('/finder', methods=['GET', 'POST'])
 def polynomial():
     """ Very simple embedding of a polynomial chart
     """
     conversion_tbl = pd.read_csv("all_tophits_protlength.txt", sep="\t")
+
     # Grab the inputs arguments from the URL
     args = request.args
     # Get all the form arguments in the url with defaults
     proteins =  getitem(args, 'proteins', 'F4JY76_ARATH EIF3K_ARATH B3H7J6_ARATH')
     degree = getitem(args, 'deg', 2)
-    name1 = getitem(args, 'name1', 1)
-    print name1
+
+    name1 = getitems(args, 'name1', 1)
+    
     protein_list = proteins.split(" ")
+
+    #check that proteinID inputs are valid
     protein_list = valid_query(protein_list, conversion_tbl)
-    input_protein_species = identify_species(protein_list, conversion_tbl)
+
+    #Identify species of input proteins
+    input_protein_species, longform_species = identify_species(protein_list, conversion_tbl)
+
+
+    #Map from protein to group    
     protein_table, group_table = make_conversion_tables(protein_list, conversion_tbl, input_protein_species)
+
+
+    #Get groups from a protein list
+    #Somewhat duplicated in make_conversion_tables...
+   
     complexes = get_groups(protein_list, conversion_tbl)
-    print "COMPLEXES"   
-    print complexes
+
+     
+
+
     complex_str = " ".join(complexes)
-    checks = request.form.getlist('name1')
-    print checks
-    if checks:
-        complexes = checks  
-        print complexes
+
+    #Check for check marks ticked
+    print("name1", name1)
+    #checks = getitems('name1')
+    if name1 !=1 :
+        complexes = name1  
 
       
     
-    final_annotated, df_all_prots =run_process(complexes, conversion_tbl)
-    med_score, mean_score, suggestions = sampling_process(complexes)
+    try:
+          final_annotated, df_all_prots =run_process(complexes, conversion_tbl)
+          med_score, mean_score, suggestions = sampling_process(complexes)
 
-    suggestion_str = "\n".join(suggestions)
-   
+          suggestion_str = "\n".join(suggestions)
+    except Exception as E:
+        med_score = "0"
+        mean_score = "0"
+        suggestion_str = "No results found"
+        final_annotated = pd.DataFrame(columns = ['score','Annotation','Annotation2', 'GroupID_key', 'GroupID_key2', 'bait_bait'])
+ 
     print("Draw network")
-    #print(bait_group_annotations)
-    #full_network = final_annotated[['Annotation','Annotation2','score']]
-    #G=pcd.get_network(full_network, 'Annotation', 'Annotation2')
-    #pcd.draw_network(G, bait_group_annotations, 2)
 
     try:
+        print(complexes, degree)
+        nodes_table, network_script, network_div = pcd.networking(final_annotated, complexes, degree, df_all_prots)
 
-        full_network = final_annotated[['GroupID_key','GroupID_key2','score']]
-        G = pcd.get_network(full_network, 'GroupID_key', 'GroupID_key2')
-
-
-        print(G.degree())
-        nodes = pd.DataFrame.from_dict(G.degree(), orient='index')
-        nodes.columns = ['Degree']
-        print nodes
-        annots = pd.read_csv("all_annotations.csv")
-        nodes_annotated = annotate_nodes(nodes, annots, complexes, df_all_prots)
-
-        #print(nodes_annotated)
-       
-        nodes_annotated = nodes_annotated.sort_values(['Degree', 'score'], ascending=False)
-        nodes_annotated = nodes_annotated.reset_index()
-
-        #nodes_annotated_dict = nodes_annotated[['index', 'Annotation']].to_dict()
-
-        nodes_annotated_dict =  dict(zip(nodes_annotated['index'], nodes_annotated['Annotation']))
-        #print(nodes_annotated_dict)
-
-        #print(nodes_annotated)
-        nodes_table = nodes_annotated.to_html(classes='ResultsTbl', index=False)      
-        nodes_soup = BeautifulSoup(nodes_table, 'html.parser')
-        #print nodes_soup
-        #print "SOUP"
-        #print nodes_soup
-        result = ""
-        result = result + '<table border="1" class="dataframe ResultsTbl"><thead><tr style="text-align: right;"><th>index</th><th>Degree</th><th>Code</th><th>Annotation</th><th>Bait</th><th>score</th><th>select</th></tr></thead><tbody>'
-
-        rows = nodes_soup.findAll('tr')
-        header=True
-        for row in rows:
-            cols = row.findAll('td')
-            #print cols
-            n = 0
-            #if header==True:
-               #to_add = "<th>Select</th>"
-               #result = result + to_add
-               #header =  False
- 
-            result = result  + "<tr>"     
-            for col in cols:
-                result = result + str(col)
-                if n ==0:
-                     vallabel = col.text
-                if n == 5:
-                    #if header== True:
-                    #    to_add = "<th>Select</th>"
-                    #    result = result + to_add
-                    #    header =  False
-                    #else:
-                     #print dir(col) 
-                     #vallabel = col.text
-                     if vallabel in complexes:
-                         add_check = ' checked="Checked"' 
-                     else:
-                         add_check = ''
-                     print vallabel
-                     to_add = '<td> <input type="checkbox" name="name1" value="' + vallabel + '"' + add_check + ' />&nbsp; </td>'
-                     result = result + to_add +"</tr>"
-                n = n + 1           
-        result = result + '</tbody></table>'
-        #print result
-        nodes_table = result
-
-        G = pcd.filter_nodes(G, degree)
-        weights,pos, colorvalues =  pcd.draw_network(G, complexes, degree)   
-        #print weights, pos, colorvalues
-
-        network_script, network_div = pcd.bokeh_network(G, weights, pos, colorvalues, nodes_annotated_dict)
-    
-       # print request.form['reselect_query']   
-        ##
-        #if request.method == 'POST':
 
         formData = request.values if request.method == "POST" else request.values
         response = "Form Contents <pre>%s</pre>" % "<br/>\n".join(["%s:%s" % item for item in formData.items()] )
 
-        print response
+
+
     except Exception as e:
         print e
         nodes_table = ""
@@ -329,13 +289,27 @@ def polynomial():
     js_resources = INLINE.render_js()
     css_resources = INLINE.render_css()
 
+    bait_plus = "+".join(complexes)
+
+    spec_plus = longform_species.replace(" ", "+")
+
+    elution_link = "http://127.0.0.1:5000/proteinquery?proteins={}&species_longform={}".format(bait_plus, spec_plus)
+
+
+    #This is temporary until I can get a better network plotter
+    network_div = network_div.replace('<div class="bk-plotdiv"', '')
+    network_div = network_div.replace('</div>', '', 1)
+    network_div = network_div.replace('>', '', 1)
     html = render_template(
         'finder.html',
         #plot_script=script,
         #plot_div=div,
+        #exp_link=expression_link,
+        elut_link=elution_link,
         net_script=network_script,
         net_div=network_div,
         prot_tbl=protein_table,
+        proteins=proteins,
         nodes_tbl=nodes_table,
         results_tbl=results_table,
         deg=degree,
@@ -348,7 +322,7 @@ def polynomial():
     )
     return encode_utf8(html)
 
-@app.route('/viewer')
+@app.route('/sparkline_simple')
 def spark():
     """ Simple sparkline
     """
@@ -392,7 +366,7 @@ def protein_query():
 
     #Save this in a file somewhere
     spec_conv_dict = {"Arabidopsis thaliana":"arath", "Brassica oleraceae":"braol", "Chlamydomonas reinhardtii":"chlre", "Oryza sativa":"orysj",
-"Selaginella moellendorfii":"selml", "Triticum aestivum":"traes", "Ceratopteris richardii":"cerri", "All plants":"All plants"}  
+"Selaginella moellendorfii":"selml", "Triticum aestivum":"traes", "Ceratopteris richardii":"cerri", "All plants":"allplants"}  
 
     # Grab the inputs arguments from the URL
     args = request.args
@@ -409,7 +383,7 @@ def protein_query():
     protein_list = valid_query(protein_list, conversion_tbl)
     protein_table, group_table = make_conversion_tables(protein_list, conversion_tbl, species)
 
-    input_protein_species = identify_species(protein_list, conversion_tbl)
+    input_protein_species = identify_species(protein_list, conversion_tbl)[0]
     input_protein_species_longform = [x for x in spec_conv_dict.keys() if spec_conv_dict[x] == input_protein_species][0]
 
     print(species)

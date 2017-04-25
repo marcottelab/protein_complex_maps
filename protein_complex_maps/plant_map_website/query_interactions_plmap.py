@@ -36,15 +36,15 @@ def get_group_interactions(bait):
     '''
     This query takes a list of bait IDs in a 'known' complex and finds protins which fit in with them
     '''
-    print(bait)
+    #print(bait)
     try:
           
         bg_interactions = db.session.query(cdb.Edge).filter((cdb.Edge.group_key2.in_(bait) | cdb.Edge.group_key.in_(bait))).all()
         bg_query  =  make_data_frame(bg_interactions, ['group_key', 'group_key2', 'in_complex', 'score'])
         #print("pull down")
-        print(bg_query)
+        #print(bg_query)
 
-        print("median score from query", bg_query['score'].median())
+        #print("median score from query", bg_query['score'].median())
 
         #print("each protein median correlation")
         all_prots = pd.concat([bg_query[['group_key', 'score']], bg_query[['group_key2', 'score']]])
@@ -56,19 +56,19 @@ def get_group_interactions(bait):
         return(df_all_prots)
 
     except NoResultFound:
-        print "NoResultFound"
+       #print "NoResultFound"
      
 def get_baitbait_interactions(bait):
     '''
     Find interactions between input bait complex proteins
     '''
     try:
-        print(bait) 
+       #print(bait) 
         bait_interactions = db.session.query(cdb.Edge).filter(cdb.Edge.group_key2.in_(bait), cdb.Edge.group_key.in_(bait)).all()
         #print(bait_interactions)
         #print(dir(bait_interactions))
         bait_query  =  make_data_frame(bait_interactions, ['group_key', 'group_key2', 'in_complex', 'score'])
-        print("interactions among baits")
+       #print("interactions among baits")
         #print(bait_query)
 
         bait_median  = bait_query['score'].median()
@@ -82,9 +82,9 @@ def get_baitbait_interactions(bait):
 
         return bait_query, lower_one_std_bound, bait_median, bait_std, bait_mean
     except NoResultFound:
-        print "NoResultFound"
+       #print "NoResultFound"
     except Exception as e: 
-        print(e)
+       #print(e)
 
 def annotate_baitbait(bait_query, df_predicted):
         '''
@@ -95,7 +95,7 @@ def annotate_baitbait(bait_query, df_predicted):
         bait_query_annot = bait_query[['bait_bait', 'group_key','group_key2', 'score']]
         #print(bait_query_annot)
         bait_query_annot = bait_query_annot.set_index(['group_key', 'group_key2', 'score'])
-        print(df_predicted)
+       #print(df_predicted)
         df_predicted = df_predicted.set_index(['group_key', 'group_key2', 'score'])
 
         baitbait_annotated = df_predicted.join(bait_query_annot, how="outer")
@@ -130,7 +130,7 @@ def predict_complex_members(lower_one_std_bound, df_all_prots):
 
         df_predicted= make_data_frame(final_interactions,  ['group_key', 'group_key2', 'in_complex', 'score'])
         #print(df_predicted)
-        print(bait)
+       #print(bait)
         return df_predicted
     
 def make_annots():
@@ -206,8 +206,8 @@ def load_args():
    parser.add_argument("--outfile_suffix", action="store", dest="outfile_suffix", required=False, default=time.strftime("%Y%m%d%H%M%S"))
 
    args = parser.parse_args()
-   print(args)
-   print(args.bait)
+  #print(args)
+  #print(args.bait)
    return args
 
 def run_process(bait, annots, df_all_prots):
@@ -264,7 +264,7 @@ def sampling_process(bait, stats_file=None):
     if stats_file:
         stats = list(get_baitbait_interactions(bait)[1:])
         log_data = str(stats).replace("[", "").replace("]", "")
-        print("log_data", log_data)
+       #print("log_data", log_data)
         stat_log = open(stats_file, "a")
         
         stat_log.write(log_data +"\n")
@@ -276,9 +276,9 @@ def sampling_process(bait, stats_file=None):
     #print("median", baitbait_analysis[2])
     #print("stdev", baitbait_analysis[3])
     #if baitbait_analysis[1] < 0.5:
-    #      print("Low quality input complex", baitbait_analysis[1])
-    #      print("Distribution of gold standard lows")
-    #      print("and an arrow point to where input dist is")
+    #     #print("Low quality input complex", baitbait_analysis[1])
+    #     #print("Distribution of gold standard lows")
+    #     #print("and an arrow point to where input dist is")
 
     lower_list = []
     median_list = []
@@ -295,7 +295,7 @@ def sampling_process(bait, stats_file=None):
     #print(len(bait_query.index))
     for index in range(len(bait)):
         #Not using pop because not deleting item permanently
-        print("gene ID", bait[index])
+       #print("gene ID", bait[index])
         bait_subset = bait[:index] + bait[index+1 :]
         #print(bait_subset)
         samp_total_int = get_group_interactions(bait_subset) 
@@ -325,7 +325,7 @@ def sampling_process(bait, stats_file=None):
 
         diff_median = median -bait_sample_analysis[2]
         if diff_median < 0:
-           print("removing ", bait[index], " would improve median by ", diff_median)
+          #print("removing ", bait[index], " would improve median by ", diff_median)
   
         lower_list.append(bait_sample_analysis[1])
         median_list.append(bait_sample_analysis[2])
@@ -359,13 +359,13 @@ def sampling_process(bait, stats_file=None):
      
 
 def convert_id(bait, annots, id_format, target_id):
-    print(annots)    
+   #print(annots)    
     bait_ids = annots[annots[id_format].isin(bait)]
-    print(bait_ids)
+   #print(bait_ids)
     bait_vector = bait_ids[target_id]
-    print(bait_vector)
+   #print(bait_vector)
     bait= bait_vector.tolist()
-    print(bait)
+   #print(bait)
     return(bait)
 
 
@@ -376,21 +376,21 @@ def annotate_nodes(nodes, annots, bait, df_all_prots):
      #bait_series = pd.Series(bait)
 
      bait_df = pd.DataFrame(True, index=bait, columns = ['Bait'])
-     print(bait_df)
+    #print(bait_df)
 
      nodes_tmp = nodes.join(annots, how='left')
 
      nodes_tmp = nodes_tmp.join(bait_df, how='left')
 
      nodes_scores = nodes_tmp.join(df_all_prots, how='outer')
-     print(nodes_scores)
+    #print(nodes_scores)
      nodes_scores.index.name = 'group_id'
      nodes_scores = nodes_scores.reset_index()
-     print(nodes_scores)
+    #print(nodes_scores)
      nodes_mean = nodes_scores.groupby(['group_id'])['score'].mean()    
      nodes_annotated =nodes_tmp.join(nodes_mean, how="left")
      nodes_annotated = nodes_annotated.drop_duplicates()
-     print(nodes_annotated)
+    #print(nodes_annotated)
      return nodes_annotated
 
 
@@ -419,40 +419,40 @@ if __name__ == "__main__":
     bait  = args.bait.split(",")
     annots = make_annots()
   
-    print(bait) 
+   #print(bait) 
 
     if args.id_format != 'group_id':
        try:
           bait = convert_id(bait, annots, args.id_format, "group_id")
        except Exception as e:
-           print(e)
-    print("Get Annotations")
+          #print(e)
+   #print("Get Annotations")
     bait_group_annotations = convert_id(bait, annots, "group_id", "group_annotation")
     bait_group_annotations = [x.replace(" ", "_") for x in bait_group_annotations]
 
-    print(bait)
-    print(bait_group_annotations)
+   #print(bait)
+   #print(bait_group_annotations)
     if args.stats_file:  
-        print("Collect stats")
+       #print("Collect stats")
         sampling_process(bait, args.stats_file)
 
-    print("Sampling Process")
+   #print("Sampling Process")
    
     #bait = sampling_process(bait)
 
     #def get_interactions
     df_all_prots = get_group_interactions(bait)
-    print("got group")
-    print(df_all_prots)
-    print("Run full process")
+   #print("got group")
+   #print(df_all_prots)
+   #print("Run full process")
     final_annotated = run_process(bait, annots, df_all_prots)
-    print(final_annotated)
+   #print(final_annotated)
 
     final_annotated = final_annotated[~final_annotated.group_key.str.contains("CHLRE")] 
     final_annotated = final_annotated[~final_annotated.group_key2.str.contains("CHLRE")] 
 
-    print("Draw network")
-    print(bait_group_annotations)
+   #print("Draw network")
+   #print(bait_group_annotations)
     full_network = final_annotated[['group_annotation','group_annotation2','score']]
     G=pcd.get_network(full_network, 'group_annotation', 'group_annotation2')
     #pcd.draw_network(G, bait_group_annotations, 2)
@@ -460,16 +460,16 @@ if __name__ == "__main__":
     full_network = final_annotated[['group_key','group_key2','score']]
     G = pcd.get_network(full_network, 'group_key', 'group_key2')
     pcd.draw_network(G, bait, 2)
-    print(G.degree())
+   #print(G.degree())
     nodes = pd.DataFrame.from_dict(G.degree(), orient='index')
     nodes.columns = ['Degree']
 
     nodes_annotated = annotate_nodes(nodes, annots, bait, df_all_prots)
-    print(nodes_annotated)
+   #print(nodes_annotated)
     nodes_annotated = nodes_annotated.sort_values(['Degree'], ascending=False)
     nodes_annotated = nodes_annotated.reset_index()
-    print(nodes_annotated) 
-    print(G.edges())
+   #print(nodes_annotated) 
+   #print(G.edges())
 
     
     nodes_outfile = "nodes_plmap_query_" + args.outfile_suffix + ".txt" 

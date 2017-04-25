@@ -1,49 +1,9 @@
-<!bootstrap-3.3.6/docs/DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <meta name="description" content="">
-    <meta name="author" content="">
-    <link rel="icon" href="../bootstrap-3.3.6/docs/favicon.ico">
+ <div class="container theme-showcase" role="main">
+<div class='container-fluid'>
 
-    <title>plant.MAP</title>
+ 
+{% include 'header.html' %}
 
-
-    <!--<link href="../static/styles/test.css" rel="stylesheet"> -->
-    <link href="../static/styles/styles.css" rel="stylesheet">
-
-
-
-    <!-- Bootstrap core CSS -->
-    <link href="../static/styles//bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap theme -->
-    <link href="../static/styles//bootstrap-theme.min.css" rel="stylesheet">
-
-    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-    <link href="../static/styles/ie10-viewport-bug-workaround.css" rel="stylesheet">
-
-    <!-- Custom styles for this template -->
-    <link href="../static/styles/theme.css" rel="stylesheet">
-
-
-
-    <script src="../static/js/ie-emulation-modes-warning.js"></script>
-
-    <!--<script src="../static/js/sorttable.js"></script> -->
-
-    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-    <!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
-
-
-  </head>
-
-  <body role="document">
 
     <!-- Fixed navbar -->
     <nav class="navbar navbar-inverse navbar-fixed-top">
@@ -61,7 +21,6 @@
           <ul class="nav navbar-nav">
             <li><a href="/">Home</a></li>
             <li><a href="/proteinquery">ProteinQuery</a></li>
-
             <li class="active"><a href="/finder">InteractionFinder</a></li>
             <li><a href="/about">About</a></li>
             <li><a href="/download">Download</a></li>
@@ -70,73 +29,105 @@
       </div>
     </nav>
 
-    <div class="container theme-showcase" role="main">
-
-      <!-- Main jumbotron for a primary marketing message or call to action -->
-      <div class="jumbotron">
-        <h1>plant.MAP</h1>
-        <p> 
-            Co-Eluting Proteins in Plants
-        </p>
-      </div>
 
 
-      <div class="page-header">
+     {%include 'jumbotron.html' %}
+
+    <!-- <div class="page-header"> -->
 
     {{ js_resources|indent(4)|safe }}
 
     {{ css_resources|indent(4)|safe }}
+    
+    
+        <div class="row-fluid">
+    
+            <div class="col-md-4">
+            <form name="prot_query" id = "prot_query" method='GET'>
+                <textarea cols="30" rows="10" name="proteins">{{ proteins }}</textarea>
+                <button type="submit">Query proteins</button>
+            </form>
+        
+        
+            {{ net_script | safe }}
+              <h4>Input protein-to-Orthogroup mapping</h4>
 
-    <form name="prot_query" id = "prot_query" method='GET'>
-        <textarea cols="30" rows="10" name="proteins">{{ proteins }}</textarea>
-        <button type="submit">Query proteins</button>
-    </form>
+                <div class="table-responsive" style="height=200px; overflow-y: auto; overflow-x: hidden;">
+                    {{ prot_tbl | indent(4) | safe  }}
+                </div>
+
+            </div>    
+    
+           <div class="col-md-6">
+        
+            {{ net_div | safe }}
+           </div>
+    
+           <div class="col-md-2 text-right">
+     
+    
+    
+               <form name='degree_query' id='degree_query' method='GET'>
+                   <input type="number" name="deg" min="1">
+                   <p><button type="submit">Change network degree cutoff</button></p>
+               </form>
+        
+           </div> 
+    
+        </div>
+ 
+        <div class = "col-md-12">
+            <h3>Results</h3><hr>
+        </div>
 
 
-    {{ net_script | safe }}
-      <h4>Input protein-to-Orthogroup mapping</h4>
-    {{ prot_tbl | indent(4) | safe  }}
+     <div class="row-fluid">   
+        <div class="col-md-7">
+             <form name='reselect_nodes' method=['GET', 'POST']> 
+       
+             <p>Query: {{ bait | safe}}</p>
+            <div style="height: 800px; overflow-y: auto; overflow-x: hidden;">
+     
+               {{ nodes_tbl | safe   }}
+            </div>
+        </div>
+    
+    
+    
+        <div class="col-md-5">
+            <br>
+    
+            <b><h3>Scoring</h3></b>
+                <li>The mean score between queries is {{ mean }} </li>
+                <li>The median score between queries is {{ median }} </li>
+                <li><i>{{ suggest }} </i></li>
+            </p>
+         
+            <p><h3>Select rows to add to query</h3></p>
+                      <button type="submit" class="btn btn-primary btn-lg">Requery with selected</button> 
+                 </form> 
+         
+            <h3>View protein elutions</h3>
+           
+                <a href="{{ elut_link | safe }}">Link to elution</a>
+                <img src="/static/images/sparkline_icon.svg" class="img-fluid img-thumbnail" alt="Responsive image" width=250px height=80>
+        
+            <h3>View expression profile</h3>
+                <a href="{{ exp_link | safe }}">Link to BAR</a>
+        
+        
+        
+    
+        </div>
+            <div style="height: 800px; overflow-y: auto; overflow-x: hidden;">
+                {{ results_tbl | safe }}
+            </div>
+    
+    
+        </div> 
+    </div> 
+    
+ </div>
+</div>
+{% include 'footer.html' %}
 
-
-
-   <h4>Results</h4>
-
-
-
-   <form name='degree_query' id='degree_query' method='GET'>
-      Degree cutoff for network
-      <input type="number" name="deg" min="1">
-      <button type="submit">Change degree</button>
-      <!--<input type="submit">-->
-   </form>
-
-    {{ net_div | safe }}
-    <p>
-    <p>Query: {{ bait | safe}}</p>
-    <p>The mean score between queries is {{ mean }} </p>
-    <p>The median score between queries is {{ median }} </p>
-    <p>{{ suggest }} </p>
-    </p>
-
-
-
-    <form name='reselect_nodes' method='POST'> 
-     <button type="submit">Requery with selected</button> 
-    {{ nodes_tbl | safe   }}
-    </form> 
-
-    {{ results_tbl | safe }}
-
-
-
-    <!-- Bootstrap core JavaScript
-    ================================================== -->
-    <!-- Placed at the end of the document so the pages load faster -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-    <script>window.jQuery || document.write('<script src="../static/js/jquery.min.js"><\/script>')</script>
-    <script src="../static/js/bootstrap.min.js"></script>
-    <script src="../static/js/docs.min.js"></script>
-    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-    <script src="../static/js/ie10-viewport-bug-workaround.js"></script>
-  </body>
-</html>

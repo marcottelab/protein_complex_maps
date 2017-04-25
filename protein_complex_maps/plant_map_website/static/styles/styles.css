@@ -1,17 +1,32 @@
 body            { font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;}
-a, h1, h2       { color: #9CBA7F; }
+a, h2       { color: #9CBA7F; }
 h1, h2          { margin: 0; }
-h1              { border-bottom: 2px solid #eee; }
+h2              { border-bottom: 2px solid #eee; }
+h1              { font-size: 7em !important; }
 h2              { font-size: 12pt; }
+
+
+.jumbotron {
+    /* add bootstrap jumbotron background image */
+    background: url("/static/images/header_plantmap.jpg");
+    /* change bootstrap jumbotron text color */
+    color:#FFFFFF !important;
+    font-weight:bold ;
+    background-size: auto 320%;
+   
+}
+
+
 
 table.dataframe, .dataframe th, .dataframe td {
   border: none;
   border-bottom: 1px solid #C8C8C8;
-  /*border-collapse: collapse;*/
   text-align:left;
   padding: 3px;
   margin-bottom: 10px;
   font-size: 10pt;
+  margin:0px !important;
+  table-layout:fixed;
 }
 
 .ProtTbl th {
@@ -35,6 +50,7 @@ table.dataframe, .dataframe th, .dataframe td {
     background-color: #9CBA7F;
     color: white;
 }
+
 
 /*tr:nth-child(odd)		{ background-color:#eee; }
 tr:nth-child(even)	{ background-color:#fff; }

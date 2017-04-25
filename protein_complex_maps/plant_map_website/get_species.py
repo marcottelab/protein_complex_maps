@@ -4,15 +4,15 @@ import argparse
 
 def identify_species(input_list, conversion_tbl):
 
-    Species_dict={'arath':'Arabidopsis thaliana', 'braol':'Brassica oleraceae', 'chlre':'Chlamydomonas reinhardtii', 'orysj':'Oryza sativa', 'traes':'Tricicum aestivum', 'selml':'Selaginella moellendorfii', 'cerri':'Ceratopteris ricardii'}
+    Species_dict={'allplants':'All plants', 'arath':'Arabidopsis thaliana', 'braol':'Brassica oleraceae', 'chlre':'Chlamydomonas reinhardtii', 'orysj':'Oryza sativa', 'traes':'Tricicum aestivum', 'selml':'Selaginella moellendorfii', 'cerri':'Ceratopteris ricardii'}
    
      
-    print conversion_tbl.head
+    #print conversion_tbl.head
     list_species = []
-    print(input_list)    
+    #print(input_list)    
     for ID in input_list:
         output = conversion_tbl[conversion_tbl['ProteinID'].str.contains(ID)]
-        print(output)
+        #print(output)
         spec = output['Species'].tolist()[0]
         list_species.append(spec)
 
@@ -37,7 +37,7 @@ def identify_species(input_list, conversion_tbl):
     else:
          print Species_dict[spec] + " query"
 
-         return spec
+         return spec, Species_dict[spec]
 
  
 if __name__ == '__main__':

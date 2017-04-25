@@ -73,11 +73,11 @@ def get_group_interactions(bait):
         bg_interactions = db.session.query(cdb.Edge).filter((cdb.Edge.GroupID_key2.in_(bait) | cdb.Edge.GroupID_key.in_(bait))).all()
         bg_query  =  make_data_frame(bg_interactions, ['GroupID_key', 'GroupID_key2', 'in_complex', 'score'])
         #print("pull down")
-        #print(bg_query)
+       #print(bg_query)
 
-        #print("median score from query", bg_query['score'].median())
+       #print("median score from query", bg_query['score'].median())
 
-        #print("each GroupID median correlation")
+       #print("each GroupID median correlation")
         all_prots = pd.concat([bg_query[['GroupID_key', 'score']], bg_query[['GroupID_key2', 'score']]])
         all_prots['GroupID_key'] = all_prots['GroupID_key'].fillna(all_prots['GroupID_key2'])
         #print(all_prots)
@@ -85,8 +85,8 @@ def get_group_interactions(bait):
         #print(df_all_prots)
         return(df_all_prots, bg_query)
 
-    except NoResultFound:
-        print "NoResultFound"
+    except Exception as E:
+       print "NoResultFound"
      
 def get_baitbait_interactions(bait):
     '''
@@ -97,8 +97,8 @@ def get_baitbait_interactions(bait):
         bait_interactions = db.session.query(cdb.Edge).filter(cdb.Edge.GroupID_key2.in_(bait), cdb.Edge.GroupID_key.in_(bait)).all()
         #print bait_interactions
         bait_query  =  make_data_frame(bait_interactions, ['GroupID_key', 'GroupID_key2', 'in_complex', 'score'])
-        print("interactions among baits")
-        print(bait_query)
+       #print("interactions among baits")
+       #print(bait_query)
 
         return bait_query
     except Exception as E:
@@ -271,8 +271,8 @@ def run_process(bait, annots):
     return final_annotated, df_all_prots
   
 def sampling_process(bait, stats_file=None):
-    print "START SAMPLING"
-    print(bait)
+   #print "START SAMPLING"
+   #print(bait)
 
     #max_interactions = len(bait) * len(bait)
     #print(max_interactions)
@@ -340,7 +340,7 @@ def sampling_process(bait, stats_file=None):
 
         diff_median = median - sample_analysis[1]
         if diff_median < 0:
-           print("Removing ", bait[index], " would improve median by ", diff_median)
+          #print("Removing ", bait[index], " would improve median by ", diff_median)
            suggestion = "Removing "+ str(bait[index]) + " would improve median by "+ str(abs(diff_median))
            suggestions.append(suggestion)
 
@@ -409,7 +409,7 @@ if __name__ == "__main__":
     setup_log(args.logname)
 
     bait  = args.bait.split(" ")
-    print bait
+   #print bait
     #GroupID ProteinID Species
     annots = make_annots()
 
@@ -421,7 +421,7 @@ if __name__ == "__main__":
           #print bait
           #bait = convert_id(bait, annots, args.id_format)
        except Exception as e:
-           print(e)
+          print(e)
     #bait should now be in GroupID formate
     #print bait  
 

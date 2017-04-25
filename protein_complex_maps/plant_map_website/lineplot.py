@@ -18,9 +18,6 @@ defaults.height = 100
 
 
 
-
-
-
 def add_spans(p1):
     major = [339]
     minor =[84, 171, 248, 391]

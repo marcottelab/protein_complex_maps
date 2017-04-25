@@ -22,6 +22,8 @@ def interaction_share(data_dict1, title1, data_dict2, title2):
 
     plt.show()
 
+
+
 def draw_network(pairs, baitlist):
     print(pairs)
         #print(nodes)

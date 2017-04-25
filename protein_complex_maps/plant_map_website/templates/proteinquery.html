@@ -1,43 +1,4 @@
-<!bootstrap-3.3.6/docs/DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <meta name="description" content="">
-    <meta name="author" content="">
-    <link rel="icon" href="../bootstrap-3.3.6/docs/favicon.ico">
-
-    <title>plant.MAP</title>
-
-    <!--<link href="../static/styles/test.css" rel="stylesheet"> -->
-    <link href="../static/styles/styles.css" rel="stylesheet">
-
-    <!-- Bootstrap core CSS -->
-    <link href="../static/styles//bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap theme -->
-    <link href="../static/styles//bootstrap-theme.min.css" rel="stylesheet">
-    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-    <link href="../static/styles/ie10-viewport-bug-workaround.css" rel="stylesheet">
-
-    <!-- Custom styles for this template -->
-    <link href="../static/styles/theme.css" rel="stylesheet">
-
-    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
-    <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
-    <script src="../static/js/ie-emulation-modes-warning.js"></script>
-
-    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-    <!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
-
-
-  </head>
-
-  <body role="document">
+{% include 'header.html' %}
 
     <!-- Fixed navbar -->
     <nav class="navbar navbar-inverse navbar-fixed-top">
@@ -67,14 +28,7 @@
 
     <div class="container theme-showcase" role="main">
 
-      <!-- Main jumbotron for a primary marketing message or call to action -->
-      <div class="jumbotron">
-        <h1>plant.MAP</h1>
-        <p> 
-            Co-Eluting Proteins in Plants
-        </p>
-      </div>
-
+{% include 'jumbotron.html' %}
 
       <div class="page-header">
 
@@ -87,9 +41,9 @@
   <body>
     <h2>Retrieve protein elutions</h2> 
 
-    <b>This tool retrieves patterns of detection of proteins across proteomics experiments. Used the dropdown menu to see either 1) alignments of orthologs of the input proteins across all species, 2) The input proteins in their own species, or 3) orthologs of the input proteins in a different species.</b>
-    <b> dropdown menu to see either 1) alignments of orthologs of the input proteins across all species, 2) The input proteins in their own species, or 3) orthologs of the input proteins in a different species.</b>
-    <b>Use to 1) predict conditions for isolating a protein or complex or 2) See if proteins coelute, a prediction of stable physical contact (see about) </b>
+    <p>This tool retrieves patterns of detection of proteins across proteomics experiments. Used the dropdown menu to see either 1) alignments of orthologs of the input proteins across all species, 2) The input proteins in their own species, or 3) orthologs of the input proteins in a different species.</p>
+    <p> dropdown menu to see either 1) alignments of orthologs of the input proteins across all species, 2) The input proteins in their own species, or 3) orthologs of the input proteins in a different species.</b>
+    <p>Use to 1) predict conditions for isolating a protein or complex or 2) See if proteins coelute, a prediction of stable physical contact (see about) </p>
 
     <p> Enter <a href="http://uniprot.org/">Uniprot</a> Accession numbers or Entry names, one per line </p>
 
@@ -135,15 +89,5 @@
 
 
 
+{% include 'footer.html' %}
 
-    <!-- Bootstrap core JavaScript
-    ================================================== -->
-    <!-- Placed at the end of the document so the pages load faster -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-    <script>window.jQuery || document.write('<script src="../static/js/jquery.min.js"><\/script>')</script>
-    <script src="../static/js/bootstrap.min.js"></script>
-    <script src="../static/js/docs.min.js"></script>
-    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-    <script src="../static/js/ie10-viewport-bug-workaround.js"></script>
-  </body>
-</html>
