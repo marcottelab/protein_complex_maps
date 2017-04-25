@@ -214,45 +214,46 @@ def polynomial():
     # Grab the inputs arguments from the URL
     args = request.args
     # Get all the form arguments in the url with defaults
-    proteins =  getitem(args, 'proteins', 'F4JY76_ARATH EIF3K_ARATH B3H7J6_ARATH')
+    bait =  getitem(args, 'bait', 'F4JY76_ARATH EIF3K_ARATH B3H7J6_ARATH')
     degree = getitem(args, 'deg', 2)
 
     name1 = getitems(args, 'name1', 1)
     
-    protein_list = proteins.split(" ")
+    bait_list = bait.split(" ")
 
     #check that proteinID inputs are valid
-    protein_list = valid_query(protein_list, conversion_tbl)
+    bait_list = valid_query(bait_list, conversion_tbl)
 
     #Identify species of input proteins
-    input_protein_species, longform_species = identify_species(protein_list, conversion_tbl)
+    input_protein_species, longform_species = identify_species(bait_list, conversion_tbl)
 
 
     #Map from protein to group    
-    protein_table, group_table = make_conversion_tables(protein_list, conversion_tbl, input_protein_species)
+    protein_table, group_table = make_conversion_tables(bait_list, conversion_tbl, input_protein_species)
 
 
     #Get groups from a protein list
     #Somewhat duplicated in make_conversion_tables...
-   
-    complexes = get_groups(protein_list, conversion_tbl)
+ 
+    #This line only for when there are ortholog groups in the mix  
+    bait = get_groups(bait_list, conversion_tbl)
 
      
 
 
-    complex_str = " ".join(complexes)
+    bait_str = " ".join(bait)
 
     #Check for check marks ticked
     print("name1", name1)
     #checks = getitems('name1')
     if name1 !=1 :
-        complexes = name1  
+        bait = name1
 
       
     
     try:
-          final_annotated, df_all_prots =run_process(complexes, conversion_tbl)
-          med_score, mean_score, suggestions = sampling_process(complexes)
+          final_annotated, df_all_prots =run_process(bait, conversion_tbl)
+          med_score, mean_score, suggestions = sampling_process(bait)
 
           suggestion_str = "\n".join(suggestions)
     except Exception as E:
@@ -264,8 +265,8 @@ def polynomial():
     print("Draw network")
 
     try:
-        print(complexes, degree)
-        nodes_table, network_script, network_div = pcd.networking(final_annotated, complexes, degree, df_all_prots)
+        print(bait, degree)
+        nodes_table, network_script, network_div = pcd.networking(final_annotated, bait, degree, df_all_prots)
 
 
         formData = request.values if request.method == "POST" else request.values
@@ -289,7 +290,7 @@ def polynomial():
     js_resources = INLINE.render_js()
     css_resources = INLINE.render_css()
 
-    bait_plus = "+".join(complexes)
+    bait_plus = "+".join(bait)
 
     spec_plus = longform_species.replace(" ", "+")
 
@@ -309,7 +310,7 @@ def polynomial():
         net_script=network_script,
         net_div=network_div,
         prot_tbl=protein_table,
-        proteins=proteins,
+        #proteins=proteins,
         nodes_tbl=nodes_table,
         results_tbl=results_table,
         deg=degree,
@@ -317,7 +318,7 @@ def polynomial():
         median=med_score,
         mean=mean_score,
         suggest=suggestion_str,
-        bait=complex_str,
+        bt=bait_plus,
         css_resources=css_resources,
     )
     return encode_utf8(html)
