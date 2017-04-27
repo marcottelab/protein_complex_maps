@@ -294,7 +294,7 @@ def polynomial():
 
     spec_plus = longform_species.replace(" ", "+")
 
-    elution_link = "http://127.0.0.1:5000/proteinquery?proteins={}&species_longform={}".format(bait_plus, spec_plus)
+    elution_link = "http://127.0.0.1:5000/complexdisplay?proteins={}&species_longform={}".format(bait_plus, spec_plus)
 
 
     #This is temporary until I can get a better network plotter
@@ -321,6 +321,69 @@ def polynomial():
         bt=bait_plus,
         css_resources=css_resources,
     )
+    return encode_utf8(html)
+
+@app.route('/complexdisplay')
+def display_complex():
+    conversion_tbl = pd.read_csv("all_tophits_protlength.txt", sep="\t")
+
+    #Save this in a file somewhere
+    spec_conv_dict = {"Arabidopsis thaliana":"arath", "Brassica oleraceae":"braol", "Chlamydomonas reinhardtii":"chlre", "Oryza sativa":"orysj",
+"Selaginella moellendorfii":"selml", "Triticum aestivum":"traes", "Ceratopteris richardii":"cerri", "All plants":"allplants"}  
+
+    # Grab the inputs arguments from the URL
+    args = request.args
+
+    proteins =  getitem(args, 'proteins', "WRK58_ARATH Q9SR92")
+    species_longform =  getitem(args, 'species_longform', "All plants")
+
+
+    print species_longform
+
+    species = spec_conv_dict[species_longform]
+    print species
+    protein_list = proteins.split(" ")
+    protein_table, group_table = make_conversion_tables(protein_list, conversion_tbl, species)
+
+    input_protein_species = identify_species(protein_list, conversion_tbl)[0]
+    input_protein_species_longform = [x for x in spec_conv_dict.keys() if spec_conv_dict[x] == input_protein_species][0]
+
+    print(species)
+    #There's some redundancy with make_conversion_table pulling groupIDs
+    #Going to be sql'd anyway later
+    complexes = get_groups(protein_list, conversion_tbl)
+    print complexes
+     
+ 
+    #js and cs needed for the plot
+    js_resources = INLINE.render_js()
+    css_resources = INLINE.render_css()
+
+    try:
+       results1 = make_protein_sparklines(complexes, species, species_longform, conversion_tbl)
+       script1, div1 = results1
+    except Exception as e:
+        print e
+        print "Something went wrong"
+        script1="No input proteins observed in proteomics data for " + species_longform
+        div1="none"
+
+    #Get plot over to the html webpage
+    html = render_template(
+        'complexdisplay.html',
+        js_resources=js_resources,
+        css_resources=css_resources,
+        complexes=complexes,
+        proteins=proteins,
+        prot_tbl=protein_table,
+        group_tbl=group_table,
+        species_longform=species_longform,
+        inp_species_longform=input_protein_species_longform,
+        plot_script1=script1,
+        plot_div1=div1,
+ 
+    )
+ 
     return encode_utf8(html)
 
 @app.route('/sparkline_simple')
@@ -387,44 +450,25 @@ def protein_query():
     input_protein_species = identify_species(protein_list, conversion_tbl)[0]
     input_protein_species_longform = [x for x in spec_conv_dict.keys() if spec_conv_dict[x] == input_protein_species][0]
 
-    print(species)
-    #There's some redundancy with make_conversion_table pulling groupIDs
-    #Going to be sql'd anyway later
-    complexes = get_groups(protein_list, conversion_tbl)
-    print complexes
+
+    proteins_plus = proteins.replace(" ", "+")
+    species_longform_plus =species_longform.replace(" ", "+")
+    display_link = "http://127.0.0.1:5000/proteinquery?proteins={}&species_longform={}".format(proteins_plus, species_longform_plus)
      
  
     #js and cs needed for the plot
     js_resources = INLINE.render_js()
     css_resources = INLINE.render_css()
 
-    try:
-       results1 = make_protein_sparklines(complexes, species, species_longform, conversion_tbl)
-       script1, div1 = results1
-    except Exception as e:
-        print e
-        print "Something went wrong"
-        script1="No input proteins observed in proteomics data for " + species_longform
-        div1="none"
-
     #Get plot over to the html webpage
     html = render_template(
         'proteinquery.html',
         js_resources=js_resources,
         css_resources=css_resources,
-        complexes=complexes,
         proteins=proteins,
-        prot_tbl=protein_table,
-        group_tbl=group_table,
-        species_longform=species_longform,
-        inp_species_longform=input_protein_species_longform,
-        plot_script1=script1,
-        plot_div1=div1,
- 
+        disp_link= display_link 
     )
     return encode_utf8(html)
-
-
 
 
 

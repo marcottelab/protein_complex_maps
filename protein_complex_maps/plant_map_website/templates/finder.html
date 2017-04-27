@@ -69,7 +69,7 @@
     
                <form name='degree_query' id='degree_query' method='GET'>
                    <input type="number" name="deg" min="1">
-                   <p><button type="submit">Change network degree cutoff</button></p>
+                   <p><button type="submit" class="btn btn-primary btn-sm">Change network <br> degree cutoff</button></p>
                </form>
         
            </div> 
@@ -85,7 +85,7 @@
         <div class="col-md-7">
              <form name='reselect_nodes' method=['GET', 'POST']> 
        
-             <p>Query: {{ bait | safe}}</p>
+             <p>Original query: {{ bait_original | safe}}</p>
             <div style="height: 800px; overflow-y: auto; overflow-x: hidden;">
      
                {{ nodes_tbl | safe   }}

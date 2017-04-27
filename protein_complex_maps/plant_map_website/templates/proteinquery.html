@@ -2,7 +2,7 @@
 
     <!-- Fixed navbar -->
     <nav class="navbar navbar-inverse navbar-fixed-top">
-      <div class="container">
+      <div class="container-fluid">
         <div class="navbar-header">
           <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
             <span class="sr-only">Toggle navigation</span>
@@ -27,7 +27,7 @@
     </nav>
 
     <div class="container theme-showcase" role="main">
-
+   
 {% include 'jumbotron.html' %}
 
       <div class="page-header">
@@ -39,20 +39,18 @@
 
   </head>
   <body>
-    <h2>Retrieve protein elutions</h2> 
+    <h2>Access proteomic data</h2> 
 
-    <p>This tool retrieves patterns of detection of proteins across proteomics experiments. Used the dropdown menu to see either 1) alignments of orthologs of the input proteins across all species, 2) The input proteins in their own species, or 3) orthologs of the input proteins in a different species.</p>
-    <p> dropdown menu to see either 1) alignments of orthologs of the input proteins across all species, 2) The input proteins in their own species, or 3) orthologs of the input proteins in a different species.</b>
-    <p>Use to 1) predict conditions for isolating a protein or complex or 2) See if proteins coelute, a prediction of stable physical contact (see about) </p>
-
-    <p> Enter <a href="http://uniprot.org/">Uniprot</a> Accession numbers or Entry names, one per line </p>
+  <div class='row-fluid'>
+   <div class="col-md-4">
+   <p> Enter <a href="http://uniprot.org/">Uniprot</a> Accession numbers or Entry names, one per line </p>
 
 
-    <form name="prot_query" id = "prot_query" method='GET'>
+    <form name="prot_query" id = "prot_query" method="GET" action="http://127.0.0.1:5000/complexdisplay" input type="submit">
         <textarea cols="30" rows="10" name="proteins">{{ proteins }}</textarea>
         <br>
+
     <select id="simple" name="species_longform" method='GET'>
-      <option>All plants</option>
       <option>Arabidopsis thaliana</option>
       <option>Brassica oleraceae</option>
       <option>Ceratopteris richardii</option>
@@ -60,34 +58,53 @@
       <option>Oryza sativa</option>
       <option>Selaginella moellendorfii</option>
       <option>Triticum aestivum</option>
+      <option>All plants</option>
     </select>
- 
+
         <button type="submit">Submit</button>
+            <!-- redirect from here -->
     </form>
-
-    <p>
-    <b>Input protein species:</b> {{ inp_species_longform }}
-    </p>
-
-    <p>
-    <b>Currently displaying data from:</b> {{ species_longform }}
-    <p><i>To see data for orthologs of input protein in other species, select a different species in the above drop down menu and click submit. Due to differences in physically prepping different species for proteomics, certain proteins may be more strongly detected in different species.</i></p>
-
-    {{ plot_script1|indent(4)|safe }}
-    
-    <h4>Input protein-to-Orthogroup mapping</h4> 
-    {{ prot_tbl | indent(4) | safe }} 
-    <h4>Orthogroup to member protein mapping in {{ species_longform }}</h4> 
-    {{ group_tbl | safe }}
-
-    <h3>Elution profiles</h3>
-    <p>Black lines represent elutions of ortholog groups of proteins (see About). Colored lines represent spectral counts from individual proteins. A series of colored lines beneath a black ortholog group line signifies that the proteins are members of the same orthologous group. 
-
-    {{ plot_div1 | safe }}
-
     </div>
 
+    <div class="col-md-8">
+       <div class="row">
+     <div class="col-md-6">
+     Proteomic data available for:
 
+      <li>Arabidopsis thaliana</li>
+      <li>Brassica oleraceae</li>
+      <li>Ceratopteris richardii</li>
+      <li>Chlamydomonas reinhardtii</li>
+      <li>Oryza sativa</li>
+      <li>Selaginella moellendorfii</li>
+      <li>Triticum aestivum</li>
+      <li>All plants</li>
+     
+      </div>
+       
+      <div class="col-md-6">
+
+      <img src="/static/images/lowres_tree.jpg" class="img-fluid img-thumbnail" alt="Responsive image" width=300px height=300>
+
+       </div>
+
+
+    </p>
+    </div>
+  
+
+
+
+
+
+    </div>
+    <p>
+
+    <br>
+    <br>
+    <br>
+    <br>
+   
 
 {% include 'footer.html' %}
 

@@ -1,8 +1,13 @@
-body            { font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;}
+/*body            { font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;}*/
+@import url(http://fonts.googleapis.com/css?family=Rubic:400,300,700);
+@import url(http://fonts.googleapis.com/css?family=Nunito:400,300,700);
+@import url(http://fonts.googleapis.com/css?family=Nuli:400,300,700);
+body  { font-family: "Nuli", sans-serif!important; }
+h2, h3, h4, h5   { font-family: "Nuli", sans-serif!important; }
 a, h2       { color: #9CBA7F; }
 h1, h2          { margin: 0; }
 h2              { border-bottom: 2px solid #eee; }
-h1              { font-size: 7em !important; }
+h1              { font-size: 7em !important;  }
 h2              { font-size: 12pt; }
 
 
@@ -11,10 +16,13 @@ h2              { font-size: 12pt; }
     background: url("/static/images/header_plantmap.jpg");
     /* change bootstrap jumbotron text color */
     color:#FFFFFF !important;
-    font-weight:bold ;
+    font-weight:bold!important ;
     background-size: auto 320%;
-   
+    font-family: "Nunito", sans-serif!important;
+
+    border-radius: 2px!important;
 }
+   
 
 
 
