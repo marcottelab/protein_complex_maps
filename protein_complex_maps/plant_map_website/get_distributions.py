@@ -340,9 +340,13 @@ def sampling_process(bait, stats_file=None):
 
         diff_median = median - sample_analysis[1]
         if diff_median < 0:
-          #print("Removing ", bait[index], " would improve median by ", diff_median)
-           suggestion = "Removing "+ str(bait[index]) + " would improve median by "+ str(abs(diff_median))
+           suggestion = "Remove "+ str(bait[index]) + " to raise median by "+ str(abs(diff_median))
            suggestions.append(suggestion)
+        diff_mean = mean - sample_analysis[3]
+        if diff_mean < 0:
+           suggestion = "Remove "+ str(bait[index]) + " to raise mean by "+ str(abs(diff_mean))
+           suggestions.append(suggestion)
+
 
         #lower_list.append(bait_sample_analysis[1])
         #median_list.append(bait_sample_analysis[2])

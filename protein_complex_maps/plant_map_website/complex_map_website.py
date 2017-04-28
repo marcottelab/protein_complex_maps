@@ -205,8 +205,8 @@ def searchComplexes():
 #Breaking up functions
 
 
-@app.route('/finder', methods=['GET', 'POST'])
-def polynomial():
+@app.route('/finder', methods=['GET'])
+def finding():
     """ Very simple embedding of a polynomial chart
     """
     conversion_tbl = pd.read_csv("all_tophits_protlength.txt", sep="\t")
@@ -217,8 +217,14 @@ def polynomial():
     bait =  getitem(args, 'bait', 'F4JY76_ARATH EIF3K_ARATH B3H7J6_ARATH')
     degree = getitem(args, 'deg', 2)
 
-    name1 = getitems(args, 'name1', 1)
-    
+    #reselect = getitems(args, 'reselect', 1)
+ 
+    reselect =   request.args.getlist('reselect')
+
+
+    print("test reselect")
+    print(reselect)
+
     bait_list = bait.split(" ")
 
     #check that proteinID inputs are valid
@@ -238,28 +244,33 @@ def polynomial():
     #This line only for when there are ortholog groups in the mix  
     bait = get_groups(bait_list, conversion_tbl)
 
-     
-
-
     bait_str = " ".join(bait)
 
     #Check for check marks ticked
-    print("name1", name1)
-    #checks = getitems('name1')
-    if name1 !=1 :
-        bait = name1
+    print("reselect", reselect)
+    #checks = getitems('reselect')
+    if reselect :
+        bait_list = reselect
+        bait_str = ' '.join(reselect)
+        bait=bait_list
 
-      
-    
+    print(bait) 
     try:
           final_annotated, df_all_prots =run_process(bait, conversion_tbl)
           med_score, mean_score, suggestions = sampling_process(bait)
 
           suggestion_str = "\n".join(suggestions)
+          suggestion_df  = pd.DataFrame({'Suggestions': suggestions})
+          print(suggestion_df)
+          suggestion_html = suggestion_df.to_html(classes='SuggestionTbl', index=False) 
+         
+
     except Exception as E:
+        print(Exception)
+        print("Failed to get results")
         med_score = "0"
         mean_score = "0"
-        suggestion_str = "No results found"
+        suggestion_html = "No results found"
         final_annotated = pd.DataFrame(columns = ['score','Annotation','Annotation2', 'GroupID_key', 'GroupID_key2', 'bait_bait'])
  
     print("Draw network")
@@ -286,7 +297,7 @@ def polynomial():
     #x = list(range(_from, to + 1))
     #fig = figure(title="Polynomial")
     #fig.line(x, [i ** 2 for i in x], color=color, line_width=2)
-    results_table = final_annotated.to_html(classes='ResultsTbl', index=False) 
+    results_table = final_annotated.to_html(classes='tablesorter" id = "my_id', index=False) 
     js_resources = INLINE.render_js()
     css_resources = INLINE.render_css()
 
@@ -317,8 +328,8 @@ def polynomial():
         js_resources=js_resources,
         median=med_score,
         mean=mean_score,
-        suggest=suggestion_str,
-        bt=bait_plus,
+        suggest=suggestion_html,
+        bt=bait_str,
         css_resources=css_resources,
     )
     return encode_utf8(html)
@@ -486,4 +497,5 @@ if __name__ == "__main__":
     db.create_all()  # make our sqlalchemy tables
     app.run(threaded=True, debug=True)
     
+
 

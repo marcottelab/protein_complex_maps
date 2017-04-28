@@ -30,6 +30,8 @@
     </nav>
 
 
+   
+
 
      {%include 'jumbotron.html' %}
 
@@ -43,8 +45,10 @@
         <div class="row-fluid">
     
             <div class="col-md-4">
-            <form name="prot_query" id = "prot_query" method='GET'>
-                <textarea cols="30" rows="10" name="bait">{{ bt }}</textarea>
+ 
+           <form name="prot_query" id = "prot_query" method='GET'>
+               <input type="hidden" name="deg" value="{{ deg | safe }}">  
+               <textarea cols="30" rows="10" name="bait">{{ bt }}</textarea>
                 <button type="submit">Query proteins</button>
             </form>
         
@@ -59,15 +63,12 @@
             </div>    
     
            <div class="col-md-6">
-        
             {{ net_div | safe }}
            </div>
     
            <div class="col-md-2 text-right">
-     
-    
-    
                <form name='degree_query' id='degree_query' method='GET'>
+               <input type="hidden" name="proteins" value="{{ proteins | safe }}">  
                    <input type="number" name="deg" min="1">
                    <p><button type="submit" class="btn btn-primary btn-sm">Change network <br> degree cutoff</button></p>
                </form>
@@ -83,15 +84,22 @@
 
      <div class="row-fluid">   
         <div class="col-md-7">
-             <form name='reselect_nodes' method=['GET', 'POST']> 
+             <form name='reselect_nodes' method=['GET']> 
        
              <p>Original query: {{ bait_original | safe}}</p>
             <div style="height: 800px; overflow-y: auto; overflow-x: hidden;">
      
-               {{ nodes_tbl | safe   }}
+               {{ nodes_tbl | safe  }}
+     <script>$(document).ready(function() 
+    { 
+        $("#NodesTbl").tablesorter(); 
+    } 
+    ); </script> 
+ 
+
             </div>
         </div>
-    
+   
     
     
         <div class="col-md-5">
@@ -100,11 +108,13 @@
             <b><h3>Scoring</h3></b>
                 <li>The mean score between queries is {{ mean }} </li>
                 <li>The median score between queries is {{ median }} </li>
-                <li><i>{{ suggest }} </i></li>
+            {{ suggest | safe }} </i>
             </p>
          
             <p><h3>Select rows to add to query</h3></p>
-                      <button type="submit" class="btn btn-primary btn-lg">Requery with selected</button> 
+            <input type="hidden" name="deg" value="{{ deg | safe }}">  
+
+                     <button type="submit" class="btn btn-primary btn-lg">Requery with selected</button> 
                  </form> 
          
             <h3>View protein elutions</h3>

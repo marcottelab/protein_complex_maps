@@ -305,16 +305,19 @@ def networking(final_annotated, complexes, degree, df_all_prots):
         nodes_annotated = gd.annotate_nodes(nodes, annots, complexes, df_all_prots)
 
 
-        nodes_annotated = nodes_annotated.sort_values(['Degree', 'score'], ascending=False)
+        nodes_annotated = nodes_annotated.sort_values(['score', 'Degree'], ascending=False)
         nodes_annotated = nodes_annotated.reset_index()
 
 
         nodes_annotated_dict =  dict(zip(nodes_annotated['index'], nodes_annotated['Annotation']))
 
-        nodes_table = nodes_annotated.to_html(classes='ResultsTbl', index=False) 
+        custom_class_nodes='tablesorter" id = "NodesTbl'
+        custom_class_results='tablesorter" id = "ResultsTbl'
+
+        nodes_table = nodes_annotated.to_html(classes=custom_class_nodes, index=False) 
         nodes_soup = BeautifulSoup(nodes_table, 'html.parser')
         result = ""
-        result = result + '<table border="1" class="dataframe ResultsTbl"><thead><tr style="text-align: right;"><th>index</th><th>Degree</th><th>Code</th><th>Annotation</th><th>Bait</th><th>score</th><th>select</th></tr></thead><tbody>'
+        result = result + '<table border="1" class="dataframe ' + custom_class_nodes + '"><thead><tr style="text-align: right;"><th>index</th><th>Degree</th><th>Code</th><th>Annotation</th><th>Bait</th><th>score</th><th>select</th></tr></thead><tbody>'
 
         rows = nodes_soup.findAll('tr')
         header=True
@@ -334,7 +337,7 @@ def networking(final_annotated, complexes, degree, df_all_prots):
                      else:
                          add_check = ''
                      #print vallabel
-                     to_add = '<td> <input type="checkbox" name="name1" value="' + vallabel + '"' + add_check + ' />&nbsp; </td>'
+                     to_add = '<td> <input type="checkbox" name="reselect" value="' + vallabel + '"' + add_check + ' />&nbsp; </td>'
                      result = result + to_add +"</tr>"
                 n = n + 1
         result = result + '</tbody></table>'

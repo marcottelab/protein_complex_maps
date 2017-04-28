@@ -1,6 +1,6 @@
 /*body            { font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;}*/
-@import url(http://fonts.googleapis.com/css?family=Rubic:400,300,700);
-@import url(http://fonts.googleapis.com/css?family=Nunito:400,300,700);
+/*@import url(http://fonts.googleapis.com/css?family=Rubic:400,300,700);
+@import url(http://fonts.googleapis.com/css?family=Nunito:400,300,700);*/
 @import url(http://fonts.googleapis.com/css?family=Nuli:400,300,700);
 body  { font-family: "Nuli", sans-serif!important; }
 h2, h3, h4, h5   { font-family: "Nuli", sans-serif!important; }
@@ -37,7 +37,7 @@ table.dataframe, .dataframe th, .dataframe td {
   table-layout:fixed;
 }
 
-.ProtTbl th {
+/*.ProtTbl th {
     background-color: #9CBA7F;
     color: white;
 
@@ -47,17 +47,17 @@ table.dataframe, .dataframe th, .dataframe td {
 .GroupTbl th {
     background-color: #9CBA7F;
     color: white;
-}
+}*/
 
-.ResultsTbl th {
+/*.ResultsTbl th {
     background-color: #9CBA7F;
     color: white;
-}
+}*/
 
-.NodesTbl th {
+/*.NodesTbl th {
     background-color: #9CBA7F;
     color: white;
-}
+}*/
 
 
 /*tr:nth-child(odd)		{ background-color:#eee; }

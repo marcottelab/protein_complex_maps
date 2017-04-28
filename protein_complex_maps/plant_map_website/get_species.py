@@ -12,7 +12,7 @@ def identify_species(input_list, conversion_tbl):
     #print(input_list)    
     for ID in input_list:
         output = conversion_tbl[conversion_tbl['ProteinID'].str.contains(ID)]
-        #print(output)
+        print(output)
         spec = output['Species'].tolist()[0]
         list_species.append(spec)
 
