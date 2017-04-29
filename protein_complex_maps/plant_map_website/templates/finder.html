@@ -68,7 +68,7 @@
     
            <div class="col-md-2 text-right">
                <form name='degree_query' id='degree_query' method='GET'>
-               <input type="hidden" name="proteins" value="{{ proteins | safe }}">  
+               <input type="hidden" name="bait" value="{{ bt | safe}}">  
                    <input type="number" name="deg" min="1">
                    <p><button type="submit" class="btn btn-primary btn-sm">Change network <br> degree cutoff</button></p>
                </form>
@@ -122,10 +122,19 @@
                 <a href="{{ elut_link | safe }}">Link to elution</a>
                 <img src="/static/images/sparkline_icon.svg" class="img-fluid img-thumbnail" alt="Responsive image" width=250px height=80>
         
+            <h3>View network edges</h3>
+                <a href="{{ exp_link | safe }}">Link to edges</a>
+ 
+
             <h3>View expression profile</h3>
                 <a href="{{ exp_link | safe }}">Link to BAR</a>
-        
-        
+       
+
+ 
+            <h3>Orthogroup to protein converter</h3>
+                <a href="{{ conv_linl | safe }}">Link to converter</a> 
+
+ 
         
     
         </div>
