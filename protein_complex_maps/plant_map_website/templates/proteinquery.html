@@ -1,0 +1,110 @@
+{% include 'header.html' %}
+
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">pl.MAP</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/">Home</a></li>
+            <li class="active"><a href="/proteinquery">ProteinQuery</a></li>
+            <li><a href="finder">InteractionFinder</a></li>
+
+            <li><a href="/viewer">Viewer</a></li>
+            <li><a href="/about">About</a></li>
+            <li><a href="/download">Download</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container theme-showcase" role="main">
+   
+{% include 'jumbotron.html' %}
+
+      <div class="page-header">
+
+    {{ js_resources|indent(4)|safe }}
+
+    {{ css_resources|indent(4)|safe }}
+
+
+  </head>
+  <body>
+    <h2>Access proteomic data</h2> 
+
+  <div class='row-fluid'>
+   <div class="col-md-4">
+   <p> Enter <a href="http://uniprot.org/">Uniprot</a> Accession numbers or Entry names (space, comma, or line separated) </p>
+   
+
+    <form name="prot_query" id = "prot_query" method="GET" action="http://127.0.0.1:5000/complexdisplay" input type="submit">
+        <textarea cols="30" rows="10" name="proteins">{{ proteins }}</textarea>
+        <br>
+
+    <select id="simple" name="species_longform" method='GET'>
+      <option>Arabidopsis thaliana</option>
+      <option>Brassica oleraceae</option>
+      <option>Ceratopteris richardii</option>
+      <option>Chlamydomonas reinhardtii</option>
+      <option>Oryza sativa</option>
+      <option>Selaginella moellendorfii</option>
+      <option>Triticum aestivum</option>
+      <option>All plants</option>
+    </select>
+
+        <button type="submit">Submit</button>
+            <!-- redirect from here -->
+    </form>
+    </div>
+
+    <div class="col-md-8">
+       <div class="row">
+     <div class="col-md-6">
+     Proteomic data available for:
+
+      <li>Arabidopsis thaliana</li>
+      <li>Brassica oleraceae</li>
+      <li>Ceratopteris richardii</li>
+      <li>Chlamydomonas reinhardtii</li>
+      <li>Oryza sativa</li>
+      <li>Selaginella moellendorfii</li>
+      <li>Triticum aestivum</li>
+      <li>All plants</li>
+     
+      </div>
+       
+      <div class="col-md-6">
+
+      <img src="/static/images/lowres_tree.jpg" class="img-fluid img-thumbnail" alt="Responsive image" width=300px height=300>
+
+       </div>
+
+
+    </p>
+    </div>
+  
+
+
+
+
+
+    </div>
+    <p>
+
+    <br>
+    <br>
+    <br>
+    <br>
+   
+
+{% include 'footer.html' %}
+

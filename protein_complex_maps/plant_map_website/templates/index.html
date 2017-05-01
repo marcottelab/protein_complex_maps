@@ -1,0 +1,109 @@
+{% include 'header.html' %}
+
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">plant.MAP</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="/">Home</a></li>
+            <li><a href="/proteinquery">ProteinQuery</a></li>
+            <li><a href="finder">InteractionFinder</a></li>
+            <li><a href="/about">About</a></li>
+            <li><a href="/download">Download</a></li>
+
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container theme-showcase" role="main">
+
+{% include 'jumbotron.html' %}
+
+      <div class="page-header">
+        <h1>Search for a protein</h1>
+      </div>
+    <!--kdrew: problem with stale CSRF tokens, this prints error message
+    {% if form.errors %}
+        {{ form.errors }}
+    {% endif %}
+    -->
+
+    
+
+
+
+    <form method="POST" action="/search">
+        {{ form.hidden_tag() }}
+        {{ form.genename.label }} {{ form.genename(size=50) }}
+        <br>
+        <br>
+        {{ form.enrichment.label }} {{ form.enrichment(size=50) }}
+        <br/>
+        <br/>
+        {{ form.protein.label }} {{ form.protein(size=50) }}
+        <br/>
+        <br/>
+        {{ form.submit }}
+    </form>
+
+    <p>
+
+    {% if error %}
+        <h3>{{error}}</h3>
+    {% endif %}
+
+    <ul>
+
+    {% for comp in complexes %}
+        <h3>Complex: {{ comp.complex_link()|safe }} </h3>
+        <h3>Proteins:</h3>
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>Genename</th>
+                <th>Complexes</th>
+                <th>Protein Name</th>
+                <th>Links</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for prot in comp.proteins %}
+                <tr>
+                    <td>{{ prot.genename() }}</td>
+                    <td>
+                        {% for comp in prot.complexes %}
+                            {{ comp.complex_link()|safe }}
+                        {% else %}
+                        <!--
+                            <em> No complexes</em>
+                          -->
+                        {% endfor %}
+                    </td>
+                    <td> {{prot.proteinname}}</td>
+                    <td>{{ prot.uniprot_link()|safe }} &nbsp {{ prot.ncbi_link()|safe }}</td>
+                </tr>
+            {% else %}
+                <em> No proteins</em>
+            {% endfor %}
+            </tbody>
+        </table>
+        <br>
+    {% else %}
+    <!--
+        <em>No complexes</em>
+      -->
+    {% endfor %}
+
+    </ul>
+{% include 'jumbotron.html' %}
+
