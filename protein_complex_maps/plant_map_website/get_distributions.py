@@ -8,6 +8,8 @@ from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy import func, or_
 import argparse
 from get_groups_from_prots import get_groups
+import plot_corum_dists as pcd
+
 
 db = cdb.get_db()
 #app = cdb.get_app()
@@ -29,23 +31,23 @@ def make_data_frame(query, columns):
 def annotate_nodes(nodes, annots, bait, df_all_prots):
      '''bait in terms of euNOG
      '''
-     print "starting annotate_nodes"
+     #print "starting annotate_nodes"
      #nodes = nodes.set_index(['GroupID'])
      annots = annots.set_index(['GroupID'])
      #bait_series = pd.Series(bait)
 
      bait_df = pd.DataFrame(True, index=bait, columns = ['Bait'])
-     print(bait_df)
+     #/print(bait_df)
 
      nodes_tmp = nodes.join(annots, how='left')
-     print "first nodes_tmp"
-     print nodes_tmp
+     #print "first nodes_tmp"
+     #print nodes_tmp
      nodes_tmp = nodes_tmp.join(bait_df, how='left')
-     print "second one"
-     print nodes_tmp
+     #print "second one"
+     #print nodes_tmp
      nodes_scores = nodes_tmp.join(df_all_prots, how='outer', rsuffix="bla")
-     print "df_all_prots"
-     print(df_all_prots)
+     #print "df_all_prots"
+     #print(df_all_prots)
      nodes_scores.index.name = 'GroupID'
      nodes_scores = nodes_scores.reset_index()
      #print(nodes_scores)
@@ -61,7 +63,7 @@ def annotate_nodes(nodes, annots, bait, df_all_prots):
 
 
 
-def get_GroupID_interactions(bait):
+def get_group_interactions(bait):
     '''
     This query takes a list of bait IDs in a 'known' complex and finds protins which fit in with them
     '''
@@ -71,20 +73,20 @@ def get_GroupID_interactions(bait):
         bg_interactions = db.session.query(cdb.Edge).filter((cdb.Edge.GroupID_key2.in_(bait) | cdb.Edge.GroupID_key.in_(bait))).all()
         bg_query  =  make_data_frame(bg_interactions, ['GroupID_key', 'GroupID_key2', 'in_complex', 'score'])
         #print("pull down")
-        print(bg_query)
+       #print(bg_query)
 
-        #print("median score from query", bg_query['score'].median())
+       #print("median score from query", bg_query['score'].median())
 
-        #print("each GroupID median correlation")
+       #print("each GroupID median correlation")
         all_prots = pd.concat([bg_query[['GroupID_key', 'score']], bg_query[['GroupID_key2', 'score']]])
         all_prots['GroupID_key'] = all_prots['GroupID_key'].fillna(all_prots['GroupID_key2'])
         #print(all_prots)
         df_all_prots = pd.DataFrame(bg_query.groupby(['GroupID_key'])['score'].median()).sort_values(by='score', ascending=False)
         #print(df_all_prots)
-        return(df_all_prots)
+        return(df_all_prots, bg_query)
 
-    except NoResultFound:
-        print "NoResultFound"
+    except Exception as E:
+       print "NoResultFound"
      
 def get_baitbait_interactions(bait):
     '''
@@ -93,41 +95,52 @@ def get_baitbait_interactions(bait):
     try:
         
         bait_interactions = db.session.query(cdb.Edge).filter(cdb.Edge.GroupID_key2.in_(bait), cdb.Edge.GroupID_key.in_(bait)).all()
-        print bait_interactions
+        #print bait_interactions
         bait_query  =  make_data_frame(bait_interactions, ['GroupID_key', 'GroupID_key2', 'in_complex', 'score'])
-        #print("interactions among baits")
-        print(bait_query)
+       #print("interactions among baits")
+       #print(bait_query)
 
-        bait_median  = bait_query['score'].median()
-        bait_std  = bait_query['score'].std()
-        bait_mean = bait_query['score'].mean() 
-        #print("bait median and standard deviation")
-        #print(bait_median, bait_std) 
-        lower_one_std_bound = bait_median - bait_std
-        #print("lower bound")
+        return bait_query
+    except Exception as E:
+        return NoResultFound
+
+
+def stats_interactions(inp_query):
+        try:
+            inp_median  = inp_query['score'].median()
+            inp_std  = inp_query['score'].std()
+            inp_mean = inp_query['score'].mean() 
+        #print("inp median and standard deviation")
+        #print(inp_median, inp_std) 
+            lower_one_std_bound = inp_median - inp_std
+         #print("lower bound")
         #print(lower_one_std_bound)
-
-        return bait_query, lower_one_std_bound, bait_median, bait_std, bait_mean
-    except NoResultFound:
-        print "NoResultFound"
+        except Exception as E:
+              lower_one_std_bound = 0
+              inp_median=0
+              inp_std= 0
+              inp_mean=0   
+        return lower_one_std_bound, inp_median, inp_std, inp_mean
 
 
 def annotate_baitbait(bait_query, df_predicted):
         '''
         Annotate interactions that are bait-bait
         '''
-        print("annotating bait_query")
+        #print("annotating bait_query")
         bait_query['bait_bait'] = True
         bait_query_annot = bait_query[['bait_bait', 'GroupID_key','GroupID_key2', 'score']]
-        print(bait_query_annot)
+        #print(bait_query_annot)
         bait_query_annot = bait_query_annot.set_index(['GroupID_key', 'GroupID_key2', 'score'])
 
         df_predicted = df_predicted.set_index(['GroupID_key', 'GroupID_key2', 'score'])
 
         baitbait_annotated = df_predicted.join(bait_query_annot, how="outer")
         baitbait_annotated = baitbait_annotated.reset_index()
-        print(baitbait_annotated)
+        #print(baitbait_annotated)
         return baitbait_annotated
+
+
 
 def predict_complex_members(bait, lower_one_std_bound, df_all_prots):
         '''
@@ -135,18 +148,18 @@ def predict_complex_members(bait, lower_one_std_bound, df_all_prots):
         '''
 
         predicted_members = df_all_prots[df_all_prots['score'] >= lower_one_std_bound]
-        print(predicted_members) 
+        #print(predicted_members) 
 
         annots = list(predicted_members.index.astype(str))
-        print(annots)
+        #print(annots)
        
         pooled_interactions = bait + annots 
-        print(pooled_interactions)
+        #print(pooled_interactions)
 
         final_interactions = db.session.query(cdb.Edge).filter(cdb.Edge.GroupID_key2.in_(pooled_interactions), cdb.Edge.GroupID_key.in_(pooled_interactions)).all()
       
         pd_total= make_data_frame(final_interactions,  ['GroupID_key', 'GroupID_key2', 'in_complex', 'score'])
-        print(pd_total)
+        #print(pd_total)
         #df_predicted = pd_total[pd_total.values in bait]
         #print(df_predicted)
 
@@ -155,8 +168,8 @@ def predict_complex_members(bait, lower_one_std_bound, df_all_prots):
         final_interactions = db.session.query(cdb.Edge).filter(cdb.Edge.GroupID_key2.in_(bait) | cdb.Edge.GroupID_key.in_(bait)). filter(cdb.Edge.score >= lower_one_std_bound).all()
 
         df_predicted= make_data_frame(final_interactions,  ['GroupID_key', 'GroupID_key2', 'in_complex', 'score'])
-        print(df_predicted)
-        print(bait)
+        #print(df_predicted)
+        #print(bait)
         return df_predicted
     
 def make_annots():
@@ -183,17 +196,17 @@ def annotate_table(baitbait_annotated):
         eggnog_annots= eggnog_annots.set_index(['GroupID'])
         #cdm Index column needs to match target
         eggnog_annots.index.names =["GroupID_key"]
-        print(eggnog_annots)
-        print(baitbait_annotated['GroupID_key'].dtype) 
+        #print(eggnog_annots)
+        #print(baitbait_annotated['GroupID_key'].dtype) 
         baitbait_annotated = baitbait_annotated.set_index(['GroupID_key'])
-        print(baitbait_annotated)
+        #print(baitbait_annotated)
     
         GroupID_key1_annot = baitbait_annotated.join(eggnog_annots, how="left")
         GroupID_key1_annot = GroupID_key1_annot.reset_index()
-        print(GroupID_key1_annot) 
+        #print(GroupID_key1_annot) 
         #cdm Same thing for the second interaction partner
         GroupID_key1_annot = GroupID_key1_annot.set_index(['GroupID_key2'])
-        print("start pandas")
+        #print("start pandas")
 
         eggnog_annots.index.names = ['GroupID_key2']
         GroupID_key2_annot = GroupID_key1_annot.join(eggnog_annots, how = "left", rsuffix="2")
@@ -222,101 +235,156 @@ def load_args():
    parser.add_argument("--logname", action="store", dest="logname", required=False, default='shared_bait_feature.log',
                                     help="filename for logging, default=shared_bait_feature.log")
 
+   parser.add_argument("--save_stats_file", action="store", dest="stats_file", required=False)
+
    args = parser.parse_args()
    return args
 
 def run_process(bait, annots):
 
- 
+    #print("Run process")
     #Get all interactions containing at least one bait GroupID
-    df_all_prots = get_GroupID_interactions(bait)
-
+    df_all_prots, df_all_interactions = get_group_interactions(bait)
+    #print(df_all_prots)
     #Get all interactions between two bait GroupIDs
-    bait_query = get_baitbait_interactions(bait)[0]
+    try:
+        bait_query = get_baitbait_interactions(bait)
+    
+        #Get lower limit for predictions (median of baitbait minus 1 stdev
+        lower_one_std_bound = stats_interactions(bait_query)[0]
+        lower_one_std_bound = get_baitbait_interactions(bait)
+    
+    
+        #Predict interactions above lower score limit for predictions
+        df_predicted = predict_complex_members(bait, lower_one_std_bound, df_all_prots)
+    
+        #Annotate all interactions by whether they are bait-bait
+        baitbait_annotated = annotate_baitbait(bait_query, df_predicted)
+    except Exception as e:
+        #print e
+        baitbait_annotated = annotate_baitbait(bait_query, df_all_interactions)
+ 
 
-
-    #log_data = ",".join(get_baitbait_interactions(bait)[1:])
-    #print("log_data", log_data)
-    #logger.info(log_data)
-
-
-    #Get lower limit for predictions (median of baitbait minus 1 stdev
-    lower_one_std_bound = get_baitbait_interactions(bait)[1]
-
-    #Predict interactions above lower score limit for predictions
-    df_predicted = predict_complex_members(bait, lower_one_std_bound, df_all_prots)
-
-    #Annotate all interactions by whether they are bait-bait
-    baitbait_annotated = annotate_baitbait(bait_query, df_predicted)
-    #Annotate final table with genenames
-    #Change to this annotate with some other property
-    final_annotated = annotate_table(baitbait_annotated)
-
+       
+    #Annotated with eggNOG annotations
+    final_annotated =  annotate_table(baitbait_annotated)
     return final_annotated, df_all_prots
   
-def sampling_process(bait):
-    print(bait)
-   
+def sampling_process(bait, stats_file=None):
+   #print "START SAMPLING"
+   #print(bait)
+
     #max_interactions = len(bait) * len(bait)
     #print(max_interactions)
-    baitbait_analysis = get_baitbait_interactions(bait)
 
-    bait_query = baitbait_analysis[0]
-  
 
-    #HERE will be plot of distribution of gold standard lower limits/median 
-    #Make with corum
-    #Fixed image? A key for quality of input complex
-    print("lower bound", baitbait_analysis[1])
-    print("median", baitbait_analysis[2])
-    print("stdev", baitbait_analysis[3])
-    if baitbait_analysis[1] < 0.5:
-          print("Low quality input complex", baitbait_analysis[1])
-          print("Distribution of gold standard lows")
-          print("and an arrow point to where input dist is")
-  
+    bait_query = get_baitbait_interactions(bait)
+ 
+#CDM
+    lower_one_std_bound, median, stdev, mean = stats_interactions(bait_query)
+    #lower_one_std_bound = baitbait_analysis[0]
+    #median = baitbait_analysis[1]
+    #stdev = baitbait_analysis[2]
+    #mean = baitbait_analysis[3]
 
-    total_int = get_GroupID_interactions(bait) 
-    print(len(total_int.index))
+    if stats_file:
+        stats = list(stats_interactions(bait_query))
+        log_data = str(stats).replace("[", "").replace("]", "")
+        #print("log_data", log_data)
+        stat_log = open(stats_file, "a")
+
+        stat_log.write(log_data +"\n")
+
+    lower_list = []
+    median_list = []
+    stdev_list = []
+    mean_list = []
+
+    baitbait_dict={}
+    zeropoint2_dict={}
+
+    total_int = get_group_interactions(bait)
+    #print(len(total_int.index))
     trimlist = []
     #full_query = len(bait_query.index)
     #print(len(bait_query.index))
+    suggestions = []
     for index in range(len(bait)):
         #Not using pop because not deleting item permanently
-        print("GroupID", bait[index])
+        #print("gene ID", bait[index])
         bait_subset = bait[:index] + bait[index+1 :]
         #print(bait_subset)
-        samp_total_int = get_GroupID_interactions(bait_subset) 
-        lost =len(samp_total_int.index)
-        #print(lost, len(total_int.index))
-        prop_02_interactions = 1 - float(lost)/len(total_int.index)
- 
+
+       # samp_total_int = get_group_interactions(bait_subset)[0]
+       # lost =len(samp_total_int.index)
+       # totsbait =  len(total_int.index)
+       # prop_02_interactions = 1 - float(lost)/len(total_int.index)
+       # num_02_interactions = totsbait - lost
+        #print(num_02_interactions, "what", totsbait, lost)
         #Bar graph of this
-        print("involvement in +0.2 interactions", prop_02_interactions)
+        #print("involvement in +0.2 interactions", prop_02_interactions)
 
-        if prop_02_interactions == 0.0:
-           trimlist.append(bait[index])
+        #zeropoint2_dict[bait[index]] = num_02_interactions
+        #print(zeropoint2_dict)
 
-        bait_sampling = get_baitbait_interactions(bait_subset)[0]
-        lost = (len(bait_sampling.index))
+        #if prop_02_interactions == 0.0:
+        #   trimlist.append(bait[index])
+
+        bait_subset_query = get_baitbait_interactions(bait_subset)
+        sample_analysis = stats_interactions(bait_subset_query)
+
+        lower_list.append(sample_analysis[0])
+        median_list.append(sample_analysis[1])
+        stdev_list.append(sample_analysis[2])
+        mean_list.append(sample_analysis[3])
+
+        diff_median = median - sample_analysis[1]
+        if diff_median < 0:
+           suggestion = "Remove "+ str(bait[index]) + " to raise median by "+ str(abs(diff_median))
+           suggestions.append(suggestion)
+        diff_mean = mean - sample_analysis[3]
+        if diff_mean < 0:
+           suggestion = "Remove "+ str(bait[index]) + " to raise mean by "+ str(abs(diff_mean))
+           suggestions.append(suggestion)
+
+
+        #lower_list.append(bait_sample_analysis[1])
+        #median_list.append(bait_sample_analysis[2])
+        #stdev_list.append(bait_sample_analysis[3])
+        #mean_list.append(bait_sample_analysis[4])
+
+
+
+
+        #lost = (len(bait_sampling.index))
         #print(lost, len(bait_query))
-        prop_bait_interactions = 1 - float(lost)/len(bait_query)
+        #prop_bait_interactions = 1 - float(lost)/len(bait_query)
+        #num_bait_interactions = len(bait_query.index) - lost
         #Bar graph of this
-        print("involvement in bait bait interactions", prop_bait_interactions)
+        #print("involvement in bait bait interactions", prop_bait_interactions)
+        #baitbait_dict[bait[index]] = num_bait_interactions
+
     for prot in trimlist:
-        bait.remove(prot) 
-    print(trimlist, "had no interactions above score 0.2")
-    return(bait)
+        bait.remove(prot)
+    #print(trimlist, "had no interactions above score 0.2")
+    #print(zeropoint2_dict)
+    #print(baitbait_dict)
+    corum_scores = "mammal_corum_scores.txt"
+    pcd.corum_plots_bokeh(corum_scores, lower_one_std_bound, median, stdev, mean, lower_list, median_list, stdev_list, mean_list)
+    return median, mean, suggestions
+    #pcd.interaction_share(baitbait_dict, "Number of bait-bait interactions", zeropoint2_dict, "Number of interactions above score 0.2")
+
+    #pcd.interaction_share(zeropoint2_dict, "Involvement in interactions above score 0.2")
      
 
 def convert_id(bait, annots, id_format):
     
     bait_ids = annots[annots[id_format].isin(bait)]
-    print(bait_ids)
+    #print(bait_ids)
     bait_vector = bait_ids['gene_id']
-    print(bait_vector)
+    #print(bait_vector)
     bait= bait_vector.tolist()
-    print(bait)
+    #print(bait)
     return(bait)
 
 
@@ -345,27 +413,27 @@ if __name__ == "__main__":
     setup_log(args.logname)
 
     bait  = args.bait.split(" ")
-
+   #print bait
     #GroupID ProteinID Species
     annots = make_annots()
 
     if args.id_format != 'GroupID':
        try:
-          print "converting..."
-          print bait
+          #print "converting..."
+          #print bait
           bait = get_groups(bait, annots) 
-          print bait
+          #print bait
           #bait = convert_id(bait, annots, args.id_format)
        except Exception as e:
-           print(e)
+          print(e)
     #bait should now be in GroupID formate
-    print bait  
+    #print bait  
 
-    postsamp_bait = sampling_process(bait)
-    final_annotated = run_process(postsamp_bait, annots)
+    postsamp_bait = sampling_process(bait, args.stats_file)
+    #final_annotated = run_process(postsamp_bait, annots)
     
 
-    final_annotated.to_csv("query_output.txt", sep = "\t", index= False)
+    #final_annotated.to_csv("query_output.txt", sep = "\t", index= False)
 
 
 

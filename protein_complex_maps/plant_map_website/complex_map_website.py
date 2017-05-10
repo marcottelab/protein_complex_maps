@@ -1,10 +1,12 @@
 import random
+from bs4 import BeautifulSoup
+from collections import OrderedDict
 #import protein_complex_maps.plant_map_website.complex_db as cdb
 import complex_db as cdb
 import pandas as pd
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy import func, or_
-import networkx as nx
+#import networkx as nx
 
 db = cdb.get_db()
 app = cdb.get_app()
@@ -25,14 +27,8 @@ from get_distributions import sampling_process, run_process, annotate_nodes
 import plot_corum_dists as pcd
 
 
-from bokeh.embed import components
-from bokeh.plotting import figure, gridplot, GridSpec
-
-#from bokeh.plotting import figure
 from bokeh.resources import INLINE
 from bokeh.util.string import encode_utf8
-#from bokeh.util.browser import view
-
 
 #PLOT_OPTIONS = dict(plot_width=800, plot_height=300)
 #SCATTER_OPTIONS = dict(size=12, alpha=0.5)
@@ -49,6 +45,15 @@ def getitem(obj, item, default):
         return default
     else:
         return obj[item]
+
+def getitems(obj, item, default):
+    if item not in obj:
+        return default
+    else:
+        print obj.values()
+        print obj
+        return obj.getlist(item) 
+       
 
 
 class SearchForm(Form):
@@ -197,102 +202,202 @@ def searchComplexes():
 #testing viz
 
 
-@app.route('/finder')
-def polynomial():
+#Breaking up functions
+
+
+@app.route('/finder', methods=['GET'])
+def finding():
     """ Very simple embedding of a polynomial chart
     """
     conversion_tbl = pd.read_csv("all_tophits_protlength.txt", sep="\t")
+
     # Grab the inputs arguments from the URL
     args = request.args
     # Get all the form arguments in the url with defaults
-    proteins =  getitem(args, 'proteins', 'F4JY76_ARATH EIF3K_ARATH B3H7J6_ARATH')
+    bait =  getitem(args, 'bait', 'F4JY76_ARATH EIF3K_ARATH B3H7J6_ARATH')
+    degree = getitem(args, 'deg', 2)
 
-    protein_list = proteins.split(" ")
-    protein_list = valid_query(protein_list, conversion_tbl)
-    input_protein_species = identify_species(protein_list, conversion_tbl)
-    protein_table, group_table = make_conversion_tables(protein_list, conversion_tbl, input_protein_species)
-    complexes = get_groups(protein_list, conversion_tbl)
-    print complexes
-      
-    
-    final_annotated, df_all_prots=run_process(complexes, conversion_tbl)
+    #reselect = getitems(args, 'reselect', 1)
+ 
+    reselect =   request.args.getlist('reselect')
 
+
+    print("test reselect")
+    print(reselect)
+
+    bait_list = bait.split(" ")
+
+    #check that proteinID inputs are valid
+    bait_list = valid_query(bait_list, conversion_tbl)
+
+    #Identify species of input proteins
+    input_protein_species, longform_species = identify_species(bait_list, conversion_tbl)
+
+
+    #Map from protein to group    
+    protein_table, group_table = make_conversion_tables(bait_list, conversion_tbl, input_protein_species)
+
+
+    #Get groups from a protein list
+    #Somewhat duplicated in make_conversion_tables...
+ 
+    #This line only for when there are ortholog groups in the mix  
+    bait = get_groups(bait_list, conversion_tbl)
+
+    bait_str = " ".join(bait)
+
+    #Check for check marks ticked
+    print("reselect", reselect)
+    #checks = getitems('reselect')
+    if reselect :
+        bait_list = reselect
+        bait_str = ' '.join(reselect)
+        bait=bait_list
+
+    print(bait) 
+    try:
+          final_annotated, df_all_prots =run_process(bait, conversion_tbl)
+          med_score, mean_score, suggestions = sampling_process(bait)
+
+          suggestion_str = "\n".join(suggestions)
+          suggestion_df  = pd.DataFrame({'Suggestions': suggestions})
+          print(suggestion_df)
+          suggestion_html = suggestion_df.to_html(classes='SuggestionTbl', index=False) 
+         
+
+    except Exception as E:
+        print(Exception)
+        print("Failed to get results")
+        med_score = "0"
+        mean_score = "0"
+        suggestion_html = "No results found"
+        final_annotated = pd.DataFrame(columns = ['score','Annotation','Annotation2', 'GroupID_key', 'GroupID_key2', 'bait_bait'])
+ 
     print("Draw network")
-    #print(bait_group_annotations)
-    #full_network = final_annotated[['Annotation','Annotation2','score']]
-    #G=pcd.get_network(full_network, 'Annotation', 'Annotation2')
-    #pcd.draw_network(G, bait_group_annotations, 2)
 
-    full_network = final_annotated[['GroupID_key','GroupID_key2','score']]
-    G = pcd.get_network(full_network, 'GroupID_key', 'GroupID_key2')
-    weights,pos, colorvalues =  pcd.draw_network(G, complexes, 2)
-
-    #testing bokeh network
-
-    
-    
-    labels = [ str(v) for v in G.nodes() ]
-    vx, vy = zip(*[ pos[v] for v in G.nodes() ])
-    xs, ys = [], []
-    for (a, b) in G.edges():
-        x0, y0 = pos[a]
-        x1, y1 = pos[b]
-        xs.append([x0, x1])
-        ys.append([y0, y1])
-    print pos
-    f = figure(plot_width=800, plot_height=700,
-               x_axis_type=None, y_axis_type=None,
-               outline_line_color=None,
-               tools=[], toolbar_location=None)
-    f.multi_line(xs, ys, line_color="#bdbdbd", line_width=weights)
-    f.circle(vx, vy, size=18, line_color=colorvalues, fill_color=colorvalues)
-    f.text(vx, vy, text=labels,
-           text_font_size="18px", text_align="center", text_baseline="middle")
-
-    network_script, network_div = components(f)
+    try:
+        print(bait, degree)
+        nodes_table, network_script, network_div = pcd.networking(final_annotated, bait, degree, df_all_prots)
 
 
-    ##
-
-    print(G.degree())
-    nodes = pd.DataFrame.from_dict(G.degree(), orient='index')
-    nodes.columns = ['Degree']
-    print nodes
-    annots = pd.read_csv("all_annotations.csv")
-    nodes_annotated = annotate_nodes(nodes, annots, complexes, df_all_prots)
-    print(nodes_annotated)
-    nodes_annotated = nodes_annotated.sort_values(['Degree'], ascending=False)
-    nodes_annotated = nodes_annotated.reset_index()
-    print(nodes_annotated)
-    nodes_table = nodes_annotated.to_html(classes='ResultsTbl', index=False)
-    results_table = final_annotated.to_html(classes='ResultsTbl', index=False)
-
-        #cdm gene_id = Entrez gene id
+        formData = request.values if request.method == "POST" else request.values
+        response = "Form Contents <pre>%s</pre>" % "<br/>\n".join(["%s:%s" % item for item in formData.items()] )
 
 
+
+    except Exception as e:
+        print e
+        nodes_table = ""
+        results_table = ""
+        #results_table = df_all_interactions.to_html(classes='ResultsTbl', index=False) 
+ 
+        network_script = ""
+        network_div = ""
     # Create a polynomial line graph with those arguments
     #x = list(range(_from, to + 1))
     #fig = figure(title="Polynomial")
     #fig.line(x, [i ** 2 for i in x], color=color, line_width=2)
-
+    results_table = final_annotated.to_html(classes='tablesorter" id = "my_id', index=False) 
     js_resources = INLINE.render_js()
     css_resources = INLINE.render_css()
 
+    bait_plus = "+".join(bait)
+
+    spec_plus = longform_species.replace(" ", "+")
+
+    elution_link = "http://127.0.0.1:5000/complexdisplay?proteins={}&species_longform={}".format(bait_plus, spec_plus)
+
+
+    #This is temporary until I can get a better network plotter
+    network_div = network_div.replace('<div class="bk-plotdiv"', '')
+    network_div = network_div.replace('</div>', '', 1)
+    network_div = network_div.replace('>', '', 1)
     html = render_template(
         'finder.html',
         #plot_script=script,
         #plot_div=div,
+        #exp_link=expression_link,
+        elut_link=elution_link,
         net_script=network_script,
         net_div=network_div,
         prot_tbl=protein_table,
+        #proteins=proteins,
         nodes_tbl=nodes_table,
         results_tbl=results_table,
+        deg=degree,
         js_resources=js_resources,
+        median=med_score,
+        mean=mean_score,
+        suggest=suggestion_html,
+        bt=bait_str,
         css_resources=css_resources,
     )
     return encode_utf8(html)
 
-@app.route('/viewer')
+@app.route('/complexdisplay')
+def display_complex():
+    conversion_tbl = pd.read_csv("all_tophits_protlength.txt", sep="\t")
+
+    #Save this in a file somewhere
+    spec_conv_dict = {"Arabidopsis thaliana":"arath", "Brassica oleraceae":"braol", "Chlamydomonas reinhardtii":"chlre", "Oryza sativa":"orysj",
+"Selaginella moellendorfii":"selml", "Triticum aestivum":"traes", "Ceratopteris richardii":"cerri", "All plants":"allplants"}  
+
+    # Grab the inputs arguments from the URL
+    args = request.args
+
+    proteins =  getitem(args, 'proteins', "WRK58_ARATH Q9SR92")
+    species_longform =  getitem(args, 'species_longform', "All plants")
+
+
+    print species_longform
+
+    species = spec_conv_dict[species_longform]
+    print species
+    protein_list = proteins.split(" ")
+    protein_table, group_table = make_conversion_tables(protein_list, conversion_tbl, species)
+
+    input_protein_species = identify_species(protein_list, conversion_tbl)[0]
+    input_protein_species_longform = [x for x in spec_conv_dict.keys() if spec_conv_dict[x] == input_protein_species][0]
+
+    print(species)
+    #There's some redundancy with make_conversion_table pulling groupIDs
+    #Going to be sql'd anyway later
+    complexes = get_groups(protein_list, conversion_tbl)
+    print complexes
+     
+ 
+    #js and cs needed for the plot
+    js_resources = INLINE.render_js()
+    css_resources = INLINE.render_css()
+
+    try:
+       results1 = make_protein_sparklines(complexes, species, species_longform, conversion_tbl)
+       script1, div1 = results1
+    except Exception as e:
+        print e
+        print "Something went wrong"
+        script1="No input proteins observed in proteomics data for " + species_longform
+        div1="none"
+
+    #Get plot over to the html webpage
+    html = render_template(
+        'complexdisplay.html',
+        js_resources=js_resources,
+        css_resources=css_resources,
+        complexes=complexes,
+        proteins=proteins,
+        prot_tbl=protein_table,
+        group_tbl=group_table,
+        species_longform=species_longform,
+        inp_species_longform=input_protein_species_longform,
+        plot_script1=script1,
+        plot_div1=div1,
+ 
+    )
+ 
+    return encode_utf8(html)
+
+@app.route('/sparkline_simple')
 def spark():
     """ Simple sparkline
     """
@@ -336,7 +441,7 @@ def protein_query():
 
     #Save this in a file somewhere
     spec_conv_dict = {"Arabidopsis thaliana":"arath", "Brassica oleraceae":"braol", "Chlamydomonas reinhardtii":"chlre", "Oryza sativa":"orysj",
-"Selaginella moellendorfii":"selml", "Triticum aestivum":"traes", "Ceratopteris richardii":"cerri", "All plants":"All plants"}  
+"Selaginella moellendorfii":"selml", "Triticum aestivum":"traes", "Ceratopteris richardii":"cerri", "All plants":"allplants"}  
 
     # Grab the inputs arguments from the URL
     args = request.args
@@ -353,47 +458,28 @@ def protein_query():
     protein_list = valid_query(protein_list, conversion_tbl)
     protein_table, group_table = make_conversion_tables(protein_list, conversion_tbl, species)
 
-    input_protein_species = identify_species(protein_list, conversion_tbl)
+    input_protein_species = identify_species(protein_list, conversion_tbl)[0]
     input_protein_species_longform = [x for x in spec_conv_dict.keys() if spec_conv_dict[x] == input_protein_species][0]
 
-    print(species)
-    #There's some redundancy with make_conversion_table pulling groupIDs
-    #Going to be sql'd anyway later
-    complexes = get_groups(protein_list, conversion_tbl)
-    print complexes
+
+    proteins_plus = proteins.replace(" ", "+")
+    species_longform_plus =species_longform.replace(" ", "+")
+    display_link = "http://127.0.0.1:5000/proteinquery?proteins={}&species_longform={}".format(proteins_plus, species_longform_plus)
      
  
     #js and cs needed for the plot
     js_resources = INLINE.render_js()
     css_resources = INLINE.render_css()
 
-    try:
-       results1 = make_protein_sparklines(complexes, species, species_longform, conversion_tbl)
-       script1, div1 = results1
-    except Exception as e:
-        print e
-        print "Something went wrong"
-        script1="No input proteins observed in proteomics data for " + species_longform
-        div1="none"
-
     #Get plot over to the html webpage
     html = render_template(
         'proteinquery.html',
         js_resources=js_resources,
         css_resources=css_resources,
-        complexes=complexes,
         proteins=proteins,
-        prot_tbl=protein_table,
-        group_tbl=group_table,
-        species_longform=species_longform,
-        inp_species_longform=input_protein_species_longform,
-        plot_script1=script1,
-        plot_div1=div1,
- 
+        disp_link= display_link 
     )
     return encode_utf8(html)
-
-
 
 
 
@@ -411,4 +497,5 @@ if __name__ == "__main__":
     db.create_all()  # make our sqlalchemy tables
     app.run(threaded=True, debug=True)
     
+
 

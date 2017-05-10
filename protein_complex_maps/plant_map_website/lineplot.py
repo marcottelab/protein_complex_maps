@@ -18,9 +18,6 @@ defaults.height = 100
 
 
 
-
-
-
 def add_spans(p1):
     major = [339]
     minor =[84, 171, 248, 391]
@@ -127,15 +124,17 @@ def make_protein_sparklines(groups, spec, spec_longform, conversion_tbl):
     print "Start make_protein_sparklines"
     print groups
     print spec
+    groups = list(set(groups)) 
+    print groups
     groups = ["fraction", "fraction_order", "experiment", "spec"] + groups
+    print groups
     #groups = ["ENOG410IDXB" , "ENOG410IDXK", "ENOG410IDXN"]
     plots = []
    
-   
-    groupdf  = feather.read_dataframe("formatted_plants_euNOG_concat.csv.feather")
-    #print groupdf.head
+    groupdf  = feather.read_dataframe("formatted_allplants_euNOG_concat.csv.feather")
+    print groupdf.head
 
-    if spec != "All plants":
+    if spec != "allplants":
         groupdf = groupdf[groupdf['spec'] == spec]
 
         prot_elution_name = "formatted_" + spec + "_proteins_concat.csv.feather"      
@@ -157,7 +156,7 @@ def make_protein_sparklines(groups, spec, spec_longform, conversion_tbl):
     groupdf = groupdf[groups]
     groupdf = groupdf.reset_index(drop=True)
 
-    if spec != "All plants":
+    if spec != "allplants":
         prots_conv_tbl = conversion_tbl[conversion_tbl['ID'].isin(groups)]
         prots_conv_tbl = prots_conv_tbl[prots_conv_tbl['Species']==spec]
         prots = prots_conv_tbl['ProteinID'].tolist()
@@ -217,7 +216,7 @@ def make_protein_sparklines(groups, spec, spec_longform, conversion_tbl):
            #Insert a label and a break
            plots = sparkline(groupdf ,plots, masterplot, tools, groups[groupnum], color="black")
            #Also append protein sparklines
-           if spec != "All plants":
+           if spec != "allplants":
                first_prots = prots_conv_tbl[prots_conv_tbl['ID']==groups[groupnum]]['ProteinID'].tolist()
     
                first_prots = [x for x in first_prots if x in protdf.columns.tolist()]

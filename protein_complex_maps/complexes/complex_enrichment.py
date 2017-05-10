@@ -18,6 +18,8 @@ def main():
     #                                        help="Filename of secondary complexes, format one cluster per line, ids space separated")
     parser.add_argument("--output_filename", action="store", dest="output_filename", required=False, default=None, 
                                             help="Filename to output difference complexes")
+    parser.add_argument("--correction_method", action="store", dest="correction_method", required=False, default='fdr', 
+                                            help="Correction method for multiple hypothesis testing {gSCS,fdr,bonferroni}, default = fdr")
 
     args = parser.parse_args()
 
@@ -35,7 +37,7 @@ def main():
             print "complex: %s" % (i,)
             print """#  signf   corr. p-value   T   Q   Q&T Q&T/Q   Q&T/T   term ID     t type  t group    t name and depth in group        Q&T list"""
         
-        proc = sp.Popen(['gprofiler.py', complex_line, '-c', 'bonferroni', '-e', '-B', args.background_filename ], stdout=sp.PIPE, stderr=sp.PIPE)
+        proc = sp.Popen(['gprofiler.py', complex_line, '-c', args.correction_method, '-e', '-B', args.background_filename ], stdout=sp.PIPE, stderr=sp.PIPE)
         gprofiler_out, err = proc.communicate()
 
         #print "corr. p-value\tterm ID\tt name"
