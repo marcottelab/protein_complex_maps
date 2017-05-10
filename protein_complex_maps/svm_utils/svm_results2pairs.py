@@ -63,6 +63,9 @@ def main():
     print only_features
     print " "
 
+    print len(results)
+    print len(only_features)
+    assert len(results) == len(only_features), "features and results are not same length"
     #kdrew: put the results and the features together
     only_features_results = pd.concat([results,only_features],axis=1)
     print only_features_results
