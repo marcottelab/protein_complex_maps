@@ -25,7 +25,7 @@ def make_divide(row_file, n, seed):
                 if j != test:
                     train = train + j
 
-            outfilename_test = "_".join(["test_seg", str(i+1), row_file])
+            outfilename_test = "_".join(["leaveout_seg", str(i+1), row_file])
 
             outfile_test = open(outfilename_test, "w")
             for label in test:
