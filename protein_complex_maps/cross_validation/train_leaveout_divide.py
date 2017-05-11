@@ -2,55 +2,6 @@ from __future__ import print_function
 import random
 import argparse
 
-<<<<<<< HEAD
-
-def partition ( lst, n ):
-    #From def partition ( lst, n ):
-    return [ lst[i::n] for i in xrange(n) ]
-
-
-def make_divide(row_file, n, seed):
-
-    random.seed(seed)
-
-    with open(row_file, "r") as handle:
-        row_list = handle.readlines()
-        random.shuffle(row_list) #This is inplace
-        print(len(row_list))
-        divisions = partition(row_list, n)
-        print(len(divisions))
-        for i in range(0,n):
-            test = divisions[i]
-            train= [] 
-            for j in divisions:
-                if j != test:
-                    train = train + j
-
-            outfilename_test = "_".join(["leaveout_seg", str(i+1), row_file])
-
-            outfile_test = open(outfilename_test, "w")
-            for label in test:
-                 outfile_test.write(label)
-
-            outfilename_train = "_".join(["train_seg", str(i+1), row_file])
-
-            outfile_train = open(outfilename_train, "w")
-            for label in train:
-                 outfile_train.write(label)
-
-            outfile_test.close()
-            outfile_train.close()
-
-
-            #train = [j for j in divisions if j!=i]
-            #train = [item for sublist in train for item in sublist]
-            print(len(test))
-            print(len(train))             
-
-
-def load_file():
-
-=======
 import pandas as pd
 
 def divide_file(input_df, n, seed, label="label"):
@@ -94,7 +45,6 @@ def divide_file(input_df, n, seed, label="label"):
 
 
 def main():
->>>>>>> 28fde78333cd780321f18246dc56cd4ef64322d7
 
     parser = argparse.ArgumentParser(description='Divide files into test and train set')
     parser.add_argument('--input_file', action="store", type=str, required=True,
