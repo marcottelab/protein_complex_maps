@@ -180,14 +180,14 @@ def poisson_correlation(x,y, repeat=100, norm='columns'):
 
     return 1.0*running_sum/repeat
 
-def traver_corr(mat, repeat=100, norm='columns', verbose=True):
+def traver_corr(mat, repeat=100, norm='columns', verbose=True, metric='pearson'):
     # Changed from repeat=1000 to repeat=100
     # As described in supplementary information in paper.
     # Randomly draw from poisson(C=A+1/M) for each cell
     # where A = the observed count and M is the total fractions
     # normalize each column to sum to 1
     # then correlate, and average together for repeat tries.
-    def poisson_corr(mat, iteration_display, norm):
+    def poisson_corr(mat, iteration_display, norm, metric):
         if verbose: print iteration_display
         M = mat.shape[1]
         #kdrew: shouldn't this be C = mat + 1.0/M
@@ -201,9 +201,15 @@ def traver_corr(mat, repeat=100, norm='columns', verbose=True):
             poisson_mat = np.nan_to_num(poisson_mat / np.sum(poisson_mat, 0))
         elif norm=='rows': # seems to make no performance difference 1/25
             poisson_mat = np.nan_to_num(poisson_mat / np.sum(poisson_mat, 1))
-        corr = np.nan_to_num(np.corrcoef(poisson_mat))
+
+
+        if metric == 'pearson':
+            corr = np.nan_to_num(np.corrcoef(poisson_mat))
+        elif metric =='spearman':
+            corr, pval = np.nan_to_num(stats.spearmanr(poisson_mat, axis=1))
+
         return corr
-    avg_result = (reduce(operator.add, (poisson_corr(mat, i, norm=norm) for i in
+    avg_result = (reduce(operator.add, (poisson_corr(mat, i, norm=norm, metric=metric) for i in
                                         range(repeat))) / repeat)
     return avg_result
 
@@ -338,14 +344,20 @@ def pairs_exceeding(elut, skey, thresh):
 if __name__ == '__main__':
     nargs = len(sys.argv)
     if nargs < 3:
-        sys.exit("usage: python score.py filename method(poisson|dotproduct|corrcoef|cov) [argument]") 
+        sys.exit("usage: python score.py filename method(pearson|spearman|dotproduct|corrcoef|cov) [argument]") 
     fname = sys.argv[1]
     method = sys.argv[2]
+    sep = sys.argv[3]
     methodarg = None if nargs < 4 else int(sys.argv[3])
-    elut = el.load_elution(fname)
-    if method == 'poisson':
+    elut = el.load_elution(fname, sep=sep)
+    if method == 'pearson':
         corr = traver_corr(elut.mat, repeat=methodarg) if methodarg else \
             traver_corr(elut.mat)
+    elif method == 'spearman':
+        corr = traver_corr(elut.mat, repeat=methodarg) if methodarg else \
+            traver_corr(elut.mat)
+
+
     elif method in ['cosine_poisson','euclidean_poisson']:
         corr = poisson_repeat(elut.mat, metric=method.split('_')[0],
                 repeat=methodarg) if methodarg else poisson_repeat(elut.mat,
@@ -353,8 +365,8 @@ if __name__ == '__main__':
     elif method in ['euclidean']:
         corr = pdist_score(elut.mat, norm_rows=True, norm_cols=True,
                 metric=method)
-    elif method in ['spearman']:
-        corr = spearman_rho(elut.mat, norm_rows=True, norm_cols=True, metric=method)
+    #elif method in ['spearman']:
+    #    corr = spearman_rho(elut.mat, norm_rows=True, norm_cols=True, metric=method)
 
     #elif method == 'dotproduct':
         #corr = elut.mat * elut.mat.T
@@ -362,7 +374,7 @@ if __name__ == '__main__':
         #corr = np.corrcoef(elut.mat)
     elif method == 'cov':
         corr = np.cov(elut.mat)
-    fileout = fname+'.corr_'+method
+    fileout = fname.replace(".csv", "").replace(".txt", "") +'.corr_'+method
     np.savetxt(fileout, corr, delimiter='\t')
 
 

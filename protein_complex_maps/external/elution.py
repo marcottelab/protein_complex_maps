@@ -10,13 +10,13 @@ import score as sc
 from Struct import Struct
 import utils as ut
 
-def load_elution(fname, getname=True):
+def load_elution(fname, getname=True, sep="\t"):
     # expected file structure:
     # first col: gene id
     # second col: treat differently if 2nd col header is 'Total' or
     # 'Description'
     # remaining cols: elution profile data
-    lines = [l for l in ut.load_tab_file(fname)]
+    lines = [l for l in ut.load_tab_file(fname, sep=sep)]
     # final row: total count in msblender output; don't skip in cuihong's data
     skip_final_row = (lines[-1][0][0] == '#')
     rows = lines[1:-1] if skip_final_row else lines[1:]

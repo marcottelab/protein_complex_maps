@@ -3,7 +3,7 @@ if [ $# -ne 2 ]; then
     echo ----elutions.txt: file with 1 elution filename per line
     echo ----correlation_type: one of the following
     echo ---------euclidean
-    echo ---------poisson
+    echo ---------pearson
     echo ---------spearman
     echo ---------cov
     exit 1
@@ -15,9 +15,7 @@ CORR=$2
 
 echo starting correlation
 
-cat $ELUTION_FILE | parallel -j14 python ../../external/score.py {} $CORR
-
-
+cat $ELUTION_FILE | parallel -j14 python ../../external/score.py {} $CORR ','
 
 echo correlation done
 
