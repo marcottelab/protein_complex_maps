@@ -32,6 +32,8 @@ def main():
                                     help="Flag for adding SVM probability of being true, default=False")
     parser.add_argument("--label_not0", action="store_true", dest="label_not0", required=False, default=False,
                                     help="Flag for only outputting rows with labels other than 0 (usually -1, 1), default=False")
+    parser.add_argument("--nofilter_label", action="store_true", dest="nofilter_label", required=False, default=False,
+                                    help="Do not filter by label, combine the entire feature matrix with results, default=False")
     parser.add_argument("--output_file", action="store", dest="output_file", required=True, 
                                     help="Filename of output file")
     parser.add_argument("--id_columns", action="store", dest="id_columns", nargs='+', required=False, default=['key1','key2'],
@@ -50,14 +52,20 @@ def main():
     features = pd.read_csv(args.feature_matrix,sep=args.sep)
     print features
     print " "
-    if args.label_not0:
-        only_features = features[features['label'] != 0]
+    if args.nofilter_label:
+        only_features = features
     else:
-        only_features = features[features['label'] == 0]
+        if args.label_not0:
+            only_features = features[features['label'] != 0]
+        else:
+            only_features = features[features['label'] == 0]
     only_features.index = range(len(only_features))
     print only_features
     print " "
 
+    print len(results)
+    print len(only_features)
+    assert len(results) == len(only_features), "features and results are not same length"
     #kdrew: put the results and the features together
     only_features_results = pd.concat([results,only_features],axis=1)
     print only_features_results
@@ -71,7 +79,7 @@ def main():
     print only_features_results
     print " "
 
-    only_features_results_sorted = only_features_results.sort('svm_pos_prob',ascending=False)
+    only_features_results_sorted = only_features_results.sort_values(by='svm_pos_prob',ascending=False)
     print only_features_results_sorted
     print " "
     del only_features_results
