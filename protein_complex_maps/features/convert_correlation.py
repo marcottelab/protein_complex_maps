@@ -17,16 +17,20 @@ def main():
                                     help="Filename of output file")
     parser.add_argument("--noheader", action="store_true", dest="noheader", required=False, default=False, 
                                     help="Flag to set if elution profile does not have a header, default=False")
+    parser.add_argument("--sep", action="store_true", dest="sep", required=False, default=' ', 
+                                    help="Separator for the elution profile")
+
+
     args = parser.parse_args()
 
 
     protein_ids = []
     correlation_scores = dict()
-
+    sep=args.sep
     ep_file = open(args.elution_profile,"rb")
     for i, line in enumerate(ep_file.readlines()):
         if i > 0 or args.noheader:
-            protein_ids.append(line.split()[0].strip())
+            protein_ids.append(line.split(sep)[0].strip())
 
     ep_file.close()
 

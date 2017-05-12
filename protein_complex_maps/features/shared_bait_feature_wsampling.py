@@ -62,7 +62,7 @@ def setup_log(logname):
     logger.setLevel(logging.INFO)
 
 
-def shared_bait_feature(feature_table, bait_id_column='Fraction', id_column='GroupID', bh_correct=False):
+def shared_bait_feature(feature_table, bait_id_column='Fraction', id_column='ID', bh_correct=False):
     print(feature_table)
     print(feature_table.columns.values)
     #kdrew: best to enforce ids as strings
@@ -192,7 +192,7 @@ def subsampling(feature_table, bait_id_column):
 
     for s in range(0,20):
        print(s)
-       logger.info(str(s))
+       #logger.info(str(s))
        #sampled_df = random.sample(grouped['bait_id_column_str'], 3)
        #logger.info(sampled_df)
        #logger.info("colname")
@@ -205,7 +205,7 @@ def subsampling(feature_table, bait_id_column):
        #sampled_df = pd.concat(df_list, axis=0, join='outer')    
 
        sample_size = int(0.3 * len(feature_table.Fraction.unique()))
-       logger.info("sample_size: ", str(sample_size))
+       #logger.info("sample_size: ", str(sample_size))
 
        selected_names = np.random.choice(feature_table.Fraction.unique(), sample_size, replace=False)
        sub_table = feature_table[feature_table.Fraction.isin(selected_names)]
@@ -218,9 +218,9 @@ def subsampling(feature_table, bait_id_column):
 
        #logger.info("starting hypergeo")
        #sub_table = feature_shared_bait_table.sample(frac=0.3, axis=1)     
-       logger.info("sub_table")
+       #logger.info("sub_table")
        #logger.info(sub_table.head)
-       logger.info(sub_table.shape)
+       #logger.info(sub_table.shape)
        #logger.info(feature_shared_bait_table.shape)
        #sample_dict = hypergeo(sub_table)  
        #sample_df = pd.DataFrame(sample_dict)
@@ -291,6 +291,6 @@ if __name__ == "__main__":
     #output_df = pd.DataFrame(output_dict)
 
 
-    output_df.to_csv(args.output_file, index=False)
+    output_df.to_csv(args.output_file, index=False, header=False)
 
 

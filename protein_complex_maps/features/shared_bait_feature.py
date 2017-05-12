@@ -83,7 +83,7 @@ def main():
 
     feature_table = pd.DataFrame(pd.read_csv(args.feature_matrix, sep=args.sep))
     output_df = shared_bait_feature(feature_table, args.bait_id_column, args.id_column, args.bh_correct)
-    output_df.to_csv(args.output_file, index=False)
+    output_df.to_csv(args.output_file, index=False, header=False)
 
 def shared_bait_feature(feature_table, bait_id_column, id_column, bh_correct=False):
     print(feature_table)
@@ -194,6 +194,8 @@ def shared_bait_feature(feature_table, bait_id_column, id_column, bh_correct=Fal
         output_dict['pval_corr'] = p_adjust
         output_dict['neg_ln_pval_corr'] = [-1.0*math.log(p) for p in p_adjust]
 
+    output_df= output_df[['gene_id1','gene_id2','neg_ln_pval']]
+    
     output_df = pd.DataFrame(output_dict)
     return output_df
 

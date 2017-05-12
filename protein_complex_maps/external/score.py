@@ -208,6 +208,9 @@ def traver_corr(mat, repeat=100, norm='columns', verbose=True, metric='pearson')
         elif metric =='spearman':
             corr, pval = np.nan_to_num(stats.spearmanr(poisson_mat, axis=1))
 
+        elif metric == 'euclidean':
+            corr = np.nan_to_num(pdist_score(poisson_mat))
+
         return corr
     avg_result = (reduce(operator.add, (poisson_corr(mat, i, norm=norm, metric=metric) for i in
                                         range(repeat))) / repeat)
@@ -224,7 +227,7 @@ def pdist_score(mat, metric='euclidean', norm_rows=True,
     norm_mat = ut.normalize_fracs(mat, norm_rows, norm_cols)
     dists = spatial.distance.pdist(norm_mat, metric=metric)
     dist_mat = spatial.distance.squareform(dists)
-    np.savetxt("dist_mat", dist_mat, delimiter='\t')
+    #np.savetxt("dist_mat", dist_mat, delimiter='\t')
     #max value is root 2
     score_mat = 1.414213562373 - np.nan_to_num(dist_mat)
     return score_mat
@@ -348,23 +351,33 @@ if __name__ == '__main__':
     fname = sys.argv[1]
     method = sys.argv[2]
     sep = sys.argv[3]
-    methodarg = None if nargs < 4 else int(sys.argv[3])
+    methodarg = None if nargs < 5 else int(sys.argv[4])
     elut = el.load_elution(fname, sep=sep)
     if method == 'pearson':
+        print method
         corr = traver_corr(elut.mat, repeat=methodarg) if methodarg else \
             traver_corr(elut.mat)
     elif method == 'spearman':
-        corr = traver_corr(elut.mat, repeat=methodarg) if methodarg else \
-            traver_corr(elut.mat)
+        print method
+        corr = traver_corr(elut.mat, method='spearman', repeat=methodarg) if methodarg else \
+            traver_corr(elut.mat, metric='spearman')
+
+    elif method == 'euclidean':
+        print method
+        corr = traver_corr(elut.mat, method='euclidean', repeat=methodarg) if methodarg else \
+            traver_corr(elut.mat, metric='euclidean')
+
 
 
     elif method in ['cosine_poisson','euclidean_poisson']:
         corr = poisson_repeat(elut.mat, metric=method.split('_')[0],
                 repeat=methodarg) if methodarg else poisson_repeat(elut.mat,
                         metric=method)
-    elif method in ['euclidean']:
-        corr = pdist_score(elut.mat, norm_rows=True, norm_cols=True,
-                metric=method)
+
+    #without poisson noise
+    #elif method in ['euclidean']:
+    #    corr = pdist_score(elut.mat, norm_rows=True, norm_cols=True,
+    #            metric=method)
     #elif method in ['spearman']:
     #    corr = spearman_rho(elut.mat, norm_rows=True, norm_cols=True, metric=method)
 
