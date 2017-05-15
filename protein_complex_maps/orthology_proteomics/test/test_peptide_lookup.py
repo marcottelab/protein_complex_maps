@@ -38,53 +38,53 @@ class LookupTest(unittest.TestCase):
 
 #        def testDigest(self,):
 #                #Make sure the right test protein is being chopped
-#                assert(str(self.testprotein) =="MALMMKSSASLKAVSAGRSRRAVVVRAGKYDEELIKTAGTVASKGRGILAMDESNATCGKRLDSIGVENTEENRRAYRELLVTAPGLGQYISGAILFEETLYQSTASGKKFVDVMKEQNIVPGIKVDKGLVPLSNTNGESWCMGLDGLDKRCAEYYKAGARFAKWRSVVSIPHGPSIIAARDCAYGLARYAAIAQNAGLVPIVEPEVLLDGEHDIDRCLEVQEAIWAETFKYMADNKVMFEGILLKPAMVTPGADCKNKAGPAKVAEYTLKMLRRRVPPAVPGIMFLSGGQSELESTLNLNAMNQSPNPWHVSFSYARALQNTVLKTWQGKPENVQAAQAALLKRAKANSDAQQGKYDATTEGKEAAQGMYEKGYVY")
-#                #Check that the right number of peptides are being made
-#
-#                self.peptides = tr.TRYPSIN(self.testprotein, 2)
-#
-#                print(len(self.peptides))
-#                assert(len(self.peptides)== 108)
-#
-#        def testUniqueProteins(self,):
-#                peps = dg.format_peptides(self.sample_peptides, 'test')
-#
-#                prot_uniq_peps = dg.protein_uniq_peptides(peps, 'test', 'test/')
-#              
-#               #Should not be unique to any protein
-#                testrow1 = prot_uniq_peps[prot_uniq_peps.Peptide== 'AAAAAAKAJEQQKAEJESAQQQJESAR']
-#                print(testrow1)
-#                assert(len(testrow1)==0)
-#
-#               #Should not be unique to a single protein
-#                testrow2 = (prot_uniq_peps[prot_uniq_peps.Peptide== 'AQAESCRHVWR'])
-#                assert(len(testrow2)==0)
-#
-#                #Should get one unique protein
-#                testrow3 = (prot_uniq_peps[prot_uniq_peps.Peptide== 'AAAAHAJTGVJKQASGRK'])
-#                assert(len(testrow3)==1)
-#                assert(testrow3['ProteinID'].values[0] == 'tr|A8J4W6|A8J4W6_CHLRE') 
-#        def testGrouping(self,):
-#
-#                peps = dg.format_peptides(self.sample_peptides, 'test')
-#           
-#                group_uniq_peps = dg.define_grouping(self.sample_orthology, peps, 'test', 'euNOG', 'test/')
-#
-#                print(group_uniq_peps)
-#
-#                #Should not be unique to any protein
-#                testrow1 = (group_uniq_peps[group_uniq_peps.Peptide== 'AAAAAAKAJEQQKAEJESAQQQJESAR'])
-#                assert(len(testrow1)==0)
-#
-#                #Should get one unique groupein
-#                testrow2 = (group_uniq_peps[group_uniq_peps.Peptide== 'AQAESCRHVWR'])
-#                assert(len(testrow2)==1)
-#                assert(testrow2['ID'].values[0] == 'KOG0001') 
-#                 
-#
-#                testrow3 = (group_uniq_peps[group_uniq_peps.Peptide== 'AAAAHAJTGVJKQASGRK'])
-#                assert(len(testrow3)==1)
-#                assert(testrow3['ID'].values[0] == 'KOG0027') 
+                assert(str(self.testprotein) =="MALMMKSSASLKAVSAGRSRRAVVVRAGKYDEELIKTAGTVASKGRGILAMDESNATCGKRLDSIGVENTEENRRAYRELLVTAPGLGQYISGAILFEETLYQSTASGKKFVDVMKEQNIVPGIKVDKGLVPLSNTNGESWCMGLDGLDKRCAEYYKAGARFAKWRSVVSIPHGPSIIAARDCAYGLARYAAIAQNAGLVPIVEPEVLLDGEHDIDRCLEVQEAIWAETFKYMADNKVMFEGILLKPAMVTPGADCKNKAGPAKVAEYTLKMLRRRVPPAVPGIMFLSGGQSELESTLNLNAMNQSPNPWHVSFSYARALQNTVLKTWQGKPENVQAAQAALLKRAKANSDAQQGKYDATTEGKEAAQGMYEKGYVY")
+                #Check that the right number of peptides are being made
+
+                self.peptides = tr.TRYPSIN(self.testprotein, 2)
+
+                print(len(self.peptides))
+                assert(len(self.peptides)== 108)
+
+        def testUniqueProteins(self,):
+                peps = dg.format_peptides(self.sample_peptides, 'test')
+
+                prot_uniq_peps = dg.protein_uniq_peptides(peps, 'test', 'test/')
+              
+               #Should not be unique to any protein
+                testrow1 = prot_uniq_peps[prot_uniq_peps.Peptide== 'AAAAAAKAJEQQKAEJESAQQQJESAR']
+                print(testrow1)
+                assert(len(testrow1)==0)
+
+               #Should not be unique to a single protein
+                testrow2 = (prot_uniq_peps[prot_uniq_peps.Peptide== 'AQAESCRHVWR'])
+                assert(len(testrow2)==0)
+
+                #Should get one unique protein
+                testrow3 = (prot_uniq_peps[prot_uniq_peps.Peptide== 'AAAAHAJTGVJKQASGRK'])
+                assert(len(testrow3)==1)
+                assert(testrow3['ProteinID'].values[0] == 'tr|A8J4W6|A8J4W6_CHLRE') 
+        def testGrouping(self,):
+
+                peps = dg.format_peptides(self.sample_peptides, 'test')
+           
+                group_uniq_peps = dg.define_grouping(self.sample_orthology, peps, 'test', 'euNOG', 'test/')
+
+                print(group_uniq_peps)
+
+                #Should not be unique to any protein
+                testrow1 = (group_uniq_peps[group_uniq_peps.Peptide== 'AAAAAAKAJEQQKAEJESAQQQJESAR'])
+                assert(len(testrow1)==0)
+
+                #Should get one unique groupein
+                testrow2 = (group_uniq_peps[group_uniq_peps.Peptide== 'AQAESCRHVWR'])
+                assert(len(testrow2)==1)
+                assert(testrow2['ID'].values[0] == 'KOG0001') 
+                 
+
+                testrow3 = (group_uniq_peps[group_uniq_peps.Peptide== 'AAAAHAJTGVJKQASGRK'])
+                assert(len(testrow3)==1)
+                assert(testrow3['ID'].values[0] == 'KOG0027') 
  
         def testElution(self,):
 
@@ -97,8 +97,8 @@ class LookupTest(unittest.TestCase):
  
 
 
-#
-#
+
+
 #	def setUp(self,):
 #
 #		sample_filename2 = "./test_data2.txt"

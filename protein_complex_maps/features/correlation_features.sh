@@ -22,7 +22,7 @@ echo correlation done
            
 
 
-cat $ELUTION_FILE | parallel -j4 python ../../features/convert_correlation.py --input_correlation_matrix {}.corr_${CORR} --input_elution_profile {}.csv --output_file {}.corr_${CORR}.pairs --sep ','
+cat $ELUTION_FILE | parallel -j4 python ../../features/convert_correlation.py --sep ',' --input_correlation_matrix {}.corr_${CORR} --input_elution_profile {}.csv --output_file {}.corr_${CORR}.pairs
 
 echo pairs done
 cat $ELUTION_FILE | parallel -j4 python ../../features/alphabetize_pairs.py --feature_pairs {}.corr_${CORR}.pairs --outfile {}.corr_${CORR}.pairs.ordered --sep ' ' 
