@@ -44,13 +44,14 @@ def main():
 
     #df[df.columns[args.columns2alphabetize]] = df[df.columns[args.columns2alphabetize]].apply(sorted,axis=1)
  
-    #For troubleshooting apply speed
+    #For troubleshooting speed of the apply function
     #tqdm.pandas(desc="Progress of alphabetization")
 
     #Saving as intermediate variable is necessary for large dataframes (at least over 9 million rows)
+    #For troubleshooting, progress_apply gives a progress bar, but needs tqdm package
     #x =  df[df.columns[args.columns2alphabetize]].progress_apply(sorted,axis=1)
-    x =  df[df.columns[args.columns2alphabetize]].apply(sorted,axis=1)
-    df[df.columns[args.columns2alphabetize]] = x
+    intermediate_df =  df[df.columns[args.columns2alphabetize]].apply(sorted,axis=1)
+    df[df.columns[args.columns2alphabetize]] = intermediate_df
 
     #print(df)
  
