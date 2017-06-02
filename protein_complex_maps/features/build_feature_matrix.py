@@ -69,8 +69,9 @@ def build_matrix():
         #df = df[['pairset', value_name]]
         df = df.set_index(['ID'])
         print(df.shape)
-
         dfall_intermediate = dfall.join(df, how='outer', rsuffix=('_%s' % (i) ))
+        #dfall_intermediate = dfall.join(df, how='outer', rsuffix=('_%s' % (i) ))
+        dfall = None
         dfall = dfall_intermediate
         dfall_intermediate = None
         df = None

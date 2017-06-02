@@ -1,5 +1,7 @@
 import sys
+sys.path.insert(1, '/stor/home/cmcwhite/.local/lib/python2.7/site-packages')
 import itertools
+import scipy
 import numpy as np
 from scipy import spatial
 import os
@@ -11,9 +13,7 @@ import utils as ut
 import elution as el
 #import orth
 from scipy.stats import pearsonr
-
-
-
+from scipy.stats import spearmanr
 def score_array_multi(arr, sp_base, elut_fs, scores, cutoff, verbose=False,
         remove_multi_base=False, gidscheme=None, allow_singles=True):
     """
@@ -189,14 +189,21 @@ def traver_corr(mat, repeat=100, norm='columns', verbose=True, metric='pearson')
     # then correlate, and average together for repeat tries.
     def poisson_corr(mat, iteration_display, norm, metric):
         if verbose: print iteration_display
+        print("get matrix shape")
         M = mat.shape[1]
         #kdrew: shouldn't this be C = mat + 1.0/M
         #C = mat + 1/M
+        print("divide mat")
         C = mat + 1.0/M
+  
+        print("get poisson matrix")
         poisson_mat = np.matrix(np.zeros(C.shape))
+
+        print("add poisson noise")
         for i in range(C.shape[0]):
             for j in range(M):
                 poisson_mat[i,j] = np.random.poisson(C[i,j])
+        print("normalize columns")
         if norm=='columns': 
             poisson_mat = np.nan_to_num(poisson_mat / np.sum(poisson_mat, 0))
         elif norm=='rows': # seems to make no performance difference 1/25
@@ -206,18 +213,20 @@ def traver_corr(mat, repeat=100, norm='columns', verbose=True, metric='pearson')
         if metric == 'pearson':
             corr = np.nan_to_num(np.corrcoef(poisson_mat))
         elif metric =='spearman':
-            corr, pval = np.nan_to_num(stats.spearmanr(poisson_mat, axis=1))
+            print("do spearmanr correlation")
+            corr, pval = np.nan_to_num(spearmanr(poisson_mat, axis=1))
 
         elif metric == 'euclidean':
             corr = np.nan_to_num(pdist_score(poisson_mat))
 
         return corr
+    print("average results")
     avg_result = (reduce(operator.add, (poisson_corr(mat, i, norm=norm, metric=metric) for i in
                                         range(repeat))) / repeat)
     return avg_result
 
 def spearman_rho(mat, metric='spearman', norm_rows=True, norm_cols=True):
-    norm_mat = ut.normalize_fracs(mat, norm_rows, norm_cols)
+    norm_mat = ut.normalize_fracs(mat, norm_cols)
     #Bad values was default axis = 0, trying 1
     rho, pval = stats.spearmanr(norm_mat, axis=1)
     return rho
@@ -352,7 +361,9 @@ if __name__ == '__main__':
     method = sys.argv[2]
     sep = sys.argv[3]
     methodarg = None if nargs < 5 else int(sys.argv[4])
+    print("loading elution")
     elut = el.load_elution(fname, sep=sep)
+    print("elution loaded")
     if method == 'pearson':
         print method
         corr = traver_corr(elut.mat, repeat=methodarg) if methodarg else \
