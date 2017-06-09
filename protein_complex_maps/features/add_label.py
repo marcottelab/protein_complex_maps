@@ -28,6 +28,9 @@ def main():
                                     help="Filename of output file, default=None which prints to stdout")
     parser.add_argument("--fillna", action="store", dest="fillna", required=False, default=None, 
                                     help="If set, fills NAs with input value")
+    parser.add_argument("--id_sep", action="store", dest="id_sep", type=str, required=False, default="_", 
+                                    help="If ID is stored in one column, give the spacing used between pairs ie. id1_id2")
+   
     #parser.add_argument("--int_convert", action="store_true", dest="int_convert", required=False, default=False, 
     #                                help="Convert id_column to int")
     #parser.add_argument("--index_col0", action="store_true", dest="index_col0", required=False, default=False, 
@@ -52,7 +55,7 @@ def main():
     print(pos_ppis)
     print("size of pos_pos_ppis: %s" % len(pos_ppis))
     pos_ppis['label'] = 1
-    pos_ppis['ID'] = pos_ppis['ID1'] + '_' + pos_ppis['ID2']
+    pos_ppis['ID'] = pos_ppis['ID1'] + args.id_sep + pos_ppis['ID2']
     #pos_ppis = pos_ppis.set_index(['ID'])
     #positive_file = open(args.positives,"rb")
 
@@ -88,7 +91,7 @@ def main():
         sys.exit("ERROR: input_negatives are not alphabetized, please run alphabetize_pairs.py")
     print(neg_ppis)
     neg_ppis['label'] = -1
-    neg_ppis['ID'] = neg_ppis['ID1'] + '_' + neg_ppis['ID2']
+    neg_ppis['ID'] = neg_ppis['ID1'] + args.id_sep + neg_ppis['ID2']
 
     
     print("size of neg_ppis: %s" % len(neg_ppis))
@@ -120,7 +123,7 @@ def main():
     if not ap.alphabetized_check(feature_table, args.id_column):
         sys.exit("ERROR: feature_matrix is not alphabetized, please run alphabetize_pairs.py")
     #kdrew: if multiple ids were passed in, combine into a string
-    feature_table['ID'] = feature_table[args.id_column].apply(lambda x: '_'.join(map(str,x)), axis=1)
+    feature_table['ID'] = feature_table[args.id_column].apply(lambda x: args.id_sep.join(map(str,x)), axis=1)
 
     feature_table = feature_table.set_index(['ID'])
 

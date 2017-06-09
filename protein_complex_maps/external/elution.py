@@ -10,30 +10,37 @@ import score as sc
 from Struct import Struct
 import utils as ut
 
-def load_elution(fname, getname=True):
+def load_elution(fname, getname=True, sep="\t"):
     # expected file structure:
     # first col: gene id
     # second col: treat differently if 2nd col header is 'Total' or
     # 'Description'
     # remaining cols: elution profile data
-    lines = [l for l in ut.load_tab_file(fname)]
-    # final row: total count in msblender output; don't skip in cuihong's data
-    skip_final_row = (lines[-1][0][0] == '#')
-    rows = lines[1:-1] if skip_final_row else lines[1:]
+
+    print "Starting loading"
+    lines = [l for l in ut.load_tab_file(fname, sep=sep)]
+    print "Done loading"
+    #CDM removed one off for removing the final row of an elution
+    rows =  lines[1:]
     fractions = [f for f in lines[0][1:]]
     if fractions[0].lower() in ['total', 'totalcount', 'description']:
         start_data_col = 2
         fractions.remove(fractions[0])
     else:
         start_data_col = 1
+
+    print "making matrix"
     mat = np.matrix([row[start_data_col:] for row in rows],dtype='float32')
+    print "making prots"
     prots = [row[0] for row in rows]
+    print "making elut"
     elut = Struct(mat=mat, prots=prots, fractions=fractions, filename=fname,
                   filename_original=fname)
     if start_data_col == 2:
         col2name_vals = [row[1] for row in rows]
         elut.column2vals = col2name_vals
     if getname: elut.name = os.path.basename(fname).split('.')[0]
+    print "elution loaded"
     return elut
 
 class NormElut(Struct):

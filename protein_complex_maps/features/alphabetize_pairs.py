@@ -1,8 +1,9 @@
 #from __future__ import print_function
 import argparse
 import pandas as pd
-
-
+import numpy as np
+import timeit
+#from tqdm import tqdm
 #python ../../scripts/alphabetize_pairs.py --feature_pairs arathtraesorysjbraolselml_euNOG_corum_train_labeled.libsvm1.scale.resultsWprob_c32_g0078125_pairs_noself_nodups_wprob.txt --outfile old_arathtraesorysjbraolselml_interactions.tmp
 
 def alphabetized_check(df, column_ids, sample_size=1000):
@@ -31,12 +32,29 @@ def main():
     parser.add_argument("--feature_pairs", action="store", dest= "df", required=True)
     parser.add_argument("--outfile", action="store", required=True, 
                                     help="Filename of comma separated output")
-    parser.add_argument("--sep", action = "store",dest='sep' , required=True)
+    parser.add_argument("--sep", action = "store",dest='sep' , default=' ', required=False)
     parser.add_argument("--columns", nargs='+', action="store", type=int, dest="columns2alphabetize", required=False, default=[0,1], 
                                     help="List of columns to alphabetize, default = 0,1")
     args = parser.parse_args()
     df = pd.read_table(args.df, sep=args.sep, header=None)
-    df[df.columns[args.columns2alphabetize]] = df[df.columns[args.columns2alphabetize]].apply(sorted,axis=1)
+    print(df)
+
+
+    #sorted is faster than np.sort
+
+    #df[df.columns[args.columns2alphabetize]] = df[df.columns[args.columns2alphabetize]].apply(sorted,axis=1)
+ 
+    #For troubleshooting speed of the apply function
+    #tqdm.pandas(desc="Progress of alphabetization")
+
+    #Saving as intermediate variable is necessary for large dataframes (at least over 9 million rows)
+    #For troubleshooting, progress_apply gives a progress bar, but needs tqdm package
+    #x =  df[df.columns[args.columns2alphabetize]].progress_apply(sorted,axis=1)
+    intermediate_df =  df[df.columns[args.columns2alphabetize]].apply(sorted,axis=1)
+    df[df.columns[args.columns2alphabetize]] = intermediate_df
+
+    #print(df)
+ 
 
     df.to_csv(args.outfile, header=False, index=False, sep=args.sep)
 

@@ -69,23 +69,23 @@ def main():
         df_pos = divided_file_dict['pos_train'][i]
         df_neg = divided_file_dict['neg_train'][i]
         df = pd.concat([df_pos, df_neg])
-        specific_output_filename = args.output_filename + ".train" + str(i) + ".txt"
+        specific_output_filename = args.output_filename.replace(".lfeatmat", "") + "_train" + str(i) + ".lfeatmat"
         df.to_csv(specific_output_filename, sep=args.sep, index=False)
 
         #kdrew: output concatenated positive and negative leaveout
         df_pos = divided_file_dict['pos_leaveout'][i]
         df_neg = divided_file_dict['neg_leaveout'][i]
         df = pd.concat([df_pos, df_neg])
-        specific_output_filename = args.output_filename + ".leaveout" + str(i) + ".txt"
+        specific_output_filename = args.output_filename.replace(".lfeatmat", "") + "_leaveout" + str(i) + ".lfeatmat"
         df.to_csv(specific_output_filename, sep=args.sep, index=False)
 
     #kdrew: output leaveout ppis
     for i, df in enumerate(divided_file_dict['pos_leaveout']):
-        specific_output_filename = args.output_filename + ".pos_leaveout_ppis%s.txt" % i
-        df[args.id_columns].to_csv(specific_output_filename, sep=' ', index=False, header=False)
+        specific_output_filename = args.output_filename.replace("lfeatmat", "") + "_pos_leaveout_ppis%s.txt" % i
+        df[args.id_columns].to_csv(specific_output_filename, sep=' ', index=False, header=False, quoting=None)
     for i, df in enumerate(divided_file_dict['neg_leaveout']):
-        specific_output_filename = args.output_filename + ".neg_leaveout_ppis%s.txt" % i
-        df[args.id_columns].to_csv(specific_output_filename, sep=' ', index=False, header=False)
+        specific_output_filename = args.output_filename.replace(".lfeatmat", "") + "_neg_leaveout_ppis%s.txt" % i
+        df[args.id_columns].to_csv(specific_output_filename, sep=' ', index=False, header=False, quoting=None)
 
 
 
