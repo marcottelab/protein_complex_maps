@@ -18,7 +18,9 @@ def main():
     parser.add_argument("--remove_largest", action="store_true", dest="remove_largest", required=False, default=False,
                                             help="Instead of merging similar clusters, remove largest")
     parser.add_argument("--complex_size_threshold", type=int, action="store", dest="complex_size", required=False, default=None,
-                                    help="Size threshold for complexes, throws out complexes greater than value, default does not threshold")
+                                            help="Size threshold for complexes, throws out complexes greater than value, default does not threshold")
+    parser.add_argument("--remove_large_subcomplexes", action="store_true", dest="remove_large_subcomplexes", required=False, default=False,
+                                            help="Throws out subcomplexes of larger complexes greater than complex_size_threshold, default False")
 
     args = parser.parse_args()
 
@@ -29,10 +31,36 @@ def main():
         if len(line.split()) > 1:
             in_predicted_clusters.add(frozenset(line.split()))
 
-    #kdrew: threshold on the number of subunits a complex can have, ie. throws out large complex, None keeps all complexes
-    if args.complex_size != None:
-        in_predicted_clusters = [c for c in in_predicted_clusters if len(c) <= args.complex_size]
+    final_clusters = merge_complexes(in_predicted_clusters, args)
+    outfile = open(args.output_filename,"wb")
+    for cluster in final_clusters:
+        outfile.write(" ".join(cluster) + '\n')
 
+    outfile.close()
+                
+
+def merge_complexes(in_predicted_clusters, in_args):
+
+    #kdrew: threshold on the number of subunits a complex can have, ie. throws out large complex, None keeps all complexes
+    if in_args.complex_size != None:
+        in_predicted_clusters_trim = [c for c in in_predicted_clusters if len(c) <= in_args.complex_size]
+
+        if in_args.remove_large_subcomplexes:
+
+            in_predicted_clusters_subcomplex_trim = []
+
+            for c in in_predicted_clusters_trim:
+                #kdrew: a bit obfuscated but inner list comprehension is of large complexes, outer list comprehension is boolean of overlap, if no overlap it passes
+                if not any([len(c.intersection(lrgC))>0 for lrgC in [largeC for largeC in in_predicted_clusters if len(largeC) > in_args.complex_size]]):
+                    in_predicted_clusters_subcomplex_trim.append(c)
+                else:
+                    print "Removing %s" % c
+
+            in_predicted_clusters_trim = in_predicted_clusters_subcomplex_trim
+
+
+        in_predicted_clusters = in_predicted_clusters_trim
+                    
 
     merged_count = 0
     final_clusters = None
@@ -50,12 +78,12 @@ def main():
             #kdrew: iterate through all clusters after cluster1
             for cluster2 in predicted_clusters[i+1:]:
                 jindex = jaccard_index(cluster1,cluster2)
-                if jindex >= args.merge_threshold:
+                if jindex >= in_args.merge_threshold:
                     cluster1_set = frozenset(cluster1)
                     cluster2_set = frozenset(cluster2)
                     #print "merging %s : %s" % (cluster1, cluster2)
 
-                    if args.remove_largest:
+                    if in_args.remove_largest:
                         #kdrew: add the smaller cluster to the final set
                         if len(cluster1_set) < len(cluster2_set):
                             merged_clusters.add(cluster1_set)
@@ -90,12 +118,7 @@ def main():
             merged_count = 0
             predicted_clusters = list(merged_clusters)
 
-    outfile = open(args.output_filename,"wb")
-    for cluster in final_clusters:
-        outfile.write(" ".join(cluster) + '\n')
-
-    outfile.close()
-                
+    return final_clusters
 
 def jaccard_index(x, y):
     sx = set(x)
