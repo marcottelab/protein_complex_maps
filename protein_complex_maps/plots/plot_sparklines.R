@@ -22,12 +22,10 @@ parser$add_argument("-p", "--proteins", nargs='+', dest="protein_ids", required=
                         help="Proteins to plot")
 parser$add_argument("-n", "--parse_fraction_name", nargs='+', dest="parse_fraction_name", required=TRUE,
                         help="Fields to separate fraction name into, example: cell_type condition col_type fraction date, use -n fraction for default behavior")
-parser$add_argument("-s", "--fraction_name_sep", dest="fraction_name_sep", required=TRUE,
-                        help="Separator to separate fraction name, (would set default but R's argparse has a bug)")
 parser$add_argument("-m", "--id_mapping", dest="id_mapping", required=TRUE,
-                        help="Uniprot mapping file, (would set default but R's argparse has a bug)")
-parser$add_argument("-g", "--id_column", dest="id_column", required=TRUE,
-                        help="Column to use for protein identifier, (would set default but R's argparse has a bug)")
+                        help="Uniprot mapping file")
+parser$add_argument("-g", "--id_column", dest="id_column", default="genename", help="Column to use for protein identifier, default = genename")
+parser$add_argument("-s", "--fraction_name_sep", dest="fraction_name_sep", default='_', help="Separator to separate fraction name, default = _")
 
 args <- parser$parse_args()
 
