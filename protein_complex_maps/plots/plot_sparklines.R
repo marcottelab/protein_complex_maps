@@ -8,7 +8,7 @@ suppressPackageStartupMessages(library(purrr))
 
 suppressPackageStartupMessages(library(cowplot))
 
-suppressPackageStartupMessages(library("argparse"))
+suppressPackageStartupMessages(library(argparse))
 
 # create parser object
 parser <- ArgumentParser()

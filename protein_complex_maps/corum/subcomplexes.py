@@ -1,32 +1,57 @@
+from __future__ import print_function
 import csv
+import argparse    
 
-complexes_list = []
-complex_dict = {}
+def get_subcomplexes(infilename, outfilename, sep):
 
-with open('allComplexes.csv','rb') as csvfile:
-	complexes = csv.reader(csvfile, delimiter=';')
-	for row in complexes:
-		if row[3] == "Human" and row[4] != '':
-			complexes_list.append(row)
-			complex_dict[row[0]] = row
+    complexes_list = []
+    complex_dict = {}
+    
 
-subcomplex_dict = {}
-for complex1 in complexes_list:
-	for complex2 in complexes_list:
-		#if complex2[4] in complex1[4] and complex2[0] != complex1[0]:
-		if complex2[4] in complex1[4] and complex1[4] not in complex2[4]:
-			print "%s %s subcomplex of %s %s" % (complex2[0], complex2[1], complex1[0], complex1[1])
-			print "%s : %s" % (complex2[4], complex1[4],)
-			print "\n"
+    with open(infilename,'rb') as infile:
+        complexes = csv.reader(infile, delimiter=sep)
+        n = 1
+        for row in complexes:
+            complexes_list.append(row)
+            complex_dict[n] = row 
+            n = n + 1
+    #print complex_dict
+    #print(complexes_list)  
+    subcomplex_dict = {}
+    to_remove = []
+    for complex1 in complexes_list:
+        for complex2 in complexes_list:
+            if complex1 == complex2:
+               continue
+            elif all(x in complex1 for x in complex2):
+                print("%s : %s\n" % (complex2, complex1))
+                to_remove.append(complex2)
+    to_remove = [list(x) for x in set(tuple(x) for x in to_remove)]
+    
+    print(to_remove)
+    final_list = []
+    with open(outfilename, "w") as outfile:
+        for c in complexes_list:
+            if c not in to_remove:
+                final_list.append(c)
+                final_string = ' '.join(c) + '\n'
+                print(final_string)
+                outfile.write(final_string)
+ 
+    print("%s complexes in original list" % str(len(complexes_list)))
+    print("%s complexes removed" % str(len(to_remove)))
+    print("%s final complexes" % str(len(final_list)))
+       
+ 
 
-			try:
-				subcomplex_dict[complex1[0]].append(complex2[0])
-			except KeyError:
-				subcomplex_dict[complex1[0]] = [complex2[0]]
+parser = argparse.ArgumentParser(description="")
+
+parser.add_argument('--corum_file', action="store", type=str, help="one group per line")
+parser.add_argument('--outfile', action="store", type=str, help="outfile name")
+parser.add_argument('--sep', action="store", type=str, default=' ', required=False, help="separator for input and output file")
+inputs = parser.parse_args()
+
+get_subcomplexes(inputs.corum_file, inputs.outfile, inputs.sep)
 
 
-for c in subcomplex_dict:
-	for sc in subcomplex_dict[c]:
-		print "%s %s has subcomplex %s %s" % (complex_dict[c][0], complex_dict[c][1], complex_dict[sc][0], complex_dict[sc][1], )
-		print "%s : %s" % (' '.join(complex_dict[c][4].split(',')), ' '.join(complex_dict[sc][4].split(',')))
-		print "\n"
+
