@@ -18,16 +18,35 @@ def main():
                                     help="List of C parameter values to evaluate, default = 0.00390625 0.0078125 2 32 128")
     parser.add_argument("--gamma_values", action="store", dest="gamma_values", nargs='+', type=float, required=False, default=[0.015625, 0.03125, 0.0625, 0.125, 0.5],
                                     help="List of gamma parameter values to evaluate, default = 0.015625 0.03125 0.0625 0.125 0.5")
-    parser.add_argument("--features", action="store", dest="features", nargs='+', required=True, 
-                                    help="Names of features")
     parser.add_argument("--id_columns", action="store", dest="id_columns", nargs='+', required=True, 
                                     help="Names of columns that store protein ids")
     parser.add_argument("--split_train_predict_scripts", action="store_true", dest="split_train_predict_scripts", required=False,  default=False,
                                     help="Split train/predict portion into separate scripts for every parameter pair")
-
+    parser.add_argument("--features", action="store", dest="features_str", nargs='+', required=False, 
+                                    help="Names of features")
+    parser.add_argument("--feature_file", action="store", dest="feature_file", required=False, 
+                                    help="File containing one feature name per line")
+ 
     args = parser.parse_args()
 
     outfile = open(args.output_script_name,"wb")
+
+    if not args.features_str and not args.feature_file:
+        print("Provide either a space separated string of features using --features or a file of features 1 per line using --feature_file")
+        return
+    elif args.features_str and args.feature_file:
+        print("Provide either space separated string of features using --features or a file of features 1 per line using --feature_file")
+        return
+    elif args.features_str:
+        feats = args.features
+        print(feats)
+    elif args.feature_file:
+        featfile = open(args.feature_file, "r")
+        feats = featfile.read().splitlines()
+        featfile.close()
+        print(feats)
+
+
 
     for i in xrange(len(args.train_files)):
         train_file = args.train_files[i]
@@ -35,8 +54,8 @@ def main():
 
         #kdrew: convert to libsvm format
         outfile.write("#create_cv_commands: converting to libsvm format\n")
-        outfile.write("python %s/protein_complex_maps/svm_utils/feature2libsvm.py --input_feature_matrix %s --output_filename %s.libsvm.txt --features %s --label_column label --sep ,\n" % (args.scripts_dir, train_file, train_file, ' '.join(args.features)))
-        outfile.write("python %s/protein_complex_maps/svm_utils/feature2libsvm.py --input_feature_matrix %s --output_filename %s.libsvm.txt --features %s --label_column label --sep , \n" % (args.scripts_dir, leaveout_file, leaveout_file, ' '.join(args.features)))
+        outfile.write("python %s/protein_complex_maps/svm_utils/feature2libsvm.py --input_feature_matrix %s --output_filename %s.libsvm.txt --features %s --label_column label --sep ,\n" % (args.scripts_dir, train_file, train_file, feats))
+        outfile.write("python %s/protein_complex_maps/svm_utils/feature2libsvm.py --input_feature_matrix %s --output_filename %s.libsvm.txt --features %s --label_column label --sep , \n" % (args.scripts_dir, leaveout_file, leaveout_file, feats))
 
         #kdrew: scale
         outfile.write("#create_cv_commands: scaling train and leaveout files\n")

@@ -29,16 +29,16 @@ long_form10 <- long_form %>% filter(SpectralCounts > 9 )
 
 
 
-long_form1 <- long_form1 %>% select(GroupID, Fraction)
-long_form2 <- long_form2 %>% select(GroupID, Fraction)
-long_form3 <- long_form3 %>% select(GroupID, Fraction)
-long_form4 <- long_form4 %>% select(GroupID, Fraction)
-long_form5 <- long_form5 %>% select(GroupID, Fraction)
-long_form6 <- long_form6 %>% select(GroupID, Fraction)
-long_form7 <- long_form7 %>% select(GroupID, Fraction)
-long_form8 <- long_form8 %>% select(GroupID, Fraction)
-long_form9 <- long_form9 %>% select(GroupID, Fraction)
-long_form10 <- long_form10 %>% select(GroupID, Fraction)
+long_form1 <- long_form1 %>% select(ID, Fraction)
+long_form2 <- long_form2 %>% select(ID, Fraction)
+long_form3 <- long_form3 %>% select(ID, Fraction)
+long_form4 <- long_form4 %>% select(ID, Fraction)
+long_form5 <- long_form5 %>% select(ID, Fraction)
+long_form6 <- long_form6 %>% select(ID, Fraction)
+long_form7 <- long_form7 %>% select(ID, Fraction)
+long_form8 <- long_form8 %>% select(ID, Fraction)
+long_form9 <- long_form9 %>% select(ID, Fraction)
+long_form10 <- long_form10 %>% select(ID, Fraction)
 
 
 

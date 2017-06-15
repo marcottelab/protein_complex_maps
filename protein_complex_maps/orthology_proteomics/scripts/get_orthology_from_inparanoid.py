@@ -38,18 +38,7 @@ def get_pairwise_from_sql(inparanoid_orthology):
     even_df = selection[selection.index % 2  == 0]
     print(even_df[even_df.id1==16])
     even_df = even_df.set_index(['id1'])
-    #even_df['pair2'] = even_df[['spec', 'acc']].apply(lambda x: "|".join(x), axis=1)
-    #even_df = even_df.drop(['spec', 'acc'], 1)
-    #print(even_df)
-   # final = pd.concat([odd_df, even_df], axis = 1)
     df = odd_df.join(even_df, how="outer", rsuffix='_right')
-    #print(df)
-
-    #df['pair1'] = df[['spec', 'acc']].apply(lambda x: "|".join(x), axis=1)
-    #print(df)
-    #df['pair2'] = df[['spec_right', 'acc_right']].apply(lambda y: "|".join(y), axis=1)
-    #print(df)
-    #df['valueset1'] = map(sorted, zip( df['pair1'].values, df['pair2'].values ))
     final_df = df[['spec', 'acc', 'spec_right', 'acc_right']]
     final_df.columns = ['spec_1', 'Entry', 'spec_2', 'acc_2']
 
@@ -61,10 +50,7 @@ def get_pairwise_from_sql(inparanoid_orthology):
  
 parser = argparse.ArgumentParser(description='Short sample app')
 
-#parser.add_argument('identified_eggion', action="store", type=str)
 parser.add_argument('inparanoid_orthology', action="store", type=str)
-#parser.add_argument('target_profile', action="store", type=str)
-#parser.add_argument('outfile', action="store", type=str)
 inputs = parser.parse_args()
 
 
