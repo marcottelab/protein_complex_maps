@@ -3,7 +3,7 @@ import sys
 import argparse
 import logging
 
-def make_wide(identified_elution, orthology_file):
+def make_wide(identified_elution, grouping_file, annotation_file):
 
 
    #output from get_elution_ids.py
@@ -25,24 +25,29 @@ def make_wide(identified_elution, orthology_file):
 
 
    #saving and importing csv fixes header columns from pivot format
-   wide2 = pd.read_csv(raw_outfile)
-   wide2 = wide2.set_index(['ID'])
+   #wide2 = pd.read_csv(raw_outfile)
+   #wide2 = wide2.set_index(['ID'])
 
    #Pull annotations from orthology file (eggnog_output)
-   annot = pd.read_csv(orthology_file, sep="\t")
-   annot = annot[['ID', 'ProteinID', 'Annotation']]
+   annot = pd.read_csv(annotation_file, sep=",")
+   annot = annot[['ID', 'Annotation']]
+
+   annot = annot.set_index(['ID'])
+   annot_wide = wide.join(annot, how="left")
 
    #put one protein per line
-   annotmulti = annot.set_index(['ID']) 
+   #annotmulti = annot.set_index(['ID']) 
 
-   multirow_wide = annotmulti.join(wide, how = "inner")
+   #multirow_wide = annotmulti.join(wide, how = "inner")
 
-   multirow_outfile = identified_elution.replace("_elution_", "_multirow_wide_elution_")
+   #multirow_outfile = identified_elution.replace("_elution_", "_multirow_wide_elution_")
     
-   multirow_wide.to_csv(multirow_outfile)
+   #multirow_wide.to_csv(multirow_outfile)
+
+   groups = pd.read_csv(grouping_file, sep="\t")
 
    #Consolidate proteins from a group into one row
-   alt_wide_labels = annot.groupby(['ID',  'Annotation'])['ProteinID'].apply(lambda x: ' '.join(x)).reset_index()
+   alt_wide_labels = groups.groupby(['ID'])['ProteinID'].apply(lambda x: ' '.join(x)).reset_index()
 
    #Get annotations and 
    #ungrouped_alt_wide = annot.join(wide, how = "right")
@@ -53,7 +58,7 @@ def make_wide(identified_elution, orthology_file):
 #   print grouped_elut
 
    alt_wide_labels = alt_wide_labels.set_index(["ID"])
-   alt_wide = alt_wide_labels.join(wide, how = "inner")
+   alt_wide = annot_wide.join(alt_wide_labels, how = "inner")
    print alt_wide
    #print alt_wide
 
@@ -64,10 +69,11 @@ def make_wide(identified_elution, orthology_file):
 parser = argparse.ArgumentParser(description='Short sample app')
 
 parser.add_argument('identified_elution', action="store", type=str)
-parser.add_argument('orthology_file', action="store", type=str)
+parser.add_argument('grouping_file', action="store", type=str)
+parser.add_argument('annotation_file', action="store", type=str)
 inputs = parser.parse_args()
 
-make_wide(inputs.identified_elution, inputs.orthology_file)
+make_wide(inputs.identified_elution, inputs.grouping_file, inputs.annotation_file)
 
 
 

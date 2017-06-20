@@ -47,7 +47,7 @@ def main():
 
     d = dict()
     d['clustid'] = []
-    d['GroupID'] = []
+    d['ID'] = []
     d['clustid_key'] = []
     #d['acc'] = []
     #d['genename'] = []
@@ -59,7 +59,7 @@ def main():
             clust_id_key = "%s_%s" % (clustid, group_id)
 
             d['clustid'].append(clustid)
-            d['GroupID'].append(str(group_id))
+            d['ID'].append(str(group_id))
             d['clustid_key'].append(clust_id_key)
 #            try:
 #                d['acc'].append(inputID2ACC_map[prot_id][0])
@@ -78,21 +78,21 @@ def main():
     df = pd.DataFrame(d)
     ortho=pd.read_csv(args.orthology_filename, index_col=False, sep="\t")
 
-    ortho= ortho[['GroupID', 'ProteinID', 'Annotation']]
-    all_prots = ortho.groupby(['GroupID',  'Annotation'])['ProteinID'].apply(lambda x: ' '.join(x)).reset_index()
-    all_prots.columns= ['GroupID', 'Eggnog_annotation', 'AllMembers']
+    ortho= ortho[['ID', 'ProteinID', 'Annotation']]
+    all_prots = ortho.groupby(['ID',  'Annotation'])['ProteinID'].apply(lambda x: ' '.join(x)).reset_index()
+    all_prots.columns= ['ID', 'Eggnog_annotation', 'AllMembers']
 
 
     #print all_prots
-    one_prot =  ortho.groupby(['GroupID',  'Annotation']).head(1)
-    one_prot = one_prot[['GroupID', 'ProteinID']]
+    one_prot =  ortho.groupby(['ID',  'Annotation']).head(1)
+    one_prot = one_prot[['ID', 'ProteinID']]
 
 
 
-    all_prots = all_prots.set_index(["GroupID"])
+    all_prots = all_prots.set_index(["ID"])
 
 
-    one_prot = one_prot.set_index(["GroupID"])
+    one_prot = one_prot.set_index(["ID"])
 
     #print all_prots
     #print one_prot
@@ -108,8 +108,8 @@ def main():
     print final_annot
     final_annot = final_annot[['AllMembers', 1]]
     final_annot.columns= ['AllMembers', 'Entry']
-#    final_annot = final_annot.set_index(["GroupID"])
-    df = df.set_index(["GroupID"])
+#    final_annot = final_annot.set_index(["ID"])
+    df = df.set_index(["ID"])
   #  print final_annot
   #  print df
 
@@ -118,7 +118,7 @@ def main():
     egg=pd.read_csv(args.egg_filename, index_col=False, sep=",")
  
 
-    egg = egg.set_index(["GroupID"])
+    egg = egg.set_index(["ID"])
 
     annot2 = annot1.join(egg)
     annot2 = annot2.reset_index()
@@ -133,12 +133,12 @@ def main():
 
     print annot3
     #annot2.reset_index()
-#    egg= egg[['GroupID', 'AllMembers']]
+#    egg= egg[['ID', 'AllMembers']]
 #
-#    egg = egg.set_index(['GroupID'])
+#    egg = egg.set_index(['ID'])
 #
 #    prof = pd.read_csv(profile, index_col=False, sep=",")
-#    prof = prof.set_index(['GroupID'])
+#    prof = prof.set_index(['ID'])
 #
 #    annotated = egg.join(prof, how="right")
 #    print annotated
