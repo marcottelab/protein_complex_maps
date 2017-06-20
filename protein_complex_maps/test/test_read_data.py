@@ -120,9 +120,13 @@ class ReadDataTest(unittest.TestCase):
 		assert(mapped_ids["Q15024"] == 9)
                 #kdrew: same genes but now taking the first in the last rather than last so the primary ids are changed
 		#assert(mapped_ids["G3V380"] == 11)
-		assert(mapped_ids["G3V2E8"] == 11)
+		#assert(mapped_ids["G3V2E8"] == 11)
+                #kdrew: updated 2017-06-15 to reviewed id
+		assert(mapped_ids["P12814"] == 11)
 		#assert(mapped_ids["J3QRR3"] == 6)       
-		assert(mapped_ids["J3KRP2"] == 6)       
+		#assert(mapped_ids["J3KRP2"] == 6)       
+                #kdrew: updated 2017-06-15 to reviewed id
+		assert(mapped_ids["P62195"] == 6)       
 		assert(mapped_ids["ENSG00000072110"] == 11)
 
 		frac_map = msds.get_fraction_dict()
