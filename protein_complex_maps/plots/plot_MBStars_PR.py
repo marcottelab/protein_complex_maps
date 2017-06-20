@@ -78,7 +78,7 @@ def main():
 
 
     interaction_list = []
-    mb_interaction_list = []
+    #mb_interaction_list = []
     correlation_list = []
     nd_list = []
     mb_list = []
@@ -140,6 +140,8 @@ def main():
         print "unrecognized corr_format: %s" % args.corr_format
         return -1
 
+
+    pairs_set = set()
     #kdrew: for every pdb
     for pdbid in pdb_list:
         print "for pdbid in pdb_list: %s"  % pdbid
@@ -214,12 +216,24 @@ def main():
         print "##############"
         #for acc1, acc2 in it.combinations(pdb_mb_matrix_id_list,2):
         for acc1, acc2 in it.combinations(set(pdb_mb_matrix_id_list),2):
+            #kdrew: keep track of pairs to make sure there is not overlap across pdbs
+            if frozenset([acc1, acc2]) in pairs_set:
+                print "Overlap detected in pdbid: %s, ignoring redundant pair: (%s, %s)" % (pdbid, acc1, acc2)
+                continue
+            else:
+                pairs_set.add(frozenset([acc1,acc2]))
+
             surface_area = pisaInt.surface_area_by_acc(acc1, acc2, base_species=args.base_species)
             print "acc1: %s acc2: %s sarea: %s" % (acc1, acc2, surface_area)
+
+            #kdrew: set variable for output
+            is_interaction = None
             if surface_area != None:
                 interaction_list.append(1)
+                is_interaction = 1
             else:
                 interaction_list.append(0)
+                is_interaction = 0
 
             if nd_matrix_filename != None:
                 nd_list.append( nd_mat[matrix_id_list.index(acc1), matrix_id_list.index(acc2)])
@@ -231,17 +245,6 @@ def main():
 
             if biogrid_ids_filename != None:
                 biogrid_list.append( biogrid_mat[biogrid_id_list.index(acc1), biogrid_id_list.index(acc2)])
-
-        #for acc1, acc2 in it.combinations(pdb_mb_matrix_id_list,2):
-        #    surface_area = pisaInt.surface_area_by_acc(acc1, acc2, base_species=args.base_species)
-
-            is_interaction = None
-            if surface_area != None:
-                mb_interaction_list.append(1)
-                is_interaction = 1
-            else:
-                mb_interaction_list.append(0)
-                is_interaction = 0
 
             if mb_matrix_filename != None and nd_matrix_filename != None:
                 mb_list.append( mb_mat[mb_matrix_id_dict[acc1], mb_matrix_id_dict[acc2]])
@@ -270,9 +273,10 @@ def main():
         plt.plot(recall, precision, 'blue')
 
     if mb_matrix_filename != None:
-        print mb_interaction_list
+        print interaction_list
         print mb_list
-        precision, recall, thresholds = precision_recall_curve(mb_interaction_list, mb_list)
+        #precision, recall, thresholds = precision_recall_curve(mb_interaction_list, mb_list)
+        precision, recall, thresholds = precision_recall_curve(interaction_list, mb_list)
         area = auc(recall, precision)
         print "MB stars PR Area Under Curve: %0.2f" % area
         plt.plot(recall, precision, 'black')
