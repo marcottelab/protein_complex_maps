@@ -431,14 +431,16 @@ def cluster_helper(parameter_dict):
     fraction = parameter_dict['fraction']
     threshold_score = parameter_dict['threshold_score']
     i = parameter_dict['i']
-    clixo_alpha = parameter_dict['clixo_alpha']
-    clixo_beta = parameter_dict['clixo_beta']
-    inflation = parameter_dict['inflation']
-    cliquesize = parameter_dict['cliquesize']
-    timeout = parameter_dict['timeout']
+    #kdrew: added some defaults, might want to think harder about the others
+    clixo_alpha = parameter_dict.get('clixo_alpha',None)
+    clixo_beta = parameter_dict.get('clixo_beta',None)
+    inflation = parameter_dict.get('inflation',None)
+    cliquesize = parameter_dict.get('cliquesize',None)
+    timeout = parameter_dict.get('timeout',None)
+    trim2threshold = parameter_dict.get('trim2threshold',False)
+    nodelete = parameter_dict.get('nodelete',False)
+
     twostep_combination = parameter_dict['twostep_combination']
-    trim2threshold = parameter_dict['trim2threshold']
-    nodelete = parameter_dict['nodelete']
 
     #kdrew: make temp directory if does not exist
     if not os.path.exists(args.temp_dir) and args.temp_dir != None:
