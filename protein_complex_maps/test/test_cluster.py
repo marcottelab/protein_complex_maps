@@ -3,6 +3,7 @@
 # Unit tests for new clustering analysis functionality
 
 import unittest
+import MySQLdb
 import protein_complex_maps.read_data as rd
 import protein_complex_maps.hierarchical_clustering as hc
 import protein_complex_maps.physical_interaction_clustering as pc
@@ -83,7 +84,11 @@ class ClusterTest(unittest.TestCase):
  		acc_mapping = self.msds.get_mapping("ACC_list")
 		print acc_mapping
 		print len(acc_mapping)
-		pc.interactions_over_random( acc_mapping, Y ) 
+                try:
+                    pc.interactions_over_random( acc_mapping, Y ) 
+                except MySQLdb.OperationalError as e:
+                    print "Is database set up?"
+                    print e
 
 
 if __name__ == "__main__":
