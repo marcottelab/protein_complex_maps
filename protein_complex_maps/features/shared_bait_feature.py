@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import scipy.stats as stats
 import scipy.misc as misc
+import scipy
 import math
 import logging 
 from rpy2.robjects.packages import importr
@@ -16,17 +17,47 @@ pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
-def pval(k,n,m,N, adhoc=False):
+def pval(k,n,m,N, adhoc=False, denm=False, logchoose=False):
     #logger.info("%s %s %s %s" % (k,n,m,N))
     pv = 0.0
     for i in range(k,int(min(m,n)+1)):
         #kdrew: use adhoc choose method instead of scipy.misc.comb
         if adhoc:
             pi = ( choose(n,i) * choose((N-n), (m-i)) ) / choose(N,m)
+        elif denm:
+            pi = ( misc.comb(n,i) * misc.comb((N-n), (m-i)) ) / m
+        elif logchoose:
+            r1 = logchoose_func(n, i)
+            try:
+                r2 = logchoose_func(N-n, m-i)
+            except ValueError:
+                return 0
+            r3 = logchoose_func(N,m)
+
+            pi = scipy.exp(r1 + r2 - r3)
         else:
             pi = ( misc.comb(n,i) * misc.comb((N-n), (m-i)) ) / misc.comb(N,m)
         pv += pi
     return pv
+
+def logchoose_func(n,k):
+    """
+    #kdrew: similar to this code 
+    https://gist.github.com/JudoWill/1051335
+    """
+    if 0 <= k <= n:
+        try:
+            lgn1 = math.lgamma(n+1)
+            lgk1 = math.lgamma(k+1)
+            lgnk1 = math.lgamma(n-k+1)
+        except ValueError:
+            #print ni,ki
+            raise ValueError
+
+        return lgn1 - (lgnk1 + lgk1)
+
+    else:
+        return 0
 
 #kdrew: from http://stackoverflow.com/questions/33468821/is-scipy-misc-comb-faster-than-an-ad-hoc-binomial-computation
 def choose(n, k):
@@ -75,6 +106,10 @@ def main():
                                     help="Name of column that specify bait ids in feature matrix, default=bait_geneid")
     parser.add_argument("--bh_correct", action="store_true", dest="bh_correct", required=False, default=False,
                                     help="Benjamini-Hochberg correct pvals")
+    parser.add_argument("--denm", action="store_true", dest="denm", required=False, default=False,
+                                    help="Replace denominator of hypergeometric calculation with m-value instead of N choose m, pvalues are nonsense with this option, default=False")
+    parser.add_argument("--logchoose", action="store_true", dest="logchoose", required=False, default=False,
+                                    help="Use logs to deal with large values when calculating choose, default=False")
     parser.add_argument("--logname", action="store", dest="logname", required=False, default='shared_bait_feature.log',
                                     help="filename for logging, default=shared_bait_feature.log")
     args = parser.parse_args()
@@ -82,10 +117,10 @@ def main():
     setup_log(args.logname)
 
     feature_table = pd.DataFrame(pd.read_csv(args.feature_matrix, sep=args.sep))
-    output_df = shared_bait_feature(feature_table, args.bait_id_column, args.id_column, args.bh_correct)
+    output_df = shared_bait_feature(feature_table, args.bait_id_column, args.id_column, args.bh_correct, args.denm, args.logchoose)
     output_df.to_csv(args.output_file, index=False, header=False)
 
-def shared_bait_feature(feature_table, bait_id_column, id_column, bh_correct=False):
+def shared_bait_feature(feature_table, bait_id_column, id_column, bh_correct=False, denm=False, logchoose=False):
     print(feature_table)
     print(feature_table.columns.values)
     #kdrew: best to enforce ids as strings
@@ -102,6 +137,7 @@ def shared_bait_feature(feature_table, bait_id_column, id_column, bh_correct=Fal
     #feature_shared_bait_table = feature_table.merge(feature_table, on='bait_id_column_str')
 
     logger.info(feature_shared_bait_table)
+    #print(feature_shared_bait_table)
 
     feature_shared_bait_table = feature_shared_bait_table.reset_index()
 
@@ -153,6 +189,7 @@ def shared_bait_feature(feature_table, bait_id_column, id_column, bh_correct=Fal
     output_dict['pval'] = []
 
     logger.info(ks)
+    #print(ks)
     for gene_ids_str in ks.index:
         #print(gene_ids_str)
         #gene_ids_clean = gene_ids_str.translate(None, "[\'],")
@@ -162,6 +199,7 @@ def shared_bait_feature(feature_table, bait_id_column, id_column, bh_correct=Fal
         #print(gene_ids)
         if len(gene_ids) == 2:
             logger.info(gene_ids) #cdm print out pairs of gene IDs
+            #print(gene_ids) #cdm print out pairs of gene IDs
             k = ks[gene_ids_str]
             m = ms[gene_ids[0]]
             n = ms[gene_ids[1]]
@@ -173,7 +211,7 @@ def shared_bait_feature(feature_table, bait_id_column, id_column, bh_correct=Fal
             #print n
             #p = stats.hypergeom.cdf(k, N, m, n)
             try:
-               p = pval(k,n,m,N)
+               p = pval(k,n,m,N, denm=denm, logchoose=logchoose)
                neg_ln_p = -1.0*math.log(p)
                #print("%s k:%s n:%s m:%s -ln(p):%s" % (gene_ids, k, m, n, neg_ln_p))
 
@@ -184,6 +222,7 @@ def shared_bait_feature(feature_table, bait_id_column, id_column, bh_correct=Fal
                output_dict['pval'].append(p)
             except Exception as e:
                  logger.info(str(e))
+                 #print(str(e))
                  continue
              
  
@@ -194,7 +233,8 @@ def shared_bait_feature(feature_table, bait_id_column, id_column, bh_correct=Fal
         output_dict['pval_corr'] = p_adjust
         output_dict['neg_ln_pval_corr'] = [-1.0*math.log(p) for p in p_adjust]
 
-    output_df= output_df[['gene_id1','gene_id2','neg_ln_pval']]
+    #kdrew: not sure why this is here, CDM?
+    #output_df= output_df[['gene_id1','gene_id2','neg_ln_pval']]
     
     output_df = pd.DataFrame(output_dict)
     return output_df
