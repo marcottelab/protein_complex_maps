@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 
+import numpy as np
 import pandas as pd
 import itertools as it
 
@@ -9,9 +10,9 @@ from utils import features, resampling
 class Elut():
 
     '''
-    Class to hold an elution profile experiment
+    Class to read and inspect a fractionaton masss-spec experiment
     
-    Infile must be wide format and the first column, which holds the protein/OG names, should be titled "ID"
+    Infile must be wide format with the first column holding protein or orthogroup ids.
     '''
     
     def __init__(self,data=None):
@@ -20,33 +21,53 @@ class Elut():
         # self._df = pd.DataFrame.__init__(self,data)
         
         self.df = None
+        self.info = {}
         if not data is None:
             self.df = data
+            self._check_dtypes()
+            self._get_info()
+            
+        self.is_normalized = False
             
         ### Write attributes to hold data that can be shown with self.description. Also generate
         ### values for pseudocounts that go into poisson noise and kullback-leibler and jensen-shannon
         ### features
+        
+    def _check_dtypes(self):
+        '''Make sure loaded DataFrame is only floats'''
+        try:
+            dtype_set = set(self.df.dtypes)
+            assert len(dtype_set) == 1
+            assert dtype_set.pop() is np.dtype("float")
+        except AssertionError:
+            raise Exception("Multiple datatypes or non-float datatypes found in input DataFrame")
     
     def load(self,infile,format='csv'):
         '''Read in data as pandas dataframe in wide format'''
         if not self.df is None:
             raise Exception("data already loaded")
         if format == 'csv':
-            self.df = pd.read_csv(infile) # don't make ID column index...for now
+            self.df = pd.read_csv(infile,index_col=0) # don't make ID column index...for now
         elif format == 'csv':
-            self.df = pd.read_table(infile)
+            self.df = pd.read_table(infile,index_col=0)
         else:
             raise Exception("<format> must be either 'csv' or 'tsv'")
-        assert self.df.columns[0] == "ID", "First column must be labeled 'ID'"
+        self._check_dtypes()
+        self._get_info()
+        
+    def load_many(self,file_list):
+        '''Load a list of files and join together (by row) into a combined dataframe'''
+        pass
             
     def normalize(self,by='row'):
         '''Normalize the loaded dataframe by row or by column sums'''
         self._prenormed_df = self.df # save df in hidden var before normalizing
         if by == 'row':
-            self.df = df.div(df.sum(axis=1), axis=0)
+            self.df = self.df.div(self.df.sum(axis=1), axis=0)
         elif by == 'column':
-            self.df = df/df.sum()
-        else: raise Exception("<by> must be either 'row' or 'column'")
+            self.df = self.df/self.df.sum()
+        else: raise Exception("must specify either 'row' or 'column'")
+        self.is_normalized = True
         
     def make_tidy(self,just_return=False):
         '''Use pandas melt to reshape dataframe into tidy format, with columns "ID, "FractionID," "Total_SpecCounts".
@@ -62,13 +83,19 @@ class Elut():
         self.df = self._wide_df
         self._wide_df = None
         
-    def description(self):
+    def _get_info(self):
         '''Output simple info on the stored elution profiles'''
-        # n fractions
-        # sum psms, per row, total etc.
-        # n proteins
-        # something about n << p problems?
-        pass
+        if self.df is None:
+            print "No loaded data"
+            return
+        
+        row_sums = self.df.sum(axis=1)
+        self.info["n_PSMs"] = row_sums.sum()
+        self.info["PSMs_per_row_stats"] = row_sums.describe()[1:].to_dict()
+        self.info["n_proteins"] = len(self.df)
+        self.info["n_fractions"] = len(self.df.columns)
+        
+
         
             
 class ElutFeatures(Elut,features.FeatureFunctions,resampling.FeatureResampling):
@@ -82,11 +109,10 @@ class ElutFeatures(Elut,features.FeatureFunctions,resampling.FeatureResampling):
     def __init__(self,data=None):
         Elut.__init__(self,data)
         
-        self.features_extracted = 0
+        self.features_extracted = []
         self.resampling_done = None
         
         self.available_features = ["pearsonR",
-                        "pearsonR_weighted"
                         "spearmanR",
                         "spearmanR_weighted",
                         "jensen_shannon",
@@ -96,76 +122,52 @@ class ElutFeatures(Elut,features.FeatureFunctions,resampling.FeatureResampling):
                         
         self.resampling_strategies = ["poisson_noise",
                                     "bootstrap"]
-      
-    
-    def _feature_gen(self,df,feature_string):
-        '''Return a generator of (prot1,prot2,feature)'''
-        if not df.index.name == "ID": df.set_index("ID",inplace=True)
-        
-        # Kinda the main part
-        func = getattr(self,feature_string) # Lookup function in self. All are imported from features
-                                            # but hidden from users: they will be e.g. _euclidean.
-                                            # So to add new features, write a function in features.py
-                                            # called _my_feature or assign it to an instance of this class
-                                            # but make sure it starts with an underscore (a little weird maybe?)
-        
-        # Now loop over all combinations of rows in the loaded data and calculate the metric
-        count = 0
-        for i,j in it.combinations(df.index.values,2):
-            p,q = df.iloc[i].values, df.iloc[j].values # convert to arrays
-            yield i,j,func(p,q)
-            count += 1
-            if count % 100 == 0: print count
             
-    def _to_df(self,df,feature_string):
-        '''Collect output of _feature_gen to a pandas DataFrame in tidy format: cols=("ID1","ID2","my_feature")'''
-        rows = [row for row in self._feature_gen(df,feature_string)]
-        return pd.DataFrame(rows, columns = ["ID1","ID2",feature_string)
+    def _to_df(self,df,feature_matrix,feature_string):
+        '''Turn the 1d output of pdist into a tidy DataFrame'''
+        square_df = pd.DataFrame( feature_matrix, columns=df.index.values, index=df.index )
+        tidy_df = square_df.unstack().reset_index()
+        tidy_df.columns = ["ID1", "ID2", feature_string]
+        return tidy_df
     
-    def _average_resamples(self,df,feature,resample_string,iterations):
+    def _average_resamples(self,df,feature_function,resample_function,iterations):
         '''Average N resamples'''
-        
-        # Do i want to have these getattr calls all in extract features? maybe...
-        resample_fun = getattr(self, resample_string) # Lookup resampling strategy in self
-        
-        
-        resample_gen = ()
-        return sum( self._to_df()
+        ## work on 1d pdist output
+        return ( sum( feature_function( resample_function(df,rep=i) ) for i in range(iterations) ) / iterations )
         
     def extract_features(self,feature,resampling=None,iterations=None):
         '''Return a DataFrame of features'''
+        
+        # Assign the function to extract features
         feat = "_" + feature # because I'm hiding actual feature functions
         assert hasattr(self,feat), "{} not in available features:\n{}".format(feature,self.available_features)
+        feat_func = getattr(self,feat) # lookup the relvant function
         
+        # Assign and execute normalization function
+        
+        if feature in ["jensen_shannon","kullback_leibler"]:
+            if self.is_normalized:
+                raise Warning('''Don't normalize by rows before extracting Kullback-Leibler or 
+                Jensen-Shannon features. It will be done again.''')
+            print "Adding pseudocounts and normalizing for JS or KL divergence"
+            self.df = self.df + 1
+            self.normalize(by='row')
+        
+        # Assign resampling function and return averaged DataFrame
         if resampling:
+            
+            assert iterations > 1, "if resampling, must specify more than 1 iteration"
             respl = "_" + resampling
             assert hasattr(self,respl), "{} not in available resampling strategies:\n{}".format(feature,self.resampling_strategies)
-            assert iterations > 1, "if resampling, must specify more than 1 iteration"
+            respl_func = getattr(self,respl)
             
-            return self._average_resamples(feat,respl,iterations)
+            feature_matrix = self._average_resamples(self.df,feat_func,respl_func,iterations)
+            self.features_extracted.append((feature,resampling,str(iterations)))
+            return self._to_df(self.df,feature_matrix,feature)
         
-        else:
-            self.features_extracted = [feature]
-            return self._to_df(self.df, feat)
+        # If no resampling execute feature function and return DataFrame
+        feature_matrix = feat_func(self.df)
+        self.features_extracted.append(feature) # keep track of features extracted
+        return self._to_df(self.df,feature_matrix,feature)
         
-        
-        
-    #def _assign_tasks(self,features=["pearsonr"],resampling=None,iterations=None,norm=None):
-    #    '''For building functions with multiple combinations of features and resampling protocols.'''
-    #    
-    #    ## Make sure input isn't f-ed up ##
-    #    assert type(features) == list and len(features) > 0, "Must define at least one feature type: \n{}".format(self.available_features)
-    #    for f in features:
-    #        assert f in self.available_features, "{} not in avaiable features:\n{}".format(f,self.available_features)
-    #    if resampling:
-    #        assert type(resampling) == list, "Supply resampling strategies as a list"
-    #        assert iterations != None, "Must specify number of iterations for resampling"
-    #        for r in resampling:
-    #            assert r in self.resampling_strategies, "{} not in available resampling strategies:\n{}".format(r,self.resampling_strategies)
-    #            
-    #        # Do something like this
-    #        for feat,respl in it.product(features,resampling):
-    #            self.tasks = {}
-    #            self.tasks[(feat,respl): self.feature_generator(feat,respl)]
-                
          
