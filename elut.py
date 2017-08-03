@@ -106,22 +106,24 @@ class ElutFeatures(Elut,features.FeatureFunctions,resampling.FeatureResampling):
     ### Notes:
     ###     - Would be nice to add some meta data on bounds etc. for the features
     
+    available_features = ["pearsonR",
+                "spearmanR",
+                "spearmanR_weighted",
+                "jensen_shannon",
+                "kullback_leibler",
+                "euclidean",
+                "covariance"]
+                
+    resampling_strategies = ["poisson_noise",
+                            "bootstrap"]
+    
     def __init__(self,data=None):
         Elut.__init__(self,data)
         
         self.features_extracted = []
         self.resampling_done = None
-        
-        self.available_features = ["pearsonR",
-                        "spearmanR",
-                        "spearmanR_weighted",
-                        "jensen_shannon",
-                        "kullback_leibler",
-                        "euclidean",
-                        "covariance"]
                         
-        self.resampling_strategies = ["poisson_noise",
-                                    "bootstrap"]
+
             
     def _to_df(self,df,feature_matrix,feature_string):
         '''Turn the 1d output of pdist into a tidy DataFrame'''
@@ -140,10 +142,11 @@ class ElutFeatures(Elut,features.FeatureFunctions,resampling.FeatureResampling):
         
         # Assign the function to extract features
         feat = "_" + feature # because I'm hiding actual feature functions
-        assert hasattr(self,feat), "{} not in available features:\n{}".format(feature,self.available_features)
+        assert hasattr(self,feat), "{} not in available features:\n{}".format(feature,available_features)
         feat_func = getattr(self,feat) # lookup the relvant function
         
-        # Assign and execute normalization function
+        # Assign and execute normalization functions
+        ## Currently in a hacky state ##
         
         if feature in ["jensen_shannon","kullback_leibler"]:
             if self.is_normalized:
@@ -152,13 +155,16 @@ class ElutFeatures(Elut,features.FeatureFunctions,resampling.FeatureResampling):
             print "Adding pseudocounts and normalizing for JS or KL divergence"
             self.df = self.df + 1
             self.normalize(by='row')
+            
+        if resampling == "poisson_noise": # this is how Traver's function does it, for some reason
+            self.df = self.df + (1/len(self.df))
         
         # Assign resampling function and return averaged DataFrame
         if resampling:
             
             assert iterations > 1, "if resampling, must specify more than 1 iteration"
             respl = "_" + resampling
-            assert hasattr(self,respl), "{} not in available resampling strategies:\n{}".format(feature,self.resampling_strategies)
+            assert hasattr(self,respl), "{} not in available resampling strategies:\n{}".format(feature,resampling_strategies)
             respl_func = getattr(self,respl)
             
             feature_matrix = self._average_resamples(self.df,feat_func,respl_func,iterations)
