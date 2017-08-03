@@ -5,8 +5,8 @@ import math
 
 def js_pairs(P,Q,distance=False):
     '''Compute Jensen-Shannon distance metric for two frequency vectors. No zeros allowed!'''
-    kl_distance = lambda x,y: np.sum(P * np.log2(P/Q)) # this was fastest, beating a map/zip approach and scipy.entropy
-    A = np.mean([P,Q],axis=0) # Calculate a mean of the two vectors
+    kl_distance = lambda x,y: np.sum(P * np.log10(P/Q)) # this was fastest, beating a map/zip approach and scipy.entropy
+    A = (P + Q) / 2 # Calculate a mean of the two vectors
     js_diverg = .5 * (kl_distance(P,A)) + .5 * (kl_distance(Q,A))
     if distance: # return the distance (a metric), the square root of the divergence
         return math.sqrt(js_diverg)
