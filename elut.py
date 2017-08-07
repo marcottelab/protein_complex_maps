@@ -28,6 +28,7 @@ class Elut():
             self._get_info()
             
         self.is_normalized = False
+        self.is_thresholded = False
             
         ### Write attributes to hold data that can be shown with self.description. Also generate
         ### values for pseudocounts that go into poisson noise and kullback-leibler and jensen-shannon
@@ -57,10 +58,12 @@ class Elut():
         
     def load_many(self,file_list):
         '''Load a list of files and join together (by row) into a combined dataframe'''
+        ## TBD
         pass
             
     def normalize(self,by='row'):
         '''Normalize the loaded dataframe by row or by column sums'''
+        assert not self.is_normalized, "DataFrame already normalized"
         self._prenormed_df = self.df # save df in hidden var before normalizing
         if by == 'row':
             self.df = self.df.div(self.df.sum(axis=1), axis=0)
@@ -68,6 +71,16 @@ class Elut():
             self.df = self.df/self.df.sum()
         else: raise Exception("must specify either 'row' or 'column'")
         self.is_normalized = True
+        
+    def threshold(self,thresh=5):
+        '''Drop rows with total PSMs < thresh'''
+        assert not self.is_thresholded, "DataFrame already thresholded"
+        self.df["sum"] = self.row_sums
+        len_before = len(self.df)
+        self.df = self.df[ self.df["sum"] >= thresh ]
+        self.df.drop("sum",axis=1,inplace=True)
+        print "Dropped {} rows".format(len_before - len(self.df))
+        self.is_thresholded = True
         
     def make_tidy(self,just_return=False):
         '''Use pandas melt to reshape dataframe into tidy format, with columns "ID, "FractionID," "Total_SpecCounts".
@@ -89,9 +102,9 @@ class Elut():
             print "No loaded data"
             return
         
-        row_sums = self.df.sum(axis=1)
-        self.info["n_PSMs"] = row_sums.sum()
-        self.info["PSMs_per_row_stats"] = row_sums.describe()[1:].to_dict()
+        self.row_sums = self.df.sum(axis=1)
+        self.info["n_PSMs"] = self.row_sums.sum()
+        self.info["PSMs_per_row_stats"] = self.row_sums.describe()[1:].to_dict()
         self.info["n_proteins"] = len(self.df)
         self.info["n_fractions"] = len(self.df.columns)
         
@@ -137,7 +150,7 @@ class ElutFeatures(Elut,features.FeatureFunctions,resampling.FeatureResampling):
         ## work on 1d pdist output
         return ( sum( feature_function( resample_function(df,rep=i) ) for i in range(iterations) ) / iterations )
         
-    def extract_features(self,feature,resampling=None,iterations=None):
+    def extract_features(self,feature,resampling=None,iterations=None,threshold=None):
         '''Return a DataFrame of features'''
         
         # Assign the function to extract features
@@ -148,6 +161,9 @@ class ElutFeatures(Elut,features.FeatureFunctions,resampling.FeatureResampling):
         # Assign and execute normalization functions
         ## Currently in a hacky state ##
         
+        if threshold:
+            self.threshold(threshold)
+        
         if feature in ["jensen_shannon","kullback_leibler"]:
             if self.is_normalized:
                 raise Warning('''Don't normalize by rows before extracting Kullback-Leibler or 
@@ -156,6 +172,7 @@ class ElutFeatures(Elut,features.FeatureFunctions,resampling.FeatureResampling):
             self.df = self.df + 1
             self.normalize(by='row')
             
+        ## Don't like this part, because it could add pseudocounts twice if jensen-shannon + poisson
         if resampling == "poisson_noise": # this is how Traver's function does it, for some reason
             self.df = self.df + (1/len(self.df))
         
@@ -175,5 +192,3 @@ class ElutFeatures(Elut,features.FeatureFunctions,resampling.FeatureResampling):
         feature_matrix = feat_func(self.df)
         self.features_extracted.append(feature) # keep track of features extracted
         return self._to_df(self.df,feature_matrix,feature)
-        
-         
