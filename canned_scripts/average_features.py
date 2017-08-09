@@ -32,7 +32,7 @@ if __name__ == '__main__':
     if args.retain_columns == False:
         drop_cols = [col for col in merged.columns if "file" in col]
         merged.drop(drop_cols,axis=1,inplace=True)
-    merged.to_csv(args.outfile)
+    merged.to_csv(args.outfile,index=False)
 
     if args.log:
         with open("average_features.log",'w') as out:
