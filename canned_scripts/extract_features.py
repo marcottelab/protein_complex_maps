@@ -17,4 +17,8 @@ if __name__ == '__main__':
     elution = ef()
     elution.load(args.infile)
     feature_matrix = elution.extract_features(feature=args.feature,resampling=args.resampling,iterations=args.iterations,threshold=args.threshold)
-    feature_matrix.to_csv(outfile,index=False)
+    
+    if feature_matrix is not None: # could be None if nothing left after thresholding, should do something else here though
+        outfile = "_".join( [args.infile.split(".")[0], elution.analyses[ elution.analysis_count - 1 ]] ) + ".feat"
+    
+        feature_matrix.to_csv(outfile,index=False)
