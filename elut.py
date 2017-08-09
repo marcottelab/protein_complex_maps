@@ -133,9 +133,8 @@ class ElutFeatures(Elut,features.FeatureFunctions,resampling.FeatureResampling):
     def __init__(self,data=None):
         Elut.__init__(self,data)
         
-        self.features_extracted = []
-        self.resampling_done = None
-                        
+        self.analysis_count = 0
+        self.analyses = []
 
             
     def _to_df(self,df,feature_matrix,feature_string):
@@ -158,11 +157,19 @@ class ElutFeatures(Elut,features.FeatureFunctions,resampling.FeatureResampling):
         assert hasattr(self,feat), "{} not in available features:\n{}".format(feature,available_features)
         feat_func = getattr(self,feat) # lookup the relvant function
         
+        self._analysis = {"feature": feature} # initialize or reset dictionary to hold information on which analysis was done
+        
         # Assign and execute normalization functions
         ## Currently in a hacky state ##
         
         if threshold:
             self.threshold(threshold)
+            try:
+                assert len(self.df) > 0
+            except AssertionError:
+                raise Warning("No rows left after thresholding")
+                return None
+            self._analysis["threshold"] = "thresh"+str(threshold)
         
         if feature in ["jensen_shannon","kullback_leibler"]:
             if self.is_normalized:
@@ -185,10 +192,19 @@ class ElutFeatures(Elut,features.FeatureFunctions,resampling.FeatureResampling):
             respl_func = getattr(self,respl)
             
             feature_matrix = self._average_resamples(self.df,feat_func,respl_func,iterations)
-            self.features_extracted.append((feature,resampling,str(iterations)))
-            return self._to_df(self.df,feature_matrix,feature)
+            
+            self._analysis["resampling"] = resampling
+            self._analysis["reps"] = str(iterations)+"reps"
         
-        # If no resampling execute feature function and return DataFrame
-        feature_matrix = feat_func(self.df)
-        self.features_extracted.append(feature) # keep track of features extracted
+        else:# If no resampling execute feature function and return DataFrame
+            feature_matrix = feat_func(self.df)
+        
+        # Store information on what analysis was done
+        a_list = []
+        for a in ["feature", "resampling", "reps", "threshold"]:
+            if a in self._analysis: 
+                a_list.append(self._analysis[a])
+        self.analyses.append( "_".join(a_list) )
+        self.analysis_count += 1
+        
         return self._to_df(self.df,feature_matrix,feature)
