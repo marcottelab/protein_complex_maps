@@ -16,5 +16,5 @@ if __name__ == '__main__':
     outfile = "_".join([args.infile.split(".")[0], args.feature, args.resampling, str(args.iterations)+"reps", "thresh"+str(args.threshold)]) + ".feat"
     elution = ef()
     elution.load(args.infile)
-    feature_matrix = elution.extract_features(feature=args.feature,resampling=args.resampling,iterations=args.iterations)
+    feature_matrix = elution.extract_features(feature=args.feature,resampling=args.resampling,iterations=args.iterations,threshold=args.threshold)
     feature_matrix.to_csv(outfile,index=False)
