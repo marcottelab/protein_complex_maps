@@ -12,8 +12,6 @@ parser.add_argument("-t", "--threshold", default=None, type=int)
 args = parser.parse_args()
 
 if __name__ == '__main__':
-    ## This won't work if threshold or iterations are None. Fix
-    outfile = "_".join([args.infile.split(".")[0], args.feature, args.resampling, str(args.iterations)+"reps", "thresh"+str(args.threshold)]) + ".feat"
     elution = ef()
     elution.load(args.infile)
     feature_matrix = elution.extract_features(feature=args.feature,resampling=args.resampling,iterations=args.iterations,threshold=args.threshold)
