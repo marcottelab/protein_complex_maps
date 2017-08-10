@@ -42,21 +42,33 @@ def main():
         prots = edge.get_proteins()
 
         #kdrew: determine evidence type
-        evidence_codes = []
+        evidence_codes = set()
         evidence_list = [ev.evidence_type for ev in edge.evidences]
-        if len(set(["bioplex","bioplex_prey","hein_prey","hein"]).intersection(evidence_list)) > 0:
-            evidence_codes.append("Affinity Capture-MS")
+        #if len(set(["bioplex","bioplex_prey","hein_prey","hein"]).intersection(evidence_list)) > 0:
+        #    evidence_codes.add("Affinity Capture-MS")
+        #kdrew: evidence codes for bioplex and hein have the bait included so need to check substring
+        if any("bioplex (" in evidence for evidence in evidence_list):
+            evidence_codes.add("Affinity Capture-MS")
+        if any("hein (" in evidence for evidence in evidence_list):
+            evidence_codes.add("Affinity Capture-MS")
+
+        if "bioplex_prey" in evidence_list:
+            evidence_codes.add("Affinity Capture-MS")
+        if "hein_prey" in evidence_list:
+            evidence_codes.add("Affinity Capture-MS")
         if "fraction" in evidence_list:
-            evidence_codes.append("Co-fractionation")
+            evidence_codes.add("Co-fractionation")
 
         edge_sum = 0
         PMID_set = set()
         edge_class = ""
-        if 'bioplex'in evidence_list:
+        #if 'bioplex' in evidence_list:
+        if any("bioplex (" in evidence for evidence in evidence_list):
             edge_sum+=1
             edge_class = 'BioPlex'
             PMID_set.add("26186194")
-        if 'hein' in evidence_list:
+        #if 'hein' in evidence_list:
+        if any("hein (" in evidence for evidence in evidence_list):
             edge_sum+=1
             if edge_sum > 1:
                 edge_class = 'Multiple_Evidences'
