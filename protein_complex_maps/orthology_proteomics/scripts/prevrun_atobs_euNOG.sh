@@ -1,1 +1,0 @@
-bash template_run_svm.sh atobs_euNOG ../correlation_elutions/features.txt ../correlation_elutions/atobs_pval_euNOG_feature_matrix.txt ../corum/nonredundant_allComplexesCore_mammals_euNOG_merged06.train_ppis.txt ../corum/nonredundant_allComplexesCore_mammals_euNOG_merged06.neg_train_ppis_12679.txt
