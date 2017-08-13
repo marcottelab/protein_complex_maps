@@ -140,7 +140,11 @@ class ElutFeatures(Elut,features.FeatureFunctions,resampling.FeatureResampling):
     def _to_df(self,df,feature_matrix,feature_string):
         '''Turn the 1d output of pdist into a tidy DataFrame'''
         square_df = pd.DataFrame( feature_matrix, columns=df.index.values, index=df.index )
-        tidy_df = square_df.unstack().reset_index()
+        square_df.sort_index(inplace=True)
+        square_df.sort_index(axis=1,inplace=True)
+        mask = np.triu( np.ones(square_df.shape) ).astype('bool')
+        off_diag = square_df.where(mask)
+        tidy_df = off_diag.stack().reset_index()
         tidy_df.columns = ["ID1", "ID2", feature_string]
         return tidy_df
     
