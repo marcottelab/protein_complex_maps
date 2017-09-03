@@ -10,6 +10,8 @@ def divide_file(input_df, n, seed, label="label"):
     df_neg = input_df.query("%s == -1" % label)
 
     #kdrew: shuffle positive and negative dataframe and get indices
+    print(seed)
+    print(df_pos)
     pos_rand_ids = df_pos.sample(frac=1, random_state=seed).index
     neg_rand_ids = df_neg.sample(frac=1, random_state=seed).index
 

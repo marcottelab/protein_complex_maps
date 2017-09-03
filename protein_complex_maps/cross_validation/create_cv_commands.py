@@ -14,6 +14,8 @@ def main():
                                     help="Filename of libsvm scale parameter file")
     parser.add_argument("--scripts_dir", action="store", dest="scripts_dir", required=False, default="~/scripts/protein_complex_maps/",
                                     help="Directory of protein_complex_maps scripts")
+    parser.add_argument("--libsvm_dir", action="store", dest="libsvm_dir", required=False, default="",
+                                    help="Directory of svm-scale svm-train and svm-predict")
     parser.add_argument("--c_values", action="store", dest="c_values", nargs='+', type=float, required=False, default=[0.00390625, 0.0078125, 2, 32, 128],
                                     help="List of C parameter values to evaluate, default = 0.00390625 0.0078125 2 32 128")
     parser.add_argument("--gamma_values", action="store", dest="gamma_values", nargs='+', type=float, required=False, default=[0.015625, 0.03125, 0.0625, 0.125, 0.5],
@@ -38,7 +40,7 @@ def main():
         print("Provide either space separated string of features using --features or a file of features 1 per line using --feature_file")
         return
     elif args.features_str:
-        feats = args.features
+        feats = args.features_str
         print(feats)
     elif args.feature_file:
         featfile = open(args.feature_file, "r")
@@ -63,11 +65,11 @@ def main():
         #kdrew: scale
         outfile.write("#create_cv_commands: scaling train and leaveout files\n")
         if args.scale_file == None:
-            outfile.write("svm-scale -s %s.scale_parameters %s.libsvm > %s_scale.libsvm\n" % (base_train_file, base_train_file, base_train_file))
-            outfile.write("svm-scale -r %s.scale_parameters %s.libsvm > %s_scale.libsvm\n" % (base_train_file, base_leaveout_file, base_leaveout_file))
+            outfile.write("%s/svm-scale -s %s.scale_parameters %s.libsvm > %s_scale.libsvm\n" % (args.libsvm_dir, base_train_file, base_train_file, base_train_file))
+            outfile.write("%s/svm-scale -r %s.scale_parameters %s.libsvm > %s_scale.libsvm\n" % (args.libsvm_dir, base_train_file, base_leaveout_file, base_leaveout_file))
         else:
-            outfile.write("svm-scale -r %s.scale_parameters %s.libsvm > %s_scale.libsvm\n" % (args.scale_file, base_train_file, base_train_file))
-            outfile.write("svm-scale -r %s.scale_parameters %s.libsvm > %s_scale.libsvm\n" % (args.scale_file, base_leaveout_file, base_leaveout_file))
+            outfile.write("%s/svm-scale -r %s.scale_parameters %s.libsvm > %s_scale.libsvm\n" % (args.libsvm_dir, args.scale_file, base_train_file, base_train_file))
+            outfile.write("%s/svm-scale -r %s.scale_parameters %s.libsvm > %s_scale.libsvm\n" % (args.libsvm_dir, args.scale_file, base_leaveout_file, base_leaveout_file))
 
         for cvalue in args.c_values:
             for gvalue in args.gamma_values:
@@ -80,9 +82,9 @@ def main():
                 parameter_outfile.write("#create_cv_commands: commands for C=%s and gamma=%s\n" % (cvalue, gvalue))
 
                 #kdrew: train
-                parameter_outfile.write("svm-train -b 1 -c %s -g %s %s_scale.libsvm %s.libsvm.scale.model_c%s_g%s\n" % (cvalue, gvalue, base_train_file, base_train_file, cvalue, gvalue))
+                parameter_outfile.write("%s/svm-train -b 1 -c %s -g %s %s_scale.libsvm %s.libsvm.scale.model_c%s_g%s\n" % (args.libsvm_dir, cvalue, gvalue, base_train_file, base_train_file, cvalue, gvalue))
                 #kdrew: predict
-                parameter_outfile.write("svm-predict -b 1 %s_scale.libsvm %s.libsvm.scale.model_c%s_g%s %s.libsvm.scale.c%s_g%s.resultsWprob\n" % (base_leaveout_file, base_train_file, cvalue, gvalue, base_leaveout_file, cvalue, gvalue))
+                parameter_outfile.write("%s/svm-predict -b 1 %s_scale.libsvm %s.libsvm.scale.model_c%s_g%s %s.libsvm.scale.c%s_g%s.resultsWprob\n" % (args.libsvm_dir,base_leaveout_file, base_train_file, cvalue, gvalue, base_leaveout_file, cvalue, gvalue))
                 #kdrew: pairwise fle
                 parameter_outfile.write("#create_cv_commands: reformat results into pairs\n")
                 parameter_outfile.write("python %s/protein_complex_maps/svm_utils/svm_results2pairs.py --input_feature_matrix %s --input_results %s.libsvm.scale.c%s_g%s.resultsWprob --output_file %s.libsvm.scale.c%s_g%s.resultsWprob_pairs_noself_nodups.txt --sep , --id_columns %s --label_not0 --add_prob\n" % (args.scripts_dir, leaveout_file, base_leaveout_file, cvalue, gvalue, base_leaveout_file, cvalue, gvalue, ' '.join(args.id_columns)))
