@@ -29,6 +29,9 @@ def main():
     parser.add_argument("--feature_file", action="store", dest="feature_file", required=False, 
                                     help="File containing one feature name per line")
  
+    parser.add_argument("--feature_identifier", action="store", dest="feature_id", required=False, default="sel", 
+                                    help="String to ID choice of features in output models and predictions")
+ 
     args = parser.parse_args()
 
     outfile = open(args.output_script_name,"wb")
@@ -55,12 +58,13 @@ def main():
         leaveout_file = args.leaveout_files[i]
 
         base_train_file = train_file.replace(".lfeatmat", "")
+        base_train_file = base_train_file + "." + args.feature_id
         base_leaveout_file = leaveout_file.replace(".lfeatmat", "")
-
+        base_leaveout_file = base_leaveout_file + "." +  args.feature_id
         #kdrew: convert to libsvm format
         outfile.write("#create_cv_commands: converting to libsvm format\n")
-        outfile.write("python %s/protein_complex_maps/svm_utils/feature2libsvm.py --input_feature_matrix %s --output_filename %s.libsvm --features %s --label_column label --sep ,\n" % (args.scripts_dir, train_file, base_train_file, ' '.join(feats)))
-        outfile.write("python %s/protein_complex_maps/svm_utils/feature2libsvm.py --input_feature_matrix %s --output_filename %s.libsvm --features %s --label_column label --sep , \n" % (args.scripts_dir, leaveout_file, base_leaveout_file, ' '.join(feats)))
+        outfile.write("python %s/protein_complex_maps/svm_utils/feature2libsvm.py --input_feature_matrix %s --output_filename %s.%s.libsvm --features %s --label_column label --sep ,\n" % (args.scripts_dir, train_file, base_train_file, ' '.join(feats)))
+        outfile.write("python %s/protein_complex_maps/svm_utils/feature2libsvm.py --input_feature_matrix %s --output_filename %s.%s.libsvm --features %s --label_column label --sep , \n" % (args.scripts_dir, leaveout_file, base_leaveout_file, ' '.join(feats)))
 
         #kdrew: scale
         outfile.write("#create_cv_commands: scaling train and leaveout files\n")
