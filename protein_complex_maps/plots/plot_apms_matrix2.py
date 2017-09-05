@@ -48,7 +48,7 @@ def main():
 
     args = parser.parse_args()
 
-   #kdrew: read in raw data
+    #kdrew: read in raw percentile data
     data_df = pd.read_csv(args.data_filename,dtype={'experiment_id':str})
 
     #kdrew: updating "unnamed" column name to "id"
@@ -61,11 +61,15 @@ def main():
         clusters.append(line.split())
 
 
+    #kdrew: clusters_df is a dataframe which holds the percentile data for the user specified clusters
     clusters_df = pd.DataFrame()
     for i in args.cluster_ids:
         cluster_df = data_df[data_df['geneid'].astype(str).isin(clusters[int(i)])]
         cluster_df['clusterid'] = i
         clusters_df = pd.concat([clusters_df,cluster_df])
+
+    #print "clusters_df"
+    #print clusters_df
 
     #clusters_df['experiment_id'] = clusters_df['experiment_id'].astype(int).astype(str)
 
@@ -79,18 +83,26 @@ def main():
         mapping_df['geneid_map'] = mapping_df['geneid_set'].apply(lambda k: k.split(';')[0])
         mapping_df['genename'] = mapping_df['genename_set'].apply(lambda k: k.split(' ')[0])
 
-
         #kdrew: merge with clusters dataframe
         clusters_df_merge = clusters_df.merge(mapping_df, how="left", left_on="geneid", right_on="geneid_map")
         #kdrew: set id to be index for merging 
         clusters_df_merge.set_index('id', inplace=True)
 
+        #print "clusters_df_merge"
+        #print clusters_df_merge
 
         df_list = []
         for ds in args.map_datasets:
             #print "ds: %s\n" % ds
+            #print clusters_df.columns
+            #print mapping_df.columns
+            #print "clusters_df ds:"
+            #print clusters_df[(clusters_df.dataset == ds)]
             #kdrew: for each inputted dataset, merge mapping
             clusters_df_exp_merge = clusters_df[(clusters_df.dataset == ds)].merge(mapping_df, how="left", left_on="experiment_id", right_on="geneid_map")
+
+            #print "clusters_df_exp_merge"
+            #print clusters_df_exp_merge
 
             clusters_df_exp_merge = clusters_df_exp_merge[['id','genename']].drop_duplicates()
             #kdrew: set id to be index for updating full matrix
@@ -107,6 +119,7 @@ def main():
 
         #kdrew: recombine individual datasets
         clusters_df_merge = pd.concat(df_list)
+        print clusters_df_merge
 
         #pd.set_option('display.max_rows', len(clusters_df_merge))
         #pd.set_option('display.max_columns', 500)
@@ -152,6 +165,7 @@ def main():
     #cmap = sns.cubehelix_palette(as_cmap=True)
 
     #kdrew: plot clustermap
+    print clusters_pivot
     cm = sns.clustermap(clusters_pivot, col_cluster=False, cmap=cmap, col_colors=col_colors, row_colors=row_colors, row_cluster=True, cbar_kws={"label": "Rank Percentile"}, metric=args.clustering_metric, figsize=(20, 10))
     #cm = sns.clustermap(clusters_pivot, col_cluster=False, cmap=cmap, col_colors=col_colors, row_colors=row_colors, row_cluster=True, cbar_kws={"label": "Rank Percentile"}, metric=args.clustering_metric, figsize=(len(clusters_pivot.columns)/10,len(clusters_pivot.index))) 
     #cm = sns.clustermap(clusters_pivot, col_cluster=False, cmap=cmap, col_colors=col_colors, row_colors=row_colors, row_cluster=True, cbar_kws={"label": "Rank Percentile"}, metric=args.clustering_metric)

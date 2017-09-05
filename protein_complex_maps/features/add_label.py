@@ -41,16 +41,6 @@ def main():
     args = parser.parse_args()
 
 
-    #if len(args.id_column) != 2:
-    #    print "Error: must provide two id columns"
-    #    return -1
-
-    #if args.index_col0:
-    #    feature_table = pd.read_csv(args.feature_matrix,sep=args.sep, index_col=0)
-    #else:
-    #    feature_table = pd.read_csv(args.feature_matrix,sep=args.sep)
-
-
     pos_ppis = pd.DataFrame(pd.read_table(args.positives, sep=args.ppi_sep, header=None))
     pos_ppis.columns = ['ID1','ID2']
     if not ap.alphabetized_check(pos_ppis, ['ID1','ID2']):
@@ -70,23 +60,11 @@ def main():
 
     
     print("size of neg_ppis: %s" % len(neg_ppis))
-                #id1 = line.split()[0]
-                #id2 = line.split()[1]
-                #ppi_str = str(sorted(list(frozenset([id1,id2]))))
-                #neg_ppis.add(ppi_str)
-
 
     
     all_ppis = pd.DataFrame(pd.concat([pos_ppis, neg_ppis]))
     print(all_ppis)
     print(type(all_ppis))
-    #index needs to be non iterable
-    #applying tuple made "[","E","N"... etc. 
-    #Try joining into spaces separated
-    #MAKES "[ ' E N O G 4 1 0 I D X 2 ' ,   ' E N O G 4 1 0 I D X ...
-    #This next one should work
-    #all_ppis['ID'] = all_ppis['ID'].apply(" ".join)
-
 
     all_ppis = all_ppis.set_index(['ID'])
     print(all_ppis.head)

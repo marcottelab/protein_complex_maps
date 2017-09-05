@@ -12,7 +12,10 @@ def build_matrix():
 
     parser = argparse.ArgumentParser(description="Builds feature matrix by concatenating pairs files")
     parser.add_argument("--input_pairs_files", action="store", dest="pairs_files", nargs='+', required=True, 
-                                    help="Filenames of pairs files, format: id1\tid2\tvalue")
+                                    help="Filenames of pairs files, format: id1 id2 value")
+    parser.add_argument("--sep", action="store", dest="sep", required=True, 
+                                    help="Separator for input files")
+
     parser.add_argument("--prev_feature_matrix", action="store", nargs='?', dest='dfall', required=False)
     parser.add_argument("--store_interval", action="store", dest="interval", type=int, required=False, default=None, 
                                     help="If provided, stores an intermediate features matrix every x files joined")
@@ -47,7 +50,7 @@ def build_matrix():
         print(i, filename)
         value_name = '.'.join(os.path.basename(filename).split('.')[:-2])
         out_columns.append(value_name)
-        df = pd.read_csv(filename, delimiter=' ', header=None, names=['A', 'B', value_name])
+        df = pd.read_csv(filename, delimiter=args.sep, header=None, names=['A', 'B', value_name])
         print(df)
         df['ID']=df.apply(lambda x:'%s %s' % (x['A'],x['B']),axis=1)
         print("new column made")
