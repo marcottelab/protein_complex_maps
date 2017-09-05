@@ -118,7 +118,8 @@ def main():
 
     feature_table = pd.DataFrame(pd.read_csv(args.feature_matrix, sep=args.sep))
     output_df = shared_bait_feature(feature_table, args.bait_id_column, args.id_column, args.bh_correct, args.denm, args.logchoose)
-    output_df.to_csv(args.output_file, index=False, header=False)
+    output_df = output_df.sort('neg_ln_pval', ascending=False)
+    output_df.to_csv(args.output_file, index=False, header=True)
 
 def shared_bait_feature(feature_table, bait_id_column, id_column, bh_correct=False, denm=False, logchoose=False):
     print(feature_table)
