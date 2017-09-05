@@ -128,56 +128,60 @@ def shared_bait_feature(feature_table, bait_id_column, id_column, bh_correct=Fal
     feature_table['bait_id_column_str'] = feature_table[bait_id_column].apply(str)
     print(feature_table)
     print(feature_table.columns.values)
-   #feature_table = feature_table.drop(bait_id_column)
+    #feature_table = feature_table.drop(bait_id_column)
     feature_table = feature_table.set_index('bait_id_column_str')
+
+
+    print("#### printing feature_table_geneid tables ####")
+    #kdrew: generating full shared bait table for large datasets is memory intensive, break table down and do one id at a time
+    for geneid in set(feature_table[id_column].values):
+        print("geneid: %s" % geneid)
+        #kdrew: slice feature_table to only have a single id
+        feature_table_geneid = feature_table[feature_table[id_column] == geneid] 
+        #kdrew: join the sliced feature table with the entire feature table on the experiment column (ie. bait_id_column_str)
+        feature_shared_bait_table_geneid = feature_table_geneid.join(feature_table, rsuffix="_right")
+        #print (feature_table_geneid)
+        feature_shared_bait_table_geneid['gene_id1_str'] = feature_shared_bait_table_geneid[id_column].apply(str)
+        feature_shared_bait_table_geneid['gene_id2_str'] = feature_shared_bait_table_geneid[id_column+'_right'].apply(str)
+        feature_shared_bait_table_geneid['IDs'] = map(sorted, zip(feature_shared_bait_table_geneid['gene_id1_str'].values, feature_shared_bait_table_geneid['gene_id2_str'].values))
+        feature_shared_bait_table_geneid['IDs_tup'] = feature_shared_bait_table_geneid['IDs'].apply(tuple)
+        print (feature_shared_bait_table_geneid)
+        feature_shared_bait_table_geneid = feature_shared_bait_table_geneid.reset_index()
+        ks_geneid = feature_shared_bait_table_geneid.groupby('IDs_tup')['bait_id_column_str'].nunique()
+        print(ks_geneid)
+        ms_geneid = feature_table[feature_table[id_column] == geneid]['bait_id_column_str'].nunique()
+        print(ms_geneid)
+    print("#### done printing feature_table_geneid tables ####")
+
     #cmcwhite: join table to itself to get pairs of proteins with same bait
     feature_shared_bait_table = feature_table.join(feature_table, rsuffix="_right")
-    print(feature_shared_bait_table.head)
+    print(feature_shared_bait_table)
+    print("$$$$ printed full feature_shared_bait_table $$$$")
 
-    #Unindexed merge = slow
-    #feature_shared_bait_table = feature_table.merge(feature_table, on='bait_id_column_str')
-
-    logger.info(feature_shared_bait_table)
+    #logger.info(feature_shared_bait_table)
     #print(feature_shared_bait_table)
 
     feature_shared_bait_table = feature_shared_bait_table.reset_index()
 
-    #feature_shared_bait_table['gene_id1_str'] = feature_shared_bait_table[id_column+'_x'].apply(str)
-    #feature_shared_bait_table['gene_id2_str'] = feature_shared_bait_table[id_column+'_y'].apply(str)
-
     feature_shared_bait_table['gene_id1_str'] = feature_shared_bait_table[id_column].apply(str)
     feature_shared_bait_table['gene_id2_str'] = feature_shared_bait_table[id_column+'_right'].apply(str)
 
-
     feature_shared_bait_table['IDs'] = map(sorted, zip(feature_shared_bait_table['gene_id1_str'].values, feature_shared_bait_table['gene_id2_str'].values))
-
 
     print(feature_shared_bait_table)
     print(feature_shared_bait_table.columns.values)
   
-    #feature_shared_bait_table['frozenset_geneids'] = map(frozenset,feature_shared_bait_table[['gene_id1_str','gene_id2_str']].values)
-    #feature_shared_bait_table['ordered_geneids_str_order'] = feature_shared_bait_table['frozenset_geneids'].apply(list).apply(sorted).apply(str)
-
-    #kdrew: this way actually fails to deal with duplicate gene pairs properly, using above frozenset_geneids_str_order method
-    ##kdrew: create set of id pairs (need set because merge generates duplicate gene pairs, also deals with order)
-    #df_tmp = map(frozenset, feature_shared_bait_table[[args.id_column+'_x',args.id_column+'_y']].values)
-    #feature_shared_bait_table['gene_id_set'] = df_tmp
-
     ##kdrew: generate tuple of set so groupby works, apparently cannot use cmp on sets
-    #feature_shared_bait_table['gene_id_tup'] = feature_shared_bait_table['gene_id_set'].apply(tuple)
     feature_shared_bait_table['IDs_tup'] = feature_shared_bait_table['IDs'].apply(tuple)
-
-    ##kdrew: number of times pair is found (unique baits), 'k' in Hart etal 2007 
-    #ks = feature_shared_bait_table.groupby('gene_id_tup')[args.bait_id_column].nunique()
-    ##kdrew: number of times individual id is found (unique baits), 'm' and 'n' in Hart etal 2007 
-    #ms = feature_shared_bait_table.groupby(args.id_column+'_x')[args.bait_id_column].nunique()
-    ##kdrew: number of total experiments (unique baits), 'N' in Hart etal 2007 
-    #N = feature_shared_bait_table[args.bait_id_column].nunique()
 
     #kdrew: number of times pair is found (unique baits), 'k' in Hart etal 2007 
     ks = feature_shared_bait_table.groupby('IDs_tup')['bait_id_column_str'].nunique()
+    print("KS KS KS KS KS KS KS KS")
+    print(ks)
     #kdrew: number of times individual id is found (unique baits), 'm' and 'n' in Hart etal 2007 
     ms = feature_shared_bait_table.groupby('gene_id1_str')['bait_id_column_str'].nunique()
+    print("MS MS MS MS MS MS MS MS")
+    print(ms)
     #kdrew: number of total experiments (unique baits), 'N' in Hart etal 2007 
     N = feature_shared_bait_table['bait_id_column_str'].nunique()
     #print(ks, ms, N)
@@ -189,7 +193,7 @@ def shared_bait_feature(feature_table, bait_id_column, id_column, bh_correct=Fal
     output_dict['neg_ln_pval'] = []
     output_dict['pval'] = []
 
-    logger.info(ks)
+    #logger.info(ks)
     #print(ks)
     for gene_ids_str in ks.index:
         #print(gene_ids_str)
@@ -199,7 +203,7 @@ def shared_bait_feature(feature_table, bait_id_column, id_column, bh_correct=Fal
         gene_ids = list(gene_ids_str)
         #print(gene_ids)
         if len(gene_ids) == 2:
-            logger.info(gene_ids) #cdm print out pairs of gene IDs
+            #logger.info(gene_ids) #cdm print out pairs of gene IDs
             #print(gene_ids) #cdm print out pairs of gene IDs
             k = ks[gene_ids_str]
             m = ms[gene_ids[0]]
@@ -222,8 +226,8 @@ def shared_bait_feature(feature_table, bait_id_column, id_column, bh_correct=Fal
                output_dict['neg_ln_pval'].append(neg_ln_p)
                output_dict['pval'].append(p)
             except Exception as e:
-                 logger.info(str(e))
-                 #print(str(e))
+                 #logger.info(str(e))
+                 print(str(e))
                  continue
              
  
