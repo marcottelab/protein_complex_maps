@@ -5,7 +5,7 @@ import itertools as it
 
 import csv
 
-import protein_complex_maps.protein_util as pu
+import protein_complex_maps.util.protein_util as pu
 
 import protein_complex_maps.complex_map_website.complex_db as cdb
 

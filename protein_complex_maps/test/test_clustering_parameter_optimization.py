@@ -3,7 +3,7 @@
 # Unit tests for new clustering analysis functionality
 
 import unittest
-import protein_complex_maps.features.clustering_parameter_optimization as cpo
+import protein_complex_maps.clustering.clustering_parameter_optimization as cpo
 
 import numpy as np
 

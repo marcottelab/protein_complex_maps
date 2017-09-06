@@ -21,7 +21,7 @@ sns.set_style("white")
 
 from collections import Counter
 
-import protein_complex_maps.protein_util as pu
+import protein_complex_maps.util.protein_util as pu
 
 def main():
     parser = argparse.ArgumentParser(description="Plot APMS matrix")
