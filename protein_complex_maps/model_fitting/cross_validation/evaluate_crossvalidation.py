@@ -1,5 +1,6 @@
 
 import numpy as np
+#kdrew: doesn't need matplotlib, remove (?)
 import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.mlab as mlab

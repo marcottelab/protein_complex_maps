@@ -109,6 +109,10 @@ def main():
 
         sorted_neg_list = sorted(neg_list, key=lambda k: k[1])
         sorted_pos_list = sorted(pos_list, key=lambda k: k[1])
+        print "#ofNegs: %s" % (len(sorted_neg_list))
+        print "#ofPos: %s" % (len(sorted_pos_list))
+        print "FDR: %s" % (1.0*len(sorted_neg_list)/(len(sorted_pos_list)+len(sorted_neg_list)))
+
         print "#ofNegs: %s, #ofPos: %s, FDR: %s" % (len(sorted_neg_list),len(sorted_pos_list),1.0*len(sorted_neg_list)/(len(sorted_pos_list)+len(sorted_neg_list)))
         for k in sorted_neg_list[-100:]:
             print "neg: %s:%s" % (k[0], k[1])

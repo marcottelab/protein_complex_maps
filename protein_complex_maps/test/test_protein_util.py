@@ -4,7 +4,7 @@
 
 import unittest
 import MySQLdb
-import protein_complex_maps.protein_util as pu
+import protein_complex_maps.util.protein_util as pu
 import numpy as np
 
 
