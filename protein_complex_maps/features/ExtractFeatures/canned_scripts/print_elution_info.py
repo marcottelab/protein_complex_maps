@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
 import argparse
-from Features import Elut
+from protein_complex_maps.features.ExtractFeatures.Features import Elut
 
 parser = argparse.ArgumentParser(description="Print information on one or several elution experiment(s)")
 parser.add_argument("infiles", nargs="+",help='Elution profile csv file. Optionally takes a wildcard like *.csv')

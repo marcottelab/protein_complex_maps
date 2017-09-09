@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
 import argparse
-from Features import ElutFeatures as ef
+from protein_complex_maps.features.ExtractFeatures.Features import ElutFeatures as ef
 
 parser = argparse.ArgumentParser(description="Extract features from a fractionation mass-spec experiment")
 parser.add_argument("infile")
