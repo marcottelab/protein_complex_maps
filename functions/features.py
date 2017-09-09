@@ -17,11 +17,6 @@ class FeatureFunctions:
     '''All return a NxN matrix of features'''
 
     def __init__(self): pass
-        
-    def _kullback_leibler(self,df):
-        '''Return matrix of Kullback_Leibler divergences.
-        It's better to use Jensen-Shannon because it's symmetric'''
-        return dist.squareform( dist.pdist(df, lambda x,y: np.sum(P * np.log2(P/Q))) )
     
     def _jensen_shannon(self,df):
         '''Return matrix of Jensen-Shannon divergences'''
@@ -29,19 +24,19 @@ class FeatureFunctions:
         
     def _pearsonR(self,df):
         '''Return pearson correlation matrix'''
-        return np.nan_to_num( np.corrcoef(df),0 )
+        return np.nan_to_num( np.corrcoef(df) )
         
     def _spearmanR(self,df):
         '''Return spearman ranked correlation coeffienct matrix'''
         rho,pval = stats.spearmanr(df.T)
-        rho = np.nan_to_num(rho,0)
+        rho = np.nan_to_num(rho)
         return rho
         
     def _spearmanR_weighted(self,df):
         '''Return spearman ranked correlation coeffienct matrix, weighted by the p-value'''
         rho,pval = stats.spearmanr(df.T)
-        rho = np.nan_to_num(rho,0)
-        pval = np.nan_to_num(pval,0)
+        rho = np.nan_to_num(rho)
+        pval = np.nan_to_num(pval)
         return rho * (1 - pval)
         
     def _euclidean(self,df):
@@ -50,4 +45,4 @@ class FeatureFunctions:
         
     def _covariance(self,df):
         '''Return the covariance between two input arrays'''
-        return np.nan_to_num( np.cov(df),0 )
+        return np.nan_to_num( np.cov(df) )
