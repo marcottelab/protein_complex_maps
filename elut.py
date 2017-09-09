@@ -48,9 +48,9 @@ class Elut():
         if not self.df is None:
             raise Exception("data already loaded")
         if format == 'csv':
-            self.df = pd.read_csv(infile,index_col=0) # don't make ID column index...for now
+            self.df = pd.read_csv(infile,index_col=0).astype("float")
         elif format == 'csv':
-            self.df = pd.read_table(infile,index_col=0)
+            self.df = pd.read_table(infile,index_col=0).astype("float")
         else:
             raise Exception("<format> must be either 'csv' or 'tsv'")
         self._check_dtypes()
