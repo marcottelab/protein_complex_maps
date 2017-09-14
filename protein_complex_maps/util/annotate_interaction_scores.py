@@ -3,6 +3,18 @@ import argparse
 import pandas as pd
 
 
+def annotate_IDs(pairs, annots):
+
+    pairs=pairs.rename(columns = {0:'ID1'})
+    pairs=pairs.rename(columns = {1:'ID2'})
+  
+    pairs = pd.merge(pairs, annots, left_on='ID1', right_on='ID', how='left')    
+    pairs = pd.merge(pairs, annots, left_on='ID2', right_on='ID', how='left', suffixes=['_1','_2'])    
+   
+    pairs=pairs.drop(['ID_1', 'ID_2'], axis=1)
+ 
+    return pairs
+
 def main():
 
     parser = argparse.ArgumentParser(description="With IDs in first two columns, retrieve annotations for each ID")
@@ -18,7 +30,6 @@ def main():
                                     help="Sep of annotation file")
     parser.add_argument("--annot_key", action="store", dest="annot_key", required=False, default='ID', 
                                     help="Col name in annotation file that matches first two rows of input file")
-
     parser.add_argument('-t','--target_col', action="store", dest="target_col",  required=False, default=None, help="designate a specific column to full from annotation file")
 
 
@@ -27,24 +38,12 @@ def main():
     pairs = pd.read_csv(args.input_pairs,sep=args.sep, header=None)
     annots = pd.read_csv(args.input_annots,sep=args.annot_sep)
 
-
     if args.target_col:
        annots = annots[[args.annot_key, args.target_col]]
 
-    pairs=pairs.rename(columns = {0:'ID1'})
-    pairs=pairs.rename(columns = {1:'ID2'})
-  
-    pairs = pd.merge(pairs, annots, left_on='ID1', right_on='ID', how='left')    
-
-    pairs = pd.merge(pairs, annots, left_on='ID2', right_on='ID', how='left', suffixes=['_1','_2'])    
-   
-    pairs=pairs.drop('ID_1', axis=1)
-  
-    pairs=pairs.drop('ID_2', axis=1)
-
-    pairs.to_csv(args.output_file,sep=" ",index=False,header=True)
-
-
+    annotated = annotation_IDs(pairs,annots)
+ 
+    annotated.to_csv(args.output_file,sep=" ",index=False,header=True)
 
 if __name__ == "__main__":
     main()
