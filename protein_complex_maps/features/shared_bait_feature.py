@@ -257,15 +257,25 @@ def shared_bait_feature(feature_table, bait_id_column, id_column, bh_correct=Fal
                     continue
 
 
-    #kdrew: find value to transform by (ie. max exponent of all exponents) and transform_exponents for every entry
+    #kdrew: find value to transform by (ie. median exponent of all exponents) and transform_exponents for every entry
     if transform_pvalue:
-        #kdrew: find max of exponents for each individual entry and then find the max of those
-        max_value = max([max(ex) for ex in output_dict2['exponents']])
-        print("max_value")
-        print(max_value)
+        #kdrew: find median of exponents for each individual entry and then find the median of those
+        median_value = np.median([np.median(ex) for ex in output_dict2['exponents']])
+        print("median_value")
+        print(median_value)
                              
-        output_dict2['pval'] = [transform_exponents(ex, max_value, calc_true_pval=False) for ex in output_dict2['exponents']]
-        output_dict2['neg_ln_pval'] = [-1.0*math.log(pval) for pval in output_dict2['pval']]
+        output_dict2['pval'] = [transform_exponents(ex, median_value, calc_true_pval=False) for ex in output_dict2['exponents']]
+
+        #output_dict2['neg_ln_pval'] = [-1.0*math.log(pvalue) for pvalue in output_dict2['pval']]
+        output_dict2['neg_ln_pval'] = []
+        for pvalue in output_dict2['pval']:
+            try:
+                neglpval = -1.0*math.log(pvalue)
+                output_dict2['neg_ln_pval'].append(neglpval)
+            except ValueError as ve:
+                print(str(ve))
+                output_dict2['neg_ln_pval'].append(np.nan)
+            
  
 
     if bh_correct:
