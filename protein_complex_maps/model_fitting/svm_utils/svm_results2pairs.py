@@ -38,13 +38,24 @@ def main():
                                     help="Filename of output file")
     parser.add_argument("--id_columns", action="store", dest="id_columns", nargs='+', required=False, default=['key1','key2'],
                                     help="List of columns that specify ids in feature matrix, default: key1 key2")
+    parser.add_argument("--id_sep", action="store", dest="id_sep", required=False, default=' ',
+                                    help="If IDs are stored in one column, separator to split on")
+
     parser.add_argument("--int_convert", action="store_true", dest="int_convert", required=False, default=False, 
                                     help="Convert id_columns to int, default=False")
+    parser.add_argument("--add_label", action="store_true", dest="add_label", required=False, default=False, 
+                                    help="Add the original training label, default=False")
+
+
+    parser.add_argument("--label_column", action="store", dest="label_column",  required=False, default='label',
+                                    help="Column containing label")
+
 
     args = parser.parse_args()
 
     results = pd.read_csv(args.input_results,sep=' ')
-    results.columns = ['svm_predicted_label','svm_pos_prob','svm_neg_prob']
+    results.columns = ['svm_predicted_label','svm_pos_prob','svm_neg_prob']    
+
 
     print results
     print " "
@@ -60,14 +71,26 @@ def main():
         else:
             only_features = features[features['label'] == 0]
     only_features.index = range(len(only_features))
+
+    #cmcwhite keep only id and label from feature matrix
+    if args.label_column:
+        only_feature_ids = only_features[args.id_columns + [args.label_column]]  
+    else:
+        only_feature_ids = only_features[args.id_columns]  
+
+    key1 = args.id_columns[0]
+    key2 = args.id_columns[1]
+      
+
     print only_features
     print " "
 
     print len(results)
-    print len(only_features)
-    assert len(results) == len(only_features), "features and results are not same length"
+    print len(only_feature_ids)
+    assert len(results) == len(only_feature_ids), "features and results are not same length"
     #kdrew: put the results and the features together
-    only_features_results = pd.concat([results,only_features],axis=1)
+    print("Begin concat")
+    only_features_results = pd.concat([results,only_feature_ids],axis=1)
     print only_features_results
     print " "
 
@@ -79,6 +102,7 @@ def main():
     print only_features_results
     print " "
 
+    print("sorting")
     only_features_results_sorted = only_features_results.sort_values(by='svm_pos_prob',ascending=False)
     print only_features_results_sorted
     print " "
@@ -94,7 +118,7 @@ def main():
     print " "
 
     #only_features_results_sorted_key2int = only_features_results_sorted_key2int.dropna().astype(object)
-    only_features_results_sorted_keys_noself = only_features_results_sorted_keys[only_features_results_sorted_keys[args.id_columns[0]] != only_features_results_sorted_keys[args.id_columns[1]]]
+    only_features_results_sorted_keys_noself = only_features_results_sorted_keys[only_features_results_sorted_keys[key1] != only_features_results_sorted_keys[key2]]
 
     legacy = False
     if args.add_prob:
@@ -129,8 +153,14 @@ def main():
             print " "
 
         else:
-            keys_and_prob = only_features_results_sorted[args.id_columns+['svm_pos_prob']]
-            keys_and_prob_noself = keys_and_prob[keys_and_prob[args.id_columns[0]] != keys_and_prob[args.id_columns[1]]]
+
+            if args.add_label:
+                keys_and_prob = only_features_results_sorted[args.id_columns+[args.label_column]+['svm_pos_prob']]
+
+            else:
+                keys_and_prob = only_features_results_sorted[args.id_columns+['svm_pos_prob']]
+
+            keys_and_prob_noself = keys_and_prob[keys_and_prob[key1] != keys_and_prob[key2]]
             keys_nodups = keys_and_prob_noself.drop_duplicates()
             keys_nodups = keys_nodups.dropna()
 
@@ -149,9 +179,9 @@ def main():
         print " "
         #kdrew: convert type to int
         if args.int_convert:
-            keys_nodups[args.id_columns[0]] = keys_nodups[args.id_columns[0]].astype(int)
+            keys_nodups[key1] = keys_nodups[key1].astype(int)
             #keys_nodups['key2_int'] = keys_nodups['key2_int'].astype(int)
-            keys_nodups[args.id_columns[1]] = keys_nodups[args.id_columns[1]].astype(int)
+            keys_nodups[key2] = keys_nodups[key2].astype(int)
         print keys_nodups
         print " "
 

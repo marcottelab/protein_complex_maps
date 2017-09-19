@@ -14,14 +14,28 @@ def main():
                                     help="Filename of input feature matrix")
     parser.add_argument("--output_filename", action="store", dest="output_filename", required=True, 
                                     help="Filename of output")
-    parser.add_argument("--features", action="store", dest="features", nargs='+', required=True, 
+    parser.add_argument("--features", action="store", dest="features", nargs='+', required=False, 
                                     help="Names of features to output")
+    parser.add_argument("--feature_file", action="store", dest="feature_file", required=False,
+                                    help="File containing one feature name per line")
+
     parser.add_argument("--label_column", action="store", dest="label_column", required=False, default='label', 
                                     help="Name of label column, default='label' if present, else 1st column")
     parser.add_argument("--sep", action="store", dest="sep", required=False, default='$',
                                     help="Column separator for input file, default=$")
 
     args = parser.parse_args()
+
+    if args.features:
+         features = args.features
+
+    elif args.feature_file:
+        featfile = open(args.feature_file, "r")
+        feats = featfile.read().split("\n")
+        featfile.close()
+        print(feats)
+        features = ",".join(feats)
+        print(features)
 
     feature_table = pd.read_csv(args.feature_matrix,sep=args.sep)
 

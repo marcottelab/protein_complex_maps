@@ -10,6 +10,9 @@ import pickle
 import pandas as pd
 import itertools as it
 
+from collections import Counter #for averaging dictionary values
+import pandas as pd #for averaging dictionary values
+
 from sklearn.metrics import precision_recall_curve
 from sklearn.metrics import average_precision_score
 
@@ -37,6 +40,9 @@ def main():
                                     help="Only tally predictions above probability threshold")
     parser.add_argument("--plot_thresholds", action="store_true", dest="plot_thresholds", required=False, default=False,
                                     help="Add probability threshold markers to plot")
+    parser.add_argument("--average_probs", action="store_true", dest="avg_probs", required=False, default=False,
+                                    help="Average a set of result_wprob instead of plotting individually")
+
 
     args = parser.parse_args()
 
@@ -55,6 +61,15 @@ def main():
 
         print "results size: %s" % (len(results_dict))
         results_dict_list.append(results_dict)
+
+    if args.avg_probs:
+        df = pd.DataFrame(results_dict_list)
+        print(df)
+        results_dict = dict(df.mean())
+        print(results_dict)
+        results_dict_list = []
+        results_dict_list.append(results_dict)
+         
 
     positive_file = open(args.positives,"rb")
 
@@ -77,7 +92,7 @@ def main():
         for cpair in it.combinations(all_proteins,2):
             pair = str(sorted(list(frozenset(cpair))))
             if pair not in ppis:
-                #print "pair is neg: %s" % ' '.join(pair)
+                print "pair is neg: %s" % ' '.join(pair)
                 neg_ppis.add(pair)
     else:
         #kdrew: readin from file
@@ -132,6 +147,7 @@ def main():
 
 
         if args.plot_thresholds:
+            print("plot thresholds")
             #kdrew: set the index of the entry >= to threshold
             #kdrew: if there is no entry >= to threshold, set the index to the previous index
             try:

@@ -41,7 +41,7 @@ def main():
     if args.target_col:
        annots = annots[[args.annot_key, args.target_col]]
 
-    annotated = annotation_IDs(pairs,annots)
+    annotated = annotate_IDs(pairs,annots)
  
     annotated.to_csv(args.output_file,sep=" ",index=False,header=True)
 

@@ -13,15 +13,12 @@ import tempfile as tf
 import shutil
 
 
-#kdrew: CLAIRE WTF!?!
-#sys.path.append('/project/cmcwhite/protein_complex_maps/protein_complex_maps')
-
-
 
 import networkx as nx
 import agglomcluster.agglomod as ag
 
 import protein_complex_maps.evaluation.complex_comparison as cc
+import protein_complex_maps.evaluation.complex_merge as cm
 
 def main():
 
@@ -220,7 +217,12 @@ def main():
         network_input_list.append(parameter_dict) 
     #print network_input_list
     #kdrew: call clustering on parameter combinations
+
+
+
+
     cluster_predictions = p.map(cluster_helper, network_input_list)
+
 
     #kdrew: iterate through clustering results, returns tuple of prediction and number of iteration (ii)
     for cluster_prediction, ii in cluster_predictions:
@@ -617,10 +619,12 @@ def cluster_helper(parameter_dict):
     if trim2threshold:
         predicted_clusters = trim_clusters2threshold(predicted_clusters, threshold_score, ppi_scores)
 
-    #kdrew: TODO merge complexes to elminiate redundancy
     #kdrew: use complex_merge.merge_complexes with merge_threshold 1.0
+    #kdrew: after clustering the cluster predictions often still have a degree of redundancy, i.e. same exact complex repeated.  This removes extra copies of clusters.
 
-    return predicted_clusters, i
+    nonredundant_clusters = cm.merge_complexes(predicted_clusters, merge_threshold=1.0)
+
+    return nonredundant_clusters, i
 
 
 def trim_clusters2threshold(predicted_clusters, threshold_score, ppi_scores):
