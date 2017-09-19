@@ -1,8 +1,6 @@
 from __future__ import print_function
 import argparse
 import pandas as pd
-#sys.path.append('/project/cmcwhite/protein_complex_maps/protein_complex_maps')
-#import protein_util as pu
 
 def main():
 
