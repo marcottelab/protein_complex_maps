@@ -1,8 +1,6 @@
-#import sys
 import argparse
 import itertools as it
 import pandas as pd
-#import protein_util as pu
 
 def main():
 
@@ -11,8 +9,6 @@ def main():
                                             help="Filename of cluster file, (ie. one line per cluster)")
     parser.add_argument("--output_filename", action="store", dest="output_filename", required=True,
                                             help="Output filename ")
-    parser.add_argument("--annotation_filename", action="store", dest="annotation_filename", required=True,
-                                            help="Annotation. 1 row per ID, IDs match network")
 
     args = parser.parse_args()
 
@@ -38,15 +34,7 @@ def main():
             d['clustid_key'].append(clust_id_key)
 
     df = pd.DataFrame(d)
-    print(df)
-    annot=pd.read_csv(args.annotation_filename, index_col=False, sep="\t")
-
-    annot = annot.set_index(["ID"])
-    print(annot)
-    print(df)
-    final = df.join(annot, how="left", on="ID")
-
-    final.to_csv(args.output_filename)
+    df.to_csv(args.output_filename)
 
 
 if __name__ == "__main__":
