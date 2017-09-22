@@ -9,6 +9,16 @@ import itertools as it
 
 import protein_complex_maps.features.alphabetize_pairs as ap
 
+def load_ppis(ppi_file, ppi_sep, id_sep, label=1):
+
+    ppis = pd.DataFrame(pd.read_table(ppi_file, sep=ppi_sep, header=None))
+    ppis.columns = ['ID1','ID2']
+    if not ap.alphabetized_check(ppis, ['ID1','ID2'], 100):
+        sys.exit("ERROR: input_positives are not alphabetized, please run alphabetize_pairs.py")
+    ppis['label'] = label
+    ppis['ID'] = ppis['ID1'] + id_sep + ppis['ID2']
+    return ppis
+
 def main():
 
     parser = argparse.ArgumentParser(description="Adds positive and negative labels to feature matrix")
@@ -31,38 +41,23 @@ def main():
     parser.add_argument("--id_sep", action="store", dest="id_sep", type=str, required=False, default="_", 
                                     help="If ID is stored in one column, give the spacing used between pairs ie. id1_id2")
     parser.add_argument("--sel_columns", action="store", dest="cols", type=str, required=False, default=None, 
-                                    help="Optional columns to save")
-    
-   
+                                    help="Optional columns to save")   
     #parser.add_argument("--int_convert", action="store_true", dest="int_convert", required=False, default=False, 
     #                                help="Convert id_column to int")
     #parser.add_argument("--index_col0", action="store_true", dest="index_col0", required=False, default=False, 
     #                                help="input_feature_matrix includes unnamed index column at position 0")
     args = parser.parse_args()
 
+    pos_ppis = load_ppis(args.positives, args.ppi_sep, args.id_sep, 1)
+    print("size of pos_ppis: %s" % len(pos_ppis))
+    if args.negatives:
+        neg_ppis = load_ppis(args.negatives, args.ppi_sep, args.id_sep, -1)
+        print("size of neg_ppis: %s" % len(neg_ppis))
+        all_ppis = pd.DataFrame(pd.concat([pos_ppis, neg_ppis]))
 
-    pos_ppis = pd.DataFrame(pd.read_table(args.positives, sep=args.ppi_sep, header=None))
-    pos_ppis.columns = ['ID1','ID2']
-    if not ap.alphabetized_check(pos_ppis, ['ID1','ID2']):
-        sys.exit("ERROR: input_positives are not alphabetized, please run alphabetize_pairs.py")
-    print(pos_ppis)
-    print("size of pos_pos_ppis: %s" % len(pos_ppis))
-    pos_ppis['label'] = 1
-    pos_ppis['ID'] = pos_ppis['ID1'] + args.id_sep + pos_ppis['ID2']
+    else:
+        all_ppis = pos_ppis
 
-    neg_ppis = pd.DataFrame(pd.read_table(args.negatives, sep=args.ppi_sep, header=None))
-    neg_ppis.columns = ['ID1','ID2']
-    if not ap.alphabetized_check(neg_ppis, ['ID1','ID2']):
-        sys.exit("ERROR: input_negatives are not alphabetized, please run alphabetize_pairs.py")
-    print(neg_ppis)
-    neg_ppis['label'] = -1
-    neg_ppis['ID'] = neg_ppis['ID1'] + args.id_sep + neg_ppis['ID2']
-
-    
-    print("size of neg_ppis: %s" % len(neg_ppis))
-
-    
-    all_ppis = pd.DataFrame(pd.concat([pos_ppis, neg_ppis]))
     print(all_ppis)
     print(type(all_ppis))
 
@@ -70,8 +65,6 @@ def main():
     print(all_ppis.head)
   
     feature_table = pd.DataFrame(pd.read_table(args.feature_matrix, sep=args.sep))
-    #feature_table['ID'] = feature_table['ID'].apply(ast.literal_eval)
-    #feature_table['ID'] = feature_table['ID'].apply(" ".join)
 
     if not ap.alphabetized_check(feature_table, args.id_column):
         sys.exit("ERROR: feature_matrix is not alphabetized, please run alphabetize_pairs.py")
@@ -87,15 +80,11 @@ def main():
         feature_table = feature_table.fillna(float(args.fillna))
 
 
+
+    
     labeled_feature_table = feature_table.join(all_ppis, how="left", rsuffix="_x")   
 
     print("pos/neg")
-    #print(labeled_feature_table[labeled_feature_table['label']==-1])
-    #print(labeled_feature_table[labeled_feature_table['label']==1])
-    #print(labeled_feature_table[labeled_feature_table['label']=='1'])
-    #print(labeled_feature_table[labeled_feature_table['label']==-'1'])
-
-
 
     labeled_feature_table['label'] = labeled_feature_table['label'].fillna(0)
 
@@ -111,7 +100,6 @@ def main():
         print(args.cols)
         collist = args.cols.split(' ')
         labeled_feature_table = labeled_feature_table[collist]
-
 
 
     labeled_feature_table.to_csv(args.out_filename,sep=args.sep, index=False)

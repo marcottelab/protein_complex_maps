@@ -12,8 +12,12 @@ def main():
                                             help="Filename of cluster file, (ie. one line per cluster)")
     parser.add_argument("--output_filename", action="store", dest="out_filename", required=True,
                                             help="Output filename ")
+    parser.add_argument("--query_uniprot", action="store", dest="query_uniprot", required=False, default=True,
+                                            help="Pull edge attributes from uniprot") 
     parser.add_argument("--add_cluster_id", action="store_true", dest="add_cluster_id", required=False, default=False,
                                             help="Add a cluster id to the protein id. Used to distinguish same protein in multiple clusters, default=False")
+
+
 
     args = parser.parse_args()
 
