@@ -117,15 +117,17 @@ class ElutFeatures(Elut,features.FeatureFunctions,resampling.FeatureResampling):
     proteins/orthogroups in an elution experiment'''
     
     ### Notes:
-    ###     - Would be nice to add some meta data on bounds etc. for the features
+    ###     - To add features, put the name in this list, and then add a function to features.py
+    ###       with the same name but prepended with a single underscore.
     
     available_features = ["pearsonR",
                 "spearmanR",
                 "spearmanR_weighted",
                 "jensen_shannon",
-                "kullback_leibler",
+                "covariance",
                 "euclidean",
-                "covariance"]
+                "canberra",
+                "braycurtis"]
                 
     resampling_strategies = ["poisson_noise",
                             "bootstrap"]

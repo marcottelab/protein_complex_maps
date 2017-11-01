@@ -46,3 +46,11 @@ class FeatureFunctions:
     def _covariance(self,df):
         '''Return the covariance between two input arrays'''
         return np.nan_to_num( np.cov(df) )
+        
+    def _canberra(self,df):
+        '''Return canberra distance matrix'''
+        return dist.squareform(dist.pdist(df,'canberra'))
+        
+    def _braycurtis(self,df):
+        '''Return canberra distance matrix'''
+        return dist.squareform(dist.pdist(df,'braycurtis'))
