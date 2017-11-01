@@ -127,7 +127,8 @@ class ElutFeatures(Elut,features.FeatureFunctions,resampling.FeatureResampling):
                 "covariance",
                 "euclidean",
                 "canberra",
-                "braycurtis"]
+                "braycurtis",
+                "cosine"]
                 
     resampling_strategies = ["poisson_noise",
                             "bootstrap"]

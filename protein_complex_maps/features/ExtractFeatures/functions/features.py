@@ -54,3 +54,7 @@ class FeatureFunctions:
     def _braycurtis(self,df):
         '''Return canberra distance matrix'''
         return dist.squareform(dist.pdist(df,'braycurtis'))
+        
+    def _cosine(self,df):
+        '''Return the cosine distance matrix'''
+        return dist.squareform(dist.pdist(df,'cosine'))
