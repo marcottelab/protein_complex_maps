@@ -21,6 +21,6 @@ if __name__ == '__main__':
         outfile = "_".join( [args.infile.split(".")[0], elution.analyses[ elution.analysis_count - 1 ]] ) + ".feat"
     
         if args.as_pickle:
-            feature_matrix.to_csv(outfile + ".p",index=False)
+            feature_matrix.to_pickle(outfile + ".p")
         else:
             feature_matrix.to_csv(outfile,index=False)

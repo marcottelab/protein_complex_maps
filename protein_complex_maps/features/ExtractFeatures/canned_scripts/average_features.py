@@ -8,7 +8,7 @@ import pandas as pd
 parser = argparse.ArgumentParser(description="Average a list of feature files")
 parser.add_argument("infiles", nargs="+",help='Feature files. Optionally takes a wildcard like *.csv')
 parser.add_argument("outfile",help="Name of file to write to")
-parser.add_argument("--average_type", nargs="+", default="mean", choices=["mean","median",'max'], help="Choose mean or median values")
+parser.add_argument("--average_type", nargs="+", default="mean", choices=["mean","median",'max','min'], help="Choose mean or median values")
 parser.add_argument("--retain_columns",action='store_true',help="Retain the input columns in the ouput")
 parser.add_argument("--log",action='store_true',help="Write log of inputs")
 parser.add_argument("--in_pickle",action='store_true',help="Whether to accept input as pickled DataFrame from pandas. Default `False`")
@@ -24,6 +24,10 @@ if __name__ == '__main__':
         print "Reading in {}".format(f)
         if args.in_pickle:
             df = pd.read_pickle(f)
+            assert len(df.columns) == 3, "Pickled infiles should have 3 columns: ID1, ID2, feature"
+            assert df.columns[0] == "ID1", "Pickled infiles should have 3 columns: ID1, ID2, feature"
+            assert df.columns[1] == "ID2", "Pickled infiles should have 3 columns: ID1, ID2, feature"
+            df.set_index(["ID1","ID2"],inplace=True)
         else:
             df = pd.read_csv(f,index_col=[0,1])
         assert len(df.columns) == 1, "Files should be DataFrames should have just one column"
@@ -47,7 +51,8 @@ if __name__ == '__main__':
         
     avgFuncD = {"mean": functools.partial( merged.mean ),
                 "median": functools.partial( merged.median ),
-                "max": functools.partial( merged.max )}
+                "max": functools.partial( merged.max ),
+                "min": functools.partial( merged.min )}
     
     for avg in args.average_type:
         print "Performing {}".format(avg)
