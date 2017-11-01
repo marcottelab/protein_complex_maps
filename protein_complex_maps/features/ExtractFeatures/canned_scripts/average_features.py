@@ -28,7 +28,12 @@ if __name__ == '__main__':
             df = pd.read_csv(f,index_col=[0,1])
         assert len(df.columns) == 1, "Files should be DataFrames should have just one column"
         feature = df.columns[0]
-        df.columns = [f.split(".")[0]]
+        
+        if "/" in f: # f contains a full path, probably
+            df.columns = [f.split("/")[-1].split(".")[0]]
+        else:
+            df.columns = [f.split(".")[0]]
+            
         if is_first:
             merged = df
             is_first = False
