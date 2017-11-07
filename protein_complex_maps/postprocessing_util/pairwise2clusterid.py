@@ -23,6 +23,8 @@ def main():
                                     help="Output values for features in input_feature_matrix specified by --features")
     parser.add_argument("--id_columns", action="store", nargs='+', dest="id_columns", required=False, default=None,
                                     help="Names of columns for ids in input_feature_matrix")
+    parser.add_argument("--interaction_type", action="store", dest="interaction_type", required=False, default='pp', 
+                                    help="For edge attribute, describe relationship")
     parser.add_argument("--output_filename", action="store", dest="out_filename", required=True,
                                             help="Output filename ")
     args = parser.parse_args()
@@ -80,9 +82,9 @@ def main():
                         #out_list.append(str(feature_table[feature_table['frozenset_ids_str_order'] == ids_str_order][field].values[0] != 0.0))
                         out_list.append(str( feature_table.loc[ids_str_order][field] != 0.0))
 
-                fout.write("%s (pp) %s\t%s\t%s" % (id1, id2, score, "\t".join(out_list)))
+                fout.write("%s (%s) %s\t%s\t%s" % (id1, args.interaction_type, id2, score, "\t".join(out_list)))
             else:
-                fout.write("%s (pp) %s\t%s" % (id1, id2, score))
+                fout.write("%s (%s) %s\t%s" % (id1, args.interaction_type, id2, score))
             fout.write("\n")
 
     fout.close()

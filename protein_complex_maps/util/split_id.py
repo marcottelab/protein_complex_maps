@@ -24,21 +24,34 @@ def main():
     args = parser.parse_args()
 
     labeled = pd.read_csv(args.input_labeled,sep=args.sep)
+<<<<<<< HEAD
     print("get ID column")
+=======
+
+>>>>>>> 6e424990d3e8b86a8de467b0ab14cea676c50e62
     only_id = labeled[args.id_column]  
     ID = args.id_column 
 
     #cdm Split 'IDsepID' to 'ID' 'ID'
+<<<<<<< HEAD
     print("splitting IDs")
+=======
+>>>>>>> 6e424990d3e8b86a8de467b0ab14cea676c50e62
     new_labels= only_id.str.rsplit(n=1, expand=True)
  
     new_labels.columns=['key1', 'key2']
 
 
+<<<<<<< HEAD
     print("get label")
     if args.label_column:
            only_label = labeled[args.label_column]
            print("add labels to IDs")
+=======
+    if args.label_column:
+           only_label = labeled[args.label_column]
+
+>>>>>>> 6e424990d3e8b86a8de467b0ab14cea676c50e62
            new_labels = pd.concat([new_labels, only_label], axis=1)
     
     new_labels.to_csv(args.output_file,sep=" ",index=False,header=True)
