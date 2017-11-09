@@ -42,8 +42,9 @@ def main():
 def merge_complexes(in_predicted_clusters, merge_threshold, complex_size = None, remove_largest=False, remove_large_subcomplexes=False):
 
     #kdrew: threshold on the number of subunits a complex can have, ie. throws out large complex, None keeps all complexes
+    #CDM: Have to split compplexes first. this just found the line length of the cluster, not the number of members)
     if complex_size != None:
-        in_predicted_clusters_trim = [c for c in in_predicted_clusters if len(c) <= complex_size]
+        in_predicted_clusters_trim = [c for c in in_predicted_clusters if len(c.split(' ')) <= complex_size]
 
         if remove_large_subcomplexes:
 
