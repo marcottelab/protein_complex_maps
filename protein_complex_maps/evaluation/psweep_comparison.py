@@ -3,7 +3,7 @@ import argparse
 import numpy as np
 import multiprocessing as mp
 
-import protein_complex_maps.complex_comparison as cc
+import protein_complex_maps.evaluation.complex_comparison as cc
 
 
 def main():

@@ -3,7 +3,7 @@ import argparse
 import numpy as np
 import random
 
-import protein_complex_maps.features.clustering_parameter_optimization as cpo
+import protein_complex_maps.clustering.clustering_parameter_optimization as cpo
 
 
 def main():

@@ -13,6 +13,7 @@ import tempfile as tf
 import shutil
 
 
+#kdrew: CLAIRE WTF!?!
 #sys.path.append('/project/cmcwhite/protein_complex_maps/protein_complex_maps')
 
 
@@ -20,7 +21,7 @@ import shutil
 import networkx as nx
 import agglomcluster.agglomod as ag
 
-import protein_complex_maps.complex_comparison as cc
+import protein_complex_maps.evaluation.complex_comparison as cc
 
 def main():
 
@@ -615,6 +616,9 @@ def cluster_helper(parameter_dict):
 
     if trim2threshold:
         predicted_clusters = trim_clusters2threshold(predicted_clusters, threshold_score, ppi_scores)
+
+    #kdrew: TODO merge complexes to elminiate redundancy
+    #kdrew: use complex_merge.merge_complexes with merge_threshold 1.0
 
     return predicted_clusters, i
 

@@ -3,7 +3,7 @@
 # Unit tests for comparing clusters to gold standard complexes
 
 import unittest
-import protein_complex_maps.complex_comparison as cc
+import protein_complex_maps.evaluation.complex_comparison as cc
 import numpy as np
 import random
 import numpy.random as nr

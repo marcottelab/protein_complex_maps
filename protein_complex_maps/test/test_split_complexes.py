@@ -3,7 +3,7 @@
 # Unit tests for splitting gold standard complexes into test and training
 
 import unittest
-import protein_complex_maps.features.split_complexes as sc
+import protein_complex_maps.preprocessing_util.complexes.split_complexes as sc
 import numpy as np
 import pandas as pd
 

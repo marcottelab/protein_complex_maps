@@ -6,7 +6,7 @@ import multiprocessing as mp
 import random
 import itertools as it
 
-import protein_complex_maps.complex_comparison as cc
+import protein_complex_maps.evaluation.complex_comparison as cc
 import protein_complex_maps.complexes.psweep_comparison as pc
 
 
