@@ -138,7 +138,11 @@
         <tbody>
             {% for prot in comp.proteins %}
                 <tr>
-                    <td>{{ prot.genename() }}</td>
+                    {% if prot.id in prot_ids %}
+                        <td><strong>{{ prot.genename() }}</strong></td>
+                    {% else %}
+                        <td>{{ prot.genename() }}</td>
+                    {% endif %}
                     <td>
                         {% for comp in prot.complexes %}
                             {{ comp.complex_link()|safe }}

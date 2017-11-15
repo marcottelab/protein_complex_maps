@@ -79,6 +79,9 @@ def displayComplexesForListOfGeneNames():
     #kdrew: do error checking
     error=None
 
+    #print listOfGenenames
+
+    all_genes = []
     for genename in listOfGenenames:
         #print genename
         #kdrew: tests to see if genename is a valid genename
@@ -90,9 +93,13 @@ def displayComplexesForListOfGeneNames():
 
             return render_template('index.html', form=form, complexes=[], error=error)
 
+        all_genes = all_genes + genes
+
+    #print [g.genename for g in all_genes]
 
     complexes = []
-    for gene in genes:
+    all_proteins = []
+    for gene in all_genes:
         try:
             proteins = db.session.query(cdb.Protein).filter((cdb.Protein.gene_id == gene.gene_id)).all()
 
@@ -101,6 +108,8 @@ def displayComplexesForListOfGeneNames():
             error = "Could not find given genename: %s" % genename
 
             return render_template('index.html', form=form, complexes=[], error=error)
+
+        all_proteins = all_proteins + proteins
 
         for protein in proteins:
             try:
@@ -113,7 +122,8 @@ def displayComplexesForListOfGeneNames():
 
     complexes = list(set(complexes))
 
-    return render_template('index.html', form=form, complexes=complexes, error=error)
+    #print [p.id for p in all_proteins]
+    return render_template('index.html', form=form, complexes=complexes, prot_ids=[p.id for p in all_proteins], error=error)
 
 @app.route("/displayComplexesForEnrichment")
 def displayComplexesForEnrichment():
