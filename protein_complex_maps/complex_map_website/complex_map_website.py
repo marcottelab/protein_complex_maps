@@ -89,9 +89,11 @@ def displayComplexesForListOfGeneNames():
 
         if len(genes) == 0:
             #kdrew: input genename is not valid, flash message
-            error = "Could not find given genename: %s" % genename
+            if error == None:
+                error = ""
+            error = error + "Could not find genename: %s\n" % genename
 
-            return render_template('index.html', form=form, complexes=[], error=error)
+            #return render_template('index.html', form=form, complexes=[], error=error)
 
         all_genes = all_genes + genes
 
@@ -99,28 +101,46 @@ def displayComplexesForListOfGeneNames():
 
     complexes = []
     all_proteins = []
+    error_proteins = []
     for gene in all_genes:
         try:
             proteins = db.session.query(cdb.Protein).filter((cdb.Protein.gene_id == gene.gene_id)).all()
 
         except NoResultFound:
+            if error == None:
+                error = ""
             #kdrew: input genename is not valid, flash message
-            error = "Could not find given genename: %s" % genename
+            error = error + "Could not find genename: %s\n" % gene.genename
 
-            return render_template('index.html', form=form, complexes=[], error=error)
+            #return render_template('index.html', form=form, complexes=[], error=error)
 
         all_proteins = all_proteins + proteins
 
+        error_proteins_current = []
         for protein in proteins:
+            if len(protein.complexes) == 0:
+                error_proteins_current.append(protein)
             try:
                 complexes = complexes + protein.complexes
+                #kdrew: if found complexes for any of the proteins attached to gene then do not report error
+                error_proteins_current = []
             except NoResultFound:
                 continue
 
-    if len(complexes) == 0:
-        error = "No complexes found for given genename: %s" % genename
+        #kdrew: add proteins from this iteration that did not have complexes to the list of error proteins
+        error_proteins = error_proteins + error_proteins_current
 
-    complexes = list(set(complexes))
+    if len(complexes) == 0:
+        if error == None:
+            error = ""
+        error = error + "No complexes found for genenames: %s\n" % ', '.join([g.genename for g in all_genes])
+    if len(error_proteins) > 0:
+        if error == None:
+            error = ""
+        error = error + "No complexes found for genenames: %s\n" % ', '.join([p.genename() for p in error_proteins])
+
+    #complexes = list(set(complexes))
+    complexes = [x[1] for x in sorted(((complexes.count(e), e) for e in set(complexes)), reverse=True)]
 
     #print [p.id for p in all_proteins]
     return render_template('index.html', form=form, complexes=complexes, prot_ids=[p.id for p in all_proteins], error=error)
