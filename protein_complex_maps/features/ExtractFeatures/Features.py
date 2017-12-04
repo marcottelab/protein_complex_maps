@@ -50,7 +50,7 @@ class Elut():
         if format == 'csv':
             self.df = pd.read_csv(infile,index_col=0).astype("float")
         #kdrew: should this be tsv?
-        elif format == 'csv':
+        elif format == 'tsv':
             self.df = pd.read_table(infile,index_col=0).astype("float")
         else:
             raise Exception("<format> must be either 'csv' or 'tsv'")
