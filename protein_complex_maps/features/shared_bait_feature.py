@@ -148,9 +148,12 @@ def shared_bait_feature(feature_table, bait_id_column, id_column, bh_correct=Fal
         print (feature_shared_bait_table_geneid)
         feature_shared_bait_table_geneid = feature_shared_bait_table_geneid.reset_index()
         ks_geneid = feature_shared_bait_table_geneid.groupby('IDs_tup')['bait_id_column_str'].nunique()
-        print(ks_geneid)
-        ms_geneid = feature_table[feature_table[id_column] == geneid]['bait_id_column_str'].nunique()
-        print(ms_geneid)
+        print("ks_geneid: %s" % ks_geneid)
+        #print("feature_table")
+        #print(feature_table)
+        ms_geneid = feature_table[feature_table[id_column] == geneid].index.nunique()
+        print("ms_geneid: %s" % ms_geneid)
+
     print("#### done printing feature_table_geneid tables ####")
 
     #cmcwhite: join table to itself to get pairs of proteins with same bait
