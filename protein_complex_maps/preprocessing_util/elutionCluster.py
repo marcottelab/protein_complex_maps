@@ -27,6 +27,8 @@ def main():
     joined_elutions = pd.DataFrame()
     for f in args.input_elutions:
         df = pd.read_table(f,index_col=0)
+        if "TotalCount" in df.columns:
+            df.drop("TotalCount",inplace=True,axis=1)
         joined_elutions = joined_elutions.join(df, how='outer')
     
     joined_elutions.fillna(0,inplace=True) # is this kosher? Put it in because I got and error clustering: ValueError: The condensed distance matrix must contain only finite values.
