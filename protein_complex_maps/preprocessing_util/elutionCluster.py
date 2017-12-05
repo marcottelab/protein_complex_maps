@@ -13,7 +13,7 @@ def main():
     parser.add_argument("--outfile", action="store", dest="outfile", required=True, help="Name of outfile. Must end with .xlsx")
     parser.add_argument("--hclust_method", action="store",dest="hclust_method",required=False,default='average',choices=["single","complete","average","weighted","centroid","median","ward"],help="Method for hierarchical clustering of rows. Only activated if --write_verbose_file if True")
     parser.add_argument("--hclust_metric", action="store",dest="hclust_metric",required=False,default="euclidean",choices=["euclidean","canberra","braycurtis","pearson","spearman"],help="Distance or correlation metric used for clustering")
-    parser.add_argument("--path_to_annotations", action='store', dest='path_to_annotations', required=False, default=None, help="Path to annotations file. A tab-delimited file with protein ids in first column and annotations in second. Must also specify --write_verbose_file")
+    parser.add_argument("--path_to_annotations", action='store', dest='path_to_annotations', required=False, default=None, help="Path to annotations file. A tab-delimited file with protein ids in first column and annotations in second.")
     
     args = parser.parse_args()
     
