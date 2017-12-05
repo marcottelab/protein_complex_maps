@@ -58,7 +58,7 @@ def main():
     
     if args.path_to_annotations != None:
         print "Adding annotations"
-        annots = pd.read_table(args.path_to_annotations,index_col=0,header=None,names=["annotation"])
+        annots = pd.read_table(args.path_to_annotations,index_col=0)
         #print "length of annotation df: {}".format(len(annots)) # Debugging
         annotated_df = annots.join(joined_elutions,how='right')
     
