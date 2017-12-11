@@ -14,6 +14,7 @@ def main():
     parser.add_argument("--hclust_method", action="store",dest="hclust_method",required=False,default='average',choices=["single","complete","average","weighted","centroid","median","ward"],help="Method for hierarchical clustering of rows")
     parser.add_argument("--hclust_metric", action="store",dest="hclust_metric",required=False,default="euclidean",choices=["euclidean","canberra","braycurtis","pearson","spearman"],help="Distance or correlation metric used for clustering")
     parser.add_argument("--path_to_annotations", action='store', dest='path_to_annotations', required=False, default=None, help="Path to annotations file. A tab-delimited file with protein ids in first column and annotations in second")
+    parser.add_argument("--elution_separator", action='store', dest='sep', required=False, default="\t", help="Separator used for input elution profiles, default='\t'")
     
     args = parser.parse_args()
     
@@ -26,12 +27,15 @@ def main():
     
     joined_elutions = pd.DataFrame()
     for f in args.input_elutions:
-        df = pd.read_table(f,index_col=0)
+        #df = pd.read_table(f,index_col=0)
+        df = pd.read_csv(f,index_col=0, sep=args.sep)
         if "TotalCount" in df.columns:
             df.drop("TotalCount",inplace=True,axis=1)
         joined_elutions = joined_elutions.join(df, how='outer')
-    
-    joined_elutions.fillna(0,inplace=True) # is this kosher? Put it in because I got and error clustering: ValueError: The condensed distance matrix must contain only finite values.
+
+    # is this kosher? Put it in because I got and error clustering: ValueError: The condensed distance matrix must contain only finite values.
+    #kdrew: should be, likely due to proteins missing in one or the other joined elution profiles from the outer join above, zero makes sense if not seen
+    joined_elutions.fillna(0,inplace=True) 
     
     print "Clustering method={}, metric={}".format(args.hclust_method,args.hclust_metric)
         
