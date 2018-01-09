@@ -11,8 +11,13 @@ def main():
     parser = argparse.ArgumentParser(description="Split gold standard complexes into test and training")
     parser.add_argument("--input_complexes", action="store", dest="complex_filename", required=True, 
                                     help="Filename of gold standard complexes")
+    parser.add_argument("--random_seed", action="store", type=int, dest="random_seed", required=False, default=None,
+                                    help="Random seed for shuffling, default=None")
     args = parser.parse_args()
 
+    if args.random_seed != None:
+        print "setting random seed"
+        np.random.seed(args.random_seed)
 
     #kdrew: origin of this code is from ipython notebook: corum_test_train_revisit, heavily refactored and modified
 
@@ -43,22 +48,26 @@ def main():
 
     test_out = open(test_ppis_clean_filename,"wb")
     for ppi in test_ppis_clean:
-        test_out.write("%s\t%s\n" % (list(ppi)[0], list(ppi)[1]))
+        #test_out.write("%s\t%s\n" % (list(ppi)[0], list(ppi)[1]))
+        test_out.write("%s\t%s\n" % (tuple(sorted(ppi))))
     test_out.close()
 
     train_out = open(train_ppis_clean_filename,"wb")
     for ppi in train_ppis_clean:
-        train_out.write("%s\t%s\n" % (list(ppi)[0], list(ppi)[1]))
+        #train_out.write("%s\t%s\n" % (list(ppi)[0], list(ppi)[1]))
+        train_out.write("%s\t%s\n" % (tuple(sorted(ppi))))
     train_out.close()
 
     neg_test_out = open(neg_test_ppis_clean_filename,"wb")
     for ppi in neg_test_ppis_clean:
-        neg_test_out.write("%s\t%s\n" % (list(ppi)[0], list(ppi)[1]))
+        #neg_test_out.write("%s\t%s\n" % (list(ppi)[0], list(ppi)[1]))
+        neg_test_out.write("%s\t%s\n" % (tuple(sorted(ppi))))
     neg_test_out.close()
 
     neg_train_out = open(neg_train_ppis_clean_filename,"wb")
     for ppi in neg_train_ppis_clean:
-        neg_train_out.write("%s\t%s\n" % (list(ppi)[0], list(ppi)[1]))
+        #neg_train_out.write("%s\t%s\n" % (list(ppi)[0], list(ppi)[1]))
+        neg_train_out.write("%s\t%s\n" % (tuple(sorted(ppi))))
     neg_train_out.close()
 
 
