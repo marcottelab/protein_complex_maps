@@ -41,19 +41,28 @@ def main():
     args = parser.parse_args()
 
 
-    pos_ppis = pd.DataFrame(pd.read_table(args.positives, sep=args.ppi_sep, header=None))
+    pos_ppis = pd.DataFrame(pd.read_table(args.positives, sep=args.ppi_sep, header=None, converters={0: str, 1: str}))
     pos_ppis.columns = ['ID1','ID2']
     if not ap.alphabetized_check(pos_ppis, ['ID1','ID2']):
-        sys.exit("ERROR: input_positives are not alphabetized, please run alphabetize_pairs.py")
+        print("alphabetizing positives ppis")
+        pos_ppis = ap.alphabetize_df(pos_ppis, [list(pos_ppis.columns).index(x) for x in ['ID1','ID2']])
+        if not ap.alphabetized_check(pos_ppis, ['ID1','ID2']):
+            sys.exit("ERROR: input_positives are not alphabetized, please run alphabetize_pairs.py")
+
     print(pos_ppis)
+    print(pos_ppis['ID1'])
+    print(pos_ppis['ID2'])
     print("size of pos_pos_ppis: %s" % len(pos_ppis))
     pos_ppis['label'] = 1
     pos_ppis['ID'] = pos_ppis['ID1'] + args.id_sep + pos_ppis['ID2']
 
-    neg_ppis = pd.DataFrame(pd.read_table(args.negatives, sep=args.ppi_sep, header=None))
+    neg_ppis = pd.DataFrame(pd.read_table(args.negatives, sep=args.ppi_sep, header=None,converters={0: str, 1: str}))
     neg_ppis.columns = ['ID1','ID2']
     if not ap.alphabetized_check(neg_ppis, ['ID1','ID2']):
-        sys.exit("ERROR: input_negatives are not alphabetized, please run alphabetize_pairs.py")
+        print("alphabetizing negatives ppis")
+        neg_ppis = ap.alphabetize_df(neg_ppis, [list(neg_ppis.columns).index(x) for x in ['ID1','ID2']])
+        if not ap.alphabetized_check(neg_ppis, ['ID1','ID2']):
+            sys.exit("ERROR: input_negatives are not alphabetized, please run alphabetize_pairs.py")
     print(neg_ppis)
     neg_ppis['label'] = -1
     neg_ppis['ID'] = neg_ppis['ID1'] + args.id_sep + neg_ppis['ID2']
@@ -74,7 +83,12 @@ def main():
     #feature_table['ID'] = feature_table['ID'].apply(" ".join)
 
     if not ap.alphabetized_check(feature_table, args.id_column):
-        sys.exit("ERROR: feature_matrix is not alphabetized, please run alphabetize_pairs.py")
+        print("alphabetizing feature matrix")
+        feature_table = ap.alphabetize_df(feature_table, [list(feature_table.columns).index(x) for x in args.id_column])
+        if not ap.alphabetized_check(feature_table, args.id_column):
+            sys.exit("ERROR: feature_matrix is not alphabetized, please run alphabetize_pairs.py")
+
+
     #kdrew: if multiple ids were passed in, combine into a string
     feature_table['ID'] = feature_table[args.id_column].apply(lambda x: args.id_sep.join(map(str,x)), axis=1)
 
