@@ -99,11 +99,12 @@ def main():
         else:
             scale_outfile = outfile
         scale_outfile.write("#create_cv_commands: scaling train and leaveout files\n")
+        #kdrew: keep commands on same line separated by ';' so that they are run together in sequential order. The second command relies on the first
         if args.scale_file == None:
-            scale_outfile.write("%ssvm-scale -s %s.scale_parameters %s.libsvm > %s_scale.libsvm\n" % (libsvm_dir, base_train_file, base_train_file, base_train_file))
+            scale_outfile.write("%ssvm-scale -s %s.scale_parameters %s.libsvm > %s_scale.libsvm;" % (libsvm_dir, base_train_file, base_train_file, base_train_file))
             scale_outfile.write("%ssvm-scale -r %s.scale_parameters %s.libsvm > %s_scale.libsvm\n" % (libsvm_dir, base_train_file, base_leaveout_file, base_leaveout_file))
         else:
-            scale_outfile.write("%ssvm-scale -r %s.scale_parameters %s.libsvm > %s_scale.libsvm\n" % (libsvm_dir, args.scale_file, base_train_file, base_train_file))
+            scale_outfile.write("%ssvm-scale -r %s.scale_parameters %s.libsvm > %s_scale.libsvm;" % (libsvm_dir, args.scale_file, base_train_file, base_train_file))
             scale_outfile.write("%ssvm-scale -r %s.scale_parameters %s.libsvm > %s_scale.libsvm\n" % (libsvm_dir, args.scale_file, base_leaveout_file, base_leaveout_file))
 
         for cvalue in args.c_values:
