@@ -21,8 +21,8 @@ def main():
                                     help="List of C parameter values to evaluate, default = 0.00390625 0.0078125 2 32 128")
     parser.add_argument("--gamma_values", action="store", dest="gamma_values", nargs='+', type=float, required=False, default=[0.015625, 0.03125, 0.0625, 0.125, 0.5],
                                     help="List of gamma parameter values to evaluate, default = 0.015625 0.03125 0.0625 0.125 0.5")
-    parser.add_argument("--kernal_values", action="store", dest="kernal_values", nargs='+', type=int, required=False, default=[2],
-                                    help="List of kernal values 0=linear, 1=poly, 2=rbf (see svm-train docs for more), default = 2 (rbf)")
+    parser.add_argument("--kernel_values", action="store", dest="kernel_values", nargs='+', type=int, required=False, default=[2],
+                                    help="List of kernel values 0=linear, 1=poly, 2=rbf (see svm-train docs for more), default = 2 (rbf)")
     parser.add_argument("--id_columns", action="store", dest="id_columns", nargs='+', required=True, 
                                     help="Names of columns that store protein ids")
     parser.add_argument("--split_train_predict_scripts", action="store_true", dest="split_train_predict_scripts", required=False,  default=False,
@@ -109,13 +109,13 @@ def main():
 
         for cvalue in args.c_values:
             for gvalue in args.gamma_values:
-                for kvalue in args.kernal_values:
+                for kvalue in args.kernel_values:
 
                     #kdrew: output plumbing, point output to their proper files
                     if args.split_train_predict_scripts:
                         #kdrew: create separate scripts for each C and gamma parameter pair
-                        parameter_outfile = open("%s.kernal%s.C%s.g%s.%s.sh" % ('.'.join(args.output_script_name.split('.')[:-1]), kvalue, cvalue, gvalue, i), "wb")
-                        parameter_outfile.write("#create_cv_commands: commands for kernal=%s, C=%s and gamma=%s\n" % (kvalue, cvalue, gvalue))
+                        parameter_outfile = open("%s.kernel%s.C%s.g%s.%s.sh" % ('.'.join(args.output_script_name.split('.')[:-1]), kvalue, cvalue, gvalue, i), "wb")
+                        parameter_outfile.write("#create_cv_commands: commands for kernel=%s, C=%s and gamma=%s\n" % (kvalue, cvalue, gvalue))
                         train_file = parameter_outfile
                         predict_file = parameter_outfile
                         results2pairs_file = parameter_outfile
@@ -124,7 +124,7 @@ def main():
                         predict_file = predict_group_outfile
                         results2pairs_file = results2pairs_group_outfile
                     else:
-                        outfile.write("#create_cv_commands: commands for kernal=%s, C=%s and gamma=%s\n" % (kvalue, cvalue, gvalue))
+                        outfile.write("#create_cv_commands: commands for kernel=%s, C=%s and gamma=%s\n" % (kvalue, cvalue, gvalue))
                         train_file = outfile
                         predict_file = outfile
                         results2pairs_file = outfile
@@ -140,7 +140,7 @@ def main():
                     if args.split_train_predict_scripts:
                         parameter_outfile.close()
 
-                #kdrew: end of kernal_values for loop
+                #kdrew: end of kernel_values for loop
             #kdrew: end of gamma_values for loop
         #kdrew: end of cvalues for loop
 
