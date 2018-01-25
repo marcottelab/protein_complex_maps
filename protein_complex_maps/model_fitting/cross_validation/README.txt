@@ -1,3 +1,4 @@
 
-TODO: determine if prcurve.py here is redundant with src/evaluation/prcurve.py
+
+Scripts for doing cross validation grid search for meta parameters
 
