@@ -1,4 +1,5 @@
 
+import os
 import argparse
 
 def main():
@@ -63,17 +64,26 @@ def main():
         base_leaveout_file = base_leaveout_file + "." +  args.feature_id
         #kdrew: convert to libsvm format
         outfile.write("#create_cv_commands: converting to libsvm format\n")
-        outfile.write("python %s/protein_complex_maps/svm_utils/feature2libsvm.py --input_feature_matrix %s --output_filename %s.%s.libsvm --features %s --label_column label --sep ,\n" % (args.scripts_dir, train_file, base_train_file, ' '.join(feats)))
-        outfile.write("python %s/protein_complex_maps/svm_utils/feature2libsvm.py --input_feature_matrix %s --output_filename %s.%s.libsvm --features %s --label_column label --sep , \n" % (args.scripts_dir, leaveout_file, base_leaveout_file, ' '.join(feats)))
+        outfile.write("python %s/protein_complex_maps/model_fitting/svm_utils/feature2libsvm.py --input_feature_matrix %s --output_filename %s.libsvm --features %s --label_column label --sep ,\n" % (args.scripts_dir, train_file, base_train_file, ' '.join(feats)))
+        outfile.write("python %s/protein_complex_maps/model_fitting/svm_utils/feature2libsvm.py --input_feature_matrix %s --output_filename %s.libsvm --features %s --label_column label --sep , \n" % (args.scripts_dir, leaveout_file, base_leaveout_file, ' '.join(feats)))
+
+        #kdrew: if no libsvm_dir is passed in then use the one in path, if it is passed in, add a '/' so it is a directory
+        libsvm_dir = args.libsvm_dir
+        if libsvm_dir != "":
+            libsvm_dir = libsvm_dir + "/"
+
+            assert os.path.isfile("%ssvm-scale" % libsvm_dir) 
+            assert os.path.isfile("%ssvm-train" % libsvm_dir) 
+            assert os.path.isfile("%ssvm-predict" % libsvm_dir) 
 
         #kdrew: scale
         outfile.write("#create_cv_commands: scaling train and leaveout files\n")
         if args.scale_file == None:
-            outfile.write("%s/svm-scale -s %s.scale_parameters %s.libsvm > %s_scale.libsvm\n" % (args.libsvm_dir, base_train_file, base_train_file, base_train_file))
-            outfile.write("%s/svm-scale -r %s.scale_parameters %s.libsvm > %s_scale.libsvm\n" % (args.libsvm_dir, base_train_file, base_leaveout_file, base_leaveout_file))
+            outfile.write("%ssvm-scale -s %s.scale_parameters %s.libsvm > %s_scale.libsvm\n" % (libsvm_dir, base_train_file, base_train_file, base_train_file))
+            outfile.write("%ssvm-scale -r %s.scale_parameters %s.libsvm > %s_scale.libsvm\n" % (libsvm_dir, base_train_file, base_leaveout_file, base_leaveout_file))
         else:
-            outfile.write("%s/svm-scale -r %s.scale_parameters %s.libsvm > %s_scale.libsvm\n" % (args.libsvm_dir, args.scale_file, base_train_file, base_train_file))
-            outfile.write("%s/svm-scale -r %s.scale_parameters %s.libsvm > %s_scale.libsvm\n" % (args.libsvm_dir, args.scale_file, base_leaveout_file, base_leaveout_file))
+            outfile.write("%ssvm-scale -r %s.scale_parameters %s.libsvm > %s_scale.libsvm\n" % (libsvm_dir, args.scale_file, base_train_file, base_train_file))
+            outfile.write("%ssvm-scale -r %s.scale_parameters %s.libsvm > %s_scale.libsvm\n" % (libsvm_dir, args.scale_file, base_leaveout_file, base_leaveout_file))
 
         for cvalue in args.c_values:
             for gvalue in args.gamma_values:
@@ -86,12 +96,12 @@ def main():
                 parameter_outfile.write("#create_cv_commands: commands for C=%s and gamma=%s\n" % (cvalue, gvalue))
 
                 #kdrew: train
-                parameter_outfile.write("%s/svm-train -b 1 -c %s -g %s %s_scale.libsvm %s.libsvm.scale.model_c%s_g%s\n" % (args.libsvm_dir, cvalue, gvalue, base_train_file, base_train_file, cvalue, gvalue))
+                parameter_outfile.write("%ssvm-train -b 1 -c %s -g %s %s_scale.libsvm %s.libsvm.scale.model_c%s_g%s\n" % (libsvm_dir, cvalue, gvalue, base_train_file, base_train_file, cvalue, gvalue))
                 #kdrew: predict
-                parameter_outfile.write("%s/svm-predict -b 1 %s_scale.libsvm %s.libsvm.scale.model_c%s_g%s %s.libsvm.scale.c%s_g%s.resultsWprob\n" % (args.libsvm_dir,base_leaveout_file, base_train_file, cvalue, gvalue, base_leaveout_file, cvalue, gvalue))
+                parameter_outfile.write("%ssvm-predict -b 1 %s_scale.libsvm %s.libsvm.scale.model_c%s_g%s %s.libsvm.scale.c%s_g%s.resultsWprob\n" % (libsvm_dir,base_leaveout_file, base_train_file, cvalue, gvalue, base_leaveout_file, cvalue, gvalue))
                 #kdrew: pairwise fle
                 parameter_outfile.write("#create_cv_commands: reformat results into pairs\n")
-                parameter_outfile.write("python %s/protein_complex_maps/svm_utils/svm_results2pairs.py --input_feature_matrix %s --input_results %s.libsvm.scale.c%s_g%s.resultsWprob --output_file %s.libsvm.scale.c%s_g%s.resultsWprob_pairs_noself_nodups.txt --sep , --id_columns %s --label_not0 --add_prob\n" % (args.scripts_dir, leaveout_file, base_leaveout_file, cvalue, gvalue, base_leaveout_file, cvalue, gvalue, ' '.join(args.id_columns)))
+                parameter_outfile.write("python %s/protein_complex_maps/model_fitting/svm_utils/svm_results2pairs.py --input_feature_matrix %s --input_results %s.libsvm.scale.c%s_g%s.resultsWprob --output_file %s.libsvm.scale.c%s_g%s.resultsWprob_pairs_noself_nodups.txt --sep , --id_columns %s --label_not0 --add_prob\n" % (args.scripts_dir, leaveout_file, base_leaveout_file, cvalue, gvalue, base_leaveout_file, cvalue, gvalue, ' '.join(args.id_columns)))
 
                 if args.split_train_predict_scripts:
                     parameter_outfile.close()
