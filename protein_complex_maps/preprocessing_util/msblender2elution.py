@@ -22,7 +22,7 @@ def main():
     
     # Formatting flags
     parser.add_argument("--contaminant_flag", action='store', dest='contaminant_flag', required=False, default="CONTAMINANT",
-                        help="If specified, remove rows with this string from output file. Can specify None if you want to retain all rows for some reason")
+                        help="If specified, remove rows with this string from output file. Can specify None if you want to retain all rows for some reason, default=CONTAMINANT")
     parser.add_argument("--msblender_format", action="store_true", dest="msblender_format", required=False, default=False,
                         help="DEPRECATED: Original file format has the first column as the sum of all the columns, default=False")
     parser.add_argument("--parse_uniprot_id", action="store_true", dest="parse_uniprot_id", required=False, default=False,
