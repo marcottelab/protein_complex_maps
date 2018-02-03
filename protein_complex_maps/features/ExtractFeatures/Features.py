@@ -125,7 +125,8 @@ class ElutFeatures(Elut,features.FeatureFunctions,resampling.FeatureResampling):
                 "jensen_shannon",
                 "kullback_leibler",
                 "euclidean",
-                "covariance"]
+                "covariance",
+                "xcorr"]
                 
     resampling_strategies = ["poisson_noise",
                             "bootstrap"]

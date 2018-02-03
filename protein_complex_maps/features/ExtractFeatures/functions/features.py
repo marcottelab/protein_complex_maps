@@ -1,5 +1,6 @@
 import numpy as np
 import scipy.stats as stats
+import scipy.ndimage as ndimage
 import scipy.spatial.distance as dist
 import math
 
@@ -11,6 +12,24 @@ def js_pairs(P,Q,distance=False):
     if distance: # return the distance (a metric), the square root of the divergence
         return math.sqrt(js_diverg)
     return js_diverg # Better to return the divergence, which is bounded (0,1)
+
+def xcorr(P,Q, normalize=True):
+    '''Compute normalized cross correlation for two vectors
+       If normalize==True, will calculate (X - mean(all_lags)) / stdev(all_lags)            
+       Otherwise, it calculates only zero-lag value by default
+
+       np.correlate with 'full' arguments and for ex. lag = 2 returns vector with order:  
+             [-2lag, -1lag, 0lag, 1lag, 2lag], so the middle value is the zero lag correlation. 
+    '''
+    if normalize ==  True:
+        a = np.correlate(P, Q, "full")
+        xcorrval = (a[len(a)/2] - np.mean(a)) / np.std(a)
+
+    elif normalize == False:
+        xcorrval = np.correlate(P, Q)
+
+    return xcorrval
+
 
 class FeatureFunctions:
 
@@ -25,6 +44,10 @@ class FeatureFunctions:
     def _pearsonR(self,df):
         '''Return pearson correlation matrix'''
         return np.nan_to_num( np.corrcoef(df) )
+
+    def _xcorr(self,df):
+        '''Return cross correlation matrix'''
+        return dist.squareform( dist.pdist(df, lambda x,y: xcorr(x,y)) )
         
     def _spearmanR(self,df):
         '''Return spearman ranked correlation coeffienct matrix'''

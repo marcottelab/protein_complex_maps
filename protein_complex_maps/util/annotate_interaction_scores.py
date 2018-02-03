@@ -32,7 +32,9 @@ def main():
                                     help="Col name in annotation file that matches first two rows of input file")
     parser.add_argument('-t','--target_col', action="store", dest="target_col",  required=False, default=None, help="designate a specific column to full from annotation file")
 
-
+    parser.add_argument("--output_sep", action="store", dest="output_sep", required=False, default=' ', 
+                                    help="Sep of output file")
+  
     args = parser.parse_args()
 
     pairs = pd.read_csv(args.input_pairs,sep=args.sep, header=None)
@@ -43,7 +45,7 @@ def main():
 
     annotated = annotate_IDs(pairs,annots)
  
-    annotated.to_csv(args.output_file,sep=" ",index=False,header=True)
+    annotated.to_csv(args.output_file,sep='\t',index=False,header=True)
 
 if __name__ == "__main__":
     main()

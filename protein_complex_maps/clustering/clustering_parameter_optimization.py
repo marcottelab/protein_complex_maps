@@ -18,11 +18,7 @@ import networkx as nx
 import agglomcluster.agglomod as ag
 
 import protein_complex_maps.evaluation.complex_comparison as cc
-<<<<<<< HEAD
 import protein_complex_maps.preprocessing_util.complexes.complex_merge as cm
-=======
-import protein_complex_maps.evaluation.complex_merge as cm
->>>>>>> 6e424990d3e8b86a8de467b0ab14cea676c50e62
 
 def main():
 
