@@ -19,6 +19,23 @@ def sum_difference_pairs(P,Q):
     sum_abs_D = np.sum(abs_D)
     return sum_abs_D
 
+def xcorr(P,Q, zscore=True):
+    '''Compute normalized cross correlation for two vectors
+       If zscor==True, will calculate (X - mean(all_lags)) / stdev(all_lags)
+       Otherwise, it calculates only zero-lag value by default
+
+       np.correlate with 'full' arguments and for ex. lag = 2 returns vector with order:
+             [-2lag, -1lag, 0lag, 1lag, 2lag], so the middle value is the zero lag correlation.
+    '''
+    if zscore ==  True:
+        a = np.correlate(P, Q, "full")
+        xcorrval = (a[len(a)/2] - np.mean(a)) / np.std(a)
+
+    elif zscore == False:
+        xcorrval = np.correlate(P, Q)
+
+    return xcorrval
+
 class FeatureFunctions:
 
     '''All return a NxN matrix of features'''
@@ -29,18 +46,22 @@ class FeatureFunctions:
         '''Return matrix of Jensen-Shannon divergences'''
         return dist.squareform( dist.pdist(df, lambda x,y: js_pairs(x,y)) )
         
+    def _xcorr(self,df):
+        '''Return cross correlation matrix'''
+        return dist.squareform( dist.pdist(df, lambda x,y: xcorr(x,y)) )
+
     def _pearsonR(self,df):
         '''Return pearson correlation matrix'''
         return np.nan_to_num( np.corrcoef(df) )
         
     def _spearmanR(self,df):
-        '''Return spearman ranked correlation coeffienct matrix'''
+        '''Return spearman ranked correlation coefficient matrix'''
         rho,pval = stats.spearmanr(df.T)
         rho = np.nan_to_num(rho)
         return rho
         
     def _spearmanR_weighted(self,df):
-        '''Return spearman ranked correlation coeffienct matrix, weighted by the p-value'''
+        '''Return spearman ranked correlation coefficient matrix, weighted by the p-value'''
         rho,pval = stats.spearmanr(df.T)
         rho = np.nan_to_num(rho)
         pval = np.nan_to_num(pval)
