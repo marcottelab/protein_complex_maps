@@ -43,7 +43,7 @@ class Elut():
         except AssertionError:
             raise Exception("Multiple datatypes or non-float datatypes found in input DataFrame")
     
-    def load(self,infile,format='csv'):
+    def load(self,infile,format='tsv'):
         '''Read in data as pandas dataframe in wide format'''
         if not self.df is None:
             raise Exception("data already loaded")
