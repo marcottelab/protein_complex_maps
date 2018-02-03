@@ -130,7 +130,8 @@ class ElutFeatures(Elut,features.FeatureFunctions,resampling.FeatureResampling):
                 "canberra",
                 "braycurtis",
                 "cosine",
-                "sum_difference"]
+                "sum_difference",  
+                "xcorr"]
                 
     resampling_strategies = ["poisson_noise",
                             "bootstrap"]
