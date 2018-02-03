@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Unit tests for comparing clusters to gold standard complexes
+# Unit tests for elution features
 
 import unittest
 import protein_complex_maps.features.ExtractFeatures.Features as eff
@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 
-class SharedBaitFeatureTest(unittest.TestCase):
+class FeatureTest(unittest.TestCase):
 
     def setUp(self,):
 
