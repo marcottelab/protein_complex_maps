@@ -1,4 +1,5 @@
 from __future__ import print_function
+import sys
 import argparse
 import numpy as np
 import pandas as pd
@@ -179,6 +180,10 @@ def shared_bait_feature(feature_table, bait_id_column, id_column, bh_correct=Fal
     print(feature_table)
     print(feature_table.columns.values)
 
+    #kdrew: remove all rows that do not have a valid id
+    q_str = "%s == %s" % (id_column, id_column)
+    feature_table = feature_table.query(q_str)
+
     N = feature_table['bait_id_column_str'].nunique()
     feature_table['gene_id_str'] = feature_table[id_column].apply(str)
     #kdrew: number of experiments each gene_id is present in
@@ -261,6 +266,7 @@ def shared_bait_feature(feature_table, bait_id_column, id_column, bh_correct=Fal
 
 def shared_bait_feature_helper(geneid, feature_table, id_column, ms_values, N, denm, logchoose, transform_pvalue):
     print("geneid: %s" % geneid)
+    sys.stdout.flush()
     #kdrew: slice feature_table to only have a single id
     feature_table_geneid = feature_table[feature_table[id_column] == geneid] 
     #kdrew: join the sliced feature table with the entire feature table on the experiment column (ie. bait_id_column_str)
@@ -273,6 +279,7 @@ def shared_bait_feature_helper(geneid, feature_table, id_column, ms_values, N, d
     feature_shared_bait_table_geneid['IDs'] = map(sorted, zip(feature_shared_bait_table_geneid['gene_id1_str'].values, feature_shared_bait_table_geneid['gene_id2_str'].values))
     feature_shared_bait_table_geneid['IDs_tup'] = feature_shared_bait_table_geneid['IDs'].apply(tuple)
     print (feature_shared_bait_table_geneid)
+    sys.stdout.flush()
 
     #kdrew: calculate the number of experiments that each pair of proteins share
     feature_shared_bait_table_geneid = feature_shared_bait_table_geneid.reset_index()
@@ -280,6 +287,7 @@ def shared_bait_feature_helper(geneid, feature_table, id_column, ms_values, N, d
     ks_geneid = feature_shared_bait_table_geneid.groupby('gene_id2_str')['bait_id_column_str'].nunique()
     print("ks_geneid")
     print(ks_geneid)
+    sys.stdout.flush()
 
     return_output_dict2 = dict()
     return_output_dict2['gene_id1'] = []
