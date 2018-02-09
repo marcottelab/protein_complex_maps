@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Unit tests for comparing clusters to gold standard complexes
+# Unit tests for shared bait feature (hypergeometric test)
 
 import unittest
 import protein_complex_maps.features.shared_bait_feature as sbf
