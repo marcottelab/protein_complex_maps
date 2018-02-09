@@ -43,13 +43,14 @@ class Elut():
         except AssertionError:
             raise Exception("Multiple datatypes or non-float datatypes found in input DataFrame")
     
-    def load(self,infile,format='csv'):
+    def load(self,infile,format='tsv'):
         '''Read in data as pandas dataframe in wide format'''
         if not self.df is None:
             raise Exception("data already loaded")
         if format == 'csv':
             self.df = pd.read_csv(infile,index_col=0).astype("float")
-        elif format == 'csv':
+        #kdrew: should this be tsv?
+        elif format == 'tsv':
             self.df = pd.read_table(infile,index_col=0).astype("float")
         else:
             raise Exception("<format> must be either 'csv' or 'tsv'")
@@ -117,15 +118,19 @@ class ElutFeatures(Elut,features.FeatureFunctions,resampling.FeatureResampling):
     proteins/orthogroups in an elution experiment'''
     
     ### Notes:
-    ###     - Would be nice to add some meta data on bounds etc. for the features
+    ###     - To add features, put the name in this list, and then add a function to features.py
+    ###       with the same name but prepended with a single underscore.
     
     available_features = ["pearsonR",
                 "spearmanR",
                 "spearmanR_weighted",
                 "jensen_shannon",
-                "kullback_leibler",
+                "covariance",
                 "euclidean",
-                "covariance"]
+                "canberra",
+                "braycurtis",
+                "cosine",
+                "sum_difference"]
                 
     resampling_strategies = ["poisson_noise",
                             "bootstrap"]
@@ -159,7 +164,7 @@ class ElutFeatures(Elut,features.FeatureFunctions,resampling.FeatureResampling):
         
         # Assign the function to extract features
         feat = "_" + feature # because I'm hiding actual feature functions
-        assert hasattr(self,feat), "{} not in available features:\n{}".format(feature,available_features)
+        assert hasattr(self,feat), "{} not in available features:\n{}".format(feature,ElutFeatures.available_features)
         feat_func = getattr(self,feat) # lookup the relvant function
         
         self._analysis = {"feature": feature} # initialize or reset dictionary to hold information on which analysis was done

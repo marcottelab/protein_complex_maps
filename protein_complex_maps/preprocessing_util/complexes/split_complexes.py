@@ -11,8 +11,20 @@ def main():
     parser = argparse.ArgumentParser(description="Split gold standard complexes into test and training")
     parser.add_argument("--input_complexes", action="store", dest="complex_filename", required=True, 
                                     help="Filename of gold standard complexes")
+    parser.add_argument("--random_seed", action="store", type=int, dest="random_seed", required=False, default=None,
+                                    help="Random seed for shuffling, default=None")
+    parser.add_argument("--size_threshold", action="store", type=int, dest="size_threshold", required=False, default=None,
+                                    help="Threshold for complex size (suggested 30), default=None")
+    parser.add_argument("--remove_large_complexes", action="store_true", dest="remove_large_complexes", required=False, default=False,
+                                    help="Remove complexes above threshold, default=False")
+    parser.add_argument("--threshold_fraction", action="store", type=float, dest="threshold_fraction", required=False, default=None,
+                                    help="Fraction of pairs to include from size thresholded complexes (suggested 0.1), default=None")
+
     args = parser.parse_args()
 
+    if args.random_seed != None:
+        print "setting random seed"
+        np.random.seed(args.random_seed)
 
     #kdrew: origin of this code is from ipython notebook: corum_test_train_revisit, heavily refactored and modified
 
@@ -21,7 +33,7 @@ def main():
     for line in f.readlines():
         complexes.append(line.split())
 
-    test_list_clean, train_list_clean, test_ppis_clean, train_ppis_clean, neg_test_ppis_clean, neg_train_ppis_clean = split_complexes(complexes)
+    test_list_clean, train_list_clean, test_ppis_clean, train_ppis_clean, neg_test_ppis_clean, neg_train_ppis_clean = split_complexes(complexes, size_threshold=args.size_threshold, threshold_fraction=args.threshold_fraction, remove_large_complexes=args.remove_large_complexes)
 
     test_list_clean_filename = '.'.join(args.complex_filename.split('.')[:-1]) + '.test.txt'
     train_list_clean_filename = '.'.join(args.complex_filename.split('.')[:-1]) + '.train.txt' 
@@ -43,27 +55,31 @@ def main():
 
     test_out = open(test_ppis_clean_filename,"wb")
     for ppi in test_ppis_clean:
-        test_out.write("%s\t%s\n" % (list(ppi)[0], list(ppi)[1]))
+        #test_out.write("%s\t%s\n" % (list(ppi)[0], list(ppi)[1]))
+        test_out.write("%s\t%s\n" % (tuple(sorted(ppi))))
     test_out.close()
 
     train_out = open(train_ppis_clean_filename,"wb")
     for ppi in train_ppis_clean:
-        train_out.write("%s\t%s\n" % (list(ppi)[0], list(ppi)[1]))
+        #train_out.write("%s\t%s\n" % (list(ppi)[0], list(ppi)[1]))
+        train_out.write("%s\t%s\n" % (tuple(sorted(ppi))))
     train_out.close()
 
     neg_test_out = open(neg_test_ppis_clean_filename,"wb")
     for ppi in neg_test_ppis_clean:
-        neg_test_out.write("%s\t%s\n" % (list(ppi)[0], list(ppi)[1]))
+        #neg_test_out.write("%s\t%s\n" % (list(ppi)[0], list(ppi)[1]))
+        neg_test_out.write("%s\t%s\n" % (tuple(sorted(ppi))))
     neg_test_out.close()
 
     neg_train_out = open(neg_train_ppis_clean_filename,"wb")
     for ppi in neg_train_ppis_clean:
-        neg_train_out.write("%s\t%s\n" % (list(ppi)[0], list(ppi)[1]))
+        #neg_train_out.write("%s\t%s\n" % (list(ppi)[0], list(ppi)[1]))
+        neg_train_out.write("%s\t%s\n" % (tuple(sorted(ppi))))
     neg_train_out.close()
 
 
 #kdrew: split complexes into test and training, return orthogonal ppi sets
-def split_complexes(complexes): 
+def split_complexes(complexes, size_threshold=None, threshold_fraction=None, remove_large_complexes=False): 
 
     #kdrew: randomly shuffle complexes 
     np.random.shuffle(complexes)
@@ -73,73 +89,115 @@ def split_complexes(complexes):
 
     test_list_clean, train_list_clean = remove_overlapping_complexes(test_list, train_list)
 
-    #print "test_list"
-    #print test_list
-    #print "train_list"
-    #print train_list
-    
     #kdrew: for complexes in test_list, generate all pairs
     test_ppis = set()
+    #kdrew: holds all pairs regardless of thresholding
+    full_test_ppis = set()
     for clust in test_list:
+        #print "test clust"
+        #print clust
+        #kdrew: for large complexes sample only a fraction of pairs
+        if size_threshold != None and threshold_fraction != None and len(clust) > size_threshold:
+            large_pairs = [pair for pair in it.combinations( set( clust ), 2)]
+            np.random.shuffle(large_pairs)
+            #kdrew: calculate the index of a fraction of the list
+            fraction_index = int(len(large_pairs)*threshold_fraction)
+            for pair in large_pairs[:fraction_index]:
+                test_ppis.add(frozenset(pair))
+        else:
+            for pair in it.combinations( set( clust ), 2):
+                test_ppis.add(frozenset(pair))
+
+        #kdrew: holds all pairs regardless of thresholding
         for pair in it.combinations( set( clust ), 2):
-            test_ppis.add(frozenset(pair))
-
-    #print "test_ppis: "
-    #print test_ppis
-
+            full_test_ppis.add(frozenset(pair))
+    
     #kdrew: for complexes in train_list, generate all pairs
     train_ppis = set()
+    #kdrew: holds all pairs regardless of thresholding
+    full_train_ppis = set()
     for clust in train_list:
-        for pair in it.combinations( set( clust ), 2):
-            train_ppis.add(frozenset(pair))
+        #print "train clust"
+        #print clust
+        #kdrew: for large complexes sample only a fraction of pairs
+        if size_threshold != None and threshold_fraction != None and len(clust) > size_threshold:
+            large_pairs = [pair for pair in it.combinations( set( clust ), 2)]
+            np.random.shuffle(large_pairs)
+            #kdrew: calculate the index of a fraction of the list
+            fraction_index = int(len(large_pairs)*threshold_fraction)
+            for pair in large_pairs[:fraction_index]:
+                train_ppis.add(frozenset(pair))
+        else:
+            for pair in it.combinations( set( clust ), 2):
+                train_ppis.add(frozenset(pair))
 
-    #print "train_ppis: "
-    #print train_ppis
+        #kdrew: holds all pairs regardless of thresholding
+        for pair in it.combinations( set( clust ), 2):
+            full_train_ppis.add(frozenset(pair))
+    
 
     #kdrew: remove intersection from test and train ppi sets
     test_ppis_clean, train_ppis_clean = remove_intersection_random(test_ppis, train_ppis)
 
-    #print "test_ppis_clean: "
-    #print test_ppis_clean
+    #kdrew: remove test_ppis that show up in training list
+    test_ppis_overlap = set()
+    for clust in train_list_clean:
+        #print clust
+        for test_ppi in test_ppis_clean:
+            #print test_ppi
+            if test_ppi in [set(x) for x in it.combinations(clust,2)]:
+                test_ppis_overlap.add(test_ppi)
+    print "removing test_ppis overlapped with training clusters: %s" % len(test_ppis_overlap)
+    test_ppis_clean = test_ppis_clean - test_ppis_overlap
 
-    #print "train_ppis_clean: "
-    #print train_ppis_clean
-    
-    
+    #kdrew: remove train_ppis that show up in test list
+    train_ppis_overlap = set()
+    for clust in test_list_clean:
+        #print clust
+        for train_ppi in train_ppis_clean:
+            #print train_ppi
+            if train_ppi in [set(x) for x in it.combinations(clust,2)]:
+                train_ppis_overlap.add(train_ppi)
+    print "removing train_ppis overlapped with test clusters: %s" % len(train_ppis_overlap)
+    train_ppis_clean = train_ppis_clean - train_ppis_overlap
+
 
     #kdrew: generate negative ppi set for test
     #kdrew: generate set of all proteins in training and test set
     all_test_proteins = set()
-    for ppi in test_ppis:
+    for ppi in full_test_ppis:
         all_test_proteins = all_test_proteins.union(ppi)
     #kdrew: negative ppis are all pairs of proteins without those in the positive set
     test_neg_ppis = set()
     for cpair in it.combinations(all_test_proteins,2):
         pair = frozenset(cpair)
-        if pair not in test_ppis:
+        if pair not in full_test_ppis:
             test_neg_ppis.add(pair)
 
     #kdrew: generate negative ppi set for train
     all_train_proteins = set()
-    for ppi in train_ppis:
+    for ppi in full_train_ppis:
         all_train_proteins = all_train_proteins.union(ppi)
     #kdrew: negative ppis are all pairs of proteins without those in the positive set
     train_neg_ppis = set()
     for cpair in it.combinations(all_train_proteins,2):
         pair = frozenset(cpair)
-        if pair not in train_ppis:
+        if pair not in full_train_ppis:
             train_neg_ppis.add(pair)
 
 
     #kdrew: remove intersection from neg ppis sets
     neg_test_ppis_clean, neg_train_ppis_clean = remove_intersection_random(test_neg_ppis, train_neg_ppis)
 
-    #kdrew: remove intersection between neg_test_ppis_clean and train_ppis from neg_test_ppis_clean
-    neg_test_ppis_clean = remove_intersection(neg_test_ppis_clean, train_ppis)
+    #kdrew: remove intersection between neg_test_ppis_clean and full_train_ppis from neg_test_ppis_clean
+    neg_test_ppis_clean = remove_intersection(neg_test_ppis_clean, full_train_ppis)
 
-    #kdrew: remove intersection between neg_train_ppis_clean and test_ppis from neg_train_ppis_clean
-    neg_train_ppis_clean = remove_intersection(neg_train_ppis_clean, test_ppis)
+    #kdrew: remove intersection between neg_train_ppis_clean and full_test_ppis from neg_train_ppis_clean
+    neg_train_ppis_clean = remove_intersection(neg_train_ppis_clean, full_test_ppis)
 
+    if remove_large_complexes:
+        test_list_clean = [x for x in test_list_clean if len(x) <= size_threshold]
+        train_list_clean = [x for x in train_list_clean if len(x) <= size_threshold]
 
     return test_list_clean, train_list_clean, test_ppis_clean, train_ppis_clean, neg_test_ppis_clean, neg_train_ppis_clean
 

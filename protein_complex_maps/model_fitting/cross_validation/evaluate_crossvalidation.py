@@ -14,6 +14,8 @@ import pickle
 import pandas as pd
 import itertools as it
 
+import seaborn as sns
+
 from sklearn.metrics import precision_recall_curve
 from sklearn.metrics import average_precision_score
 
@@ -28,12 +30,16 @@ def main():
                                     help="Filename of negative pairs, default = None (generated from processing positives), files should be in order of results_wprob files")
     parser.add_argument("--output_file", action="store", dest="output_file", required=True, 
                                     help="Filename of output file")
+    parser.add_argument("--plot_heatmap", action="store_true", dest="plot_heatmap", required=False, default=False,
+                                    help="Plot heatmap of c and g values")
     parser.add_argument("--threshold_recall", action="store", type=float, dest="threshold_recall", required=False, 
                                     help="Only calculate predictions at recall threshold")
     parser.add_argument("--parse_filename", action="store_true", dest="parse_filename", required=False, default=False,
             help="Search filename for parameters and leaveout set id, (example results: leaveout0 and c2.0_g0.5, example ppis: leaveout_ppis0), default=False")
 
     args = parser.parse_args()
+
+    outfile = open(args.output_file,"wb")
 
     leaveout_regex = r"leaveout[0-9]+"
     leaveout_ppis_regex = r"leaveout_ppis[0-9]+"
@@ -82,9 +88,39 @@ def main():
 
         for item in sorted(cg_results.items(), key=operator.itemgetter(1)):
             k = item[0]
-            print "cg: %s mean pr auc: %s" % (k, cg_results[k]) 
+            outfile.write("cg: %s mean pr auc: %s\n" % (k, cg_results[k]) )
     else:
-        print "mean pr auc: %s" % calc_metric_files(args.results_wprob, args.positives, args.negatives)
+        outfile.write("mean pr auc: %s\n" % calc_metric_files(args.results_wprob, args.positives, args.negatives))
+
+    if args.plot_heatmap:
+        plot_heatmap(cg_results, args.output_file)
+
+def plot_heatmap(cg_results, output_file):
+    c_vals = set()
+    g_vals = set()
+    for cg in cg_results.keys():
+        #kdrew: ugly parsing to remove 'c' or 'g' of keys and turn into floats
+        c_vals.add(float(cg[0][1:]))
+        g_vals.add(float(cg[1][1:]))
+
+    c_vals = sorted(c_vals)
+    g_vals = sorted(g_vals)
+
+    results = []
+    for c in c_vals:
+        results2 = []
+        for g in g_vals:
+            try:
+                #kdrew: add 'c' and 'g' back into values for referencing results in dictionary
+                results2.append(cg_results[("c%s"%c,"g%s"%g)])
+            except KeyError:
+                results2.append(np.nan)
+        results.append(results2)
+    ax = sns.heatmap(results, xticklabels=g_vals, yticklabels=c_vals, cbar_kws={'label': 'Precision Recall AUC'})
+    ax.set(xlabel='gamma', ylabel='C')
+    plt.tight_layout()
+    
+    ax.get_figure().savefig("%s.pdf" % output_file)
 
 def calc_metric_files(results_wprob_filenames, positives_filenames, negatives_filenames):
 

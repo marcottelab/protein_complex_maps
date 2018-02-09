@@ -31,7 +31,7 @@ def main():
         if len(line.split()) > 1:
             in_predicted_clusters.add(frozenset(line.split()))
 
-    final_clusters = merge_complexes(in_predicted_clusters, args)
+    final_clusters = merge_complexes(in_predicted_clusters, args.merge_threshold, args.complex_size, args.remove_largest, args.remove_large_subcomplexes)
     outfile = open(args.output_filename,"wb")
     for cluster in final_clusters:
         outfile.write(" ".join(cluster) + '\n')
@@ -39,19 +39,19 @@ def main():
     outfile.close()
                 
 
-def merge_complexes(in_predicted_clusters, in_args):
+def merge_complexes(in_predicted_clusters, merge_threshold, complex_size = None, remove_largest=False, remove_large_subcomplexes=False):
 
     #kdrew: threshold on the number of subunits a complex can have, ie. throws out large complex, None keeps all complexes
-    if in_args.complex_size != None:
-        in_predicted_clusters_trim = [c for c in in_predicted_clusters if len(c) <= in_args.complex_size]
+    if complex_size != None:
+        in_predicted_clusters_trim = [c for c in in_predicted_clusters if len(c) <= complex_size]
 
-        if in_args.remove_large_subcomplexes:
+        if remove_large_subcomplexes:
 
             in_predicted_clusters_subcomplex_trim = []
 
             for c in in_predicted_clusters_trim:
                 #kdrew: a bit obfuscated but inner list comprehension is of large complexes, outer list comprehension is boolean of overlap, if no overlap it passes
-                if not any([len(c.intersection(lrgC))>0 for lrgC in [largeC for largeC in in_predicted_clusters if len(largeC) > in_args.complex_size]]):
+                if not any([len(c.intersection(lrgC))>0 for lrgC in [largeC for largeC in in_predicted_clusters if len(largeC) > complex_size]]):
                     in_predicted_clusters_subcomplex_trim.append(c)
                 else:
                     print "Removing %s" % c
@@ -78,12 +78,12 @@ def merge_complexes(in_predicted_clusters, in_args):
             #kdrew: iterate through all clusters after cluster1
             for cluster2 in predicted_clusters[i+1:]:
                 jindex = jaccard_index(cluster1,cluster2)
-                if jindex >= in_args.merge_threshold:
+                if jindex >= merge_threshold:
                     cluster1_set = frozenset(cluster1)
                     cluster2_set = frozenset(cluster2)
                     #print "merging %s : %s" % (cluster1, cluster2)
 
-                    if in_args.remove_largest:
+                    if remove_largest:
                         #kdrew: add the smaller cluster to the final set
                         if len(cluster1_set) < len(cluster2_set):
                             merged_clusters.add(cluster1_set)

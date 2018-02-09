@@ -12,6 +12,13 @@ def js_pairs(P,Q,distance=False):
         return math.sqrt(js_diverg)
     return js_diverg # Better to return the divergence, which is bounded (0,1)
 
+def sum_difference_pairs(P,Q):
+    '''Compute sum of the absolute value differences for two frequency vectors.'''
+    D = P-Q
+    abs_D = np.abs(D)
+    sum_abs_D = np.sum(abs_D)
+    return sum_abs_D
+
 class FeatureFunctions:
 
     '''All return a NxN matrix of features'''
@@ -46,3 +53,22 @@ class FeatureFunctions:
     def _covariance(self,df):
         '''Return the covariance between two input arrays'''
         return np.nan_to_num( np.cov(df) )
+        
+    def _canberra(self,df):
+        '''Return canberra distance matrix'''
+        return dist.squareform(dist.pdist(df,'canberra'))
+        
+    def _braycurtis(self,df):
+        '''Return canberra distance matrix'''
+        return dist.squareform(dist.pdist(df,'braycurtis'))
+        
+    def _cosine(self,df):
+        '''Return the cosine distance matrix'''
+        return dist.squareform(dist.pdist(df,'cosine'))
+
+    def _sum_difference(self,df):
+        '''Return matrix of sums of absolute value differences between vectors'''
+        return dist.squareform( dist.pdist(df, lambda x,y: sum_difference_pairs(x,y)) )
+
+
+

@@ -30,7 +30,7 @@ class MergeComplexesTest(unittest.TestCase):
 
 
     def testShuffleComplexes(self, ):
-        complexes = cm.merge_complexes(self.clusters, self)
+        complexes = cm.merge_complexes(self.clusters, self.merge_threshold, self.complex_size, self.remove_largest, self.remove_large_subcomplexes)
         print "Merged Complexes"
         print complexes
         assert complexes  == [frozenset(['k','l'])]
