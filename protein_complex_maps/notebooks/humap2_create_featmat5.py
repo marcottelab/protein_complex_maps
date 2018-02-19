@@ -18,8 +18,7 @@ treiber_hygeo_gt4_df['neg_ln_pval'] = treiber_hygeo_gt4_df['neg_ln_pval'].fillna
 
 #kdrew: create index for hypergeometric feature dataframes
 treiber_hygeo_gt4_hygeo_geneid_pairs = treiber_hygeo_gt4_df[['gene_id1','gene_id2']].values 
-treiber_hygeo_gt4_geneid_pairs_strsort = [str(sorted([str(x[0]),str(x[1])])) for x in treiber_hygeo_gt4_geneid_pairs]
-treiber_hygeo_gt4_geneid_pairs_strsort = [str(sorted([str(x[0]),str(x[1])])) for x in treiber_hygeo_gt4_hygeo_geneid_pairs]
+treiber_hygeo_gt4_geneid_pairs_strsort = [str(sorted([str(int(x[0])),str(int(x[1]))])) for x in treiber_hygeo_gt4_hygeo_geneid_pairs]
 treiber_hygeo_gt4_df['geneids_str_order'] = treiber_hygeo_gt4_geneid_pairs_strsort 
 treiber_hygeo_gt4_df = treiber_hygeo_gt4_df.set_index("geneids_str_order")
 
