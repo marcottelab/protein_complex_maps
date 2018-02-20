@@ -37,20 +37,10 @@ def main():
     parser.add_argument("--columns", nargs='+', action="store", type=int, dest="columns2alphabetize", required=False, default=[0,1], 
                                     help="List of columns to alphabetize, default = 0,1")
     args = parser.parse_args()
+    print(args.columns2alphabetize)
     df = pd.read_table(args.df, sep=args.sep, header=None)
     print(df)
 
-
-    #sorted is faster than np.sort
-
-    #df[df.columns[args.columns2alphabetize]] = df[df.columns[args.columns2alphabetize]].apply(sorted,axis=1)
- 
-    #For troubleshooting speed of the apply function
-    #tqdm.pandas(desc="Progress of alphabetization")
-
-    #Saving as intermediate variable is necessary for large dataframes (at least over 9 million rows)
-    #For troubleshooting, progress_apply gives a progress bar, but needs tqdm package
-    #x =  df[df.columns[args.columns2alphabetize]].progress_apply(sorted,axis=1)
     intermediate_df =  df[df.columns[args.columns2alphabetize]].apply(sorted,axis=1)
     df[df.columns[args.columns2alphabetize]] = intermediate_df
 

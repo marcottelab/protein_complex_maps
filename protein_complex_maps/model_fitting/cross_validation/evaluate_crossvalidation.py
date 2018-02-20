@@ -82,9 +82,9 @@ def main():
 
         for item in sorted(cg_results.items(), key=operator.itemgetter(1)):
             k = item[0]
-            print "cg: %s mean pr auc: %s" % (k, cg_results[k]) 
+            print "%s %s" % (k, cg_results[k]) 
     else:
-        print "mean pr auc: %s" % calc_metric_files(args.results_wprob, args.positives, args.negatives)
+        print "%s %s" % (calc_metric_files(args.results_wprob, args.positives, args.negatives), args.results_wprob[0])
 
 def calc_metric_files(results_wprob_filenames, positives_filenames, negatives_filenames):
 
@@ -107,20 +107,40 @@ def calc_metric_files(results_wprob_filenames, positives_filenames, negatives_fi
         #print "results size: %s" % (len(results_dict))
         results_dict_list.append(results_dict)
 
-
-        positive_file = open(positives_filenames[i], "rb")
         all_proteins = set()
         ppis = set()
         neg_ppis = set()
-        for line in positive_file.readlines():
-            if len(line.split()) >= 2:
-                id1 = line.split()[0]
-                id2 = line.split()[1]
-                all_proteins.add(id1)
-                all_proteins.add(id2)
+ 
 
-                ppi_str = str(sorted(list(frozenset([id1,id2]))))
-                ppis.add(ppi_str)
+        if len(positives_filenames) > 1:
+
+           positive_file = open(positives_filenames[i], "rb")
+           for line in positive_file.readlines():
+                if len(line.split()) >= 2:
+                    id1 = line.split()[0]
+                    id2 = line.split()[1]
+                    all_proteins.add(id1)
+                    all_proteins.add(id2)
+    
+                    ppi_str = str(sorted(list(frozenset([id1,id2]))))
+                    ppis.add(ppi_str)
+
+        else:
+           positive_file = open(positives_filenames[0], "rb")
+
+           for line in positive_file.readlines():
+                if len(line.split()) >= 2:
+                    id1 = line.split()[0]
+                    id2 = line.split()[1]
+                    all_proteins.add(id1)
+                    all_proteins.add(id2)
+    
+                    ppi_str = str(sorted(list(frozenset([id1,id2]))))
+                    ppis.add(ppi_str)
+
+
+
+
 
         ppi_list.append(ppis)
 
@@ -132,7 +152,7 @@ def calc_metric_files(results_wprob_filenames, positives_filenames, negatives_fi
                 if pair not in ppis:
                     #print "pair is neg: %s" % ' '.join(pair)
                     neg_ppis.add(pair)
-        else:
+        elif len(negatives_filenames) > 1:
             #kdrew: readin from file
             negative_file = open(negatives_filenames[i],"rb")
             for line in negative_file.readlines():
@@ -141,7 +161,16 @@ def calc_metric_files(results_wprob_filenames, positives_filenames, negatives_fi
                     id2 = line.split()[1]
                     ppi_str = str(sorted(list(frozenset([id1,id2]))))
                     neg_ppis.add(ppi_str)
-
+        else:
+            #CDM: read in from file
+            negative_file = open(negatives_filenames[0],"rb")
+            for line in negative_file.readlines():
+                if len(line.split()) >= 2:
+                    id1 = line.split()[0]
+                    id2 = line.split()[1]
+                    ppi_str = str(sorted(list(frozenset([id1,id2]))))
+                    neg_ppis.add(ppi_str)
+ 
         neg_ppi_list.append(neg_ppis)
 
     return calc_mean_pr_auc(results_dict_list, ppi_list, neg_ppi_list)
