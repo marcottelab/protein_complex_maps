@@ -71,6 +71,7 @@ class SharedBaitFeatureTest(unittest.TestCase):
         print "Boundary Case"
         print "k=670,m=1196,n=813,N=5891"
         pval = sbf.pval(k=670,m=1196,n=813,N=5891, logchoose=True)
+        print "*****************"
         print pval
         exponents = sbf.hypergeometric_exponents(k=670,m=1196,n=813,N=5891)
         print exponents
