@@ -13,6 +13,8 @@ from rpy2.robjects.packages import importr
 from rpy2.robjects.vectors import FloatVector
 from functools import partial
 
+import mpmath as mpm
+
 
 #kdrew: this is the smallest exponent before scipy.exp(x) becomes 0.0, empirically found, probably cpu specific
 SMALL_EXPONENT = -745.1332
@@ -24,12 +26,19 @@ pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
+def pval(k,n,m,N, adhoc=False, denm=False, logchoose=False):
+    pv = 0.0
+    for i in range(k,int(min(m,n)+1)):
+        pi = ( mpm.binomial(n,i) * mpm.binomial((N-n), (m-i)) ) / mpm.binomial(N,m)
+        pv += pi
+    return pv
+
 #kdrew: calculate pvalue using hypergeometric distribution
 #kdrew: there are a few different implementations to calculate this
 #kdrew: adhoc is Andrew Dalke's method of choose
 #kdrew: denm does not calculate the normalization choose(N,m) but rather normalizes based on m (not a true pval)
 #kdrew: logchoose calculates choose using the log transform (specifically the loggamma function)
-def pval(k,n,m,N, adhoc=False, denm=False, logchoose=False):
+def pval_old(k,n,m,N, adhoc=False, denm=False, logchoose=False):
     #logger.info("%s %s %s %s" % (k,n,m,N))
     pv = 0.0
     for i in range(k,int(min(m,n)+1)):
@@ -238,7 +247,7 @@ def shared_bait_feature(feature_table, bait_id_column, id_column, bh_correct=Fal
         output_dict2['neg_ln_pval'] = []
         for pvalue in output_dict2['pval']:
             try:
-                neglpval = -1.0*math.log(pvalue)
+                neglpval = -1.0*mpm.log(pvalue)
                 output_dict2['neg_ln_pval'].append(neglpval)
             except ValueError as ve:
                 print(str(ve))
@@ -255,7 +264,7 @@ def shared_bait_feature(feature_table, bait_id_column, id_column, bh_correct=Fal
         #kdrew: original code without error handling [-1.0*math.log(p) for p in p_adjust]
         for p in p_adjust:
             try:
-                output_dict2['neg_ln_pval_corr'].append(-1.0*math.log(p))
+                output_dict2['neg_ln_pval_corr'].append(-1.0*mpm.log(p))
             except ValueError as ve:
                 print(str(ve))
                 output_dict2['neg_ln_pval_corr'].append(np.nan)
@@ -323,7 +332,7 @@ def shared_bait_feature_helper(geneid, feature_table, id_column, ms_values, N, d
             try:
                 p = pval(k,n,m,N, denm=denm, logchoose=logchoose)
                 try:
-                    neg_ln_p = -1.0*math.log(p)
+                    neg_ln_p = -1.0*mpm.log(p)
                 except ValueError as ve:
                     print(str(ve))
                     neg_ln_p = np.nan
