@@ -16,17 +16,12 @@ from functools import partial
 import mpmath as mpm
 
 
-#kdrew: this is the smallest exponent before scipy.exp(x) becomes 0.0, empirically found, probably cpu specific
-SMALL_EXPONENT = -745.1332
-#kdrew: this is the largest exponent before scipy.exp(x) becomes inf, empirically found, probably cpu specific
-LARGE_EXPONENT = 709.7827
-
 pd.set_option('display.height', 1000)
 pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
-def pval(k,n,m,N, adhoc=False, denm=False, logchoose=False):
+def pval(k,n,m,N):
     pv = 0.0
     for i in range(k,int(min(m,n)+1)):
         pi = ( mpm.binomial(n,i) * mpm.binomial((N-n), (m-i)) ) / mpm.binomial(N,m)
@@ -61,38 +56,6 @@ def pval_old(k,n,m,N, adhoc=False, denm=False, logchoose=False):
             pi = ( misc.comb(n,i) * misc.comb((N-n), (m-i)) ) / misc.comb(N,m)
         pv += pi
     return pv
-
-#kdrew: for large values the pvals will all be 0 because of machine precision and we won't have discriminating power between entries
-#kdrew: returning the exponents and staying in logspace gives us a way to compare and rank entries
-def hypergeometric_exponents(k,n,m,N): 
-    exponents = []
-    for i in range(k,int(min(m,n)+1)):
-        r1 = logchoose_func(n, i)
-        try:
-            r2 = logchoose_func(N-n, m-i)
-        except ValueError as ve:
-            print(str(ve))
-            r2 = np.nan
-        r3 = logchoose_func(N,m)
-
-        pi = r1 + r2 - r3
-        exponents.append(pi)
-    return exponents
-
-#kdrew: transforms pval calculation to stay within machine precision
-#kdrew: transform takes the form of 1/e^transform_val  * e^x (ie. implemented as x - transform_val)
-#kdrew: calc_true_pval will retransform back into a true pvalue, otherwise keep in transformed space
-def transform_pval(k,n,m,N, transform_val, calc_true_pval=True):
-    exponents = hypergeometric_exponents(k,n,m,N)
-    return transform_exponents(exponents, transform_val, calc_true_pval)
-
-def transform_exponents(exponents, transform_val, calc_true_pval=True):
-    transformed_exponents = [ex-transform_val for ex in exponents]
-    transformed_pval = sum([scipy.exp(ex) for ex in transformed_exponents])
-    if calc_true_pval:
-        transformed_pval = transformed_pval * scipy.exp(transform_val)
-    return transformed_pval
-
 
 def logchoose_func(n,k):
     """
@@ -158,16 +121,12 @@ def main():
                                     help="Name of column that specify ids in feature matrix, default=gene_id")
     parser.add_argument("--bait_id_column", action="store", dest="bait_id_column", required=False, default='bait_geneid',
                                     help="Name of column that specify bait ids in feature matrix, default=bait_geneid")
+    parser.add_argument("--abundance_column", action="store", dest="abundance_column", required=False, default='abundance',
+                                    help="Name of column that specifies abundance in feature matrix, default=abundance")
     parser.add_argument("--bh_correct", action="store_true", dest="bh_correct", required=False, default=False,
                                     help="Benjamini-Hochberg correct pvals")
-    parser.add_argument("--denm", action="store_true", dest="denm", required=False, default=False,
-                                    help="Replace denominator of hypergeometric calculation with m-value instead of N choose m, pvalues are nonsense with this option, default=False")
-    parser.add_argument("--logchoose", action="store_true", dest="logchoose", required=False, default=False,
-                                    help="Use logs to deal with large values when calculating choose, default=False")
-    parser.add_argument("--transform_pvalue", action="store_true", dest="transform_pvalue", required=False, default=False,
-                                    help="Report a transformed pvalue, default=False")
-    parser.add_argument("--remove_exponents", action="store_true", dest="remove_exponents", required=False, default=False,
-                                    help="Do not report exponents in final output, default=False")
+    parser.add_argument("--use_abundance", action="store_true", dest="use_abundance", required=False, default=False,
+                                    help="Use abundance measures when calculating hypergeometric test, default=False (presence-absence)")
     parser.add_argument("--logname", action="store", dest="logname", required=False, default='shared_bait_feature.log',
                                     help="filename for logging, default=shared_bait_feature.log")
     parser.add_argument("-j", "--numOfProcs", action="store", type=int, dest="numOfProcs", required=False, default=1,
@@ -177,11 +136,11 @@ def main():
     setup_log(args.logname)
 
     feature_table = pd.DataFrame(pd.read_csv(args.feature_matrix, sep=args.sep))
-    output_df = shared_bait_feature(feature_table, args.bait_id_column, args.id_column, args.bh_correct, args.denm, args.logchoose, args.transform_pvalue, numOfProcs=args.numOfProcs, remove_exponents=args.remove_exponents)
+    output_df = shared_bait_feature(feature_table, args.bait_id_column, args.id_column, args.abundance_column, args.bh_correct, args.use_abundance, numOfProcs=args.numOfProcs)
     output_df = output_df.sort('neg_ln_pval', ascending=False)
     output_df.to_csv(args.output_file, index=False, header=True)
 
-def shared_bait_feature(feature_table, bait_id_column, id_column, bh_correct=False, denm=False, logchoose=False, transform_pvalue=False, numOfProcs = 1, remove_exponents=False):
+def shared_bait_feature(feature_table, bait_id_column, id_column, abundance_column='abundance', bh_correct=False, use_abundance=False, numOfProcs = 1):
     print(feature_table)
     print(feature_table.columns.values)
     #kdrew: best to enforce ids as strings
@@ -189,14 +148,30 @@ def shared_bait_feature(feature_table, bait_id_column, id_column, bh_correct=Fal
     print(feature_table)
     print(feature_table.columns.values)
 
+
     #kdrew: remove all rows that do not have a valid id
     q_str = "%s == %s" % (id_column, id_column)
     feature_table = feature_table.query(q_str)
 
-    N = feature_table['bait_id_column_str'].nunique()
     feature_table['gene_id_str'] = feature_table[id_column].apply(str)
-    #kdrew: number of experiments each gene_id is present in
-    ms_values = feature_table.groupby('gene_id_str')[bait_id_column].nunique()
+
+    if use_abundance:
+        #kdrew: convert all abundances to ints
+        feature_table['abundance_int'] = feature_table[abundance_column].apply(int)
+
+        #kdrew: still working out details about what N should be, whether max abundance of every experiment or sum abundance of every experiment
+        #N = feature_table.groupby("bait_id_column_str")['abundance_int'].sum().sum()
+        N = feature_table.groupby("bait_id_column_str")['abundance_int'].max().sum()
+
+        #kdrew: number of experiments each gene_id is present in
+        ms_values = feature_table.groupby('gene_id_str')['abundance_int'].sum()
+
+    else:
+        N = feature_table['bait_id_column_str'].nunique()
+
+        #kdrew: number of experiments each gene_id is present in
+        ms_values = feature_table.groupby('gene_id_str')[bait_id_column].nunique()
+
     print("ms_values")
     print(ms_values)
     #feature_table = feature_table.drop(bait_id_column)
@@ -209,14 +184,11 @@ def shared_bait_feature(feature_table, bait_id_column, id_column, bh_correct=Fal
     output_dict2['pair_count'] = []
     output_dict2['neg_ln_pval'] = []
     output_dict2['pval'] = []
-    output_dict2['exponents'] = []
-
-
 
     p = mp.Pool(numOfProcs)
     print("#### printing feature_table_geneid tables ####")
     #kdrew: generating full shared bait table for large datasets is memory intensive, break table down and do one id at a time
-    gene_id_results = p.map(partial(shared_bait_feature_helper, feature_table=feature_table, id_column=id_column, ms_values=ms_values, N=N, denm=denm, logchoose=logchoose, transform_pvalue=transform_pvalue), set(feature_table[id_column].values))
+    gene_id_results = p.map(partial(shared_bait_feature_helper, feature_table=feature_table, id_column=id_column, use_abundance=use_abundance, ms_values=ms_values, N=N), set(feature_table[id_column].values))
 
     for gene_id_result in gene_id_results:
         output_dict2['gene_id1'] = output_dict2['gene_id1'] + gene_id_result['gene_id1']
@@ -224,36 +196,6 @@ def shared_bait_feature(feature_table, bait_id_column, id_column, bh_correct=Fal
         output_dict2['pair_count'] = output_dict2['pair_count'] + gene_id_result['pair_count']
         output_dict2['neg_ln_pval'] = output_dict2['neg_ln_pval'] + gene_id_result['neg_ln_pval']
         output_dict2['pval'] = output_dict2['pval'] + gene_id_result['pval']
-        output_dict2['exponents'] = output_dict2['exponents'] + gene_id_result['exponents']
-
-
-    #kdrew: find value to transform by (ie. median exponent of all exponents) and transform_exponents for every entry
-    if transform_pvalue:
-        #kdrew: find min of exponents for each individual entry and then find the min of those
-        min_value = np.min([np.min(ex) for ex in output_dict2['exponents']])
-        print("min_value: %s" % min_value)
-        #kdrew: normalize the min exponent to the SMALL_EXPONENT (-745.1332) which is the smallest exponent before scipy.exp(x) becomes 0.0
-        #kdrew: this has the effect of shifting all of the small pvalues (~0.0) that evaluate to 0.0 to be within the machine precision
-        transform_value = min_value - SMALL_EXPONENT 
-        print("transform_value: %s" % transform_value)
-                             
-        #kdrew: calculate pvalue from exponents, transforming them if specified
-        output_dict2['pval'] = [transform_exponents(ex, transform_value, calc_true_pval=False) for ex in output_dict2['exponents']]
-        if remove_exponents:
-            #kdrew: remove exponents, no longer needed
-            output_dict2.pop('exponents')
-
-        #output_dict2['neg_ln_pval'] = [-1.0*math.log(pvalue) for pvalue in output_dict2['pval']]
-        output_dict2['neg_ln_pval'] = []
-        for pvalue in output_dict2['pval']:
-            try:
-                neglpval = -1.0*mpm.log(pvalue)
-                output_dict2['neg_ln_pval'].append(neglpval)
-            except ValueError as ve:
-                print(str(ve))
-                output_dict2['neg_ln_pval'].append(np.nan)
-            
- 
 
     if bh_correct:
         #kdrew: use Benjamini Hochberg from R to correct for multiple hypothesis testing
@@ -273,7 +215,7 @@ def shared_bait_feature(feature_table, bait_id_column, id_column, bh_correct=Fal
     return output_df
 
 
-def shared_bait_feature_helper(geneid, feature_table, id_column, ms_values, N, denm, logchoose, transform_pvalue):
+def shared_bait_feature_helper(geneid, feature_table, id_column, use_abundance, ms_values, N ):
     print("geneid: %s" % geneid)
     sys.stdout.flush()
     #kdrew: slice feature_table to only have a single id
@@ -292,8 +234,17 @@ def shared_bait_feature_helper(geneid, feature_table, id_column, ms_values, N, d
 
     #kdrew: calculate the number of experiments that each pair of proteins share
     feature_shared_bait_table_geneid = feature_shared_bait_table_geneid.reset_index()
-    #ks_geneid = feature_shared_bait_table_geneid.groupby('IDs_tup')['bait_id_column_str'].nunique()
-    ks_geneid = feature_shared_bait_table_geneid.groupby('gene_id2_str')['bait_id_column_str'].nunique()
+
+    if use_abundance:
+        #kdrew: still working out proper way of calculating k, sum isn't going to work because k could end up > n which makes n choose k = 0.0
+        feature_shared_bait_table_geneid['min_abundance'] = feature_shared_bait_table_geneid[['abundance_int','abundance_int_right']].min(axis=1)
+        #feature_shared_bait_table_geneid['sum_abundance'] = feature_shared_bait_table_geneid[['abundance_int','abundance_int_right']].sum(axis=1)
+        #ks_geneid = feature_shared_bait_table_geneid.groupby('gene_id2_str')['sum_abundance'].sum()
+        ks_geneid = feature_shared_bait_table_geneid.groupby('gene_id2_str')['min_abundance'].sum()
+
+    else:
+        ks_geneid = feature_shared_bait_table_geneid.groupby('gene_id2_str')['bait_id_column_str'].nunique()
+
     print("ks_geneid")
     print(ks_geneid)
     sys.stdout.flush()
@@ -304,7 +255,6 @@ def shared_bait_feature_helper(geneid, feature_table, id_column, ms_values, N, d
     return_output_dict2['pair_count'] = []
     return_output_dict2['neg_ln_pval'] = []
     return_output_dict2['pval'] = []
-    return_output_dict2['exponents'] = []
 
     for gene_id2 in ks_geneid.index:
         k = ks_geneid[str(gene_id2)]
@@ -315,42 +265,27 @@ def shared_bait_feature_helper(geneid, feature_table, id_column, ms_values, N, d
         if str(geneid) == str(gene_id2):
             continue
 
-        if transform_pvalue:
+        try:
+            p = pval(k,n,m,N)
             try:
-                exponents = hypergeometric_exponents(k,n,m,N)
-                return_output_dict2['gene_id1'].append(str(geneid))
-                return_output_dict2['gene_id2'].append(str(gene_id2))
-                return_output_dict2['pair_count'].append(k)
-                return_output_dict2['neg_ln_pval'].append(np.nan)
-                return_output_dict2['pval'].append(np.nan)
-                return_output_dict2['exponents'].append(exponents)
-            except Exception as e:
-                print("Exception (%s, %s): %s" % (geneid, gene_id2, str(e)))
-                continue
+                neg_ln_p = -1.0*mpm.log(p)
+            except ValueError as ve:
+                print(str(ve))
+                neg_ln_p = np.nan
 
-        else:
-            try:
-                p = pval(k,n,m,N, denm=denm, logchoose=logchoose)
-                try:
-                    neg_ln_p = -1.0*mpm.log(p)
-                except ValueError as ve:
-                    print(str(ve))
-                    neg_ln_p = np.nan
+            #print("calculated pval")
+            #print("%s,%s k:%s m:%s n:%s N:%s -ln(p):%s" % (geneid, gene_id2, k, m, n, N, neg_ln_p))
 
-                #print("calculated pval")
-                #print("%s,%s k:%s m:%s n:%s N:%s -ln(p):%s" % (geneid, gene_id2, k, m, n, N, neg_ln_p))
+            return_output_dict2['gene_id1'].append(str(geneid))
+            return_output_dict2['gene_id2'].append(str(gene_id2))
+            return_output_dict2['pair_count'].append(k)
+            return_output_dict2['neg_ln_pval'].append(neg_ln_p)
+            return_output_dict2['pval'].append(p)
 
-                return_output_dict2['gene_id1'].append(str(geneid))
-                return_output_dict2['gene_id2'].append(str(gene_id2))
-                return_output_dict2['pair_count'].append(k)
-                return_output_dict2['neg_ln_pval'].append(neg_ln_p)
-                return_output_dict2['pval'].append(p)
-                return_output_dict2['exponents'].append(np.nan)
-
-            except Exception as e:
-                #logger.info(str(e))
-                print("Exception (%s, %s): %s" % (geneid, gene_id2, str(e)))
-                continue
+        except Exception as e:
+            #logger.info(str(e))
+            print("Exception (%s, %s): %s" % (geneid, gene_id2, str(e)))
+            continue
 
     return return_output_dict2
 
