@@ -32,7 +32,6 @@ df_tidy_nonzero_trim.to_csv("/project/kdrew/data/Treiber_etal/t_treiber_240212_n
 #kdrew: feature matrix with only training ppis ids for testing purposes
 train_df = pd.read_table("/stor/work/Marcotte/project/kdrew/data/protein_complex_maps/complex_map2.1/corum/coreComplexes_20170702_geneids_human_merged06_rmLrg_rmSub.train_ppis.txt",header=None)
 train_ppis = set(train_df[0].values).union(set(train_df[1].values))
-df_tidy_nonzero_trim.query("geneid in @train_ppis").head()
 train_ppis_str = set([str(int(x)) for x in train_ppis])
 df_tidy_nonzero_trim.query("geneid in @train_ppis_str").to_csv("/project/kdrew/data/Treiber_etal/t_treiber_240212_nonzero_train_ppis.featmat")
 
