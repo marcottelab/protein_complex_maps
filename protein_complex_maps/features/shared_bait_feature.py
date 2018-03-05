@@ -124,7 +124,7 @@ def main():
     parser.add_argument("--abundance_column", action="store", dest="abundance_column", required=False, default='abundance',
                                     help="Name of column that specifies abundance in feature matrix, default=abundance")
     parser.add_argument("--bh_correct", action="store_true", dest="bh_correct", required=False, default=False,
-                                    help="Benjamini-Hochberg correct pvals")
+                                    help="Benjamini-Hochberg correct pvals, default=False")
     parser.add_argument("--use_abundance", action="store_true", dest="use_abundance", required=False, default=False,
                                     help="Use abundance measures when calculating hypergeometric test, default=False (presence-absence)")
     parser.add_argument("--logname", action="store", dest="logname", required=False, default='shared_bait_feature.log',
