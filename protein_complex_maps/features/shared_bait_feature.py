@@ -135,7 +135,7 @@ def main():
 
     setup_log(args.logname)
 
-    feature_table = pd.DataFrame(pd.read_csv(args.feature_matrix, sep=args.sep))
+    feature_table = pd.DataFrame(pd.read_csv(args.feature_matrix, sep=args.sep, converters={args.id_column: str, args.bait_id_column: str }))
     output_df = shared_bait_feature(feature_table, args.bait_id_column, args.id_column, args.abundance_column, args.bh_correct, args.use_abundance, numOfProcs=args.numOfProcs)
     output_df = output_df.sort('neg_ln_pval', ascending=False)
     output_df.to_csv(args.output_file, index=False, header=True)
