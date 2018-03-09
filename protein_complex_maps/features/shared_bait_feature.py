@@ -123,6 +123,8 @@ def main():
                                     help="Name of column that specify bait ids in feature matrix, default=bait_geneid")
     parser.add_argument("--abundance_column", action="store", dest="abundance_column", required=False, default='abundance',
                                     help="Name of column that specifies abundance in feature matrix, default=abundance")
+    parser.add_argument("--abundance_threshold", action="store", type=float, dest="abundance_threshold", required=False, default=0,
+                                    help="Threshold abundance above (>=) a given value, default=0")
     parser.add_argument("--bh_correct", action="store_true", dest="bh_correct", required=False, default=False,
                                     help="Benjamini-Hochberg correct pvals, default=False")
     parser.add_argument("--use_abundance", action="store_true", dest="use_abundance", required=False, default=False,
@@ -136,6 +138,8 @@ def main():
     setup_log(args.logname)
 
     feature_table = pd.DataFrame(pd.read_csv(args.feature_matrix, sep=args.sep, converters={args.id_column: str, args.bait_id_column: str }))
+    print("Thresholding %s >= %s" % (args.abundance_column, args.abundance_threshold))
+    feature_table = feature_table[feature_table[args.abundance_column] >= args.abundance_threshold]
     output_df = shared_bait_feature(feature_table, args.bait_id_column, args.id_column, args.abundance_column, args.bh_correct, args.use_abundance, numOfProcs=args.numOfProcs)
     output_df = output_df.sort('neg_ln_pval', ascending=False)
     output_df.to_csv(args.output_file, index=False, header=True)
