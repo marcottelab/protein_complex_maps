@@ -6,6 +6,8 @@ import pandas as pd
 import itertools as it
 import operator
 
+import protein_complex_maps.preprocessing_util.complexes.complex_merge as cm
+
 def main():
 
     parser = argparse.ArgumentParser(description="Split gold standard complexes into test and training")
@@ -19,6 +21,10 @@ def main():
                                     help="Remove complexes above threshold, default=False")
     parser.add_argument("--threshold_fraction", action="store", type=float, dest="threshold_fraction", required=False, default=None,
                                     help="Fraction of pairs to include from size thresholded complexes (suggested 0.1), default=None")
+    parser.add_argument("--merge_threshold", action="store", type=float, dest="merge_threshold", required=False, default=1.0,
+                                            help="Jiccard similarity threshold on which to merge, default=1.0 (remove exact copies)")
+    parser.add_argument("--remove_largest", action="store_true", dest="remove_largest", required=False, default=False,
+                                            help="Instead of merging similar clusters, remove largest")
 
     args = parser.parse_args()
 
@@ -28,12 +34,16 @@ def main():
 
     #kdrew: origin of this code is from ipython notebook: corum_test_train_revisit, heavily refactored and modified
 
-    complexes = []
+    complexes = set()
     f = open(args.complex_filename,"rb")
     for line in f.readlines():
-        complexes.append(line.split())
+        #kdrew: ignore singletons
+        if len(line.split()) > 1:
+            complexes.add(frozenset(line.split()))
 
-    test_list_clean, train_list_clean, test_ppis_clean, train_ppis_clean, neg_test_ppis_clean, neg_train_ppis_clean = split_complexes(complexes, size_threshold=args.size_threshold, threshold_fraction=args.threshold_fraction, remove_large_complexes=args.remove_large_complexes)
+    merged_complexes = cm.merge_complexes(complexes, args.merge_threshold, remove_largest=args.remove_largest)
+
+    test_list_clean, train_list_clean, test_ppis_clean, train_ppis_clean, neg_test_ppis_clean, neg_train_ppis_clean = split_complexes(merged_complexes, size_threshold=args.size_threshold, threshold_fraction=args.threshold_fraction, remove_large_complexes=args.remove_large_complexes, input_complexes=complexes)
 
     test_list_clean_filename = '.'.join(args.complex_filename.split('.')[:-1]) + '.test.txt'
     train_list_clean_filename = '.'.join(args.complex_filename.split('.')[:-1]) + '.train.txt' 
@@ -79,7 +89,7 @@ def main():
 
 
 #kdrew: split complexes into test and training, return orthogonal ppi sets
-def split_complexes(complexes, size_threshold=None, threshold_fraction=None, remove_large_complexes=False): 
+def split_complexes(complexes, size_threshold=None, threshold_fraction=None, remove_large_complexes=False, input_complexes=None): 
 
     #kdrew: randomly shuffle complexes 
     np.random.shuffle(complexes)
@@ -114,7 +124,7 @@ def split_complexes(complexes, size_threshold=None, threshold_fraction=None, rem
     
     #kdrew: for complexes in train_list, generate all pairs
     train_ppis = set()
-    #kdrew: holds all pairs regardless of thresholding
+    #kdrew: holds all pairs regardless of thresholding, but only of input complexes not what was merged or thrownout previously (need to fix)
     full_train_ppis = set()
     for clust in train_list:
         #print "train clust"
@@ -195,6 +205,13 @@ def split_complexes(complexes, size_threshold=None, threshold_fraction=None, rem
     #kdrew: remove intersection between neg_train_ppis_clean and full_test_ppis from neg_train_ppis_clean
     neg_train_ppis_clean = remove_intersection(neg_train_ppis_clean, full_test_ppis)
 
+    #kdrew: if input_complexes is set then remove all pairs from the negative ppis
+    if input_complexes != None:
+        print "removing intersection with pre-merged input_complexes"
+        full_input_pairs = set([frozenset(z) for y in input_complexes for z in it.combinations(y,2)])
+        neg_test_ppis_clean = remove_intersection(neg_test_ppis_clean, full_input_pairs)
+        neg_train_ppis_clean = remove_intersection(neg_train_ppis_clean, full_input_pairs)
+
     if remove_large_complexes:
         test_list_clean = [x for x in test_list_clean if len(x) <= size_threshold]
         train_list_clean = [x for x in train_list_clean if len(x) <= size_threshold]
@@ -234,6 +251,7 @@ def remove_intersection(ppi_set1, ppi_set2):
     #kdrew: find intersection between ppi_set1 and ppi_set2
     intersection = list(ppi_set1.intersection(ppi_set2))
 
+    print "removing %s" % (len(set(intersection)))
     #kdrew: remove intersection from ppis_set1
     ppi_set1_clean = ppi_set1 - set(intersection)
 
