@@ -19,7 +19,7 @@ def main():
                                     help="Threshold for complex size (suggested 30), default=None")
     parser.add_argument("--remove_large_complexes", action="store_true", dest="remove_large_complexes", required=False, default=False,
                                     help="Remove complexes above threshold, default=False")
-    parser.add_argument("--threshold_fraction", action="store", type=float, dest="threshold_fraction", required=False, default=None,
+    parser.add_argument("--subsample_large_complexes", action="store", type=float, dest="threshold_fraction", required=False, default=None,
                                     help="Fraction of pairs to include from size thresholded complexes (suggested 0.1), default=None")
     parser.add_argument("--merge_threshold", action="store", type=float, dest="merge_threshold", required=False, default=1.0,
                                             help="Jiccard similarity threshold on which to merge, default=1.0 (remove exact copies)")
