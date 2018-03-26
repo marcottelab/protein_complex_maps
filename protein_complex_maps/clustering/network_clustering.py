@@ -25,7 +25,7 @@ def main():
     parser = argparse.ArgumentParser(description="Finds optimal parameters for clustering of ppi network")
     parser.add_argument("--input_network", action="store", dest="input_network", required=True, 
                                     help="Filename of ppi network with optional edge weights (format: id\tid\tweight)")
-    parser.add_argument("--output_file", action="store", dest="output_file", required=False, default=None,
+    parser.add_argument("--output_file", action="store", dest="output_file", required=True, 
                                     help="Filename of output clusters for best set of parameters")
     parser.add_argument("--random_seed", action="store", type=int, dest="random_seed", required=False, default=None,
                                     help="Sets random seed (int), default=None")
@@ -41,11 +41,11 @@ def main():
                                     default=[2,],
                                     help="ClusterOne Size parameter sweep, default = 2")
     parser.add_argument("--clusterone_density", action="store", dest="clusterone_density", nargs='+', required=False, 
-                                    default=[.1,.25,.3,.35,], 
-                                    help="ClusterOne Density parameter sweep, default = .1 .25 .3 .35")
+                                    default=[.25], 
+                                    help="ClusterOne Density parameter sweep, default = .25")
     parser.add_argument("--clusterone_max_overlap", action="store", dest="clusterone_max_overlap", nargs='+', required=False, 
-                                    default=[0.5,0.75,0.9], 
-                                    help="ClusterOne max-overlap parameter sweep, default = 0.5 0.75 0.9")
+                                    default=[0.75], 
+                                    help="ClusterOne max-overlap parameter sweep, default = 0.75")
     parser.add_argument("--clusterone_seed_method", action="store", dest="clusterone_seed_method", nargs='+', required=False, 
                                     default=['nodes'], 
                                     help="ClusterOne seed method parameter sweep (nodes, cliques, unused_nodes, edges, default = nodes")
@@ -60,11 +60,11 @@ def main():
                                     help="Clixo Beta parameter, default = None")
 
     parser.add_argument("--mcl_bin", action="store", dest="mcl_bin", required=False, 
-                                    default='mcl',
-                                    help="Location of mcl binary, default = 'mcl' ")
+                                    default='/usr/bin/mcl',
+                                    help="Location of mcl binary, default = '/usr/bin/mcl' ")
     parser.add_argument("--mcl_inflation", action="store", dest="mcl_inflation", nargs='+', required=False, 
-                                    default=[None],
-                                    help="MCL Inflation (-I) parameter, default = [None] (no 2-stage clustering), docs suggest = 1.2 - 5.0")
+                                    default=[3],
+                                    help="MCL Inflation (-I) parameter, default = 3")
 
     parser.add_argument("--cfinder_bin", action="store", dest="cfinder_bin", required=False, 
                                     default="/home/kdrew/programs/CFinder-2.0.6--1448/CFinder_commandline64",
@@ -73,11 +73,11 @@ def main():
                                     default="/home/kdrew/programs/CFinder-2.0.6--1448/licence.txt",
                                     help="Location of CFinder license, default= /home/kdrew/programs/CFinder-2.0.6--1448/licence.txt")
     parser.add_argument("--cfinder_cliquesize", action="store", dest="cfinder_cliquesize", nargs='+', required=False, 
-                                    default=[None],
-                                    help="Cfinder clique size (-k) parameter, default = None (use CFinder's default setting, recommended: 3)")
+                                    default=[3],
+                                    help="Cfinder clique size (-k) parameter, default = 3 (CFinder's default setting)")
     parser.add_argument("--cfinder_timeout", action="store", dest="cfinder_timeout", nargs='+', required=False, 
-                                    default=[None],
-                                    help="Cfinder timeout (-t) parameter, default = None (use CFinder's default setting, recommended: 10)")
+                                    default=[10],
+                                    help="Cfinder timeout (-t) parameter, default = 10 (CFinder's default setting)")
 
     parser.add_argument("--trim2threshold", action="store_true", dest="trim2threshold", required=False, default=True,
                                     help="Trim final clusters of subunits that do not have an edge that passes the threshold_score, default=True")
@@ -95,8 +95,27 @@ def main():
 
     args = parser.parse_args()
 
-    if not os.path.isfile(args.clustone_jar):
-        raise IOError("File not found: %s" % args.clustone_jar)
+    if 'clusterone' in args.twostep_combination:
+        if not os.path.isfile(args.clustone_jar):
+            raise IOError("File not found: %s" % args.clustone_jar)
+
+    if 'mcl' in args.twostep_combination:
+        if not os.path.isfile(args.mcl_bin):
+            raise IOError("File not found: %s" % args.mcl_bin)
+
+    if 'cfinder' in args.twostep_combination:
+        if not os.path.isfile(args.cfinder_bin):
+            raise IOError("File not found: %s" % args.cfinder_bin)
+        if not os.path.isfile(args.cfinder_license):
+            raise IOError("File not found: %s" % args.cfinder_licence)
+
+    if 'clixo' in args.twostep_combination:
+        if not os.path.isfile(args.clixo_bin):
+            raise IOError("File not found: %s" % args.clixo_bin)
+        if args.clixo_alpha == None:
+            print "WARNING: --clixo_alpha not set"
+        if args.clixo_beta == None:
+            print "WARNING: --clixo_beta not set"
 
     #kdrew: original commandline for clusterone
     #java -jar ~/programs/clusterone/cluster_one-1.0.jar blake_bioplex_merge_wkeys_deduped_corum_train_labeled.libsvm0.scaleByTrain.resultWprob_pairs_noself_nodups_wprob.txt > blake_bioplex_merge_wkeys_deduped_corum_train_labeled.libsvm0.scaleByTrain.resultWprob_pairs_noself_nodups_wprob.txt.clusterone
@@ -133,7 +152,7 @@ def main():
 
         fraction = 1.0*len(network_list) / len(input_network_list)
 
-        #kdrew: cluster network_list
+        #kdrew: setting up parameters to be sent to different threads, many of the parameters end up on commandlines so they are converted to strings here
         parameter_dict = dict()
         parameter_dict['network_list'] = network_list
         parameter_dict['ppi_scores'] = ppi_scores
@@ -165,16 +184,6 @@ def main():
 
     #kdrew: call clustering on parameter combinations
     cluster_predictions = p.map(cluster_helper, network_input_list)
-
-    ##kdrew: iterate through clustering results, returns tuple of prediction and number of iteration (ii)
-    #for cluster_prediction, ii in cluster_predictions:
-    #    #kdrew: output cluster prediction
-    #    if args.output_file != None:
-    #        output_filename = "%s.ii%s.%s" % (".".join(args.output_file.split('.')[:-1]), ii,  args.output_file.split('.')[-1])
-    #        with open (output_filename, "w") as output_file:
-    #            for cluster in cluster_prediction:
-    #                output_file.write(' '.join(cluster))
-    #                output_file.write("\n")
 
     p.close()
     p.join()
@@ -284,56 +293,54 @@ def cluster_helper(parameter_dict):
     if len(twostep_combination) >= 2:
         if twostep_combination[1] == 'mcl':
             print "MCL"
-            #kdrew: converted inflation into str for use on commandline but if None check against str(None)
-            if inflation != str(None):
-                mcl_clusters = []
-                #kdrew: for each predicted cluster, recluster using MCL
-                for clust in predicted_clusters:
-                    #kdrew: for every pair in cluster find edge weight in input_network_list(?)
-                    fileTemp = tf.NamedTemporaryFile(delete=False, dir=args.temp_dir)
-                    outTemp = tf.NamedTemporaryFile(delete=False, dir=args.temp_dir)
+            mcl_clusters = []
+            #kdrew: for each predicted cluster, recluster using MCL
+            for clust in predicted_clusters:
+                #kdrew: for every pair in cluster find edge weight in input_network_list(?)
+                fileTemp = tf.NamedTemporaryFile(delete=False, dir=args.temp_dir)
+                outTemp = tf.NamedTemporaryFile(delete=False, dir=args.temp_dir)
 
-                    try:
-                        for prot1, prot2 in it.combinations(clust,2):
-                            try:
-                                ppi_score = ppi_scores[frozenset([prot1,prot2])] 
-                                if ppi_score < threshold_score:
-                                    ppi_score = 0.0
-
-                            except KeyError:
+                try:
+                    for prot1, prot2 in it.combinations(clust,2):
+                        try:
+                            ppi_score = ppi_scores[frozenset([prot1,prot2])] 
+                            if ppi_score < threshold_score:
                                 ppi_score = 0.0
 
-                            ppi_str = "%s\t%s\t%s\n" % (prot1, prot2, ppi_score)
-                            fileTemp.write(ppi_str)
-                        fileTemp.close()
+                        except KeyError:
+                            ppi_score = 0.0
 
-                        proc = sp.Popen([args.mcl_bin, fileTemp.name, '--abc', '-o', outTemp.name, '-I', inflation], stdout=sp.PIPE, stderr=sp.PIPE)
-                        mcl_out, err = proc.communicate()
+                        ppi_str = "%s\t%s\t%s\n" % (prot1, prot2, ppi_score)
+                        fileTemp.write(ppi_str)
+                    fileTemp.close()
 
-                        #print fileTemp.name
-                        #print clust
-                        #print mcl_out
-                        #print err
+                    proc = sp.Popen([args.mcl_bin, fileTemp.name, '--abc', '-o', outTemp.name, '-I', inflation], stdout=sp.PIPE, stderr=sp.PIPE)
+                    mcl_out, err = proc.communicate()
 
-                        outfile = open(outTemp.name,"rb")
-                        for line in outfile.readlines():
-                        #    print line
-                            mcl_clusters.append(line.split())
-                        outfile.close()
+                    #print fileTemp.name
+                    #print clust
+                    #print mcl_out
+                    #print err
 
-                        #print "\n"
+                    outfile = open(outTemp.name,"rb")
+                    for line in outfile.readlines():
+                    #    print line
+                        mcl_clusters.append(line.split())
+                    outfile.close()
+
+                    #print "\n"
 
 
-                    finally:
-			if nodelete:
-			    pass
-			else:
-			    os.remove(fileTemp.name)
-                            os.remove(outTemp.name)
-                        #pass
-                        #print "in finally"
+                finally:
+                    if nodelete:
+                        pass
+                    else:
+                        os.remove(fileTemp.name)
+                        os.remove(outTemp.name)
+                    #pass
+                    #print "in finally"
 
-                predicted_clusters = mcl_clusters
+            predicted_clusters = mcl_clusters
 
         elif twostep_combination[1] == 'agglomod':
             print "AGGLOMOD"
@@ -381,6 +388,7 @@ def cluster_helper(parameter_dict):
     #kdrew: TODO merge complexes to elminiate redundancy
     #kdrew: use complex_merge.merge_complexes with merge_threshold 1.0
 
+    #kdrew: output clusters
     if args.output_file != None:
         output_filename = "%s.ii%s.%s" % (".".join(args.output_file.split('.')[:-1]), i,  args.output_file.split('.')[-1])
         with open (output_filename, "w") as output_file:
@@ -413,8 +421,6 @@ def trim_clusters2threshold(predicted_clusters, threshold_score, ppi_scores):
             trimed_clusters.append(trimed_clust)
 
     return trimed_clusters
-
-
 
 
 if __name__ == "__main__":
