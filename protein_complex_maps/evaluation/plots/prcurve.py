@@ -37,6 +37,8 @@ def main():
                                     help="Only tally predictions above probability threshold")
     parser.add_argument("--plot_thresholds", action="store_true", dest="plot_thresholds", required=False, default=False,
                                     help="Add probability threshold markers to plot")
+    parser.add_argument("--complete_benchmark", action="store_true", dest="complete_benchmark", required=False, default=False,
+                                    help="Use the complete benchmark and set the probablility to 0.0, default=False")
 
     args = parser.parse_args()
 
@@ -105,6 +107,14 @@ def main():
                     true_array.append(-1)
                     prob_array.append(results_dict[result_pair])
                     neg_list.append((result_pair, results_dict[result_pair]))
+
+        if args.complete_benchmark:
+            for ppi in set(ppis) - set(results_dict.keys()):
+                true_array.append(1)
+                prob_array.append(0.0)
+            for neg_ppi in set(neg_ppis) - set(results_dict.keys()):
+                true_array.append(-1)
+                prob_array.append(0.0)
 
 
         sorted_neg_list = sorted(neg_list, key=lambda k: k[1])
