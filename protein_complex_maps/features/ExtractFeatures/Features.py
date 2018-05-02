@@ -54,6 +54,11 @@ class Elut():
             self.df = pd.read_table(infile,index_col=0).astype("float")
         else:
             raise Exception("<format> must be either 'csv' or 'tsv'")
+        if 'TotalCount' in self.df.columns:
+            #raise Exception("Old elution file format, please update by removing 'TotalCount' column")
+            print("WARNING: 'TotalCount' column was found, file is in old elution format, dropping 'TotalCount' column")
+            self.df = self.df.drop(['TotalCount'], axis=1)
+
         self._check_dtypes()
         self._get_info()
         
