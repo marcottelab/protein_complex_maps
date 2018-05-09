@@ -62,7 +62,8 @@ def main():
 
     args = parser.parse_args()
     #make_divide(args.input_file, args.n, args.seed)
-    input_df = pd.read_csv(args.input_file, sep=args.sep)
+    #kdrew: read in feature matrix, make sure ids are readin as strings
+    input_df = pd.read_csv(args.input_file, sep=args.sep, converters={xx: str for xx in args.id_columns})
     divided_file_dict = divide_file(input_df, args.n, args.seed)
 
     #kdrew: output each training and leaveout set for both postives and negatives
