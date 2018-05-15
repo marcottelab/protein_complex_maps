@@ -15,7 +15,7 @@ def main():
     parser.add_argument("--hclust_metric", nargs="+", action="store",dest="hclust_metric",required=False,default="euclidean",choices=["euclidean","canberra","braycurtis","pearson","spearman"],help="Distance or correlation metric used for clustering")
     parser.add_argument("--path_to_annotations", action='store', dest='path_to_annotations', required=False, default=None, help="Path to annotations file. A tab-delimited file with protein ids in first column and annotations in second")
     parser.add_argument("--threshold", dest="threshold", required=False, default=False, type=int, help="Drop proteins with fewer than this many PSMs across experiments")
-    parser.add_argument("--normalize", dest="normalize", required=False, default=False, choices=["rows","columns"], help="Normalize data. Must specify 'rows' or 'columns'")
+    parser.add_argument("--normalize", dest="normalize", nargs="+", required=False, default=False, choices=["row_sum","row_max","column"], help="Normalize data. Can be one or several of: 'row_max','row_sum','column'")
     parser.add_argument("--elution_separator", action='store', dest='sep', required=False, default="\t", help="Separator used for input elution profiles, default='\t'")
     
     args = parser.parse_args()
@@ -29,11 +29,29 @@ def main():
     
     ## Read in and join filesd
     joined_elutions = pd.DataFrame()
+    psm_sum_df = pd.DataFrame()
     for f in args.input_elutions:
         print "Reading in {}".format(f)
         df = pd.read_csv(f,index_col=0, sep=args.sep)
         if "TotalCount" in df.columns:
             df.drop("TotalCount",inplace=True,axis=1)
+        
+        rowSum = pd.DataFrame( df.sum(axis=1) )
+        rowSum.columns = [f.split(".")[0]]
+        psm_sum_df = psm_sum_df.join(rowSum, how='outer')
+        
+        ## Normalize, if flagged
+        if args.normalize:
+            print "Normalize by {}".format(", ".join(args.normalize))
+            if 'column' in args.normalize:
+                df = df/df.sum()
+            if 'row_sum' in args.normalize:
+                if "row_max" in args.normalize:
+                    print "Warning: It's kinda weird to normalize both row_sum and row_max"
+                df = df.div(df.sum(axis=1), axis=0)
+            if 'row_max' in args.normalize:
+                df = df.div(df.max(axis=1), axis=0)
+            
         joined_elutions = joined_elutions.join(df, how='outer')
 
     joined_elutions.fillna(0,inplace=True)
@@ -41,7 +59,7 @@ def main():
             
     ## Will be added to df later
     colSums = pd.Series(joined_elutions.sum(),name="colSum")
-    rowSums = joined_elutions.sum(axis=1)
+    rowSums = psm_sum_df.sum(axis=1)
     
    # Thresholding
     if args.threshold:
@@ -53,16 +71,6 @@ def main():
         after = len(joined_elutions)
         print "Removed {} rows".format(before - after)
         rowSums = joined_elutions.pop("tmp_rowSum")
-    
-    ## Normalize, if flagged
-    if args.normalize:
-        print "Normalize by {}".format(args.normalize)
-        if args.normalize == 'columns':
-            joined_elutions = joined_elutions/joined_elutions.sum()
-        elif args.normalize == 'rows':
-            joined_elutions = joined_elutions.div(joined_elutions.sum(axis=1), axis=0)
-        else:
-            raise Exception("Normalization procedure {} not recognized".format(args.normalize))
             
     labels_index = pd.Series(joined_elutions.index,index=range(len(joined_elutions))) # Create indexer to manage scipy output
     row_orderings = [] # DataFrames indexed on ids that hold the clustered orders.
