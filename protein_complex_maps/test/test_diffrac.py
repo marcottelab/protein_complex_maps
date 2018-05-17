@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Unit tests for shift_frac
+# Unit tests for diffrac
 
 import unittest
 import numpy as np
@@ -9,10 +9,10 @@ import pandas as pd
 import scipy.stats as stats
 
 import protein_complex_maps.features.ExtractFeatures.Features as eff
-import protein_complex_maps.features.shift_frac as sf
+import protein_complex_maps.features.diffrac as dfc
 
 
-class ShiftFracTest(unittest.TestCase):
+class DifFracTest(unittest.TestCase):
 
     def setUp(self,):
 
@@ -38,29 +38,43 @@ class ShiftFracTest(unittest.TestCase):
         self.elution2 = eff.Elut()
         self.elution2.df = df2
 
-    def testShiftFrac(self, ):
-        #kdrew: subtracts one dataframe from another and sums the absolute values
-        shift_frac_sum = sf.calc_shift_frac(self.elution, self.elution2)
-        print shift_frac_sum
-        assert(shift_frac_sum.loc['a'] == 0.0)
-        assert(shift_frac_sum.loc['b'] == 1.0)
-        assert(shift_frac_sum.loc['c'] == 2.0)
-        assert(shift_frac_sum.loc['d'] == 4.0)
-        assert(shift_frac_sum.loc['e'] == 17.0)
+    def testDifFrac(self, ):
+        #kdrew: subtracts one dataframe from another and sums the absolute values (L1 norm)
+        diffrac_sum = dfc.calc_diffrac(self.elution, self.elution2)
+        print diffrac_sum
+        assert(diffrac_sum.loc['a'] == 0.0)
+        assert(diffrac_sum.loc['b'] == 1.0)
+        assert(diffrac_sum.loc['c'] == 2.0)
+        assert(diffrac_sum.loc['d'] == 4.0)
+        assert(diffrac_sum.loc['e'] == 17.0)
 
         #np.testing.assert_almost_equal(result_table[(result_table['gene_id1'] == '2') & (result_table['gene_id2'] == '3')].neg_ln_pval.values, 2.302585 )
 
-    def testShiftCorrelation(self, ):
-        correlations = sf.calc_correlation(self.elution, self.elution2, correlation_func=lambda x,y: stats.pearsonr(x,y)[0])
+    def testEMD(self, ):
+        print "testEMD"
+        #kdrew: calculates earth mover's distance
+        emd_scores = dfc.calc_emd(self.elution, self.elution2)
+        print emd_scores
+        assert(emd_scores.loc['a'] == 0.0)
+        assert(emd_scores.loc['b'] == 1.0)
+        assert(emd_scores.loc['c'] == 2.0)
+        assert(emd_scores.loc['d'] == 4.0)
+        assert(emd_scores.loc['e'] == 17.0)
+
+        emd_scores = dfc.calc_emd(self.elution2, self.elution)
+        print emd_scores
+
+    def testDifCorrelation(self, ):
+        correlations = dfc.calc_correlation(self.elution, self.elution2, correlation_func=lambda x,y: stats.pearsonr(x,y)[0])
         print correlations
         assert(correlations.loc['a'] == 1.0)
         np.testing.assert_almost_equal(correlations.loc['b'], 0.904534)
-        np.testing.assert_almost_equal(correlations.loc['c'], 0.939394)
+        np.testing.assert_almost_equal(correlations.loc['c'], 0.939394, decimal=5)
         np.testing.assert_almost_equal(correlations.loc['d'], 0.966988, decimal=5)
         assert(correlations.loc['e'] == 0.0)
 
     def testMeanAbundance(self, ):
-        mean_abundance = sf.calc_mean_abundance(self.elution, self.elution2)
+        mean_abundance = dfc.calc_mean_abundance(self.elution, self.elution2)
         print mean_abundance
         assert(mean_abundance.loc['a'] == 3.0)
         np.testing.assert_almost_equal(mean_abundance.loc['b'], 2.5)

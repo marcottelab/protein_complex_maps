@@ -6,17 +6,17 @@ import scipy.stats as stats
 
 from sklearn.ensemble import RandomForestClassifier
 
-import protein_complex_maps.features.ExtractFeatures.Features as eff
-import protein_complex_maps.external.score as sc
+from pyemd import emd
 
+import protein_complex_maps.features.ExtractFeatures.Features as eff
 
 def main():
 
-    parser = argparse.ArgumentParser(description="Calculate shift score between two fractionation experiments")
+    parser = argparse.ArgumentParser(description="Calculate difference features between two fractionation experiments")
     parser.add_argument("--elution_files", action="store", nargs='+', dest="elution_files", required=True, 
                                     help="Elution files (.elut)")
-    parser.add_argument("--features", action="store", nargs='+', dest="features", required=False, default=['shift_frac'],
-                                    help="Features to calculate: shift_frac, shift_frac_percent, shift_frac_normalized, pearsonr, poisson, mean_abundance")
+    parser.add_argument("--features", action="store", nargs='+', dest="features", required=False, default=['diffrac'],
+                                    help="Features to calculate: diffrac (L1-norm of difference), diffrac_percent, diffrac_normalized, pearsonr, poisson, mean_abundance, emd")
     parser.add_argument("--classifiers", action="store", nargs='+', dest="classifiers", required=False, default=[],
                                     help="Classifiers to train: random_forest")
     parser.add_argument("--training_labels", action="store", dest="training_labels", required=False, default=None, 
@@ -36,26 +36,31 @@ def main():
 
     feature_df = pd.DataFrame()
     if len(elutions) >= 2:
-        if 'shift_frac' in args.features:
-            feature_series = calc_shift_frac(elutions[0], elutions[1], normalize_totalCounts=False)
-            feature_series.name = 'shift_frac'
+        if 'diffrac' in args.features:
+            feature_series = calc_diffrac(elutions[0], elutions[1], normalize_totalCounts=False)
+            feature_series.name = 'diffrac'
             feature_df = join_feature(feature_df,feature_series)
-        if 'shift_frac_percent' in args.features:
-            feature_series = calc_shift_frac(elutions[0], elutions[1], percent_totalCounts=True)
-            feature_series.name = 'shift_frac_percent'
+        if 'diffrac_percent' in args.features:
+            feature_series = calc_diffrac(elutions[0], elutions[1], percent_totalCounts=True)
+            feature_series.name = 'diffrac_percent'
             feature_df = join_feature(feature_df,feature_series)
-        if 'shift_frac_normalized' in args.features:
-            feature_series = calc_shift_frac(elutions[0], elutions[1], normalize_totalCounts=True)
-            feature_series.name = 'shift_frac_normalized'
+        if 'diffrac_normalized' in args.features:
+            feature_series = calc_diffrac(elutions[0], elutions[1], normalize_totalCounts=True)
+            feature_series.name = 'diffrac_normalized'
+            feature_df = join_feature(feature_df,feature_series)
+        if 'emd' in args.features:
+            feature_series = calc_emd(elutions[0], elutions[1])
+            feature_series.name = 'emd'
             feature_df = join_feature(feature_df,feature_series)
         if 'pearsonr' in args.features:
             feature_series = calc_correlation(elutions[0], elutions[1], correlation_func=lambda x,y: stats.pearsonr(x,y)[0])
             feature_series.name = 'pearsonr'
             feature_df = join_feature(feature_df,feature_series)
         if 'poisson' in args.features:
-            feature_series = calc_correlation(elutions[0], elutions[1])
-            feature_series.name = 'poisson'
-            feature_df = join_feature(feature_df,feature_series)
+            print("WARNING: poisson not implemented")
+            #feature_series = calc_correlation(elutions[0], elutions[1])
+            #feature_series.name = 'poisson'
+            #feature_df = join_feature(feature_df,feature_series)
         if 'mean_abundance' in args.features:
             feature_series = calc_mean_abundance(elutions[0], elutions[1])
             feature_series.name = 'mean_abundance'
@@ -80,7 +85,7 @@ def main():
 def join_feature(df,feature):
     return df.join(feature, how='outer')
 
-def calc_shift_frac(elut1, elut2, percent_totalCounts=False, normalize_totalCounts=False):
+def calc_diffrac(elut1, elut2, percent_totalCounts=False, normalize_totalCounts=False):
 
     #kdrew: set columns to be the same, do some error checking to ensure lengths match, also if any realignment is necessary this is the place to do it.
     assert(len(elut2.df.columns) == len(elut1.df.columns))
@@ -103,18 +108,68 @@ def calc_shift_frac(elut1, elut2, percent_totalCounts=False, normalize_totalCoun
     elut1.df = elut1.df.append(elut2_not_elut1)
 
     elut_diff = elut1.df.subtract(elut2.df)
-    shift_frac_sum = np.abs(elut_diff).sum(axis='columns')
+    diffrac_sum = np.abs(elut_diff).sum(axis='columns')
 
     #kdrew: measures how much of the total counts shifted, 1.0 total shift -> 0.0 no shift
     if percent_totalCounts:
-        shift_frac_sum = shift_frac_sum/(elut1.df.sum(axis='columns') + elut2.df.sum(axis='columns'))
+        diffrac_sum = diffrac_sum/(elut1.df.sum(axis='columns') + elut2.df.sum(axis='columns'))
     elif normalize_totalCounts:
-        shift_frac_sum = shift_frac_sum * shift_frac_sum/(elut1.df.sum(axis='columns') + elut2.df.sum(axis='columns'))
+        diffrac_sum = diffrac_sum * diffrac_sum/(elut1.df.sum(axis='columns') + elut2.df.sum(axis='columns'))
 
-    return shift_frac_sum
+    return diffrac_sum
+
+def calc_emd(elut1, elut2): 
+
+    #kdrew: set columns to be the same, do some error checking to ensure lengths match, also if any realignment is necessary this is the place to do it.
+    assert(len(elut2.df.columns) == len(elut1.df.columns))
+    elut2.df.columns = elut1.df.columns
+
+    #kdrew: add empty rows for the ids in elut1 that are not in elut2 and vice versa
+    elut1_ids = set(elut1.df.index)
+    elut2_ids = set(elut2.df.index)
+
+    #kdrew: add rows in elut1 in elut2 as 0.0
+    elut1_not_elut2_ids = elut1_ids - elut2_ids
+    elut1_not_elut2 = elut1.df.loc[list(elut1_not_elut2_ids)]
+    elut1_not_elut2[:] = 0.0
+    elut2.df = elut2.df.append(elut1_not_elut2)
+
+    #kdrew: add rows in elut1 in elut2 as 0.0
+    elut2_not_elut1_ids = elut2_ids - elut1_ids
+    elut2_not_elut1 = elut2.df.loc[list(elut2_not_elut1_ids)]
+    elut2_not_elut1[:] = 0.0
+    elut1.df = elut1.df.append(elut2_not_elut1)
+
+    #kdrew: setup distance matrix, every transition costs 1.0
+    dmat = np.ones((len(elut2.df.columns),len(elut2.df.columns)))
+    #kdrew: make identity transitions cost 0.0
+    np.fill_diagonal(dmat,0.0)
+
+    emd_results = []
+    for idx in elut1.df.index:
+        x = np.ascontiguousarray(elut1.df.loc[idx])
+        #print(x)
+        y = np.ascontiguousarray(elut2.df.loc[idx])
+        #print(y)
+        emd_result = emd(x, y, dmat)
+        emd_results.append(emd_result)
+
+    #kdrew: annoying trick to compare the two dataframes using a function
+    #emd_result = elut1.df.apply(lambda x: emd_func(x, elut2.df, dmat), axis=1)
+    emd_results = pd.Series(emd_results)
+    emd_results.index = elut1.df.index
+    return emd_results
+
+def emd_func(x, df2, dmat):
+    print(x.values.flags)
+    y = df2.loc[x.name]
+    print(y)
+    emd_result = emd(x.values, y.values, dmat)
+    print emd_result
+    return emd_result
 
 
-def calc_correlation(elut1, elut2, correlation_func=sc.poisson_correlation, default=0.0):
+def calc_correlation(elut1, elut2, correlation_func=stats.pearsonr, default=0.0):
     intersection_ids = set(elut1.df.index).intersection(set(elut2.df.index))
     union_ids = set(elut1.df.index).union(set(elut2.df.index))
 
