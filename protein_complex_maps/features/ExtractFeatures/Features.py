@@ -136,6 +136,7 @@ class ElutFeatures(Elut,features.FeatureFunctions,resampling.FeatureResampling):
                 "euclidean",
                 "canberra",
                 "braycurtis",
+                "invbraycurtis",
                 "cosine",
                 "sum_difference"]
                 
