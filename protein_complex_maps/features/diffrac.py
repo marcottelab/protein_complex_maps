@@ -78,7 +78,7 @@ def main():
                 feature_df = join_feature(feature_df,return_df)
 
         if args.out_filename != None:
-            feature_df.sort_values(args.features[0]).to_csv(args.out_filename)
+            feature_df.sort_values(args.features[0], ascending=False).to_csv(args.out_filename)
         else:
             print feature_df.sort_values(args.features[0], ascending=False)
 
