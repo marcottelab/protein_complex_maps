@@ -5,6 +5,10 @@ import pandas as pd
 import scipy.stats as stats
 
 from sklearn.ensemble import RandomForestClassifier
+#from sklearn.mixture import GaussianMixture
+from sklearn.mixture import GMM
+from statsmodels.sandbox.stats.multicomp import fdrcorrection0
+
 
 from pyemd import emd
 
@@ -16,15 +20,18 @@ def main():
     parser.add_argument("--elution_files", action="store", nargs='+', dest="elution_files", required=True, 
                                     help="Elution files (.elut)")
     parser.add_argument("--features", action="store", nargs='+', dest="features", required=False, default=['diffrac'],
-                                    help="Features to calculate: diffrac (L1-norm of difference), diffrac_percent, diffrac_normalized, pearsonr, poisson, mean_abundance, emd")
-    parser.add_argument("--classifiers", action="store", nargs='+', dest="classifiers", required=False, default=[],
-                                    help="Classifiers to train: random_forest")
-    parser.add_argument("--training_labels", action="store", dest="training_labels", required=False, default=None, 
-                                    help="Filename of training labels, default=None")
-    parser.add_argument("--training_id_column", action="store", dest="training_id_column", required=False, default='GENE PRODUCT ID', 
-                                    help="Column name of id in training label file, default='GENE PRODUCT ID'")
+                                    help="Features to calculate: diffrac (L1-norm of difference) diffrac_percent diffrac_normalized pearsonr poisson mean_abundance emd zscore sliding_zscore fdr_correct sliding_fdr_correct")
+    parser.add_argument("--annotated_list", action="store", dest="annotated_list", required=False, default=None, 
+                                    help="Filename of annotated ids, used for calculating zscores from compliment of list, default=None")
+    parser.add_argument("--contaminate_tag", action="store", dest="contaminate_tag", required=False, default='CONTAMINANT', 
+                                    help="Filters entries with tag, default=CONTAMINANT")
+    parser.add_argument("--use_gmm", action="store_true", dest="use_gmm", required=False, default=False, 
+                                    help="Fit sliding window distributions to Gaussian Mixture Model and use largest gaussian for calculating zscore, default=False")
+    parser.add_argument("--window_size", action="store", type=int, dest="window_size", required=False, default=100, 
+                                    help="Window size to use for calculating sliding zscore, default=100")
     parser.add_argument("--output_file", action="store", dest="out_filename", required=False, default=None, 
                                     help="Filename of output file, default=None which prints to stdout")
+
 
     args = parser.parse_args()
     
@@ -32,10 +39,12 @@ def main():
     for efile in args.elution_files:
         elut = eff.Elut()
         elut.load(efile,format='tsv')
+        elut.threshold(thresh=1)
         elutions.append(elut)
 
     feature_df = pd.DataFrame()
     if len(elutions) >= 2:
+
         if 'diffrac' in args.features:
             feature_series = calc_diffrac(elutions[0], elutions[1], normalize_totalCounts=False)
             feature_series.name = 'diffrac'
@@ -66,16 +75,38 @@ def main():
             feature_series.name = 'mean_abundance'
             feature_df = join_feature(feature_df,feature_series)
 
-        #kdrew: read in training labels for machine learning scores
-        if args.training_labels != None:
+        if args.annotated_list != None:
             #kdrew: add in training labels
-            training_labels_df = pd.read_table(args.training_labels)
-            labels = [i in training_labels_df[args.training_id_column].values for i in feature_df.index]
-            feature_df['label'] = labels
+            annotated_df = pd.read_table(args.annotated_list, header=None, names=['annotated'])
+            annotated = [i in annotated_df['annotated'].values for i in feature_df.index]
+            feature_df['annotated'] = annotated
 
-            if 'random_forest' in args.classifiers:
-                return_df = random_forest(feature_df, args.features)
-                feature_df = join_feature(feature_df,return_df)
+        print len(feature_df)
+        feature_df = feature_df[~feature_df.index.str.contains('CONTAMINANT')]
+        print len(feature_df)
+
+        if 'zscore' in args.features:
+            if 'diffrac_normalized' not in args.features:
+                #kdrew: calculating diffrac_normalized
+                feature_series = calc_diffrac(elutions[0], elutions[1], normalize_totalCounts=False)
+                feature_series.name = 'diffrac'
+                feature_df = join_feature(feature_df,feature_series)
+            feature_series = calc_zscore(feature_df)
+            feature_series.name = 'zscore'
+            feature_df = join_feature(feature_df,feature_series)
+
+        if 'sliding_zscore' in args.features:
+            feature_series = calc_sliding_zscore(feature_df, window=args.window_size, use_gmm=args.use_gmm)
+            feature_series.name = 'sliding_zscore'
+            feature_df = join_feature(feature_df,feature_series)
+
+        if 'fdr_correct' in args.features:
+            fdr_df = calc_fdr_correct(feature_df)
+            feature_df = join_feature(feature_df,fdr_df)
+
+        if 'sliding_fdr_correct' in args.features:
+            sliding_fdr_df = calc_sliding_fdr_correct(feature_df)
+            feature_df = join_feature(feature_df, sliding_fdr_df)
 
         if args.out_filename != None:
             feature_df.sort_values(args.features[0], ascending=False).to_csv(args.out_filename)
@@ -188,36 +219,101 @@ def calc_mean_abundance(elut1, elut2):
     df = (elut1_sum.add(elut2_sum, fill_value=0.0)) / 2.0
     return df
 
+def calc_zscore(feat_df): 
+    if 'annotated' in feat_df.columns:
+        mean = np.mean(feat_df.query("~annotated")['diffrac_normalized'])
+        std = np.std(feat_df.query("~annotated")['diffrac_normalized'])
+    else:
+        print "WARNING: Couldn't find column 'annotated', using all rows for distribution"
+        mean = np.mean(feat_df['diffrac_normalized'])
+        std = np.std(feat_df['diffrac_normalized'])
+    df = (feat_df['diffrac_normalized'] - mean)/std
+    return df
 
-def random_forest(feature_df, features, random_state=0, n_estimators=1500):
+#kdrew: min_weight_threshold : mixture model weight has to be above threshold in order to use
+def calc_sliding_zscore(feat_df, window=100, use_gmm=False, min_weight_threshold=0.75): 
+    sliding_zscore_dict = dict()
 
-    feature_nonan_df = feature_df.fillna(0.0)
-    #kdrew: create training set by randomly sampling half of the proteins
-    feature_training_df = feature_nonan_df.sample(len(feature_nonan_df)/2, random_state=random_state)
+    for id1 in feat_df.sort_values("mean_abundance",ascending=False).query("mean_abundance == mean_abundance").index:
+        i_abnd = feat_df.ix[id1]['mean_abundance']
+        #kdrew: entries greater than current id
+        if 'annotated' in feat_df.columns:
+            gt_entries = feat_df.query("~annotated and (mean_abundance > %s)" % i_abnd).sort_values('mean_abundance')['mean_abundance']
+            lt_entries = feat_df.query("~annotated and (mean_abundance < %s)" % i_abnd).sort_values('mean_abundance', ascending=False)['mean_abundance']
+        else:
+            print "WARNING: Couldn't find column 'annotated', using all rows for distribution"
+            gt_entries = feat_df.query("(mean_abundance >= %s)" % i_abnd).sort_values('mean_abundance')['mean_abundance']
+            lt_entries = feat_df.query("(mean_abundance < %s)" % i_abnd).sort_values('mean_abundance', ascending=False)['mean_abundance']
 
-    #kdrew: get all of the entries that are not in the training set
-    feature_test_df = feature_nonan_df.loc[[x not in feature_training_df.index for x in feature_nonan_df.index]][:]
 
-    feature_training_data = feature_training_df[features].values
-    feature_training_labels = feature_training_df['label'].values
-    feature_test_data = feature_test_df[features].values
-    feature_test_labels = feature_test_df['label'].values
+        print "gt_entries"
+        print gt_entries
+        print "lt_entries"
+        print lt_entries
+        h = window
+        j = window
+        #kdrew: if not enough entries, adjust the other index
+        if len(gt_entries) < h: j = j + (h - len(gt_entries)); h = len(gt_entries)
+        if len(lt_entries) < j: h = h + (j - len(lt_entries)); j = len(lt_entries)
 
-    RF_model =  RandomForestClassifier(random_state=random_state, n_estimators=n_estimators, oob_score=True) #, class_weight="balanced")
-    RF_model.fit(feature_training_data, feature_training_labels)
-    test_rf_preds = RF_model.predict_proba(feature_test_data)
-    training_rf_preds = RF_model.predict_proba(feature_training_data)
+        entries = list(gt_entries.index[:h]) + list(lt_entries.index[:j])
+        diffrac_normalized_list = feat_df.ix[entries]['diffrac_normalized'].values
+        if use_gmm:
+            #kdrew: probably should be careful about using GMM's interface, originally was using GaussianMixture but that only exists in newer versions of sklearn
+            gmm = GMM(n_components=2, covariance_type='spherical').fit(diffrac_normalized_list.reshape(-1,1))
+            print "gmm.means_"
+            print gmm.means_
+            min_mean_model = np.argmin(gmm.means_)
+            print "gmm.weights_"
+            print gmm.weights_
+            max_weight_model = np.argmax(gmm.weights_)
+            print "[np.sqrt(x) for x in gmm.covars_]"
+            print [np.sqrt(x) for x in gmm.covars_]
 
-    print list(RF_model.classes_)
-    true_index = list(RF_model.classes_).index(True)
-    feature_test_df['rf_true_prob'] = [x[true_index] for x in test_rf_preds]
-    feature_test_df['rf_test_training'] = 'test'
-    feature_training_df['rf_true_prob'] = [x[true_index] for x in training_rf_preds]
-    feature_training_df['rf_test_training'] = 'train'
+            #kdrew: tests to make sure the model with the lowest mean is also the dominant peak, also checks that the dominant peak is above some threshold of dominance
+            if min_mean_model != max_weight_model or np.max(gmm.weights_) < min_weight_threshold:
+                print "WARNING: highest weighted model does not equal lowest mean model or min_weight_threshold not satisfied, *not* using gaussian mixture model"
+                mean_tmp = np.mean(diffrac_normalized_list)
+                std_tmp = np.std(diffrac_normalized_list)
+            else:
+                mean_tmp = gmm.means_[min_mean_model][0]
+                std_tmp = np.sqrt(gmm.covars_[min_mean_model][0])
 
-    feature_test_training_df = pd.concat([feature_test_df,feature_training_df])
-    return feature_test_training_df[['rf_test_training','rf_true_prob']]
+        else:
+            mean_tmp = np.mean(diffrac_normalized_list)
+            std_tmp = np.std(diffrac_normalized_list)
 
+        print "diffrac_normalized_list %s" % diffrac_normalized_list
+        print "id: %s mean_tmp: %s std_tmp: %s" % (id1, mean_tmp, std_tmp)
+        i_diffrac_normalized =  feat_df.ix[id1]['diffrac_normalized']
+        zscore = (i_diffrac_normalized - mean_tmp)/std_tmp
+        sliding_zscore_dict[id1] = zscore
+
+    df = pd.DataFrame(sliding_zscore_dict.items(), columns=['ACC', 'sliding_zscore']).set_index('ACC')
+    print df
+    return df
+
+
+def calc_fdr_correct(feat_df, unannotated_only=False):
+    df = feat_df.fillna(0.0)
+    if unannotated_only:
+        df = df[~df.annotated]
+    #df['pvalues'] = stats.norm.sf(abs(df['zscore'].values))
+    df['pvalues'] = stats.norm.sf(df['zscore'].values)
+    df['pvalues_fdrcor'] = fdrcorrection0(df['pvalues'])[1]
+
+    return df[['pvalues','pvalues_fdrcor']]
+
+
+def calc_sliding_fdr_correct(feat_df, unannotated_only=False):
+    df = feat_df.fillna(0.0)
+    if unannotated_only:
+        df = df[~df.annotated]
+    #df['sliding_pvalues'] = stats.norm.sf(abs(df['sliding_zscore'].values))
+    df['sliding_pvalues'] = stats.norm.sf(df['sliding_zscore'].values)
+    df['sliding_pvalues_fdrcor'] = fdrcorrection0(df['sliding_pvalues'])[1]
+
+    return df[['sliding_pvalues','sliding_pvalues_fdrcor']]
 
 
 if __name__ == "__main__":
