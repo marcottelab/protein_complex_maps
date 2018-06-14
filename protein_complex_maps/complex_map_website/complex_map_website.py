@@ -13,10 +13,10 @@ from wtforms.fields import StringField, SubmitField, TextAreaField
 
 class SearchForm(Form):
     complex_id = StringField(u'Complex ID:')
-    genename = StringField(u'Gene Name (ex. OFD1):')
-    listOfGenenames = TextAreaField(u'List of Gene Names (ex. OFD1 PCM1 CSPP1):')
-    enrichment = StringField(u'Enrichment (ex. cilium):')
-    protein = StringField(u'Protein (ex. Centrosomal protein):')
+    genename = StringField(u'Gene Name (ex. MCM3):')
+    listOfGenenames = TextAreaField(u'List of Gene Names (ex. MCM3 MCM5):')
+    enrichment = StringField(u'Enrichment (ex. transcriptional repressor):')
+    protein = StringField(u'Protein (ex. proteasome):')
     submit = SubmitField(u'Search')
 
 from flask import render_template

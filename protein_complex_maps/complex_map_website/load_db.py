@@ -30,15 +30,16 @@ def main():
         if 'clustid_key' in line:
             continue
         #print line
+        #kdrew: tcell file format
         acc = line[0]
         clustid = line[1]
         clustid_key = line[2]
-        genename = line[3]
-        geneid = line[4]
-        proteinname = line[5].strip()
-        uniprot_link = line[6]
+        proteinname = line[3].strip()
+        genename = line[4]
+        geneid = line[5]
+        uniprot_link = "http://www.uniprot.org/uniprot/%s" % acc
 
-        p = cdb.get_or_create(db, cdb.Protein, gene_id = geneid, uniprot_acc=acc, genename=genename, proteinname=proteinname, uniprot_url=uniprot_link)
+        p = cdb.get_or_create(db, cdb.Protein, uniprot_acc=acc, gene_id=geneid, proteinname=proteinname, uniprot_url=uniprot_link)
         db.session.add(p)
 
         if clustid != '':

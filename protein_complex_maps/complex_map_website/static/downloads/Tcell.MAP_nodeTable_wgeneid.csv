@@ -1,0 +1,1483 @@
+acc,ClusterID,clustid_key,proteinname,genename,geneid
+O14818,0,0_O14818,Proteasome subunit alpha type-7,PSMA7,5688
+P20618,0,0_P20618,Proteasome subunit beta type-1,PSMB1,5689
+P25786,0,0_P25786,Proteasome subunit alpha type-1,PSMA1,5682
+P25787,0,0_P25787,Proteasome subunit alpha type-2,PSMA2,5683
+P25788,0,0_P25788,Proteasome subunit alpha type-3,PSMA3,5684
+P25789,0,0_P25789,Proteasome subunit alpha type-4,PSMA4,5685
+P28062,0,0_P28062,Proteasome subunit beta type-8,PSMB8,5696
+P28065,0,0_P28065,Proteasome subunit beta type-9,PSMB9,5698
+P28066,0,0_P28066,Proteasome subunit alpha type-5,PSMA5,5686
+P28070,0,0_P28070,Proteasome subunit beta type-4,PSMB4,5692
+P28072,0,0_P28072,Proteasome subunit beta type-6,PSMB6,5694
+P28074,0,0_P28074,Proteasome subunit beta type-5,PSMB5,5693
+P40306,0,0_P40306,Proteasome subunit beta type-10,PSMB10,5699
+P49720,0,0_P49720,Proteasome subunit beta type-3,PSMB3,5691
+P49721,0,0_P49721,Proteasome subunit beta type-2,PSMB2,5690
+P60900,0,0_P60900,Proteasome subunit alpha type-6,PSMA6,5687
+Q99436,0,0_Q99436,Proteasome subunit beta type-7,PSMB7,5695
+O75153,1,1_O75153,Clustered mitochondria protein homolog,CLUH,23277
+P53396,1,1_P53396,ATP-citrate synthase,ACLY,47
+P55160,1,1_P55160,Nck-associated protein 1-like,NCKAP1L,3071
+P61201,1,1_P61201,COP9 signalosome complex subunit 2,COPS2,9318
+P98171,1,1_P98171,Rho GTPase-activating protein 4,ARHGAP4,393
+Q13098,1,1_Q13098,COP9 signalosome complex subunit 1,GPS1,2873
+Q13576,1,1_Q13576,Ras GTPase-activating-like protein IQGAP2,IQGAP2,10788
+Q7L576,1,1_Q7L576,Cytoplasmic FMR1-interacting protein 1,CYFIP1,23191
+Q7L5N1,1,1_Q7L5N1,COP9 signalosome complex subunit 6,COPS6,10980
+Q8IZP0,1,1_Q8IZP0,Abl interactor 1,ABI1,10006
+Q92905,1,1_Q92905,COP9 signalosome complex subunit 5,COPS5,10987
+Q96F07,1,1_Q96F07,Cytoplasmic FMR1-interacting protein 2,CYFIP2,26999
+Q96K76,1,1_Q96K76,Ubiquitin carboxyl-terminal hydrolase 47,USP47,55031
+Q9BT78,1,1_Q9BT78,COP9 signalosome complex subunit 4,COPS4,51138
+Q9H9Q2,1,1_Q9H9Q2,COP9 signalosome complex subunit 7b,COPS7B,64708
+Q9UNS2,1,1_Q9UNS2,COP9 signalosome complex subunit 3,COPS3,8533
+O75390,10,10_O75390,"""Citrate synthase, mitochondrial""",CS,1431
+P04179,10,10_P04179,"""Superoxide dismutase [Mn], mitochondrial""",SOD2,6648
+P11766,10,10_P11766,Alcohol dehydrogenase class-3,ADH5,128
+P15531,10,10_P15531,Nucleoside diphosphate kinase A,NME1,4830
+P37837,10,10_P37837,Transaldolase,TALDO1,6888
+P52209,10,10_P52209,"""6-phosphogluconate dehydrogenase, decarboxylating""",PGD,5226
+Q04446,10,10_Q04446,"""1,4-alpha-glucan-branching enzyme""",GBE1,2632
+Q9UKK9,10,10_Q9UKK9,ADP-sugar pyrophosphatase,NUDT5,11164
+Q53H12,100,100_Q53H12,"""Acylglycerol kinase, mitochondrial""",AGK,55750
+Q9NVI7,100,100_Q9NVI7,ATPase family AAA domain-containing protein 3A,ATAD3A,55210
+Q9Y512,100,100_Q9Y512,Sorting and assembly machinery component 50 homolog,SAMM50,25813
+P29401,101,101_P29401,Transketolase,TKT,7086
+P54578,101,101_P54578,Ubiquitin carboxyl-terminal hydrolase 14,USP14,9097
+Q9NUJ1,101,101_Q9NUJ1,"""Mycophenolic acid acyl-glucuronide esterase, mitochondrial""",ABHD10,55347
+P06744,102,102_P06744,Glucose-6-phosphate isomerase,GPI,2821
+Q9NUB1,102,102_Q9NUB1,"""Acetyl-coenzyme A synthetase 2-like, mitochondrial""",ACSS1,84532
+Q9UBQ7,102,102_Q9UBQ7,Glyoxylate reductase/hydroxypyruvate reductase,GRHPR,9380
+P09693,103,103_P09693,T-cell surface glycoprotein CD3 gamma chain,CD3G,917
+P20701,103,103_P20701,Integrin alpha-L,ITGAL,3683
+Q9HD45,103,103_Q9HD45,Transmembrane 9 superfamily member 3,TM9SF3,56889
+P26440,104,104_P26440,"""Isovaleryl-CoA dehydrogenase, mitochondrial""",IVD,3712
+Q86TP1,104,104_Q86TP1,Protein prune homolog,PRUNE1,58497
+Q9HB07,104,104_Q9HB07,"""UPF0160 protein MYG1, mitochondrial""",C12orf10,
+P53041,105,105_P53041,Serine/threonine-protein phosphatase 5,PPP5C,5536
+Q4G176,105,105_Q4G176,"""Acyl-CoA synthetase family member 3, mitochondrial""",ACSF3,197322
+Q9H444,105,105_Q9H444,Charged multivesicular body protein 4b,CHMP4B,128866
+Q9BSJ8,106,106_Q9BSJ8,Extended synaptotagmin-1,ESYT1,23344
+Q9H3N1,106,106_Q9H3N1,Thioredoxin-related transmembrane protein 1,TMX1,81542
+Q9HDC9,106,106_Q9HDC9,Adipocyte plasma membrane-associated protein,APMAP,57136
+P13804,107,107_P13804,"""Electron transfer flavoprotein subunit alpha, mitochondrial""",ETFA,2108
+P38117,107,107_P38117,Electron transfer flavoprotein subunit beta,ETFB,2109
+Q9H0W9,107,107_Q9H0W9,Ester hydrolase C11orf54,C11orf54,28970
+P41208,108,108_P41208,Centrin-2,CETN2,1069
+Q9BZV1,108,108_Q9BZV1,UBX domain-containing protein 6,UBXN6,80700
+Q9H098,108,108_Q9H098,Protein FAM107B,FAM107B,83641
+P63244,109,109_P63244,Guanine nucleotide-binding protein subunit beta-2-like 1,GNB2L1,10399
+Q13526,109,109_Q13526,Peptidyl-prolyl cis-trans isomerase NIMA-interacting 1,PIN1,5300
+Q9BV79,109,109_Q9BV79,"""Trans-2-enoyl-CoA reductase, mitochondrial""",MECR,51102
+O00571,11,11_O00571,ATP-dependent RNA helicase DDX3X,DDX3X,1654
+O43143,11,11_O43143,Putative pre-mRNA-splicing factor ATP-dependent RNA helicase DHX15,DHX15,1665
+O60506,11,11_O60506,Heterogeneous nuclear ribonucleoprotein Q,SYNCRIP,10492
+P17844,11,11_P17844,Probable ATP-dependent RNA helicase DDX5,DDX5,1655
+Q07666,11,11_Q07666,"""KH domain-containing, RNA-binding, signal transduction-associated protein 1""",KHDRBS1,10657
+Q14498,11,11_Q14498,RNA-binding protein 39,RBM39,9584
+Q92841,11,11_Q92841,Probable ATP-dependent RNA helicase DDX17,DDX17,10521
+Q9BXP5,11,11_Q9BXP5,Serrate RNA effector molecule homolog,SRRT,51593
+P15586,110,110_P15586,N-acetylglucosamine-6-sulfatase,GNS,2799
+P53597,110,110_P53597,"""Succinyl-CoA ligase [ADP/GDP-forming] subunit alpha, mitochondrial""",SUCLG1,8802
+Q96I99,110,110_Q96I99,"""Succinyl-CoA ligase [GDP-forming] subunit beta, mitochondrial""",SUCLG2,8801
+O94903,111,111_O94903,Proline synthase co-transcribed bacterial homolog protein,PROSC,11212
+Q86VN1,111,111_Q86VN1,Vacuolar protein-sorting-associated protein 36,VPS36,51028
+Q96H20,111,111_Q96H20,Vacuolar-sorting protein SNF8,SNF8,11267
+P06730,112,112_P06730,Eukaryotic translation initiation factor 4E,EIF4E,1977
+P19623,112,112_P19623,Spermidine synthase,SRM,6723
+Q96FW1,112,112_Q96FW1,Ubiquitin thioesterase OTUB1,OTUB1,55611
+Q8TDW0,113,113_Q8TDW0,Volume-regulated anion channel subunit LRRC8C,LRRC8C,84230
+Q96CS3,113,113_Q96CS3,FAS-associated factor 2,FAF2,23197
+Q96F15,113,113_Q96F15,GTPase IMAP family member 5,GIMAP5,55340
+O15173,114,114_O15173,Membrane-associated progesterone receptor component 2,PGRMC2,10424
+Q96A26,114,114_Q96A26,Protein FAM162A,FAM162A,26355
+Q9NZ45,114,114_Q9NZ45,CDGSH iron-sulfur domain-containing protein 1,CISD1,55847
+O60506,115,115_O60506,Heterogeneous nuclear ribonucleoprotein Q,SYNCRIP,10492
+Q93009,115,115_Q93009,Ubiquitin carboxyl-terminal hydrolase 7,USP7,7874
+Q9BUJ2,115,115_Q9BUJ2,Heterogeneous nuclear ribonucleoprotein U-like protein 1,HNRNPUL1,11100
+P04066,116,116_P04066,Tissue alpha-L-fucosidase,FUCA1,2517
+P37802,116,116_P37802,Transgelin-2,TAGLN2,8407
+Q92947,116,116_Q92947,"""Glutaryl-CoA dehydrogenase, mitochondrial""",GCDH,2639
+O60684,117,117_O60684,Importin subunit alpha-7,KPNA6,23633
+P49321,117,117_P49321,Nuclear autoantigenic sperm protein,NASP,4678
+Q92733,117,117_Q92733,Proline-rich protein PRCC,PRCC,5546
+P53992,118,118_P53992,Protein transport protein Sec24C,SEC24C,9632
+Q15436,118,118_Q15436,Protein transport protein Sec23A,SEC23A,10484
+Q92620,118,118_Q92620,Pre-mRNA-splicing factor ATP-dependent RNA helicase PRP16,DHX38,9785
+Q16851,119,119_Q16851,UTP--glucose-1-phosphate uridylyltransferase,UGP2,7360
+Q92598,119,119_Q92598,Heat shock protein 105 kDa,HSPH1,10808
+Q9ULA0,119,119_Q9ULA0,Aspartyl aminopeptidase,DNPEP,23549
+O43396,12,12_O43396,Thioredoxin-like protein 1,TXNL1,9352
+P00558,12,12_P00558,Phosphoglycerate kinase 1,PGK1,5230
+P15121,12,12_P15121,Aldose reductase,AKR1B1,231
+P30042,12,12_P30042,"""ES1 protein homolog, mitochondrial""",C21orf33,102724023
+Q15257,12,12_Q15257,Serine/threonine-protein phosphatase 2A activator,PTPA,5524
+Q5VW32,12,12_Q5VW32,BRO1 domain-containing protein BROX,BROX,148362
+Q96C23,12,12_Q96C23,Aldose 1-epimerase,GALM,130589
+Q9HC38,12,12_Q9HC38,Glyoxalase domain-containing protein 4,GLOD4,51031
+O75791,120,120_O75791,GRB2-related adapter protein 2,GRAP2,9402
+Q8N1G4,120,120_Q8N1G4,Leucine-rich repeat-containing protein 47,LRRC47,57470
+Q8WXX5,120,120_Q8WXX5,DnaJ homolog subfamily C member 9,DNAJC9,23234
+O15533,121,121_O15533,Tapasin,TAPBP,6892
+Q8WWP7,121,121_Q8WWP7,GTPase IMAP family member 1,GIMAP1,170575
+Q93084,121,121_Q93084,Sarcoplasmic/endoplasmic reticulum calcium ATPase 3,ATP2A3,489
+Q8WU90,122,122_Q8WU90,Zinc finger CCCH domain-containing protein 15,ZC3H15,55854
+Q9NR50,122,122_Q9NR50,Translation initiation factor eIF-2B subunit gamma,EIF2B3,8891
+Q9Y295,122,122_Q9Y295,Developmentally-regulated GTP-binding protein 1,DRG1,4733
+P49406,123,123_P49406,"""39S ribosomal protein L19, mitochondrial""",MRPL19,9801
+Q8TAE8,123,123_Q8TAE8,Growth arrest and DNA damage-inducible proteins-interacting protein 1,GADD45GIP1,90480
+Q9NYK5,123,123_Q9NYK5,"""39S ribosomal protein L39, mitochondrial""",MRPL39,54148
+Q14728,124,124_Q14728,Major facilitator superfamily domain-containing protein 10,MFSD10,10227
+Q8N766,124,124_Q8N766,ER membrane protein complex subunit 1,EMC1,23065
+Q9P0I2,124,124_Q9P0I2,ER membrane protein complex subunit 3,EMC3,55831
+Q14318,125,125_Q14318,Peptidyl-prolyl cis-trans isomerase FKBP8,FKBP8,23770
+Q8N766,125,125_Q8N766,ER membrane protein complex subunit 1,EMC1,23065
+Q9P0I2,125,125_Q9P0I2,ER membrane protein complex subunit 3,EMC3,55831
+P40926,126,126_P40926,"""Malate dehydrogenase, mitochondrial""",MDH2,4191
+Q8N4P3,126,126_Q8N4P3,"""Guanosine-3',5'-bis(diphosphate) 3'-pyrophosphohydrolase MESH1""",HDDC3,374659
+Q96FJ0,126,126_Q96FJ0,AMSH-like protease,STAMBPL1,57559
+Q8IXH7,127,127_Q8IXH7,Negative elongation factor C/D,NELFCD,51497
+Q8WX92,127,127_Q8WX92,Negative elongation factor B,NELFB,25920
+Q9H3P2,127,127_Q9H3P2,Negative elongation factor A,NELFA,7469
+Q86U42,128,128_Q86U42,Polyadenylate-binding protein 2,PABPN1,8106
+Q99729,128,128_Q99729,Heterogeneous nuclear ribonucleoprotein A/B,HNRNPAB,3182
+Q9ULV4,128,128_Q9ULV4,Coronin-1C,CORO1C,23603
+O75223,129,129_O75223,Gamma-glutamylcyclotransferase,GGCT,79017
+O75342,129,129_O75342,"""Arachidonate 12-lipoxygenase, 12R-type""",ALOX12B,242
+Q6ZVX7,129,129_Q6ZVX7,F-box only protein 50,NCCRP1,342897
+P17980,13,13_P17980,26S protease regulatory subunit 6A,PSMC3,5702
+P43686,13,13_P43686,26S protease regulatory subunit 6B,PSMC4,5704
+P55036,13,13_P55036,26S proteasome non-ATPase regulatory subunit 4,PSMD4,5710
+P62195,13,13_P62195,26S protease regulatory subunit 8,PSMC5,5705
+P62333,13,13_P62333,26S protease regulatory subunit 10B,PSMC6,5706
+Q13200,13,13_Q13200,26S proteasome non-ATPase regulatory subunit 2,PSMD2,5708
+Q16401,13,13_Q16401,26S proteasome non-ATPase regulatory subunit 5,PSMD5,5711
+Q13838,130,130_Q13838,Spliceosome RNA helicase DDX39B,DDX39B,7919
+Q5JVF3,130,130_Q5JVF3,PCI domain-containing protein 2,PCID2,55795
+Q9BT09,130,130_Q9BT09,Protein canopy homolog 3,CNPY3,10695
+P17812,131,131_P17812,CTP synthase 1,CTPS1,1503
+Q53EL6,131,131_Q53EL6,Programmed cell death protein 4,PDCD4,27250
+Q9Y3F4,131,131_Q9Y3F4,Serine-threonine kinase receptor-associated protein,STRAP,11171
+Q52LJ0,132,132_Q52LJ0,Protein FAM98B,FAM98B,283742
+Q92499,132,132_Q92499,ATP-dependent RNA helicase DDX1,DDX1,1653
+Q96HE7,132,132_Q96HE7,ERO1-like protein alpha,ERO1L,30001
+P30520,133,133_P30520,Adenylosuccinate synthetase isozyme 2,ADSS,159
+Q3LXA3,133,133_Q3LXA3,Bifunctional ATP-dependent dihydroxyacetone kinase/FAD-AMP lyase (cyclizing),TKFC,26007
+Q9UHL4,133,133_Q9UHL4,Dipeptidyl peptidase 2,DPP7,29952
+Q15031,134,134_Q15031,"""Probable leucine--tRNA ligase, mitochondrial""",LARS2,23395
+Q16836,134,134_Q16836,"""Hydroxyacyl-coenzyme A dehydrogenase, mitochondrial""",HADH,3033
+Q8NCW5,134,134_Q8NCW5,NAD(P)H-hydrate epimerase,NAXE,128240
+P32322,135,135_P32322,"""Pyrroline-5-carboxylate reductase 1, mitochondrial""",PYCR1,5831
+Q15942,135,135_Q15942,Zyxin,ZYX,7791
+Q9UPT8,135,135_Q9UPT8,Zinc finger CCCH domain-containing protein 4,ZC3H4,23211
+Q15477,136,136_Q15477,Helicase SKI2W,SKIV2L,6499
+Q5JSL3,136,136_Q5JSL3,Dedicator of cytokinesis protein 11,DOCK11,139818
+Q6PGP7,136,136_Q6PGP7,Tetratricopeptide repeat protein 37,TTC37,9652
+Q15036,137,137_Q15036,Sorting nexin-17,SNX17,9784
+Q99714,137,137_Q99714,3-hydroxyacyl-CoA dehydrogenase type-2,HSD17B10,3028
+Q9Y2S7,137,137_Q9Y2S7,Polymerase delta-interacting protein 2,POLDIP2,26073
+P53634,138,138_P53634,Dipeptidyl peptidase 1,CTSC,1075
+Q01658,138,138_Q01658,Protein Dr1,DR1,1810
+Q14919,138,138_Q14919,Dr1-associated corepressor,DRAP1,10589
+Q07812,139,139_Q07812,Apoptosis regulator BAX,BAX,581
+Q14761,139,139_Q14761,Protein tyrosine phosphatase receptor type C-associated protein,PTPRCAP,5790
+Q9Y394,139,139_Q9Y394,Dehydrogenase/reductase SDR family member 7,DHRS7,51635
+P19838,14,14_P19838,Nuclear factor NF-kappa-B p105 subunit,NFKB1,4790
+P50851,14,14_P50851,Lipopolysaccharide-responsive and beige-like anchor protein,LRBA,987
+Q00653,14,14_Q00653,Nuclear factor NF-kappa-B p100 subunit,NFKB2,4791
+Q04206,14,14_Q04206,Transcription factor p65,RELA,5970
+Q04864,14,14_Q04864,Proto-oncogene c-Rel,REL,5966
+Q13557,14,14_Q13557,Calcium/calmodulin-dependent protein kinase type II subunit delta,CAMK2D,817
+Q8NF50,14,14_Q8NF50,Dedicator of cytokinesis protein 8,DOCK8,81704
+P35659,140,140_P35659,Protein DEK,DEK,7913
+Q08945,140,140_Q08945,FACT complex subunit SSRP1,SSRP1,6749
+Q14331,140,140_Q14331,Protein FRG1,FRG1,2483
+P42025,141,141_P42025,Beta-centractin,ACTR1B,10120
+P61163,141,141_P61163,Alpha-centractin,ACTR1A,10121
+Q14203,141,141_Q14203,Dynactin subunit 1,DCTN1,1639
+P11216,142,142_P11216,"""Glycogen phosphorylase, brain form""",PYGB,5834
+P23381,142,142_P23381,"""Tryptophan--tRNA ligase, cytoplasmic""",WARS,7453
+Q14166,142,142_Q14166,Tubulin--tyrosine ligase-like protein 12,TTLL12,23170
+P31939,143,143_P31939,Bifunctional purine biosynthesis protein PURH,ATIC,471
+Q13564,143,143_Q13564,NEDD8-activating enzyme E1 regulatory subunit,NAE1,8883
+Q8TBC4,143,143_Q8TBC4,NEDD8-activating enzyme E1 catalytic subunit,UBA3,9039
+Q13409,144,144_Q13409,Cytoplasmic dynein 1 intermediate chain 2,DYNC1I2,1781
+Q14204,144,144_Q14204,Cytoplasmic dynein 1 heavy chain 1,DYNC1H1,1778
+Q9Y6G9,144,144_Q9Y6G9,Cytoplasmic dynein 1 light intermediate chain 1,DYNC1LI1,51143
+P11940,145,145_P11940,Polyadenylate-binding protein 1,PABPC1,26986
+P50453,145,145_P50453,Serpin B9,SERPINB9,5272
+Q13310,145,145_Q13310,Polyadenylate-binding protein 4,PABPC4,8761
+P26358,146,146_P26358,DNA (cytosine-5)-methyltransferase 1,DNMT1,1786
+Q13283,146,146_Q13283,Ras GTPase-activating protein-binding protein 1,G3BP1,10146
+Q9BY44,146,146_Q9BY44,Eukaryotic translation initiation factor 2A,EIF2A,83939
+P20042,147,147_P20042,Eukaryotic translation initiation factor 2 subunit 2,EIF2S2,8894
+P41091,147,147_P41091,Eukaryotic translation initiation factor 2 subunit 3,EIF2S3,1968
+Q13144,147,147_Q13144,Translation initiation factor eIF-2B subunit epsilon,EIF2B5,8893
+P09960,148,148_P09960,Leukotriene A-4 hydrolase,LTA4H,4048
+P55809,148,148_P55809,"""Succinyl-CoA:3-ketoacid coenzyme A transferase 1, mitochondrial""",OXCT1,5019
+Q13126,148,148_Q13126,S-methyl-5'-thioadenosine phosphorylase,MTAP,4507
+Q12769,149,149_Q12769,Nuclear pore complex protein Nup160,NUP160,23279
+Q3ZCQ8,149,149_Q3ZCQ8,Mitochondrial import inner membrane translocase subunit TIM50,TIMM50,92609
+Q8WUM0,149,149_Q8WUM0,Nuclear pore complex protein Nup133,NUP133,55746
+O15143,15,15_O15143,Actin-related protein 2/3 complex subunit 1B,ARPC1B,10095
+O15144,15,15_O15144,Actin-related protein 2/3 complex subunit 2,ARPC2,10109
+O15145,15,15_O15145,Actin-related protein 2/3 complex subunit 3,ARPC3,10094
+O15511,15,15_O15511,Actin-related protein 2/3 complex subunit 5,ARPC5,10092
+P59998,15,15_P59998,Actin-related protein 2/3 complex subunit 4,ARPC4,10093
+P61158,15,15_P61158,Actin-related protein 3,ACTR3,10096
+P61160,15,15_P61160,Actin-related protein 2,ACTR2,10097
+O43747,150,150_O43747,AP-1 complex subunit gamma-1,AP1G1,164
+Q10567,150,150_Q10567,AP-1 complex subunit beta-1,AP1B1,162
+Q9BXS5,150,150_Q9BXS5,AP-1 complex subunit mu-1,AP1M1,8907
+Q09028,151,151_Q09028,Histone-binding protein RBBP4,RBBP4,5928
+Q16576,151,151_Q16576,Histone-binding protein RBBP7,RBBP7,5931
+Q92769,151,151_Q92769,Histone deacetylase 2,HDAC2,3066
+Q05655,152,152_Q05655,Protein kinase C delta type,PRKCD,5580
+Q8N392,152,152_Q8N392,Rho GTPase-activating protein 18,ARHGAP18,93663
+Q96BN8,152,152_Q96BN8,Ubiquitin thioesterase otulin,OTULIN,90268
+P61981,153,153_P61981,14-3-3 protein gamma,YWHAG,7532
+Q04917,153,153_Q04917,14-3-3 protein eta,YWHAH,7533
+Q16543,153,153_Q16543,Hsp90 co-chaperone Cdc37,CDC37,11140
+P43034,154,154_P43034,Platelet-activating factor acetylhydrolase IB subunit alpha,PAFAH1B1,5048
+Q04323,154,154_Q04323,UBX domain-containing protein 1,UBXN1,51035
+Q9NQG5,154,154_Q9NQG5,Regulation of nuclear pre-mRNA domain-containing protein 1B,RPRD1B,58490
+P41240,155,155_P41240,Tyrosine-protein kinase CSK,CSK,1445
+Q02750,155,155_Q02750,Dual specificity mitogen-activated protein kinase kinase 1,MAP2K1,5604
+Q9NTK5,155,155_Q9NTK5,Obg-like ATPase 1,OLA1,29789
+P60983,156,156_P60983,Glia maturation factor beta,GMFB,2764
+Q00535,156,156_Q00535,Cyclin-dependent-like kinase 5,CDK5,1020
+Q9HD15,156,156_Q9HD15,Steroid receptor RNA activator 1,SRA1,10011
+P00505,157,157_P00505,"""Aspartate aminotransferase, mitochondrial""",GOT2,2806
+P60174,157,157_P60174,Triosephosphate isomerase,TPI1,7167
+P78417,157,157_P78417,Glutathione S-transferase omega-1,GSTO1,9446
+P27348,158,158_P27348,14-3-3 protein theta,YWHAQ,10971
+P62258,158,158_P62258,14-3-3 protein epsilon,YWHAE,7531
+P63104,158,158_P63104,14-3-3 protein zeta/delta,YWHAZ,7534
+P46779,159,159_P46779,60S ribosomal protein L28,RPL28,6158
+P62891|Q59GN2,159,159_P62891|Q59GN2,,RPL39P5,
+P04040,16,16_P04040,Catalase,CAT,847
+P05089,16,16_P05089,Arginase-1,ARG1,383
+P22735,16,16_P22735,Protein-glutamine gamma-glutamyltransferase K,TGM1,7051
+Q08188,16,16_Q08188,Protein-glutamine gamma-glutamyltransferase E,TGM3,7053
+Q08554,16,16_Q08554,Desmocollin-1,DSC1,1823
+Q16610,16,16_Q16610,Extracellular matrix protein 1,ECM1,1893
+Q96P63,16,16_Q96P63,Serpin B12,SERPINB12,89777
+P62750,160,160_P62750,60S ribosomal protein L23a,RPL23A,6147
+P62847,160,160_P62847,40S ribosomal protein S24,RPS24,6229
+P62861,160,160_P62861,40S ribosomal protein S30,FAU,
+P62820,161,161_P62820,Ras-related protein Rab-1A,RAB1A,5861
+Q92544,161,161_Q92544,Transmembrane 9 superfamily member 4,TM9SF4,9777
+Q9NP72,161,161_Q9NP72,Ras-related protein Rab-18,RAB18,22931
+P46781,162,162_P46781,40S ribosomal protein S9,RPS9,6203
+P62269,162,162_P62269,40S ribosomal protein S18,RPS18,6222
+P62277,162,162_P62277,40S ribosomal protein S13,RPS13,6207
+P18621,163,163_P18621,60S ribosomal protein L17,RPL17,6139
+P62266,163,163_P62266,40S ribosomal protein S23,RPS23,6228
+P62854,163,163_P62854,40S ribosomal protein S26,RPS26,101929876
+P46778,164,164_P46778,60S ribosomal protein L21,RPL21,6144
+P61313,164,164_P61313,60S ribosomal protein L15,RPL15,6138
+Q07020,164,164_Q07020,60S ribosomal protein L18,RPL18,6141
+P10144,165,165_P10144,Granzyme B,GZMB,3002
+P23396,165,165_P23396,40S ribosomal protein S3,RPS3,6188
+P60866,165,165_P60866,40S ribosomal protein S20,RPS20,6224
+P19105|O14950,166,166_P19105|O14950,,,
+P60660,166,166_P60660,Myosin light polypeptide 6,MYL6,4637
+P54727,167,167_P54727,UV excision repair protein RAD23 homolog B,RAD23B,5887
+Q14738,167,167_Q14738,Serine/threonine-protein phosphatase 2A 56 kDa regulatory subunit delta isoform,PPP2R5D,5528
+Q92747,167,167_Q92747,Actin-related protein 2/3 complex subunit 1A,ARPC1A,10552
+P31751,168,168_P31751,RAC-beta serine/threonine-protein kinase,AKT2,208
+P52566,168,168_P52566,Rho GDP-dissociation inhibitor 2,ARHGDIB,397
+Q96FV2,168,168_Q96FV2,Secernin-2,SCRN2,90507
+P13667,169,169_P13667,Protein disulfide-isomerase A4,PDIA4,9601
+P20290,169,169_P20290,Transcription factor BTF3,BTF3,689
+P51858,169,169_P51858,Hepatoma-derived growth factor,HDGF,3068
+P01024,17,17_P01024,Complement C3,C3,718
+P01620|P01622|P01623|P04206,17,17_P01620|P01622|P01623|P04206,,IGKV3-20,
+P01766|P01777,17,17_P01766|P01777,,IGHV3-23,
+P43307,170,170_P43307,Translocon-associated protein subunit alpha,SSR1,6745
+P51571,170,170_P51571,Translocon-associated protein subunit delta,SSR4,6748
+P61009,170,170_P61009,Signal peptidase complex subunit 3,SPCS3,60559
+P50851,171,171_P50851,Lipopolysaccharide-responsive and beige-like anchor protein,LRBA,987
+Q13085,171,171_Q13085,Acetyl-CoA carboxylase 1,ACACA,31
+Q8TEQ6,171,171_Q8TEQ6,Gem-associated protein 5,GEMIN5,25929
+P47755,172,172_P47755,F-actin-capping protein subunit alpha-2,CAPZA2,830
+P47756,172,172_P47756,F-actin-capping protein subunit beta,CAPZB,832
+P52907,172,172_P52907,F-actin-capping protein subunit alpha-1,CAPZA1,829
+P46736,173,173_P46736,Lys-63-specific deubiquitinase BRCC36,BRCC3,79184
+Q15018,173,173_Q15018,BRISC complex subunit Abro1,FAM175B,23172
+Q9NXR7,173,173_Q9NXR7,BRCA1-A complex subunit BRE,BRE,9577
+P46109,174,174_P46109,Crk-like protein,CRKL,1399
+Q96FS4,174,174_Q96FS4,Signal-induced proliferation-associated protein 1,SIPA1,6494
+Q96JY6,174,174_Q96JY6,PDZ and LIM domain protein 2,PDLIM2,64236
+P35813,175,175_P35813,Protein phosphatase 1A,PPM1A,5494
+P56537,175,175_P56537,Eukaryotic translation initiation factor 6,EIF6,3692
+Q14847,175,175_Q14847,LIM and SH3 domain protein 1,LASP1,3927
+P22695,176,176_P22695,"""Cytochrome b-c1 complex subunit 2, mitochondrial""",UQCRC2,7385
+P28331,176,176_P28331,"""NADH-ubiquinone oxidoreductase 75 kDa subunit, mitochondrial""",NDUFS1,4719
+P31930,176,176_P31930,"""Cytochrome b-c1 complex subunit 1, mitochondrial""",UQCRC1,7384
+O60488,177,177_O60488,Long-chain-fatty-acid--CoA ligase 4,ACSL4,2182
+P31689,177,177_P31689,DnaJ homolog subfamily A member 1,DNAJA1,3301
+Q8NE71,177,177_Q8NE71,ATP-binding cassette sub-family F member 1,ABCF1,23
+P30419,178,178_P30419,Glycylpeptide N-tetradecanoyltransferase 1,NMT1,4836
+Q14005,178,178_Q14005,Pro-interleukin-16,IL16,3603
+Q8NHV1,178,178_Q8NHV1,GTPase IMAP family member 7,GIMAP7,168537
+P30084,179,179_P30084,"""Enoyl-CoA hydratase, mitochondrial""",ECHS1,1892
+Q08257,179,179_Q08257,Quinone oxidoreductase,CRYZ,1429
+Q9P2R7,179,179_Q9P2R7,"""Succinyl-CoA ligase [ADP-forming] subunit beta, mitochondrial""",SUCLA2,8803
+O96008,18,18_O96008,Mitochondrial import receptor subunit TOM40 homolog,TOMM40,10452
+P53007,18,18_P53007,"""Tricarboxylate transport protein, mitochondrial""",SLC25A1,6576
+Q92621,18,18_Q92621,Nuclear pore complex protein Nup205,NUP205,23165
+Q96TA2,18,18_Q96TA2,ATP-dependent zinc metalloprotease YME1L1,YME1L1,10730
+Q9NUQ2,18,18_Q9NUQ2,1-acyl-sn-glycerol-3-phosphate acyltransferase epsilon,AGPAT5,55326
+Q9Y4W6,18,18_Q9Y4W6,AFG3-like protein 2,AFG3L2,10939
+P09211,180,180_P09211,Glutathione S-transferase P,GSTP1,2950
+P30041,180,180_P30041,Peroxiredoxin-6,PRDX6,9588
+Q9Y5Z4,180,180_Q9Y5Z4,Heme-binding protein 2,HEBP2,23593
+O00743,181,181_O00743,Serine/threonine-protein phosphatase 6 catalytic subunit,PPP6C,5537
+P27708,181,181_P27708,CAD protein,CAD,790
+Q8N8A2,181,181_Q8N8A2,Serine/threonine-protein phosphatase 6 regulatory ankyrin repeat subunit B,ANKRD44,91526
+P08621,182,182_P08621,U1 small nuclear ribonucleoprotein 70 kDa,SNRNP70,6625
+P26368,182,182_P26368,Splicing factor U2AF 65 kDa subunit,U2AF2,11338
+Q01081,182,182_Q01081,Splicing factor U2AF 35 kDa subunit,U2AF1,102724594
+P25098,183,183_P25098,Beta-adrenergic receptor kinase 1,ADRBK1,156
+P42785,183,183_P42785,Lysosomal Pro-X carboxypeptidase,PRCP,5547
+P45954,183,183_P45954,"""Short/branched chain specific acyl-CoA dehydrogenase, mitochondrial""",ACADSB,36
+P23743,184,184_P23743,Diacylglycerol kinase alpha,DGKA,1606
+P28482,184,184_P28482,Mitogen-activated protein kinase 1,MAPK1,5594
+Q04637,184,184_Q04637,Eukaryotic translation initiation factor 4 gamma 1,EIF4G1,1981
+P23246,185,185_P23246,"""Splicing factor, proline- and glutamine-rich""",SFPQ,6421
+Q15233,185,185_Q15233,Non-POU domain-containing octamer-binding protein,NONO,4841
+Q9Y5A9,185,185_Q9Y5A9,YTH domain-containing family protein 2,YTHDF2,51441
+O95817,186,186_O95817,BAG family molecular chaperone regulator 3,BAG3,9531
+P22234,186,186_P22234,Multifunctional protein ADE2,PAICS,10606
+Q86X55,186,186_Q86X55,Histone-arginine methyltransferase CARM1,CARM1,10498
+P22102,187,187_P22102,Trifunctional purine biosynthetic protein adenosine-3,GART,2618
+P43246,187,187_P43246,DNA mismatch repair protein Msh2,MSH2,4436
+Q8IUI8,187,187_Q8IUI8,Cytokine receptor-like factor 3,CRLF3,51379
+P22033,188,188_P22033,"""Methylmalonyl-CoA mutase, mitochondrial""",MUT,4594
+P49588,188,188_P49588,"""Alanine--tRNA ligase, cytoplasmic""",AARS,16
+Q14157,188,188_Q14157,Ubiquitin-associated protein 2-like,UBAP2L,9898
+P21281,189,189_P21281,"""V-type proton ATPase subunit B, brain isoform""",ATP6V1B2,526
+P36543,189,189_P36543,V-type proton ATPase subunit E 1,ATP6V1E1,529
+P38606,189,189_P38606,V-type proton ATPase catalytic subunit A,ATP6V1A,523
+Q8N6H7,19,19_Q8N6H7,ADP-ribosylation factor GTPase-activating protein 2,ARFGAP2,84364
+Q96HY7,19,19_Q96HY7,"""Probable 2-oxoglutarate dehydrogenase E1 component DHKTD1, mitochondrial""",DHTKD1,55526
+Q9HBI0,19,19_Q9HBI0,Gamma-parvin,PARVG,64098
+Q9NP79,19,19_Q9NP79,Vacuolar protein sorting-associated protein VTA1 homolog,VTA1,51534
+Q9NQG5,19,19_Q9NQG5,Regulation of nuclear pre-mRNA domain-containing protein 1B,RPRD1B,58490
+Q9UEW8,19,19_Q9UEW8,STE20/SPS1-related proline-alanine-rich protein kinase,STK39,27347
+O95081,190,190_O95081,Arf-GAP domain and FG repeat-containing protein 2,AGFG2,3268
+P19367,190,190_P19367,Hexokinase-1,HK1,3098
+Q13177,190,190_Q13177,Serine/threonine-protein kinase PAK 2,PAK2,5062
+P15927,191,191_P15927,Replication protein A 32 kDa subunit,RPA2,6118
+P27694,191,191_P27694,Replication protein A 70 kDa DNA-binding subunit,RPA1,6117
+P35244,191,191_P35244,Replication protein A 14 kDa subunit,RPA3,6119
+P14222,192,192_P14222,Perforin-1,PRF1,5551
+P46199,192,192_P46199,"""Translation initiation factor IF-2, mitochondrial""",MTIF2,4528
+Q6UX04,192,192_Q6UX04,Peptidyl-prolyl cis-trans isomerase CWC27 homolog,CWC27,10283
+P12956,193,193_P12956,X-ray repair cross-complementing protein 6,XRCC6,2547
+P13010,193,193_P13010,X-ray repair cross-complementing protein 5,XRCC5,7520
+P78527,193,193_P78527,DNA-dependent protein kinase catalytic subunit,PRKDC,5591
+P01040,194,194_P01040,Cystatin-A,CSTA,1475
+P12273,194,194_P12273,Prolactin-inducible protein,PIP,5304
+P25311,194,194_P25311,Zinc-alpha-2-glycoprotein,AZGP1,563
+P12268,195,195_P12268,Inosine-5'-monophosphate dehydrogenase 2,IMPDH2,3615
+P61289,195,195_P61289,Proteasome activator complex subunit 3,PSME3,10197
+Q14697,195,195_Q14697,Neutral alpha-glucosidase AB,GANAB,23193
+P11413,196,196_P11413,Glucose-6-phosphate 1-dehydrogenase,G6PD,2539
+P14324,196,196_P14324,Farnesyl pyrophosphate synthase,FDPS,2224
+Q96RS6,196,196_Q96RS6,NudC domain-containing protein 1,NUDCD1,84955
+P09467,197,197_P09467,"""Fructose-1,6-bisphosphatase 1""",FBP1,2203
+P43034,197,197_P43034,Platelet-activating factor acetylhydrolase IB subunit alpha,PAFAH1B1,5048
+Q6PI48,197,197_Q6PI48,"""Aspartate--tRNA ligase, mitochondrial""",DARS2,55157
+P07437,198,198_P07437,Tubulin beta chain,TUBB,203068
+P68366,198,198_P68366,Tubulin alpha-4A chain,TUBA4A,7277
+P68371,198,198_P68371,Tubulin beta-4B chain,TUBB4B,10383
+P06127,199,199_P06127,T-cell surface glycoprotein CD5,CD5,921
+P16150,199,199_P16150,Leukosialin,SPN,6693
+P43489,199,199_P43489,Tumor necrosis factor receptor superfamily member 4,TNFRSF4,7293
+O00303,2,2_O00303,Eukaryotic translation initiation factor 3 subunit F,EIF3F,8665
+O15371,2,2_O15371,Eukaryotic translation initiation factor 3 subunit D,EIF3D,8664
+O15372,2,2_O15372,Eukaryotic translation initiation factor 3 subunit H,EIF3H,8667
+O75821,2,2_O75821,Eukaryotic translation initiation factor 3 subunit G,EIF3G,8666
+P55884,2,2_P55884,Eukaryotic translation initiation factor 3 subunit B,EIF3B,8662
+P60228,2,2_P60228,Eukaryotic translation initiation factor 3 subunit E,EIF3E,3646
+Q13347,2,2_Q13347,Eukaryotic translation initiation factor 3 subunit I,EIF3I,8668
+Q14152,2,2_Q14152,Eukaryotic translation initiation factor 3 subunit A,EIF3A,8661
+Q7L2H7,2,2_Q7L2H7,Eukaryotic translation initiation factor 3 subunit M,EIF3M,10480
+Q99613,2,2_Q99613,Eukaryotic translation initiation factor 3 subunit C,EIF3C,8663
+Q9HC35,2,2_Q9HC35,Echinoderm microtubule-associated protein-like 4,EML4,27436
+Q9UBQ5,2,2_Q9UBQ5,Eukaryotic translation initiation factor 3 subunit K,EIF3K,27335
+Q9Y262,2,2_Q9Y262,Eukaryotic translation initiation factor 3 subunit L,EIF3L,51386
+P16435,20,20_P16435,NADPH--cytochrome P450 reductase,POR,5447
+Q14573,20,20_Q14573,"""Inositol 1,4,5-trisphosphate receptor type 3""",ITPR3,3710
+Q8TDW0,20,20_Q8TDW0,Volume-regulated anion channel subunit LRRC8C,LRRC8C,84230
+Q96CS3,20,20_Q96CS3,FAS-associated factor 2,FAF2,23197
+Q96F15,20,20_Q96F15,GTPase IMAP family member 5,GIMAP5,55340
+Q9UGP8,20,20_Q9UGP8,Translocation protein SEC63 homolog,SEC63,11231
+P05109,200,200_P05109,Protein S100-A8,S100A8,6279
+P06702,200,200_P06702,Protein S100-A9,S100A9,6280
+P31151,200,200_P31151,Protein S100-A7,S100A7,6278
+P04818,201,201_P04818,Thymidylate synthase,TYMS,7298
+P29401,201,201_P29401,Transketolase,TKT,7086
+Q8WVM8,201,201_Q8WVM8,Sec1 family domain-containing protein 1,SCFD1,23256
+P01036,202,202_P01036,Cystatin-S,CST4,1472
+P01037,202,202_P01037,Cystatin-SN,CST1,1469
+P02814,202,202_P02814,Submaxillary gland androgen-regulated protein 3B,SMR3B,10879
+P02671,203,203_P02671,Fibrinogen alpha chain,FGA,2243
+P02675,203,203_P02675,Fibrinogen beta chain,FGB,2244
+P02679,203,203_P02679,Fibrinogen gamma chain,FGG,2266
+P01764,204,204_P01764,Ig heavy chain V-III region VH26,IGKV3-23,
+P01857,204,204_P01857,Ig gamma-1 chain C region,IGHG1,
+P04433,204,204_P04433,Ig kappa chain V-III region VG (Fragment),IGKV3-11,
+P01730,205,205_P01730,T-cell surface glycoprotein CD4,CD4,920
+P46977,205,205_P46977,Dolichyl-diphosphooligosaccharide--protein glycosyltransferase subunit STT3A,STT3A,3703
+Q8TCT9,205,205_Q8TCT9,Minor histocompatibility antigen H13,HM13,81502
+O14980,206,206_O14980,Exportin-1,XPO1,7514
+O95466,206,206_O95466,Formin-like protein 1,FMNL1,752
+Q00610,206,206_Q00610,Clathrin heavy chain 1,CLTC,1213
+O94973,207,207_O94973,AP-2 complex subunit alpha-2,AP2A2,161
+P08237,207,207_P08237,"""ATP-dependent 6-phosphofructokinase, muscle type""",PFKM,5213
+Q96CW1,207,207_Q96CW1,AP-2 complex subunit mu,AP2M1,1173
+O75937,208,208_O75937,DnaJ homolog subfamily C member 8,DNAJC8,22826
+P53582,208,208_P53582,Methionine aminopeptidase 1,METAP1,23173
+P82979,208,208_P82979,SAP domain-containing ribonucleoprotein,SARNP,84324
+O75915,209,209_O75915,PRA1 family protein 3,ARL6IP5,10550
+P04234,209,209_P04234,T-cell surface glycoprotein CD3 delta chain,CD3D,915
+Q9H1E5,209,209_Q9H1E5,Thioredoxin-related transmembrane protein 4,TMX4,56255
+P27487,21,21_P27487,Dipeptidyl peptidase 4,DPP4,1803
+P49755,21,21_P49755,Transmembrane emp24 domain-containing protein 10,TMED10,10972
+P61106,21,21_P61106,Ras-related protein Rab-14,RAB14,51552
+Q7Z2K6,21,21_Q7Z2K6,Endoplasmic reticulum metallopeptidase 1,ERMP1,79956
+Q9BVK6,21,21_Q9BVK6,Transmembrane emp24 domain-containing protein 9,TMED9,54732
+Q9H0U3,21,21_Q9H0U3,Magnesium transporter protein 1,MAGT1,84061
+O75390,210,210_O75390,"""Citrate synthase, mitochondrial""",CS,1431
+Q12931,210,210_Q12931,"""Heat shock protein 75 kDa, mitochondrial""",TRAP1,10131
+Q9Y2Z0,210,210_Q9Y2Z0,Suppressor of G2 allele of SKP1 homolog,SUGT1,10910
+O75251,211,211_O75251,"""NADH dehydrogenase [ubiquinone] iron-sulfur protein 7, mitochondrial""",NDUFS7,374291
+O75306,211,211_O75306,"""NADH dehydrogenase [ubiquinone] iron-sulfur protein 2, mitochondrial""",NDUFS2,4720
+Q16795,211,211_Q16795,"""NADH dehydrogenase [ubiquinone] 1 alpha subcomplex subunit 9, mitochondrial""",NDUFA9,4704
+O60841,212,212_O60841,Eukaryotic translation initiation factor 5B,EIF5B,9669
+P10144,212,212_P10144,Granzyme B,GZMB,3002
+Q96SB4,212,212_Q96SB4,SRSF protein kinase 1,SRPK1,6732
+O60488,213,213_O60488,Long-chain-fatty-acid--CoA ligase 4,ACSL4,2182
+Q3YEC7,213,213_Q3YEC7,Rab-like protein 6,RABL6,55684
+Q92974,213,213_Q92974,Rho guanine nucleotide exchange factor 2,ARHGEF2,9181
+O43815,214,214_O43815,Striatin,STRN,6801
+P29590,214,214_P29590,Protein PML,PML,5371
+Q9UQE7,214,214_Q9UQE7,Structural maintenance of chromosomes protein 3,SMC3,9126
+O43670,215,215_O43670,BUB3-interacting and GLEBS motif-containing protein ZNF207,ZNF207,7756
+O43684,215,215_O43684,Mitotic checkpoint protein BUB3,BUB3,9184
+Q8NC51,215,215_Q8NC51,Plasminogen activator inhibitor 1 RNA-binding protein,SERBP1,26135
+O43172,216,216_O43172,U4/U6 small nuclear ribonucleoprotein Prp4,PRPF4,9128
+O43395,216,216_O43395,U4/U6 small nuclear ribonucleoprotein Prp3,PRPF3,9129
+Q9BQ39,216,216_Q9BQ39,ATP-dependent RNA helicase DDX50,DDX50,79009
+O15355,217,217_O15355,Protein phosphatase 1G,PPM1G,5496
+Q13077,217,217_Q13077,TNF receptor-associated factor 1,TRAF1,7185
+Q15631,217,217_Q15631,Translin,TSN,7247
+O15118,218,218_O15118,Niemann-Pick C1 protein,NPC1,4864
+P49257,218,218_P49257,Protein ERGIC-53,LMAN1,3998
+P53985,218,218_P53985,Monocarboxylate transporter 1,SLC16A1,6566
+O14929,219,219_O14929,Histone acetyltransferase type B catalytic subunit,HAT1,8520
+Q9H223,219,219_Q9H223,EH domain-containing protein 4,EHD4,30844
+Q9UBB4,219,219_Q9UBB4,Ataxin-10,ATXN10,25814
+P53041,22,22_P53041,Serine/threonine-protein phosphatase 5,PPP5C,5536
+Q4G176,22,22_Q4G176,"""Acyl-CoA synthetase family member 3, mitochondrial""",ACSF3,197322
+Q69YN2,22,22_Q69YN2,CWF19-like protein 1,CWF19L1,55280
+Q92506,22,22_Q92506,Estradiol 17-beta-dehydrogenase 8,HSD17B8,7923
+Q9H444,22,22_Q9H444,Charged multivesicular body protein 4b,CHMP4B,128866
+Q9NZ63,22,22_Q9NZ63,Uncharacterized protein C9orf78,C9orf78,51759
+O14745,220,220_O14745,Na(+)/H(+) exchange regulatory cofactor NHE-RF1,SLC9A3R1,9368
+P08133,220,220_P08133,Annexin A6,ANXA6,309
+P51812,220,220_P51812,Ribosomal protein S6 kinase alpha-3,RPS6KA3,6197
+O00203,221,221_O00203,AP-3 complex subunit beta-1,AP3B1,8546
+O14617,221,221_O14617,AP-3 complex subunit delta-1,AP3D1,8943
+Q9Y5B9,221,221_Q9Y5B9,FACT complex subunit SPT16,SUPT16H,11198
+O00160,222,222_O00160,Unconventional myosin-If,MYO1F,4542
+Q8N6N3,222,222_Q8N6N3,UPF0690 protein C1orf52,C1orf52,148423
+Q8WYA6,222,222_Q8WYA6,Beta-catenin-like protein 1,CTNNBL1,56259
+A0FGR8,223,223_A0FGR8,Extended synaptotagmin-2,ESYT2,57488
+O75844,223,223_O75844,CAAX prenyl protease 1 homolog,ZMPSTE24,10269
+P18031,223,223_P18031,Tyrosine-protein phosphatase non-receptor type 1,PTPN1,5770
+Q9P2R7,224,224_Q9P2R7,"""Succinyl-CoA ligase [ADP-forming] subunit beta, mitochondrial""",SUCLA2,8803
+Q9Y6W3,224,224_Q9Y6W3,Calpain-7,CAPN7,23473
+P20061,225,225_P20061,Transcobalamin-1,TCN1,6947
+Q9Y6R7,225,225_Q9Y6R7,IgGFc-binding protein,FCGBP,8857
+Q8NCN5,226,226_Q8NCN5,"""Pyruvate dehydrogenase phosphatase regulatory subunit, mitochondrial""",PDPR,55066
+Q9Y606,226,226_Q9Y606,"""tRNA pseudouridine synthase A, mitochondrial""",PUS1,80324
+O75643,227,227_O75643,U5 small nuclear ribonucleoprotein 200 kDa helicase,SNRNP200,23020
+Q9Y5U2,227,227_Q9Y5U2,Protein TSSC4,TSSC4,10078
+Q9BVL2,228,228_Q9BVL2,Nucleoporin p58/p45,NUPL1,9818
+Q9Y5P6,228,228_Q9Y5P6,Mannose-1-phosphate guanyltransferase beta,GMPPB,29925
+Q96B97,229,229_Q96B97,SH3 domain-containing kinase-binding protein 1,SH3KBP1,30011
+Q9Y5K6,229,229_Q9Y5K6,CD2-associated protein,CD2AP,23607
+P20339,23,23_P20339,Ras-related protein Rab-5A,RAB5A,5868
+P30519,23,23_P30519,Heme oxygenase 2,HMOX2,3163
+P51159,23,23_P51159,Ras-related protein Rab-27A,RAB27A,5873
+Q9BZF1,23,23_Q9BZF1,Oxysterol-binding protein-related protein 8,OSBPL8,114882
+Q9HBH5,23,23_Q9HBH5,Retinol dehydrogenase 14,RDH14,57665
+Q9Y4W2,23,23_Q9Y4W2,Ribosomal biogenesis protein LAS1L,LAS1L,81887
+Q9Y333,230,230_Q9Y333,U6 snRNA-associated Sm-like protein LSm2,LSM2,57819
+Q9Y4Z0,230,230_Q9Y4Z0,U6 snRNA-associated Sm-like protein LSm4,LSM4,25804
+P49411,231,231_P49411,"""Elongation factor Tu, mitochondrial""",TUFM,7284
+Q9Y3Z3,231,231_Q9Y3Z3,Deoxynucleoside triphosphate triphosphohydrolase SAMHD1,SAMHD1,25939
+P62899,232,232_P62899,60S ribosomal protein L31,RPL31,6160
+Q9Y3C1,232,232_Q9Y3C1,Nucleolar protein 16,NOP16,51491
+O95232,233,233_O95232,Luc7-like protein 3,LUC7L3,51747
+Q9Y383,233,233_Q9Y383,Putative RNA-binding protein Luc7-like 2,LUC7L2,51631
+Q9NUQ9,234,234_Q9NUQ9,Protein FAM49B,FAM49B,51571
+Q9Y2V2,234,234_Q9Y2V2,Calcium-regulated heat stable protein 1,CARHSP1,23589
+O15533,235,235_O15533,Tapasin,TAPBP,6892
+Q9Y228,235,235_Q9Y228,TRAF3-interacting JNK-activating modulator,TRAF3IP3,80342
+Q9UKV3,236,236_Q9UKV3,Apoptotic chromatin condensation inducer in the nucleus,ACIN1,22985
+Q9UQ35,236,236_Q9UQ35,Serine/arginine repetitive matrix protein 2,SRRM2,23524
+P62280,237,237_P62280,40S ribosomal protein S11,RPS11,6205
+Q9UNQ2,237,237_Q9UNQ2,Probable dimethyladenosine transferase,DIMT1,27292
+Q969S9,238,238_Q969S9,"""Ribosome-releasing factor 2, mitochondrial""",GFM2,84340
+Q9UJ70,238,238_Q9UJ70,N-acetyl-D-glucosamine kinase,NAGK,55577
+Q9BWM7,239,239_Q9BWM7,Sideroflexin-3,SFXN3,81855
+Q9UHQ9,239,239_Q9UHQ9,NADH-cytochrome b5 reductase 1,CYB5R1,51706
+P33991,24,24_P33991,DNA replication licensing factor MCM4,MCM4,4173
+P33993,24,24_P33993,DNA replication licensing factor MCM7,MCM7,4176
+P49736,24,24_P49736,DNA replication licensing factor MCM2,MCM2,4171
+Q14566,24,24_Q14566,DNA replication licensing factor MCM6,MCM6,4175
+Q92905,24,24_Q92905,COP9 signalosome complex subunit 5,COPS5,10987
+Q99873,24,24_Q99873,Protein arginine N-methyltransferase 1,PRMT1,3276
+Q8TDN6,240,240_Q8TDN6,Ribosome biogenesis protein BRX1 homolog,BRIX1,55299
+Q9UHA3,240,240_Q9UHA3,Probable ribosome biogenesis protein RLP24,RSL24D1,51187
+P49792,241,241_P49792,E3 SUMO-protein ligase RanBP2,RANBP2,5903
+Q9UH99,241,241_Q9UH99,SUN domain-containing protein 2,SUN2,25777
+P39019,242,242_P39019,40S ribosomal protein S19,RPS19,6223
+Q9UER7,242,242_Q9UER7,Death domain-associated protein 6,DAXX,1616
+P98175,243,243_P98175,RNA-binding protein 10,RBM10,8241
+Q9UEE9,243,243_Q9UEE9,Craniofacial development protein 1,CFDP1,10428
+Q92619,244,244_Q92619,Minor histocompatibility protein HA-1,ARHGAP45,23526
+Q9UBW5,244,244_Q9UBW5,Bridging integrator 2,BIN2,51411
+O14579,245,245_O14579,Coatomer subunit epsilon,COPE,11316
+Q9UBF2,245,245_Q9UBF2,Coatomer subunit gamma-2,COPG2,26958
+Q9UBC9,246,246_Q9UBC9,Small proline-rich protein 3,SPRR3,6707
+Q9UBG3,246,246_Q9UBG3,Cornulin,CRNN,49860
+Q96MW1,247,247_Q96MW1,Coiled-coil domain-containing protein 43,CCDC43,124808
+Q9P287,247,247_Q9P287,BRCA2 and CDKN1A-interacting protein,BCCIP,56647
+Q9BPX5,248,248_Q9BPX5,Actin-related protein 2/3 complex subunit 5-like protein,ARPC5L,81873
+Q9P1U1,248,248_Q9P1U1,Actin-related protein 3B,ACTR3B,57180
+Q8NFU3,249,249_Q8NFU3,Thiosulfate sulfurtransferase/rhodanese-like domain-containing protein 1,TSTD1,100131187
+Q9P1F3,249,249_Q9P1F3,Costars family protein ABRACL,ABRACL,58527
+O00329,25,25_O00329,"""Phosphatidylinositol 4,5-bisphosphate 3-kinase catalytic subunit delta isoform""",PIK3CD,5293
+P27986,25,25_P27986,Phosphatidylinositol 3-kinase regulatory subunit alpha,PIK3R1,5295
+P51692,25,25_P51692,Signal transducer and activator of transcription 5B,STAT5B,6777
+Q08J23,25,25_Q08J23,tRNA (cytosine(34)-C(5))-methyltransferase,NSUN2,54888
+Q8TEX9,25,25_Q8TEX9,Importin-4,IPO4,79711
+Q9BXJ9,25,25_Q9BXJ9,"""N-alpha-acetyltransferase 15, NatA auxiliary subunit""",NAA15,80155
+P31153,250,250_P31153,S-adenosylmethionine synthase isoform type-2,MAT2A,4144
+Q9NZL9,250,250_Q9NZL9,Methionine adenosyltransferase 2 subunit beta,MAT2B,27430
+O15173,251,251_O15173,Membrane-associated progesterone receptor component 2,PGRMC2,10424
+Q9NZ45,251,251_Q9NZ45,CDGSH iron-sulfur domain-containing protein 1,CISD1,55847
+Q9NXF1,252,252_Q9NXF1,Testis-expressed sequence 10 protein,TEX10,54881
+Q9NYP7,252,252_Q9NYP7,Elongation of very long chain fatty acids protein 5,ELOVL5,60481
+Q16881,253,253_Q16881,"""Thioredoxin reductase 1, cytoplasmic""",TXNRD1,7296
+Q9NY33,253,253_Q9NY33,Dipeptidyl peptidase 3,DPP3,10072
+Q9NWV4,254,254_Q9NWV4,UPF0587 protein C1orf123,C1orf123,54987
+Q9P0J1,254,254_Q9P0J1,"""[Pyruvate dehydrogenase [acetyl-transferring]]-phosphatase 1, mitochondrial""",PDP1,54704
+Q9GZR7,255,255_Q9GZR7,ATP-dependent RNA helicase DDX24,DDX24,57062
+Q9NVP1,255,255_Q9NVP1,ATP-dependent RNA helicase DDX18,DDX18,8886
+Q9H2K8,256,256_Q9H2K8,Serine/threonine-protein kinase TAO3,TAOK3,51347
+Q9NVE7,256,256_Q9NVE7,Pantothenate kinase 4,PANK4,55229
+P36915,257,257_P36915,Guanine nucleotide-binding protein-like 1,GNL1,2794
+Q9NT62,257,257_Q9NT62,Ubiquitin-like-conjugating enzyme ATG3,ATG3,64422
+P50570,258,258_P50570,Dynamin-2,DNM2,1785
+Q9NSD9,258,258_Q9NSD9,Phenylalanine--tRNA ligase beta subunit,FARSB,10056
+Q8TCS8,259,259_Q8TCS8,"""Polyribonucleotide nucleotidyltransferase 1, mitochondrial""",PNPT1,87178
+Q9NQ48,259,259_Q9NQ48,Leucine zipper transcription factor-like protein 1,LZTFL1,54585
+O15117,26,26_O15117,FYN-binding protein,FYB,2533
+P98171,26,26_P98171,Rho GTPase-activating protein 4,ARHGAP4,393
+Q86WV1,26,26_Q86WV1,Src kinase-associated phosphoprotein 1,SKAP1,8631
+Q92619,26,26_Q92619,Minor histocompatibility protein HA-1,ARHGAP45,23526
+Q96RU3,26,26_Q96RU3,Formin-binding protein 1,FNBP1,23048
+Q9UBW5,26,26_Q9UBW5,Bridging integrator 2,BIN2,51411
+Q8WVV4,260,260_Q8WVV4,Protein POF1B,POF1B,79983
+Q9HCY8,260,260_Q9HCY8,Protein S100-A14,S100A14,57402
+Q9BV20,261,261_Q9BV20,Methylthioribose-1-phosphate isomerase,MRI1,84245
+Q9HCN8,261,261_Q9HCN8,Stromal cell-derived factor 2-like protein 1,SDF2L1,23753
+P20339,262,262_P20339,Ras-related protein Rab-5A,RAB5A,5868
+Q9HBH5,262,262_Q9HBH5,Retinol dehydrogenase 14,RDH14,57665
+O43148,263,263_O43148,mRNA cap guanine-N7 methyltransferase,RNMT,8731
+Q9HB71,263,263_Q9HB71,Calcyclin-binding protein,CACYBP,27101
+O95602,264,264_O95602,DNA-directed RNA polymerase I subunit RPA1,POLR1A,25885
+Q9H9Y6,264,264_Q9H9Y6,DNA-directed RNA polymerase I subunit RPA2,POLR1B,84172
+Q8WVY7,265,265_Q8WVY7,Ubiquitin-like domain-containing CTD phosphatase 1,UBLCP1,134510
+Q9H910,265,265_Q9H910,Hematological and neurological expressed 1-like protein,HN1L,90861
+O43586,266,266_O43586,Proline-serine-threonine phosphatase-interacting protein 1,PSTPIP1,9051
+Q9H6Z4,266,266_Q9H6Z4,Ran-binding protein 3,RANBP3,8498
+P31150,267,267_P31150,Rab GDP dissociation inhibitor alpha,GDI1,2664
+Q9H4M9,267,267_Q9H4M9,EH domain-containing protein 1,EHD1,10938
+P53041,268,268_P53041,Serine/threonine-protein phosphatase 5,PPP5C,5536
+Q9H444,268,268_Q9H444,Charged multivesicular body protein 4b,CHMP4B,128866
+P50213,269,269_P50213,"""Isocitrate dehydrogenase [NAD] subunit alpha, mitochondrial""",IDH3A,3419
+Q9H1B7,269,269_Q9H1B7,Interferon regulatory factor 2-binding protein-like,IRF2BPL,64207
+O95822,27,27_O95822,"""Malonyl-CoA decarboxylase, mitochondrial""",MLYCD,23417
+P30566,27,27_P30566,Adenylosuccinate lyase,ADSL,158
+Q01826,27,27_Q01826,DNA-binding protein SATB1,SATB1,6304
+Q06323,27,27_Q06323,Proteasome activator complex subunit 1,PSME1,5720
+Q9UL46,27,27_Q9UL46,Proteasome activator complex subunit 2,PSME2,5721
+Q9BVP2,270,270_Q9BVP2,Guanine nucleotide-binding protein-like 3,GNL3,26354
+Q9H0A0,270,270_Q9H0A0,N-acetyltransferase 10,NAT10,55226
+Q8WVY7,271,271_Q8WVY7,Ubiquitin-like domain-containing CTD phosphatase 1,UBLCP1,134510
+Q9H008,271,271_Q9H008,Phospholysine phosphohistidine inorganic pyrophosphate phosphatase,LHPP,64077
+Q08752,272,272_Q08752,Peptidyl-prolyl cis-trans isomerase D,PPID,5481
+Q9H008,272,272_Q9H008,Phospholysine phosphohistidine inorganic pyrophosphate phosphatase,LHPP,64077
+O75131,273,273_O75131,Copine-3,CPNE3,8895
+Q9GZP4,273,273_Q9GZP4,PITH domain-containing protein 1,PITHD1,57095
+Q9BYD6,274,274_Q9BYD6,"""39S ribosomal protein L1, mitochondrial""",MRPL1,65008
+Q9BZE1,274,274_Q9BZE1,"""39S ribosomal protein L37, mitochondrial""",MRPL37,51253
+Q9BVJ7,275,275_Q9BVJ7,Dual specificity protein phosphatase 23,DUSP23,54935
+Q9UMY4,275,275_Q9UMY4,Sorting nexin-12,SNX12,29934
+Q9BTT0,276,276_Q9BTT0,Acidic leucine-rich nuclear phosphoprotein 32 family member E,ANP32E,81611
+Q9NXV2,276,276_Q9NXV2,BTB/POZ domain-containing protein KCTD5,KCTD5,54442
+Q9BRJ6,277,277_Q9BRJ6,Uncharacterized protein C7orf50,C7orf50,84310
+Q9NWT1,277,277_Q9NWT1,p21-activated protein kinase-interacting protein 1,PAK1IP1,55003
+O95347,278,278_O95347,Structural maintenance of chromosomes protein 2,SMC2,10592
+Q9BPX3,278,278_Q9BPX3,Condensin complex subunit 3,NCAPG,64151
+Q15181,279,279_Q15181,Inorganic pyrophosphatase,PPA1,5464
+Q99829,279,279_Q99829,Copine-1,CPNE1,8904
+Q9BZE4,28,28_Q9BZE4,Nucleolar GTP-binding protein 1,GTPBP4,23560
+Q9NVP1,28,28_Q9NVP1,ATP-dependent RNA helicase DDX18,DDX18,8886
+Q9NX58,28,28_Q9NX58,Cell growth-regulating nucleolar protein,LYAR,55646
+Q9UMS4,28,28_Q9UMS4,Pre-mRNA-processing factor 19,PRPF19,27339
+Q9Y2X3,28,28_Q9Y2X3,Nucleolar protein 58,NOP58,51602
+P55209,280,280_P55209,Nucleosome assembly protein 1-like 1,NAP1L1,4673
+Q99733,280,280_Q99733,Nucleosome assembly protein 1-like 4,NAP1L4,4676
+P35658,281,281_P35658,Nuclear pore complex protein Nup214,NUP214,8021
+Q99567,281,281_Q99567,Nuclear pore complex protein Nup88,NUP88,4927
+Q96L92,282,282_Q96L92,Sorting nexin-27,SNX27,81609
+Q9UMR2,282,282_Q9UMR2,ATP-dependent RNA helicase DDX19B,DDX19B,11269
+Q96IR7,283,283_Q96IR7,4-hydroxyphenylpyruvate dioxygenase-like protein,HPDL,84842
+Q9H299,283,283_Q9H299,SH3 domain-binding glutamic acid-rich-like protein 3,SH3BGRL3,83442
+Q02790,284,284_Q02790,Peptidyl-prolyl cis-trans isomerase FKBP4,FKBP4,2288
+Q96I25,284,284_Q96I25,Splicing factor 45,RBM17,84991
+O00170,285,285_O00170,AH receptor-interacting protein,AIP,9049
+Q96I24,285,285_Q96I24,Far upstream element-binding protein 3,FUBP3,8939
+P52594,286,286_P52594,Arf-GAP domain and FG repeat-containing protein 1,AGFG1,3267
+Q96I15,286,286_Q96I15,Selenocysteine lyase,SCLY,51540
+O60884,287,287_O60884,DnaJ homolog subfamily A member 2,DNAJA2,10294
+Q96HR8,287,287_Q96HR8,H/ACA ribonucleoprotein complex non-core subunit NAF1,NAF1,92345
+P41227,288,288_P41227,N-alpha-acetyltransferase 10,NAA10,8260
+Q96G46,288,288_Q96G46,tRNA-dihydrouridine(47) synthase [NAD(P)(+)]-like,DUS3L,56931
+Q96G23,289,289_Q96G23,Ceramide synthase 2,CERS2,29956
+Q9NTJ5,289,289_Q9NTJ5,Phosphatidylinositide phosphatase SAC1,SACM1L,22908
+O75400,29,29_O75400,Pre-mRNA-processing factor 40 homolog A,PRPF40A,55660
+P49756,29,29_P49756,RNA-binding protein 25,RBM25,58517
+Q6UN15,29,29_Q6UN15,Pre-mRNA 3'-end-processing factor FIP1,FIP1L1,81608
+Q8IYB3,29,29_Q8IYB3,Serine/arginine repetitive matrix protein 1,SRRM1,10250
+Q9BUQ8,29,29_Q9BUQ8,Probable ATP-dependent RNA helicase DDX23,DDX23,9416
+P18669,290,290_P18669,Phosphoglycerate mutase 1,PGAM1,5223
+Q96G03,290,290_Q96G03,Phosphoglucomutase-2,PGM2,55276
+P40926,291,291_P40926,"""Malate dehydrogenase, mitochondrial""",MDH2,4191
+Q96FJ0,291,291_Q96FJ0,AMSH-like protease,STAMBPL1,57559
+P82933,292,292_P82933,"""28S ribosomal protein S9, mitochondrial""",MRPS9,64965
+Q96EY7,292,292_Q96EY7,"""Pentatricopeptide repeat domain-containing protein 3, mitochondrial""",PTCD3,55037
+Q96DM3,293,293_Q96DM3,Uncharacterized protein C18orf8,C18orf8,29919
+Q9BTE6,293,293_Q9BTE6,Alanyl-tRNA editing protein Aarsd1,AARSD1,100885850
+Q96D46,294,294_Q96D46,60S ribosomal export protein NMD3,NMD3,51068
+Q99426,294,294_Q99426,Tubulin-folding cofactor B,TBCB,1155
+Q96BY6,295,295_Q96BY6,Dedicator of cytokinesis protein 10,DOCK10,55619
+Q9Y3L3,295,295_Q9Y3L3,SH3 domain-binding protein 1,SH3BP1,23616
+P39687,296,296_P39687,Acidic leucine-rich nuclear phosphoprotein 32 family member A,ANP32A,8125
+Q96B54,296,296_Q96B54,Zinc finger protein 428,ZNF428,126299
+Q13724,297,297_Q13724,Mannosyl-oligosaccharide glucosidase,MOGS,7841
+Q92930,297,297_Q92930,Ras-related protein Rab-8B,RAB8B,51762
+Q8TAT6,298,298_Q8TAT6,Nuclear protein localization protein 4 homolog,NPLOC4,55666
+Q92890,298,298_Q92890,Ubiquitin fusion degradation protein 1 homolog,UFD1L,7353
+P23588,299,299_P23588,Eukaryotic translation initiation factor 4B,EIF4B,1975
+Q92888,299,299_Q92888,Rho guanine nucleotide exchange factor 1,ARHGEF1,9138
+P17987,3,3_P17987,T-complex protein 1 subunit alpha,TCP1,6950
+P19838,3,3_P19838,Nuclear factor NF-kappa-B p105 subunit,NFKB1,4790
+P40227,3,3_P40227,T-complex protein 1 subunit zeta,CCT6A,908
+P48643,3,3_P48643,T-complex protein 1 subunit epsilon,CCT5,22948
+P49368,3,3_P49368,T-complex protein 1 subunit gamma,CCT3,7203
+P50990,3,3_P50990,T-complex protein 1 subunit theta,CCT8,10694
+P50991,3,3_P50991,T-complex protein 1 subunit delta,CCT4,10575
+P78371,3,3_P78371,T-complex protein 1 subunit beta,CCT2,10576
+Q00653,3,3_Q00653,Nuclear factor NF-kappa-B p100 subunit,NFKB2,4791
+Q13557,3,3_Q13557,Calcium/calmodulin-dependent protein kinase type II subunit delta,CAMK2D,817
+Q8NF50,3,3_Q8NF50,Dedicator of cytokinesis protein 8,DOCK8,81704
+Q99832,3,3_Q99832,T-complex protein 1 subunit eta,CCT7,10574
+P06729,30,30_P06729,T-cell surface antigen CD2,CD2,914
+Q92643,30,30_Q92643,GPI-anchor transamidase,PIGK,10026
+Q96S52,30,30_Q96S52,GPI transamidase component PIG-S,PIGS,94005
+Q9BQA9,30,30_Q9BQA9,Uncharacterized protein C17orf62,C17orf62,79415
+Q9Y320,30,30_Q9Y320,Thioredoxin-related transmembrane protein 2,TMX2,51075
+Q92882,300,300_Q92882,Osteoclast-stimulating factor 1,OSTF1,26578
+Q9BS26,300,300_Q9BS26,Endoplasmic reticulum resident protein 44,ERP44,23071
+O95881,301,301_O95881,Thioredoxin domain-containing protein 12,TXNDC12,51060
+Q92623,301,301_Q92623,Tetratricopeptide repeat protein 9A,TTC9,23508
+Q92556,302,302_Q92556,Engulfment and cell motility protein 1,ELMO1,9844
+Q92608,302,302_Q92608,Dedicator of cytokinesis protein 2,DOCK2,1794
+O60234,303,303_O60234,Glia maturation factor gamma,GMFG,9535
+Q8WW59,303,303_Q8WW59,SPRY domain-containing protein 4,SPRYD4,283377
+O75347,304,304_O75347,Tubulin-specific chaperone A,TBCA,6902
+Q8WVJ2,304,304_Q8WVJ2,NudC domain-containing protein 2,NUDCD2,134492
+Q8WV92,305,305_Q8WV92,MIT domain-containing protein 1,MITD1,129531
+Q9NRN9,305,305_Q9NRN9,Methyltransferase-like protein 5,METTL5,29081
+P18206,306,306_P18206,Vinculin,VCL,7414
+Q8WUM4,306,306_Q8WUM4,Programmed cell death 6-interacting protein,PDCD6IP,10015
+O15541,307,307_O15541,RING finger protein 113A,RNF113A,7737
+Q8WUB8,307,307_Q8WUB8,PHD finger protein 10,PHF10,55274
+Q8N7H5,308,308_Q8N7H5,RNA polymerase II-associated factor 1 homolog,PAF1,54623
+Q8WVC0,308,308_Q8WVC0,RNA polymerase-associated protein LEO1,LEO1,123169
+Q8N3D4,309,309_Q8N3D4,EH domain-binding protein 1-like protein 1,EHBP1L1,254102
+Q9Y3P9,309,309_Q9Y3P9,Rab GTPase-activating protein 1,RABGAP1,23637
+Q8N6H7,31,31_Q8N6H7,ADP-ribosylation factor GTPase-activating protein 2,ARFGAP2,84364
+Q96HY7,31,31_Q96HY7,"""Probable 2-oxoglutarate dehydrogenase E1 component DHKTD1, mitochondrial""",DHTKD1,55526
+Q9NP79,31,31_Q9NP79,Vacuolar protein sorting-associated protein VTA1 homolog,VTA1,51534
+Q9NQG5,31,31_Q9NQG5,Regulation of nuclear pre-mRNA domain-containing protein 1B,RPRD1B,58490
+Q9UEW8,31,31_Q9UEW8,STE20/SPS1-related proline-alanine-rich protein kinase,STK39,27347
+Q8N163,310,310_Q8N163,Cell cycle and apoptosis regulator protein 2,CCAR2,57805
+Q92878,310,310_Q92878,DNA repair protein RAD50,RAD50,10111
+O00193,311,311_O00193,Small acidic protein,SMAP,10944
+Q8IXQ4,311,311_Q8IXQ4,GPALPP motifs-containing protein 1,GPALPP1,55425
+Q16540,312,312_Q16540,"""39S ribosomal protein L23, mitochondrial""",MRPL23,6150
+Q8IXM3,312,312_Q8IXM3,"""39S ribosomal protein L41, mitochondrial""",MRPL41,64975
+Q16698,313,313_Q16698,"""2,4-dienoyl-CoA reductase, mitochondrial""",DECR1,1666
+Q8IXM2,313,313_Q8IXM2,Chromatin complexes subunit BAP18,BAP18,124944
+P53602,314,314_P53602,Diphosphomevalonate decarboxylase,MVD,4597
+Q8IW45,314,314_Q8IW45,ATP-dependent (S)-NAD(P)H-hydrate dehydratase,CARKD,55739
+P01732,315,315_P01732,T-cell surface glycoprotein CD8 alpha chain,CD8A,925
+Q86WV6,315,315_Q86WV6,Stimulator of interferon genes protein,TMEM173,340061
+Q86UX7,316,316_Q86UX7,Fermitin family homolog 3,FERMT3,83706
+Q8NBS9,316,316_Q8NBS9,Thioredoxin domain-containing protein 5,TXNDC5,81567
+Q86TI2,317,317_Q86TI2,Dipeptidyl peptidase 9,DPP9,91039
+Q9GZT8,317,317_Q9GZT8,Putative GTP cyclohydrolase 1 type 2 NIF3L1,NIF3L1,60491
+Q7Z6M1,318,318_Q7Z6M1,Rab9 effector protein with kelch motifs,RABEPK,10244
+Q9BRT3,318,318_Q9BRT3,Migration and invasion enhancer 1,MIEN1,84299
+O43704,319,319_O43704,Sulfotransferase family cytosolic 1B member 1,SULT1B1,27284
+Q7Z4W1,319,319_Q7Z4W1,L-xylulose reductase,DCXR,51181
+P20340,32,32_P20340,Ras-related protein Rab-6A,RAB6A,5870
+P61026,32,32_P61026,Ras-related protein Rab-10,RAB10,10890
+Q15005,32,32_Q15005,Signal peptidase complex subunit 2,SPCS2,9789
+Q15629,32,32_Q15629,Translocating chain-associated membrane protein 1,TRAM1,23471
+Q9UM00,32,32_Q9UM00,Transmembrane and coiled-coil domain-containing protein 1,TMCO1,54499
+Q7Z434,320,320_Q7Z434,Mitochondrial antiviral-signaling protein,MAVS,57506
+Q9BWM7,320,320_Q9BWM7,Sideroflexin-3,SFXN3,81855
+P37198,321,321_P37198,Nuclear pore glycoprotein p62,NUP62,23636
+Q7Z3B4,321,321_Q7Z3B4,Nucleoporin p54,NUP54,53371
+Q7L0Y3,322,322_Q7L0Y3,Mitochondrial ribonuclease P protein 1,TRMT10C,54931
+Q9UN86,322,322_Q9UN86,Ras GTPase-activating protein-binding protein 2,G3BP2,9908
+P22314,323,323_P22314,Ubiquitin-like modifier-activating enzyme 1,UBA1,7317
+Q7KZF4,323,323_Q7KZF4,Staphylococcal nuclease domain-containing protein 1,SND1,27044
+Q6ZMZ3,324,324_Q6ZMZ3,Nesprin-3,SYNE3,161176
+Q9HD20,324,324_Q9HD20,Manganese-transporting ATPase 13A1,ATP13A1,57130
+P61088,325,325_P61088,Ubiquitin-conjugating enzyme E2 N,UBE2N,7334
+Q6UXN9,325,325_Q6UXN9,WD repeat-containing protein 82,WDR82,80335
+P46379,326,326_P46379,Large proline-rich protein BAG6,BAG6,7917
+Q63HN8,326,326_Q63HN8,E3 ubiquitin-protein ligase RNF213,RNF213,57674
+O95433,327,327_O95433,Activator of 90 kDa heat shock protein ATPase homolog 1,AHSA1,10598
+Q4G0N4,327,327_Q4G0N4,"""NAD kinase 2, mitochondrial""",NADK2,133686
+Q2M2I8,328,328_Q2M2I8,AP2-associated protein kinase 1,AAK1,22848
+Q6ZSR9,328,328_Q6ZSR9,Uncharacterized protein FLJ45252,Q6ZSR9,
+Q16851,329,329_Q16851,UTP--glucose-1-phosphate uridylyltransferase,UGP2,7360
+Q9ULA0,329,329_Q9ULA0,Aspartyl aminopeptidase,DNPEP,23549
+P21796,33,33_P21796,Voltage-dependent anion-selective channel protein 1,VDAC1,7416
+P35232,33,33_P35232,Prohibitin,PHB,5245
+Q13423,33,33_Q13423,"""NAD(P) transhydrogenase, mitochondrial""",NNT,23530
+Q14739,33,33_Q14739,Lamin-B receptor,LBR,3930
+Q9Y277,33,33_Q9Y277,Voltage-dependent anion-selective channel protein 3,VDAC3,7419
+Q16740,330,330_Q16740,"""ATP-dependent Clp protease proteolytic subunit, mitochondrial""",CLPP,8192
+Q2TAL8,330,330_Q2TAL8,Glutamine-rich protein 1,QRICH1,54870
+P05198,331,331_P05198,Eukaryotic translation initiation factor 2 subunit 1,EIF2S1,1965
+Q16666,331,331_Q16666,Gamma-interferon-inducible protein 16,IFI16,3428
+P30837,332,332_P30837,"""Aldehyde dehydrogenase X, mitochondrial""",ALDH1B1,219
+Q16566,332,332_Q16566,Calcium/calmodulin-dependent protein kinase type IV,CAMK4,814
+P05455,333,333_P05455,Lupus La protein,SSB,6741
+Q16531,333,333_Q16531,DNA damage-binding protein 1,DDB1,1642
+P32322,334,334_P32322,"""Pyrroline-5-carboxylate reductase 1, mitochondrial""",PYCR1,5831
+Q15942,334,334_Q15942,Zyxin,ZYX,7791
+P26599,335,335_P26599,Polypyrimidine tract-binding protein 1,PTBP1,5725
+Q15717,335,335_Q15717,ELAV-like protein 1,ELAVL1,1994
+O95319,336,336_O95319,CUGBP Elav-like family member 2,CELF2,10659
+Q15637,336,336_Q15637,Splicing factor 1,SF1,7536
+P50914,337,337_P50914,60S ribosomal protein L14,RPL14,9045
+Q15397,337,337_Q15397,Pumilio domain-containing protein KIAA0020,KIAA0020,9933
+Q00577,338,338_Q00577,Transcriptional activator protein Pur-alpha,PURA,5813
+Q15393,338,338_Q15393,Splicing factor 3B subunit 3,SF3B3,23450
+Q15366,339,339_Q15366,Poly(rC)-binding protein 2,PCBP2,5094
+Q99439,339,339_Q99439,Calponin-2,CNN2,1265
+P12004,34,34_P12004,Proliferating cell nuclear antigen,PCNA,5111
+Q07955,34,34_Q07955,Serine/arginine-rich splicing factor 1,SRSF1,6426
+Q13247,34,34_Q13247,Serine/arginine-rich splicing factor 6,SRSF6,6431
+Q9NYF8,34,34_Q9NYF8,Bcl-2-associated transcription factor 1,BCLAF1,9774
+Q9Y2W1,34,34_Q9Y2W1,Thyroid hormone receptor-associated protein 3,THRAP3,9967
+P57721,340,340_P57721,Poly(rC)-binding protein 3,PCBP3,54039
+Q15366,340,340_Q15366,Poly(rC)-binding protein 2,PCBP2,5094
+Q15269,341,341_Q15269,Periodic tryptophan protein 2 homolog,PWP2,102724159
+Q8NI36,341,341_Q8NI36,WD repeat-containing protein 36,WDR36,134430
+Q15172,342,342_Q15172,Serine/threonine-protein phosphatase 2A 56 kDa regulatory subunit alpha isoform,PPP2R5A,5525
+Q9NYB0,342,342_Q9NYB0,Telomeric repeat-binding factor 2-interacting protein 1,TERF2IP,54386
+Q14151,343,343_Q14151,Scaffold attachment factor B2,SAFB2,9667
+Q15007,343,343_Q15007,Pre-mRNA-splicing regulator WTAP,WTAP,9589
+Q15003,344,344_Q15003,Condensin complex subunit 2,NCAPH,23397
+Q9NTJ3,344,344_Q9NTJ3,Structural maintenance of chromosomes protein 4,SMC4,10051
+O60216,345,345_O60216,Double-strand-break repair protein rad21 homolog,RAD21,5885
+Q14683,345,345_Q14683,Structural maintenance of chromosomes protein 1A,SMC1A,8243
+Q14574,346,346_Q14574,Desmocollin-3,DSC3,1825
+Q15517,346,346_Q15517,Corneodesmosin,CDSN,1041
+P35659,347,347_P35659,Protein DEK,DEK,7913
+Q14331,347,347_Q14331,Protein FRG1,FRG1,2483
+Q14320,348,348_Q14320,Protein FAM50A,FAM50A,9130
+Q9BY42,348,348_Q9BY42,Protein RTF2 homolog,RTFDC1,51507
+Q14008,349,349_Q14008,Cytoskeleton-associated protein 5,CKAP5,9793
+Q9BY44,349,349_Q9BY44,Eukaryotic translation initiation factor 2A,EIF2A,83939
+P19784,35,35_P19784,Casein kinase II subunit alpha',CSNK2A2,1459
+P67870,35,35_P67870,Casein kinase II subunit beta,CSNK2B,1460
+P68400,35,35_P68400,Casein kinase II subunit alpha,CSNK2A1,1457
+Q14978,35,35_Q14978,Nucleolar and coiled-body phosphoprotein 1,NOLC1,9221
+Q15020,35,35_Q15020,Squamous cell carcinoma antigen recognized by T-cells 3,SART3,9733
+Q13287,350,350_Q13287,N-myc-interactor,NMI,9111
+Q13952,350,350_Q13952,Nuclear transcription factor Y subunit gamma,NFYC,4802
+Q01082,351,351_Q01082,"""Spectrin beta chain, non-erythrocytic 1""",SPTBN1,6711
+Q13813,351,351_Q13813,"""Spectrin alpha chain, non-erythrocytic 1""",SPTAN1,6709
+Q13724,352,352_Q13724,Mannosyl-oligosaccharide glucosidase,MOGS,7841
+Q96JB5,352,352_Q96JB5,CDK5 regulatory subunit-associated protein 3,CDK5RAP3,80279
+P63000,353,353_P63000,Ras-related C3 botulinum toxin substrate 1,RAC1,5879
+Q13642,353,353_Q13642,Four and a half LIM domains protein 1,FHL1,2273
+Q13404,354,354_Q13404,Ubiquitin-conjugating enzyme E2 variant 1,UBE2V1,387522
+Q15819,354,354_Q15819,Ubiquitin-conjugating enzyme E2 variant 2,UBE2V2,7336
+P11940,355,355_P11940,Polyadenylate-binding protein 1,PABPC1,26986
+Q13310,355,355_Q13310,Polyadenylate-binding protein 4,PABPC4,8761
+P26358,356,356_P26358,DNA (cytosine-5)-methyltransferase 1,DNMT1,1786
+Q13283,356,356_Q13283,Ras GTPase-activating protein-binding protein 1,G3BP1,10146
+O14979,357,357_O14979,Heterogeneous nuclear ribonucleoprotein D-like,HNRNPDL,9987
+Q13151,357,357_Q13151,Heterogeneous nuclear ribonucleoprotein A0,HNRNPA0,10949
+P55265,358,358_P55265,Double-stranded RNA-specific adenosine deaminase,ADAR,103
+Q13148,358,358_Q13148,TAR DNA-binding protein 43,TARDBP,23435
+Q05048,359,359_Q05048,Cleavage stimulation factor subunit 1,CSTF1,1477
+Q12996,359,359_Q12996,Cleavage stimulation factor subunit 3,CSTF3,1479
+O95865,36,36_O95865,"""N(G),N(G)-dimethylarginine dimethylaminohydrolase 2""",DDAH2,23564
+P14550,36,36_P14550,Alcohol dehydrogenase [NADP(+)],AKR1A1,10327
+P20073,36,36_P20073,Annexin A7,ANXA7,310
+P53004,36,36_P53004,Biliverdin reductase A,BLVRA,644
+Q99497,36,36_Q99497,Protein DJ-1,PARK7,11315
+Q12905,360,360_Q12905,Interleukin enhancer-binding factor 2,ILF2,3608
+Q12906,360,360_Q12906,Interleukin enhancer-binding factor 3,ILF3,3609
+Q12874,361,361_Q12874,Splicing factor 3A subunit 3,SF3A3,10946
+Q13428,361,361_Q13428,Treacle protein,TCOF1,6949
+Q12846,362,362_Q12846,Syntaxin-4,STX4,6810
+Q14165,362,362_Q14165,Malectin,MLEC,9761
+Q12768,363,363_Q12768,WASH complex subunit strumpellin,KIAA0196,9897
+Q2M389,363,363_Q2M389,WASH complex subunit 7,KIAA1033,23325
+Q08881,364,364_Q08881,Tyrosine-protein kinase ITK/TSK,ITK,3702
+Q14554,364,364_Q14554,Protein disulfide-isomerase A5,PDIA5,10954
+O43390,365,365_O43390,Heterogeneous nuclear ribonucleoprotein R,HNRNPR,10236
+Q08211,365,365_Q08211,ATP-dependent RNA helicase A,DHX9,1660
+Q06124,366,366_Q06124,Tyrosine-protein phosphatase non-receptor type 11,PTPN11,5781
+Q9H4Z3,366,366_Q9H4Z3,Phosphorylated CTD-interacting factor 1,PCIF1,63935
+Q04323,367,367_Q04323,UBX domain-containing protein 1,UBXN1,51035
+Q9Y2Z4,367,367_Q9Y2Z4,"""Tyrosine--tRNA ligase, mitochondrial""",YARS2,51067
+P52701,368,368_P52701,DNA mismatch repair protein Msh6,MSH6,2956
+Q01813,368,368_Q01813,"""ATP-dependent 6-phosphofructokinase, platelet type""",PFKP,5214
+P82650,369,369_P82650,"""28S ribosomal protein S22, mitochondrial""",MRPS22,56945
+Q92552,369,369_Q92552,"""28S ribosomal protein S27, mitochondrial""",MRPS27,23107
+P51148,37,37_P51148,Ras-related protein Rab-5C,RAB5C,5878
+P61026,37,37_P61026,Ras-related protein Rab-10,RAB10,10890
+Q15005,37,37_Q15005,Signal peptidase complex subunit 2,SPCS2,9789
+Q92930,37,37_Q92930,Ras-related protein Rab-8B,RAB8B,51762
+Q9UM00,37,37_Q9UM00,Transmembrane and coiled-coil domain-containing protein 1,TMCO1,54499
+P78560,370,370_P78560,Death domain-containing protein CRADD,CRADD,8738
+Q9H2H8,370,370_Q9H2H8,Peptidyl-prolyl cis-trans isomerase-like 3,PPIL3,53938
+P63261,371,371_P63261,"""Actin, cytoplasmic 2""",ACTG1,71
+Q13185,371,371_Q13185,Chromobox protein homolog 3,CBX3,11335
+P58546,372,372_P58546,Myotrophin,MTPN,136319
+P62993,372,372_P62993,Growth factor receptor-bound protein 2,GRB2,2885
+P62834,373,373_P62834,Ras-related protein Rap-1A,RAP1A,5906
+Q9Y512,373,373_Q9Y512,Sorting and assembly machinery component 50 homolog,SAMM50,25813
+P62820,374,374_P62820,Ras-related protein Rab-1A,RAB1A,5861
+Q92544,374,374_Q92544,Transmembrane 9 superfamily member 4,TM9SF4,9777
+P62633,375,375_P62633,Cellular nucleic acid-binding protein,CNBP,7555
+Q9UKV8,375,375_Q9UKV8,Protein argonaute-2,AGO2,27161
+P62314,376,376_P62314,Small nuclear ribonucleoprotein Sm D1,SNRPD1,6632
+P62316,376,376_P62316,Small nuclear ribonucleoprotein Sm D2,SNRPD2,6633
+P62304,377,377_P62304,Small nuclear ribonucleoprotein E,SNRPE,6635
+P62306,377,377_P62306,Small nuclear ribonucleoprotein F,SNRPF,6636
+P62241,378,378_P62241,40S ribosomal protein S8,RPS8,6202
+P62979,378,378_P62979,Ubiquitin-40S ribosomal protein S27a,RPS27A,6233
+P62158,379,379_P62158,Calmodulin,CALM1,
+Q14240,379,379_Q14240,Eukaryotic initiation factor 4A-II,EIF4A2,1974
+P09211,38,38_P09211,Glutathione S-transferase P,GSTP1,2950
+P40121,38,38_P40121,Macrophage-capping protein,CAPG,822
+P49773,38,38_P49773,Histidine triad nucleotide-binding protein 1,HINT1,3094
+Q13951,38,38_Q13951,Core-binding factor subunit beta,CBFB,865
+Q9BX68,38,38_Q9BX68,"""Histidine triad nucleotide-binding protein 2, mitochondrial""",HINT2,84681
+P60953,380,380_P60953,Cell division control protein 42 homolog,CDC42,998
+P61586,380,380_P61586,Transforming protein RhoA,RHOA,387
+P61019,381,381_P61019,Ras-related protein Rab-2A,RAB2A,5862
+Q14318,381,381_Q14318,Peptidyl-prolyl cis-trans isomerase FKBP8,FKBP8,23770
+P57737,382,382_P57737,Coronin-7,CORO7,79585
+Q9NYU2,382,382_Q9NYU2,UDP-glucose:glycoprotein glucosyltransferase 1,UGGT1,56886
+P55786,383,383_P55786,Puromycin-sensitive aminopeptidase,NPEPPS,9520
+Q8N1K5,383,383_Q8N1K5,Protein THEMIS,THEMIS,387357
+O96019,384,384_O96019,Actin-like protein 6A,ACTL6A,86
+P55735,384,384_P55735,Protein SEC13 homolog,SEC13,6396
+O43399,385,385_O43399,Tumor protein D54,TPD52L2,7165
+P55327,385,385_P55327,Tumor protein D52,TPD52,7163
+P00441,386,386_P00441,Superoxide dismutase [Cu-Zn],SOD1,6647
+P55263,386,386_P55263,Adenosine kinase,ADK,132
+P54920,387,387_P54920,Alpha-soluble NSF attachment protein,NAPA,8775
+Q96GG9,387,387_Q96GG9,DCN1-like protein 1,DCUN1D1,54165
+P34932,388,388_P34932,Heat shock 70 kDa protein 4,HSPA4,3308
+P54886,388,388_P54886,Delta-1-pyrroline-5-carboxylate synthase,ALDH18A1,5832
+P52566,389,389_P52566,Rho GDP-dissociation inhibitor 2,ARHGDIB,397
+Q96FV2,389,389_Q96FV2,Secernin-2,SCRN2,90507
+P49441,39,39_P49441,Inositol polyphosphate 1-phosphatase,INPP1,3628
+Q12972,39,39_Q12972,Nuclear inhibitor of protein phosphatase 1,PPP1R8,5511
+Q13057,39,39_Q13057,Bifunctional coenzyme A synthase,COASY,80347
+Q96C19,39,39_Q96C19,EF-hand domain-containing protein D2,EFHD2,79180
+Q96HE7,39,39_Q96HE7,ERO1-like protein alpha,ERO1L,30001
+P52565,390,390_P52565,Rho GDP-dissociation inhibitor 1,ARHGDIA,396
+Q9UGI8,390,390_Q9UGI8,Testin,TES,26136
+P51398,391,391_P51398,"""28S ribosomal protein S29, mitochondrial""",DAP3,7818
+Q96DV4,391,391_Q96DV4,"""39S ribosomal protein L38, mitochondrial""",MRPL38,64978
+P51148,392,392_P51148,Ras-related protein Rab-5C,RAB5C,5878
+Q12907,392,392_Q12907,Vesicular integral-membrane protein VIP36,LMAN2,10960
+P23284,393,393_P23284,Peptidyl-prolyl cis-trans isomerase B,PPIB,5479
+P50579,393,393_P50579,Methionine aminopeptidase 2,METAP2,10988
+P50552,394,394_P50552,Vasodilator-stimulated phosphoprotein,VASP,7408
+Q9UI08,394,394_Q9UI08,Ena/VASP-like protein,EVL,51466
+P09326,395,395_P09326,CD48 antigen,CD48,962
+P49795,395,395_P49795,Regulator of G-protein signaling 19,RGS19,10287
+P37108,396,396_P37108,Signal recognition particle 14 kDa protein,SRP14,6727
+P49458,396,396_P49458,Signal recognition particle 9 kDa protein,SRP9,6726
+P49327,397,397_P49327,Fatty acid synthase,FASN,2194
+Q92835,397,397_Q92835,"""Phosphatidylinositol 3,4,5-trisphosphate 5-phosphatase 1""",INPP5D,3635
+P49023,398,398_P49023,Paxillin,PXN,5829
+Q9Y266,398,398_Q9Y266,Nuclear migration protein nudC,NUDC,10726
+P48735,399,399_P48735,"""Isocitrate dehydrogenase [NADP], mitochondrial""",IDH2,3418
+Q9UGI8,399,399_Q9UGI8,Testin,TES,26136
+O00231,4,4_O00231,26S proteasome non-ATPase regulatory subunit 11,PSMD11,5717
+O00232,4,4_O00232,26S proteasome non-ATPase regulatory subunit 12,PSMD12,5718
+O00487,4,4_O00487,26S proteasome non-ATPase regulatory subunit 14,PSMD14,10213
+O43242,4,4_O43242,26S proteasome non-ATPase regulatory subunit 3,PSMD3,5709
+P35998,4,4_P35998,26S protease regulatory subunit 7,PSMC2,5701
+P48556,4,4_P48556,26S proteasome non-ATPase regulatory subunit 8,PSMD8,5714
+P51665,4,4_P51665,26S proteasome non-ATPase regulatory subunit 7,PSMD7,5713
+P62191,4,4_P62191,26S protease regulatory subunit 4,PSMC1,5700
+Q13045,4,4_Q13045,Protein flightless-1 homolog,FLII,2314
+Q15008,4,4_Q15008,26S proteasome non-ATPase regulatory subunit 6,PSMD6,9861
+Q99460,4,4_Q99460,26S proteasome non-ATPase regulatory subunit 1,PSMD1,5707
+Q9UNM6,4,4_Q9UNM6,26S proteasome non-ATPase regulatory subunit 13,PSMD13,5719
+P36542,40,40_P36542,"""ATP synthase subunit gamma, mitochondrial""",ATP5C1,509
+P36957,40,40_P36957,"""Dihydrolipoyllysine-residue succinyltransferase component of 2-oxoglutarate dehydrogenase complex, mitochondrial""",DLST,1743
+P43243,40,40_P43243,Matrin-3,MATR3,9782
+Q02218,40,40_Q02218,"""2-oxoglutarate dehydrogenase, mitochondrial""",OGDH,4967
+Q1KMD3,40,40_Q1KMD3,Heterogeneous nuclear ribonucleoprotein U-like protein 2,HNRNPUL2,221092
+P31947,400,400_P31947,14-3-3 protein sigma,SFN,2810
+P48594,400,400_P48594,Serpin B4,SERPINB4,6318
+P29508,401,401_P29508,Serpin B3,SERPINB3,6317
+P48594,401,401_P48594,Serpin B4,SERPINB4,6318
+P48506,402,402_P48506,Glutamate--cysteine ligase catalytic subunit,GCLC,2729
+Q6FI81,402,402_Q6FI81,Anamorsin,CIAPIN1,57019
+P00390,403,403_P00390,"""Glutathione reductase, mitochondrial""",GSR,2936
+P48147,403,403_P48147,Prolyl endopeptidase,PREP,5550
+P04792,404,404_P04792,Heat shock protein beta-1,HSPB1,3315
+P47929,404,404_P47929,Galectin-7,LGALS7,3963
+P42766,405,405_P42766,60S ribosomal protein L35,RPL35,11224
+P47914,405,405_P47914,60S ribosomal protein L29,RPL29,6159
+P42704,406,406_P42704,"""Leucine-rich PPR motif-containing protein, mitochondrial""",LRPPRC,10128
+P46060,406,406_P46060,Ran GTPase-activating protein 1,RANGAP1,5905
+O43847,407,407_O43847,Nardilysin,NRD1,4898
+P45974,407,407_P45974,Ubiquitin carboxyl-terminal hydrolase 5,USP5,8078
+P43246,408,408_P43246,DNA mismatch repair protein Msh2,MSH2,4436
+P52701,408,408_P52701,DNA mismatch repair protein Msh6,MSH6,2956
+P42765,409,409_P42765,"""3-ketoacyl-CoA thiolase, mitochondrial""",ACAA2,10449
+Q9UFN0,409,409_Q9UFN0,Protein NipSnap homolog 3A,NIPSNAP3A,25934
+O00560,41,41_O00560,Syntenin-1,SDCBP,6386
+P30085,41,41_P30085,UMP-CMP kinase,CMPK1,51727
+P51570,41,41_P51570,Galactokinase,GALK1,2584
+Q15257,41,41_Q15257,Serine/threonine-protein phosphatase 2A activator,PTPA,5524
+Q5T6V5,41,41_Q5T6V5,UPF0553 protein C9orf64,C9orf64,84267
+P11387,410,410_P11387,DNA topoisomerase 1,TOP1,7150
+P42677,410,410_P42677,40S ribosomal protein S27,RPS27,6232
+P40925,411,411_P40925,"""Malate dehydrogenase, cytoplasmic""",MDH1,4190
+P42126,411,411_P42126,"""Enoyl-CoA delta isomerase 1, mitochondrial""",ECI1,1632
+P05386,412,412_P05386,60S acidic ribosomal protein P1,RPLP1,6176
+P39023,412,412_P39023,60S ribosomal protein L3,RPL3,6122
+P38646,413,413_P38646,"""Stress-70 protein, mitochondrial""",HSPA9,3313
+Q96CN7,413,413_Q96CN7,Isochorismatase domain-containing protein 1,ISOC1,51015
+P36957,414,414_P36957,"""Dihydrolipoyllysine-residue succinyltransferase component of 2-oxoglutarate dehydrogenase complex, mitochondrial""",DLST,1743
+Q02218,414,414_Q02218,"""2-oxoglutarate dehydrogenase, mitochondrial""",OGDH,4967
+O75368,415,415_O75368,SH3 domain-binding glutamic acid-rich-like protein,SH3BGRL,6451
+P36405,415,415_P36405,ADP-ribosylation factor-like protein 3,ARL3,403
+P35613,416,416_P35613,Basigin,BSG,682
+Q08722,416,416_Q08722,Leukocyte surface antigen CD47,CD47,961
+P33241,417,417_P33241,Lymphocyte-specific protein 1,LSP1,4046
+P35611,417,417_P35611,Alpha-adducin,ADD1,118
+P35609,418,418_P35609,Alpha-actinin-2,ACTN2,88
+Q9UKX2,418,418_Q9UKX2,Myosin-2,MYH2,4620
+P35573,419,419_P35573,Glycogen debranching enzyme,AGL,178
+Q92688,419,419_Q92688,Acidic leucine-rich nuclear phosphoprotein 32 family member B,ANP32B,10541
+P25205,42,42_P25205,DNA replication licensing factor MCM3,MCM3,4172
+P33991,42,42_P33991,DNA replication licensing factor MCM4,MCM4,4173
+P33993,42,42_P33993,DNA replication licensing factor MCM7,MCM7,4176
+P49736,42,42_P49736,DNA replication licensing factor MCM2,MCM2,4171
+Q14566,42,42_Q14566,DNA replication licensing factor MCM6,MCM6,4175
+P31146,420,420_P31146,Coronin-1A,CORO1A,11151
+P34896,420,420_P34896,"""Serine hydroxymethyltransferase, cytosolic""",SHMT1,6470
+P00492,421,421_P00492,Hypoxanthine-guanine phosphoribosyltransferase,HPRT1,3251
+P33316,421,421_P33316,"""Deoxyuridine 5'-triphosphate nucleotidohydrolase, mitochondrial""",DUT,1854
+P32455,422,422_P32455,Interferon-induced guanylate-binding protein 1,GBP1,2633
+P32456,422,422_P32456,Interferon-induced guanylate-binding protein 2,GBP2,2634
+P32121,423,423_P32121,Beta-arrestin-2,ARRB2,409
+Q9UI30,423,423_Q9UI30,Multifunctional methyltransferase subunit TRM112-like protein,TRMT112,51504
+P31948,424,424_P31948,Stress-induced-phosphoprotein 1,STIP1,10963
+Q7Z5L9,424,424_Q7Z5L9,Interferon regulatory factor 2-binding protein 2,IRF2BP2,359948
+P31943,425,425_P31943,Heterogeneous nuclear ribonucleoprotein H,HNRNPH1,3187
+P55795,425,425_P55795,Heterogeneous nuclear ribonucleoprotein H2,HNRNPH2,3188
+P21912,426,426_P21912,"""Succinate dehydrogenase [ubiquinone] iron-sulfur subunit, mitochondrial""",SDHB,6390
+P31040,426,426_P31040,"""Succinate dehydrogenase [ubiquinone] flavoprotein subunit, mitochondrial""",SDHA,6389
+P30711,427,427_P30711,Glutathione S-transferase theta-1,GSTT1,2952
+P50995,427,427_P50995,Annexin A11,ANXA11,311
+P30101,428,428_P30101,Protein disulfide-isomerase A3,PDIA3,2923
+Q96RP9,428,428_Q96RP9,"""Elongation factor G, mitochondrial""",GFM1,85476
+P30048,429,429_P30048,"""Thioredoxin-dependent peroxide reductase, mitochondrial""",PRDX3,10935
+Q99714,429,429_Q99714,3-hydroxyacyl-CoA dehydrogenase type-2,HSD17B10,3028
+P22033,43,43_P22033,"""Methylmalonyl-CoA mutase, mitochondrial""",MUT,4594
+P49588,43,43_P49588,"""Alanine--tRNA ligase, cytoplasmic""",AARS,16
+P49591,43,43_P49591,"""Serine--tRNA ligase, cytoplasmic""",SARS,6301
+Q13616,43,43_Q13616,Cullin-1,CUL1,8454
+Q14157,43,43_Q14157,Ubiquitin-associated protein 2-like,UBAP2L,9898
+P30043,430,430_P30043,Flavin reductase (NADPH),BLVRB,645
+P52943,430,430_P52943,Cysteine-rich protein 2,CRIP2,1397
+P30041,431,431_P30041,Peroxiredoxin-6,PRDX6,9588
+Q9Y5Z4,431,431_Q9Y5Z4,Heme-binding protein 2,HEBP2,23593
+P29218,432,432_P29218,Inositol monophosphatase 1,IMPA1,3612
+Q99447,432,432_Q99447,Ethanolamine-phosphate cytidylyltransferase,PCYT2,5833
+O00754,433,433_O00754,Lysosomal alpha-mannosidase,MAN2B1,4125
+P28838,433,433_P28838,Cytosol aminopeptidase,LAP3,51056
+P18754,434,434_P18754,Regulator of chromosome condensation,RCC1,1104
+P27695,434,434_P27695,DNA-(apurinic or apyrimidinic site) lyase,APEX1,328
+P26639,435,435_P26639,"""Threonine--tRNA ligase, cytoplasmic""",TARS,6897
+P42224,435,435_P42224,Signal transducer and activator of transcription 1-alpha/beta,STAT1,6772
+P09429,436,436_P09429,High mobility group protein B1,HMGB1,3146
+P26583,436,436_P26583,High mobility group protein B2,HMGB2,3148
+P26447,437,437_P26447,Protein S100-A4,S100A4,6275
+Q05315,437,437_Q05315,Galectin-10,CLC,1178
+P25205,438,438_P25205,DNA replication licensing factor MCM3,MCM3,4172
+P33992,438,438_P33992,DNA replication licensing factor MCM5,MCM5,4174
+O75947,439,439_O75947,"""ATP synthase subunit d, mitochondrial""",ATP5H,10476
+P24539,439,439_P24539,"""ATP synthase F(0) complex subunit B1, mitochondrial""",ATP5F1,515
+P07954,44,44_P07954,"""Fumarate hydratase, mitochondrial""",FH,2271
+P08236,44,44_P08236,Beta-glucuronidase,GUSB,2990
+P16219,44,44_P16219,"""Short-chain specific acyl-CoA dehydrogenase, mitochondrial""",ACADS,35
+P22033,44,44_P22033,"""Methylmalonyl-CoA mutase, mitochondrial""",MUT,4594
+Q9NSE4,44,44_Q9NSE4,"""Isoleucine--tRNA ligase, mitochondrial""",IARS2,55699
+P22102,440,440_P22102,Trifunctional purine biosynthetic protein adenosine-3,GART,2618
+Q8IUI8,440,440_Q8IUI8,Cytokine receptor-like factor 3,CRLF3,51379
+P20963,441,441_P20963,T-cell surface glycoprotein CD3 zeta chain,CD247,919
+P54709,441,441_P54709,Sodium/potassium-transporting ATPase subunit beta-3,ATP1B3,483
+P20810,442,442_P20810,Calpastatin,CAST,831
+Q6JBY9,442,442_Q6JBY9,CapZ-interacting protein,RCSD1,92241
+P20700,443,443_P20700,Lamin-B1,LMNB1,4001
+Q03252,443,443_Q03252,Lamin-B2,LMNB2,84823
+P19971,444,444_P19971,Thymidine phosphorylase,TYMP,1890
+Q13011,444,444_Q13011,"""Delta(3,5)-Delta(2,4)-dienoyl-CoA isomerase, mitochondrial""",ECH1,1891
+P19525,445,445_P19525,"""Interferon-induced, double-stranded RNA-activated protein kinase""",EIF2AK2,5610
+Q12849,445,445_Q12849,G-rich sequence factor 1,GRSF1,2926
+P18621,446,446_P18621,60S ribosomal protein L17,RPL17,6139
+Q92522,446,446_Q92522,Histone H1x,H1FX,8971
+P18583,447,447_P18583,Protein SON,SON,6651
+Q14980,447,447_Q14980,Nuclear mitotic apparatus protein 1,NUMA1,4926
+P18124,448,448_P18124,60S ribosomal protein L7,RPL7,6129
+Q99848,448,448_Q99848,Probable rRNA-processing protein EBP2,EBNA1BP2,10969
+P17480,449,449_P17480,Nucleolar transcription factor 1,UBTF,7343
+P62273,449,449_P62273,40S ribosomal protein S29,RPS29,6235
+P04843,45,45_P04843,Dolichyl-diphosphooligosaccharide--protein glycosyltransferase subunit 1,RPN1,6184
+P04844,45,45_P04844,Dolichyl-diphosphooligosaccharide--protein glycosyltransferase subunit 2,RPN2,6185
+P16615,45,45_P16615,Sarcoplasmic/endoplasmic reticulum calcium ATPase 2,ATP2A2,488
+P39656,45,45_P39656,Dolichyl-diphosphooligosaccharide--protein glycosyltransferase 48 kDa subunit,DDOST,1650
+Q9NZ01,45,45_Q9NZ01,Very-long-chain enoyl-CoA reductase,TECR,9524
+P16949,450,450_P16949,Stathmin,STMN1,3925
+Q9BYT8,450,450_Q9BYT8,"""Neurolysin, mitochondrial""",NLN,57486
+O94776,451,451_O94776,Metastasis-associated protein MTA2,MTA2,9219
+P14866,451,451_P14866,Heterogeneous nuclear ribonucleoprotein L,HNRNPL,3191
+P14735,452,452_P14735,Insulin-degrading enzyme,IDE,3416
+Q9H0E2,452,452_Q9H0E2,Toll-interacting protein,TOLLIP,54472
+P13807,453,453_P13807,"""Glycogen [starch] synthase, muscle""",GYS1,2997
+Q92616,453,453_Q92616,Translational activator GCN1,GCN1L1,10985
+P13798,454,454_P13798,Acylamino-acid-releasing enzyme,APEH,327
+Q7Z4V5,454,454_Q7Z4V5,Hepatoma-derived growth factor-related protein 2,HDGFRP2,84717
+P13747,455,455_P13747,"""HLA class I histocompatibility antigen, alpha chain E""",HLA-E,3133
+P49257,455,455_P49257,Protein ERGIC-53,LMAN1,3998
+P13639,456,456_P13639,Elongation factor 2,EEF2,1938
+Q9NNW7,456,456_Q9NNW7,"""Thioredoxin reductase 2, mitochondrial""",TXNRD2,10587
+P12814,457,457_P12814,Alpha-actinin-1,ACTN1,87
+P14625,457,457_P14625,Endoplasmin,HSP90B1,7184
+P10515,458,458_P10515,"""Dihydrolipoyllysine-residue acetyltransferase component of pyruvate dehydrogenase complex, mitochondrial""",DLAT,1737
+P12270,458,458_P12270,Nucleoprotein TPR,TPR,7175
+P11310,459,459_P11310,"""Medium-chain specific acyl-CoA dehydrogenase, mitochondrial""",ACADM,34
+Q92747,459,459_Q92747,Actin-related protein 2/3 complex subunit 1A,ARPC1A,10552
+P04179,46,46_P04179,"""Superoxide dismutase [Mn], mitochondrial""",SOD2,6648
+P09104,46,46_P09104,Gamma-enolase,ENO2,2026
+P11766,46,46_P11766,Alcohol dehydrogenase class-3,ADH5,128
+P15531,46,46_P15531,Nucleoside diphosphate kinase A,NME1,4830
+P37837,46,46_P37837,Transaldolase,TALDO1,6888
+P10768,460,460_P10768,S-formylglutathione hydrolase,ESD,2098
+P36871,460,460_P36871,Phosphoglucomutase-1,PGM1,5236
+P10644,461,461_P10644,cAMP-dependent protein kinase type I-alpha regulatory subunit,PRKAR1A,5573
+P22694,461,461_P22694,cAMP-dependent protein kinase catalytic subunit beta,PRKACB,5567
+P09874,462,462_P09874,Poly [ADP-ribose] polymerase 1,PARP1,142
+P53999,462,462_P53999,Activated RNA polymerase II transcriptional coactivator p15,SUB1,10923
+P09525,463,463_P09525,Annexin A4,ANXA4,307
+P13693,463,463_P13693,Translationally-controlled tumor protein,TPT1,7178
+P07951,464,464_P07951,Tropomyosin beta chain,TPM2,7169
+P09493,464,464_P09493,Tropomyosin alpha-1 chain,TPM1,7168
+P08865,465,465_P08865,40S ribosomal protein SA,RPSA,3921
+P63220,465,465_P63220,40S ribosomal protein S21,RPS21,6227
+P08559,466,466_P08559,"""Pyruvate dehydrogenase E1 component subunit alpha, somatic form, mitochondrial""",PDHA1,5160
+P11177,466,466_P11177,"""Pyruvate dehydrogenase E1 component subunit beta, mitochondrial""",PDHB,5162
+P08240,467,467_P08240,Signal recognition particle receptor subunit alpha,SRPR,6734
+Q96AG4,467,467_Q96AG4,Leucine-rich repeat-containing protein 59,LRRC59,55379
+P07900,468,468_P07900,Heat shock protein HSP 90-alpha,HSP90AA1,3320
+P08238,468,468_P08238,Heat shock protein HSP 90-beta,HSP90AB1,3326
+P07954,469,469_P07954,"""Fumarate hydratase, mitochondrial""",FH,2271
+P08236,469,469_P08236,Beta-glucuronidase,GUSB,2990
+P08590,47,47_P08590,Myosin light chain 3,MYL3,4634
+P12882,47,47_P12882,Myosin-1,MYH1,4619
+P13535,47,47_P13535,Myosin-8,MYH8,4626
+P68133,47,47_P68133,"""Actin, alpha skeletal muscle""",ACTA1,58
+Q96A32,47,47_Q96A32,"""Myosin regulatory light chain 2, skeletal muscle isoform""",MYLPF,29895
+P07902,470,470_P07902,Galactose-1-phosphate uridylyltransferase,GALT,2592
+Q9NZ08,470,470_Q9NZ08,Endoplasmic reticulum aminopeptidase 1,ERAP1,51752
+P06753,471,471_P06753,Tropomyosin alpha-3 chain,TPM3,7170
+P67936,471,471_P67936,Tropomyosin alpha-4 chain,TPM4,7171
+P05771,472,472_P05771,Protein kinase C beta type,PRKCB,5579
+Q92597,472,472_Q92597,Protein NDRG1,NDRG1,10397
+P05165,473,473_P05165,"""Propionyl-CoA carboxylase alpha chain, mitochondrial""",PCCA,5095
+P05166,473,473_P05166,"""Propionyl-CoA carboxylase beta chain, mitochondrial""",PCCB,5096
+P05090,474,474_P05090,Apolipoprotein D,APOD,347
+P10909,474,474_P10909,Clusterin,CLU,1191
+P05023,475,475_P05023,Sodium/potassium-transporting ATPase subunit alpha-1,ATP1A1,476
+P46459,475,475_P46459,Vesicle-fusing ATPase,NSF,4905
+P04279,476,476_P04279,Semenogelin-1,SEMG1,6406
+Q02383,476,476_Q02383,Semenogelin-2,SEMG2,6407
+P02647,477,477_P02647,Apolipoprotein A-I,APOA1,335
+P04114,477,477_P04114,Apolipoprotein B-100,APOB,338
+P01781,478,478_P01781,Ig heavy chain V-III region GAL,IGHV3-7,
+Q9HC84,478,478_Q9HC84,Mucin-5B,MUC5B,727897
+P01730,479,479_P01730,T-cell surface glycoprotein CD4,CD4,920
+P46977,479,479_P46977,Dolichyl-diphosphooligosaccharide--protein glycosyltransferase subunit STT3A,STT3A,3703
+P01591,48,48_P01591,Immunoglobulin J chain,JCHAIN,3512
+P01833,48,48_P01833,Polymeric immunoglobulin receptor,PIGR,5284
+P01876,48,48_P01876,Ig alpha-1 chain C region,IGHA1,
+P01877,48,48_P01877,Ig alpha-2 chain C region,IGHA2,
+P02788,48,48_P02788,Lactotransferrin,LTF,4057
+P00491,480,480_P00491,Purine nucleoside phosphorylase,PNP,4860
+Q9H4A4,480,480_Q9H4A4,Aminopeptidase B,RNPEP,6051
+P00403,481,481_P00403,Cytochrome c oxidase subunit 2,MT-CO2,4513
+Q99623,481,481_Q99623,Prohibitin-2,PHB2,11331
+O95782,482,482_O95782,AP-2 complex subunit alpha-1,AP2A1,160
+P63010,482,482_P63010,AP-2 complex subunit beta,AP2B1,163
+O95571,483,483_O95571,"""Persulfide dioxygenase ETHE1, mitochondrial""",ETHE1,23474
+P07741,483,483_P07741,Adenine phosphoribosyltransferase,APRT,353
+O95149,484,484_O95149,Snurportin-1,SNUPN,10073
+Q8WW12,484,484_Q8WW12,PEST proteolytic signal-containing nuclear protein,PCNP,57092
+O94925,485,485_O94925,"""Glutaminase kidney isoform, mitochondrial""",GLS,2744
+O95479,485,485_O95479,GDH/6PGL endoplasmic bifunctional protein,H6PD,9563
+O76094,486,486_O76094,Signal recognition particle subunit SRP72,SRP72,6731
+Q9UHB9,486,486_Q9UHB9,Signal recognition particle subunit SRP68,SRP68,6730
+O76021,487,487_O76021,Ribosomal L1 domain-containing protein 1,RSL1D1,26156
+P61513,487,487_P61513,60S ribosomal protein L37a,RPL37A,6168
+O75955,488,488_O75955,Flotillin-1,FLOT1,10211
+Q6UXV4,488,488_Q6UXV4,MICOS complex subunit MIC27,APOOL,139322
+O75746,489,489_O75746,Calcium-binding mitochondrial carrier protein Aralar1,SLC25A12,8604
+P62879,489,489_P62879,Guanine nucleotide-binding protein G(I)/G(S)/G(T) subunit beta-2,GNB2,2783
+P00403,49,49_P00403,Cytochrome c oxidase subunit 2,MT-CO2,4513
+P22695,49,49_P22695,"""Cytochrome b-c1 complex subunit 2, mitochondrial""",UQCRC2,7385
+P28331,49,49_P28331,"""NADH-ubiquinone oxidoreductase 75 kDa subunit, mitochondrial""",NDUFS1,4719
+P31930,49,49_P31930,"""Cytochrome b-c1 complex subunit 1, mitochondrial""",UQCRC1,7384
+Q99623,49,49_Q99623,Prohibitin-2,PHB2,11331
+O75643,490,490_O75643,U5 small nuclear ribonucleoprotein 200 kDa helicase,SNRNP200,23020
+O94776,490,490_O94776,Metastasis-associated protein MTA2,MTA2,9219
+O75533,491,491_O75533,Splicing factor 3B subunit 1,SF3B1,23451
+Q9Y3B4,491,491_Q9Y3B4,Splicing factor 3B subunit 6,SF3B6,51639
+O75494,492,492_O75494,Serine/arginine-rich splicing factor 10,SRSF10,10772
+Q13595,492,492_Q13595,Transformer-2 protein homolog alpha,TRA2A,29896
+O75351,493,493_O75351,Vacuolar protein sorting-associated protein 4B,VPS4B,9525
+O75439,493,493_O75439,Mitochondrial-processing peptidase subunit beta,PMPCB,9512
+O75436,494,494_O75436,Vacuolar protein sorting-associated protein 26A,VPS26A,9559
+P80217,494,494_P80217,Interferon-induced 35 kDa protein,IFI35,3430
+O75380,495,495_O75380,"""NADH dehydrogenase [ubiquinone] iron-sulfur protein 6, mitochondrial""",NDUFS6,4726
+P10606,495,495_P10606,"""Cytochrome c oxidase subunit 5B, mitochondrial""",COX5B,1329
+O60911,496,496_O60911,Cathepsin L2,CTSV,1515
+P09668,496,496_P09668,Pro-cathepsin H,CTSH,1512
+O60826,497,497_O60826,Coiled-coil domain-containing protein 22,CCDC22,28952
+Q567U6,497,497_Q567U6,Coiled-coil domain-containing protein 93,CCDC93,54520
+O60762,498,498_O60762,Dolichol-phosphate mannosyltransferase subunit 1,DPM1,8813
+Q969V3,498,498_Q969V3,Nicalin,NCLN,56926
+O60610,499,499_O60610,Protein diaphanous homolog 1,DIAPH1,1729
+Q14161,499,499_Q14161,ARF GTPase-activating protein GIT2,GIT2,9815
+P07814,5,5_P07814,Bifunctional glutamate/proline--tRNA ligase,EPRS,2058
+P14868,5,5_P14868,"""Aspartate--tRNA ligase, cytoplasmic""",DARS,1615
+P41252,5,5_P41252,"""Isoleucine--tRNA ligase, cytoplasmic""",IARS,3376
+P47897,5,5_P47897,Glutamine--tRNA ligase,QARS,5859
+P54136,5,5_P54136,"""Arginine--tRNA ligase, cytoplasmic""",RARS,5917
+P56192,5,5_P56192,"""Methionine--tRNA ligase, cytoplasmic""",MARS,4141
+Q12904,5,5_Q12904,Aminoacyl tRNA synthase complex-interacting multifunctional protein 1,AIMP1,9255
+Q13155,5,5_Q13155,Aminoacyl tRNA synthase complex-interacting multifunctional protein 2,AIMP2,7965
+Q15046,5,5_Q15046,Lysine--tRNA ligase,KARS,3735
+Q92608,5,5_Q92608,Dedicator of cytokinesis protein 2,DOCK2,1794
+Q9P2J5,5,5_Q9P2J5,"""Leucine--tRNA ligase, cytoplasmic""",LARS,51520
+O94973,50,50_O94973,AP-2 complex subunit alpha-2,AP2A2,161
+O95782,50,50_O95782,AP-2 complex subunit alpha-1,AP2A1,160
+P08237,50,50_P08237,"""ATP-dependent 6-phosphofructokinase, muscle type""",PFKM,5213
+P63010,50,50_P63010,AP-2 complex subunit beta,AP2B1,163
+Q96CW1,50,50_Q96CW1,AP-2 complex subunit mu,AP2M1,1173
+O60547,500,500_O60547,"""GDP-mannose 4,6 dehydratase""",GMDS,2762
+P11310,500,500_P11310,"""Medium-chain specific acyl-CoA dehydrogenase, mitochondrial""",ACADM,34
+O60306,501,501_O60306,Intron-binding protein aquarius,AQR,9716
+Q9HCS7,501,501_Q9HCS7,Pre-mRNA-splicing factor SYF1,XAB2,56949
+O60256,502,502_O60256,Phosphoribosyl pyrophosphate synthase-associated protein 2,PRPSAP2,5636
+Q14558,502,502_Q14558,Phosphoribosyl pyrophosphate synthase-associated protein 1,PRPSAP1,5635
+O43837,503,503_O43837,"""Isocitrate dehydrogenase [NAD] subunit beta, mitochondrial""",IDH3B,3420
+P51553,503,503_P51553,"""Isocitrate dehydrogenase [NAD] subunit gamma, mitochondrial""",IDH3G,3421
+O43747,504,504_O43747,AP-1 complex subunit gamma-1,AP1G1,164
+Q9BXS5,504,504_Q9BXS5,AP-1 complex subunit mu-1,AP1M1,8907
+O43516,505,505_O43516,WAS/WASL-interacting protein family member 1,WIPF1,7456
+P42768,505,505_P42768,Wiskott-Aldrich syndrome protein,WAS,7454
+O43447,506,506_O43447,Peptidyl-prolyl cis-trans isomerase H,PPIH,10465
+P14174,506,506_P14174,Macrophage migration inhibitory factor,MIF,4282
+O43290,507,507_O43290,U4/U6.U5 tri-snRNP-associated protein 1,SART1,9092
+Q13123,507,507_Q13123,Protein Red,IK,3550
+O14744,508,508_O14744,Protein arginine N-methyltransferase 5,PRMT5,10419
+Q9BQA1,508,508_Q9BQA1,Methylosome protein 50,WDR77,79084
+O00567,509,509_O00567,Nucleolar protein 56,NOP56,10528
+Q9NX24,509,509_Q9NX24,H/ACA ribonucleoprotein complex subunit 2,NHP2,55651
+O95747,51,51_O95747,Serine/threonine-protein kinase OSR1,OXSR1,9943
+P42285,51,51_P42285,Superkiller viralicidic activity 2-like 2,SKIV2L2,23517
+Q9BQ52,51,51_Q9BQ52,Zinc phosphodiesterase ELAC protein 2,ELAC2,60528
+Q9GZZ9,51,51_Q9GZZ9,Ubiquitin-like modifier-activating enzyme 5,UBA5,79876
+Q9UNZ2,51,51_Q9UNZ2,NSFL1 cofactor p47,NSFL1C,55968
+O00410,510,510_O00410,Importin-5,IPO5,3843
+P17655,510,510_P17655,Calpain-2 catalytic subunit,CAPN2,824
+O00139,511,511_O00139,Kinesin-like protein KIF2A,KIF2A,3796
+Q9Y2I8,511,511_Q9Y2I8,WD repeat-containing protein 37,WDR37,22884
+O60884,52,52_O60884,DnaJ homolog subfamily A member 2,DNAJA2,10294
+P62829,52,52_P62829,60S ribosomal protein L23,RPL23,9349
+Q14331,52,52_Q14331,Protein FRG1,FRG1,2483
+Q9BQG0,52,52_Q9BQG0,Myb-binding protein 1A,MYBBP1A,10514
+Q9BZE4,52,52_Q9BZE4,Nucleolar GTP-binding protein 1,GTPBP4,23560
+O43815,53,53_O43815,Striatin,STRN,6801
+O60216,53,53_O60216,Double-strand-break repair protein rad21 homolog,RAD21,5885
+P10515,53,53_P10515,"""Dihydrolipoyllysine-residue acetyltransferase component of pyruvate dehydrogenase complex, mitochondrial""",DLAT,1737
+P29590,53,53_P29590,Protein PML,PML,5371
+Q9UQE7,53,53_Q9UQE7,Structural maintenance of chromosomes protein 3,SMC3,9126
+Q14696,54,54_Q14696,LDLR chaperone MESD,MESDC2,23184
+Q16630,54,54_Q16630,Cleavage and polyadenylation specificity factor subunit 6,CPSF6,11052
+Q9BZZ5,54,54_Q9BZZ5,Apoptosis inhibitor 5,API5,8539
+Q9UKU7,54,54_Q9UKU7,"""Isobutyryl-CoA dehydrogenase, mitochondrial""",ACAD8,27034
+P42357,55,55_P42357,Histidine ammonia-lyase,HAL,3034
+Q13867,55,55_Q13867,Bleomycin hydrolase,BLMH,642
+Q96QA5,55,55_Q96QA5,Gasdermin-A,GSDMA,284110
+Q9UI42,55,55_Q9UI42,Carboxypeptidase A4,CPA4,51200
+O95758,56,56_O95758,Polypyrimidine tract-binding protein 3,PTBP3,9991
+P13995,56,56_P13995,"""Bifunctional methylenetetrahydrofolate dehydrogenase/cyclohydrolase, mitochondrial""",MTHFD2,10797
+Q9NTM9,56,56_Q9NTM9,Copper homeostasis protein cutC homolog,CUTC,51076
+Q9UL18,56,56_Q9UL18,Protein argonaute-1,AGO1,26523
+P54819,57,57_P54819,"""Adenylate kinase 2, mitochondrial""",AK2,204
+P62487,57,57_P62487,DNA-directed RNA polymerase II subunit RPB7,POLR2G,5436
+P63165,57,57_P63165,Small ubiquitin-related modifier 1,SUMO1,7341
+Q9NTG7,57,57_Q9NTG7,"""NAD-dependent protein deacetylase sirtuin-3, mitochondrial""",SIRT3,23410
+P20701,58,58_P20701,Integrin alpha-L,ITGAL,3683
+Q9BRR6,58,58_Q9BRR6,ADP-dependent glucokinase,ADPGK,83440
+Q9NTJ5,58,58_Q9NTJ5,Phosphatidylinositide phosphatase SAC1,SACM1L,22908
+Q9Y3E5,58,58_Q9Y3E5,"""Peptidyl-tRNA hydrolase 2, mitochondrial""",PTRH2,51651
+P16152,59,59_P16152,Carbonyl reductase [NADPH] 1,CBR1,873
+P61086,59,59_P61086,Ubiquitin-conjugating enzyme E2 K,UBE2K,3093
+Q15833,59,59_Q15833,Syntaxin-binding protein 2,STXBP2,6813
+Q96IU4,59,59_Q96IU4,Alpha/beta hydrolase domain-containing protein 14B,ABHD14B,84836
+B0I1T2,6,6_B0I1T2,Unconventional myosin-Ig,MYO1G,64005
+O00483,6,6_O00483,Cytochrome c oxidase subunit NDUFA4,NDUFA4,4697
+P05141,6,6_P05141,ADP/ATP translocase 2,SLC25A5,292
+P36542,6,6_P36542,"""ATP synthase subunit gamma, mitochondrial""",ATP5C1,509
+P45880,6,6_P45880,Voltage-dependent anion-selective channel protein 2,VDAC2,7417
+P56134,6,6_P56134,"""ATP synthase subunit f, mitochondrial""",ATP5J2,9551
+P62873,6,6_P62873,Guanine nucleotide-binding protein G(I)/G(S)/G(T) subunit beta-1,GNB1,2782
+Q00325,6,6_Q00325,"""Phosphate carrier protein, mitochondrial""",SLC25A3,5250
+Q02978,6,6_Q02978,Mitochondrial 2-oxoglutarate/malate carrier protein,SLC25A11,8402
+Q93084,6,6_Q93084,Sarcoplasmic/endoplasmic reticulum calcium ATPase 3,ATP2A3,489
+Q9H9B4,6,6_Q9H9B4,Sideroflexin-1,SFXN1,94081
+O15067,60,60_O15067,Phosphoribosylformylglycinamidine synthase,PFAS,5198
+P08243,60,60_P08243,Asparagine synthetase [glutamine-hydrolyzing],ASNS,440
+P12081,60,60_P12081,"""Histidine--tRNA ligase, cytoplasmic""",HARS,3035
+Q96C86,60,60_Q96C86,m7GpppX diphosphatase,DCPS,28960
+O15355,61,61_O15355,Protein phosphatase 1G,PPM1G,5496
+Q15631,61,61_Q15631,Translin,TSN,7247
+Q92733,61,61_Q92733,Proline-rich protein PRCC,PRCC,5546
+Q93009,61,61_Q93009,Ubiquitin carboxyl-terminal hydrolase 7,USP7,7874
+Q14141,62,62_Q14141,Septin-6,Sep-06,23157
+Q16181,62,62_Q16181,Septin-7,Sep-07,989
+Q8WYJ6,62,62_Q8WYJ6,Septin-1,Sep-01,1731
+Q9UHD8,62,62_Q9UHD8,Septin-9,Sep-09,10801
+P61026,63,63_P61026,Ras-related protein Rab-10,RAB10,10890
+Q15005,63,63_Q15005,Signal peptidase complex subunit 2,SPCS2,9789
+Q86WV6,63,63_Q86WV6,Stimulator of interferon genes protein,TMEM173,340061
+Q92930,63,63_Q92930,Ras-related protein Rab-8B,RAB8B,51762
+P19387,64,64_P19387,DNA-directed RNA polymerase II subunit RPB3,POLR2C,5432
+P24928,64,64_P24928,DNA-directed RNA polymerase II subunit RPB1,POLR2A,5430
+P30876,64,64_P30876,DNA-directed RNA polymerase II subunit RPB2,POLR2B,5431
+Q7KZ85,64,64_Q7KZ85,Transcription elongation factor SPT6,SUPT6H,6830
+O43598,65,65_O43598,2'-deoxynucleoside 5'-phosphate N-hydrolase 1,DNPH1,10591
+O75083,65,65_O75083,WD repeat-containing protein 1,WDR1,9948
+Q16222,65,65_Q16222,UDP-N-acetylhexosamine pyrophosphorylase,UAP1,6675
+Q96C19,65,65_Q96C19,EF-hand domain-containing protein D2,EFHD2,79180
+P09960,66,66_P09960,Leukotriene A-4 hydrolase,LTA4H,4048
+P55809,66,66_P55809,"""Succinyl-CoA:3-ketoacid coenzyme A transferase 1, mitochondrial""",OXCT1,5019
+Q13126,66,66_Q13126,S-methyl-5'-thioadenosine phosphorylase,MTAP,4507
+Q6YP21,66,66_Q6YP21,Kynurenine--oxoglutarate transaminase 3,CCBL2,56267
+O43681,67,67_O43681,ATPase ASNA1,ASNA1,439
+Q13045,67,67_Q13045,Protein flightless-1 homolog,FLII,2314
+Q5T4S7,67,67_Q5T4S7,E3 ubiquitin-protein ligase UBR4,UBR4,23352
+Q9Y3Q8,67,67_Q9Y3Q8,TSC22 domain family protein 4,TSC22D4,81628
+P47755,68,68_P47755,F-actin-capping protein subunit alpha-2,CAPZA2,830
+Q09028,68,68_Q09028,Histone-binding protein RBBP4,RBBP4,5928
+Q16576,68,68_Q16576,Histone-binding protein RBBP7,RBBP7,5931
+Q92769,68,68_Q92769,Histone deacetylase 2,HDAC2,3066
+P00505,69,69_P00505,"""Aspartate aminotransferase, mitochondrial""",GOT2,2806
+P60174,69,69_P60174,Triosephosphate isomerase,TPI1,7167
+P78417,69,69_P78417,Glutathione S-transferase omega-1,GSTO1,9446
+Q16822,69,69_Q16822,"""Phosphoenolpyruvate carboxykinase [GTP], mitochondrial""",PCK2,5106
+P04818,7,7_P04818,Thymidylate synthase,TYMS,7298
+P08134,7,7_P08134,Rho-related GTP-binding protein RhoC,RHOC,389
+P09417,7,7_P09417,Dihydropteridine reductase,QDPR,5860
+P18669,7,7_P18669,Phosphoglycerate mutase 1,PGAM1,5223
+P61604,7,7_P61604,"""10 kDa heat shock protein, mitochondrial""",HSPE1,3336
+Q7Z4H3,7,7_Q7Z4H3,HD domain-containing protein 2,HDDC2,51020
+Q8N335,7,7_Q8N335,Glycerol-3-phosphate dehydrogenase 1-like protein,GPD1L,23171
+Q9H993,7,7_Q9H993,UPF0364 protein C6orf211,ARMT1,79624
+Q9UHD1,7,7_Q9UHD1,Cysteine and histidine-rich domain-containing protein 1,CHORDC1,26973
+P40429,70,70_P40429,60S ribosomal protein L13a,RPL13A,23521
+P46779,70,70_P46779,60S ribosomal protein L28,RPL28,6158
+P62910,70,70_P62910,60S ribosomal protein L32,RPL32,6161
+P84098,70,70_P84098,60S ribosomal protein L19,RPL19,6143
+P49207,71,71_P49207,60S ribosomal protein L34,RPL34,6164
+P62906,71,71_P62906,60S ribosomal protein L10a,RPL10A,4736
+P62917,71,71_P62917,60S ribosomal protein L8,RPL8,6132
+Q9Y3U8,71,71_Q9Y3U8,60S ribosomal protein L36,RPL36,25873
+P08708,72,72_P08708,40S ribosomal protein S17,RPS17,6218
+P35268,72,72_P35268,60S ribosomal protein L22,RPL22,6146
+P62851,72,72_P62851,40S ribosomal protein S25,RPS25,6230
+P62854,72,72_P62854,40S ribosomal protein S26,RPS26,101929876
+P46781,73,73_P46781,40S ribosomal protein S9,RPS9,6203
+P62241,73,73_P62241,40S ribosomal protein S8,RPS8,6202
+P62269,73,73_P62269,40S ribosomal protein S18,RPS18,6222
+P62277,73,73_P62277,40S ribosomal protein S13,RPS13,6207
+P40939,74,74_P40939,"""Trifunctional enzyme subunit alpha, mitochondrial""",HADHA,3030
+P55084,74,74_P55084,"""Trifunctional enzyme subunit beta, mitochondrial""",HADHB,3032
+Q9Y230,74,74_Q9Y230,RuvB-like 2,RUVBL2,10856
+Q9Y265,74,74_Q9Y265,RuvB-like 1,RUVBL1,8607
+P25685,75,75_P25685,DnaJ homolog subfamily B member 1,DNAJB1,3337
+P53990,75,75_P53990,IST1 homolog,IST1,9798
+Q96BP3,75,75_Q96BP3,Peptidylprolyl isomerase domain and WD repeat-containing protein 1,PPWD1,23398
+Q9NTX5,75,75_Q9NTX5,Ethylmalonyl-CoA decarboxylase,ECHDC1,55862
+P12081,76,76_P12081,"""Histidine--tRNA ligase, cytoplasmic""",HARS,3035
+P41226,76,76_P41226,Ubiquitin-like modifier-activating enzyme 7,UBA7,7318
+P49189,76,76_P49189,4-trimethylaminobutyraldehyde dehydrogenase,ALDH9A1,223
+P52789,76,76_P52789,Hexokinase-2,HK2,3099
+O75534,77,77_O75534,Cold shock domain-containing protein E1,CSDE1,7812
+P42229,77,77_P42229,Signal transducer and activator of transcription 5A,STAT5A,6776
+P63151,77,77_P63151,Serine/threonine-protein phosphatase 2A 55 kDa regulatory subunit B alpha isoform,PPP2R2A,5520
+Q86VP6,77,77_Q86VP6,Cullin-associated NEDD8-dissociated protein 1,CAND1,55832
+P41250,78,78_P41250,Glycine--tRNA ligase,GARS,2617
+P42229,78,78_P42229,Signal transducer and activator of transcription 5A,STAT5A,6776
+Q01581,78,78_Q01581,"""Hydroxymethylglutaryl-CoA synthase, cytoplasmic""",HMGCS1,3157
+Q96QK1,78,78_Q96QK1,Vacuolar protein sorting-associated protein 35,VPS35,55737
+P07195,79,79_P07195,L-lactate dehydrogenase B chain,LDHB,3945
+P31937,79,79_P31937,"""3-hydroxyisobutyrate dehydrogenase, mitochondrial""",HIBADH,11112
+P31939,79,79_P31939,Bifunctional purine biosynthesis protein PURH,ATIC,471
+P48637,79,79_P48637,Glutathione synthetase,GSS,2937
+Q01780,8,8_Q01780,Exosome component 10,EXOSC10,5394
+Q02880,8,8_Q02880,DNA topoisomerase 2-beta,TOP2B,7155
+Q06265,8,8_Q06265,Exosome complex component RRP45,EXOSC9,5393
+Q13868,8,8_Q13868,Exosome complex component RRP4,EXOSC2,23404
+Q15024,8,8_Q15024,Exosome complex component RRP42,EXOSC7,23016
+Q5RKV6,8,8_Q5RKV6,Exosome complex component MTR3,EXOSC6,118460
+Q7L2E3,8,8_Q7L2E3,Putative ATP-dependent RNA helicase DHX30,DHX30,22907
+Q96B26,8,8_Q96B26,Exosome complex component RRP43,EXOSC8,11340
+Q9NPD3,8,8_Q9NPD3,Exosome complex component RRP41,EXOSC4,54512
+P08758,80,80_P08758,Annexin A5,ANXA5,308
+P09211,80,80_P09211,Glutathione S-transferase P,GSTP1,2950
+P30041,80,80_P30041,Peroxiredoxin-6,PRDX6,9588
+Q9Y5Z4,80,80_Q9Y5Z4,Heme-binding protein 2,HEBP2,23593
+P24534,81,81_P24534,Elongation factor 1-beta,EEF1B2,1933
+P26641,81,81_P26641,Elongation factor 1-gamma,EEF1G,1937
+P29692,81,81_P29692,Elongation factor 1-delta,EEF1D,1936
+P48426,81,81_P48426,Phosphatidylinositol 5-phosphate 4-kinase type-2 alpha,PIP4K2A,5305
+A0AVT1,82,82_A0AVT1,Ubiquitin-like modifier-activating enzyme 6,UBA6,55236
+P15170,82,82_P15170,Eukaryotic peptide chain release factor GTP-binding subunit ERF3A,GSPT1,2935
+P23526,82,82_P23526,Adenosylhomocysteinase,AHCY,191
+Q16555,82,82_Q16555,Dihydropyrimidinase-related protein 2,DPYSL2,1808
+P21283,83,83_P21283,V-type proton ATPase subunit C 1,ATP6V1C1,528
+P49915,83,83_P49915,GMP synthase [glutamine-hydrolyzing],GMPS,8833
+P61970,83,83_P61970,Nuclear transport factor 2,NUTF2,10204
+Q9UN37,83,83_Q9UN37,Vacuolar protein sorting-associated protein 4A,VPS4A,27183
+P21283,84,84_P21283,V-type proton ATPase subunit C 1,ATP6V1C1,528
+P49915,84,84_P49915,GMP synthase [glutamine-hydrolyzing],GMPS,8833
+P61970,84,84_P61970,Nuclear transport factor 2,NUTF2,10204
+Q5T1C6,84,84_Q5T1C6,Acyl-coenzyme A thioesterase THEM4,THEM4,117145
+O00186,85,85_O00186,Syntaxin-binding protein 3,STXBP3,6814
+P11233,85,85_P11233,Ras-related protein Ral-A,RALA,5898
+P46459,85,85_P46459,Vesicle-fusing ATPase,NSF,4905
+Q9UKR5,85,85_Q9UKR5,Probable ergosterol biosynthetic protein 28,C14orf1,11161
+O95674,86,86_O95674,Phosphatidate cytidylyltransferase 2,CDS2,8760
+P16615,86,86_P16615,Sarcoplasmic/endoplasmic reticulum calcium ATPase 2,ATP2A2,488
+Q04941,86,86_Q04941,Proteolipid protein 2,PLP2,5355
+Q15758,86,86_Q15758,Neutral amino acid transporter B(0),SLC1A5,6510
+O95373,87,87_O95373,Importin-7,IPO7,10527
+Q01105,87,87_Q01105,Protein SET,SET,6418
+Q13077,87,87_Q13077,TNF receptor-associated factor 1,TRAF1,7185
+Q96T76,87,87_Q96T76,MMS19 nucleotide excision repair protein homolog,MMS19,64210
+O94906,88,88_O94906,Pre-mRNA-processing factor 6,PRPF6,24148
+Q6P2Q9,88,88_Q6P2Q9,Pre-mRNA-processing-splicing factor 8,PRPF8,10594
+Q9Y265,88,88_Q9Y265,RuvB-like 1,RUVBL1,8607
+Q9Y5U2,88,88_Q9Y5U2,Protein TSSC4,TSSC4,10078
+O43143,89,89_O43143,Putative pre-mRNA-splicing factor ATP-dependent RNA helicase DHX15,DHX15,1665
+Q08AF3,89,89_Q08AF3,Schlafen family member 5,SLFN5,162394
+Q14258,89,89_Q14258,E3 ubiquitin/ISG15 ligase TRIM25,TRIM25,7706
+Q9H4E7,89,89_Q9H4E7,Differentially expressed in FDCP 6 homolog,DEF6,50619
+O60610,9,9_O60610,Protein diaphanous homolog 1,DIAPH1,1729
+P33176,9,9_P33176,Kinesin-1 heavy chain,KIF5B,3799
+P35606,9,9_P35606,Coatomer subunit beta',COPB2,9276
+P48444,9,9_P48444,Coatomer subunit delta,ARCN1,372
+P53618,9,9_P53618,Coatomer subunit beta,COPB1,1315
+P53621,9,9_P53621,Coatomer subunit alpha,COPA,1314
+P61923,9,9_P61923,Coatomer subunit zeta-1,COPZ1,22818
+Q9Y678,9,9_Q9Y678,Coatomer subunit gamma-1,COPG1,22820
+P20292,90,90_P20292,Arachidonate 5-lipoxygenase-activating protein,ALOX5AP,241
+Q03518,90,90_Q03518,Antigen peptide transporter 1,TAP1,6890
+Q9Y5M8,90,90_Q9Y5M8,Signal recognition particle receptor subunit beta,SRPRB,58477
+P17858,91,91_P17858,"""ATP-dependent 6-phosphofructokinase, liver type""",PFKL,5211
+Q9H1B7,91,91_Q9H1B7,Interferon regulatory factor 2-binding protein-like,IRF2BPL,64207
+Q9Y490,91,91_Q9Y490,Talin-1,TLN1,7094
+O14974,92,92_O14974,Protein phosphatase 1 regulatory subunit 12A,PPP1R12A,4659
+Q9UJU6,92,92_Q9UJU6,Drebrin-like protein,DBNL,28988
+Q9Y2W2,92,92_Q9Y2W2,WW domain-binding protein 11,WBP11,51729
+Q15813,93,93_Q15813,Tubulin-specific chaperone E,TBCE,6905
+Q9GZL7,93,93_Q9GZL7,Ribosome biogenesis protein WDR12,WDR12,55759
+Q9Y2H1,93,93_Q9Y2H1,Serine/threonine-protein kinase 38-like,STK38L,23012
+Q8NFH3,94,94_Q8NFH3,Nucleoporin Nup43,NUP43,348995
+Q9NUL5,94,94_Q9NUL5,UPF0515 protein C19orf66,RYDEN,55337
+Q9UNP9,94,94_Q9UNP9,Peptidyl-prolyl cis-trans isomerase E,PPIE,10450
+P42357,95,95_P42357,Histidine ammonia-lyase,HAL,3034
+Q96QA5,95,95_Q96QA5,Gasdermin-A,GSDMA,284110
+Q9UI42,95,95_Q9UI42,Carboxypeptidase A4,CPA4,51200
+Q8TDN6,96,96_Q8TDN6,Ribosome biogenesis protein BRX1 homolog,BRIX1,55299
+Q99848,96,96_Q99848,Probable rRNA-processing protein EBP2,EBNA1BP2,10969
+Q9UHA3,96,96_Q9UHA3,Probable ribosome biogenesis protein RLP24,RSL24D1,51187
+P34897,97,97_P34897,"""Serine hydroxymethyltransferase, mitochondrial""",SHMT2,6472
+Q15435,97,97_Q15435,Protein phosphatase 1 regulatory subunit 7,PPP1R7,5510
+Q9UBT2,97,97_Q9UBT2,SUMO-activating enzyme subunit 2,UBA2,10054
+P61221,98,98_P61221,ATP-binding cassette sub-family E member 1,ABCE1,6059
+Q9P258,98,98_Q9P258,Protein RCC2,RCC2,55920
+Q9UL18,98,98_Q9UL18,Protein argonaute-1,AGO1,26523
+O94804,99,99_O94804,Serine/threonine-protein kinase 10,STK10,6793
+Q13043,99,99_Q13043,Serine/threonine-protein kinase 4,STK4,6789
+Q9NXG2,99,99_Q9NXG2,THUMP domain-containing protein 1,THUMPD1,55623
