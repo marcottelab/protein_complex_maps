@@ -26,24 +26,25 @@ def main():
     parser = argparse.ArgumentParser(description="Cluster elutions rows based on edge scores")
     parser.add_argument("--input_edges", action="store", dest="input_edges", required=True, 
                                     help="Filename of edge table must be either two columns (ID1\tID2) or three columns with numeric score (ID1\tID2\tscore)")
+    parser.add_argument("--outfile", action="store", dest="outfile", required=True, 
+                                    help="Base name of outfile. will write both .xlsx and .csv") 
     parser.add_argument("--sep", action="store", dest="sep", required=False, default='\t',
                                     help="Separator for input edge table, default=\t")
     parser.add_argument("--header", action="store", dest="header", required=False, default=False,
-                                    help="True if input table has a header, default False") 
+                                    help="True if input table has a header, default=False") 
     parser.add_argument("--cutoff", action="store", dest="cutoff", type = int, required=False,
                                     help="Take only first N rows")
     parser.add_argument("--threshold", action="store", dest="threshold", required=False, type = float, 
                                     help="Take only rows with score (third column) above N")
-    parser.add_argument("--write_distance_matrix", action="store", dest="write_distance_matrix", required=False, default=True, 
-                                    help="Write table of pairwise distances")
+    #parser.add_argument("--write_distance_matrix", action="store", dest="write_distance_matrix", required=False, default=True, 
+    #                                help="Write table of pairwise distances")
     parser.add_argument("--tree_cutoff_fractions", action="store", dest="tree_cutoff_fractions", required=False, default=[0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2,0.1], 
-                                    help="Positions for cutting the hierarchical tree")
+                                    help="Positions for cutting the hierarchical tree (proportion of tree height), default=[0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2,0.1]")
     parser.add_argument("--input_elution", action="store", dest="input_elution", required=False, 
-                                    help="If present, annotate with dendrogram order information(.csv format)")
-    parser.add_argument("--outfile", action="store", dest="outfile", required=True, 
-                                    help="Base name of outfile. will write .xlsx and .csv")
+                                    help="Optional: If present, annotate with dendrogram order information(.csv format)")
     parser.add_argument("--path_to_annotations", action='store', dest='path_to_annotations', required=False, default=None, 
-                                    help="Path to annotations file. A tab-delimited file with protein ids in first column and annotations in second")
+                                    help="Optional: Path to annotations file. A tab-delimited file with protein ids in first column and annotations in second")
+ 
     args = parser.parse_args()
 
     if args.header:
