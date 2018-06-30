@@ -27,6 +27,8 @@ def main():
                                     help="Filters entries with tag, default=CONTAMINANT")
     parser.add_argument("--use_gmm", action="store_true", dest="use_gmm", required=False, default=False, 
                                     help="Fit sliding window distributions to Gaussian Mixture Model and use largest gaussian for calculating zscore, default=False")
+    parser.add_argument("--log_transform", action="store_true", dest="log_transform", required=False, default=False, 
+                                    help="Use the log transform of the diffrac score to calculate sliding zscore, default=False")
     parser.add_argument("--window_size", action="store", type=int, dest="window_size", required=False, default=100, 
                                     help="Window size to use for calculating sliding zscore, default=100")
     parser.add_argument("--output_file", action="store", dest="out_filename", required=False, default=None, 
@@ -96,7 +98,7 @@ def main():
             feature_df = join_feature(feature_df,feature_series)
 
         if 'sliding_zscore' in args.features:
-            feature_series = calc_sliding_zscore(feature_df, window=args.window_size, use_gmm=args.use_gmm)
+            feature_series = calc_sliding_zscore(feature_df, window=args.window_size, use_gmm=args.use_gmm, log_transform=args.log_transform)
             feature_series.name = 'sliding_zscore'
             feature_df = join_feature(feature_df,feature_series)
 
@@ -231,7 +233,7 @@ def calc_zscore(feat_df):
     return df
 
 #kdrew: min_weight_threshold : mixture model weight has to be above threshold in order to use
-def calc_sliding_zscore(feat_df, window=100, use_gmm=False, min_weight_threshold=0.75): 
+def calc_sliding_zscore(feat_df, window=100, use_gmm=False, min_weight_threshold=0.6, log_transform=False): 
     sliding_zscore_dict = dict()
 
     for id1 in feat_df.sort_values("mean_abundance",ascending=False).query("mean_abundance == mean_abundance").index:
@@ -245,7 +247,6 @@ def calc_sliding_zscore(feat_df, window=100, use_gmm=False, min_weight_threshold
             gt_entries = feat_df.query("(mean_abundance >= %s)" % i_abnd).sort_values('mean_abundance')['mean_abundance']
             lt_entries = feat_df.query("(mean_abundance < %s)" % i_abnd).sort_values('mean_abundance', ascending=False)['mean_abundance']
 
-
         print "gt_entries"
         print gt_entries
         print "lt_entries"
@@ -257,27 +258,37 @@ def calc_sliding_zscore(feat_df, window=100, use_gmm=False, min_weight_threshold
         if len(lt_entries) < j: h = h + (j - len(lt_entries)); j = len(lt_entries)
 
         entries = list(gt_entries.index[:h]) + list(lt_entries.index[:j])
-        diffrac_normalized_list = feat_df.ix[entries]['diffrac_normalized'].values
+        if log_transform:
+            diffrac_normalized_list = (feat_df.ix[entries]['diffrac_normalized'].fillna(0.0)+0.1).apply(np.log10)
+        else:
+            diffrac_normalized_list = feat_df.ix[entries]['diffrac_normalized'].values
         if use_gmm:
             #kdrew: probably should be careful about using GMM's interface, originally was using GaussianMixture but that only exists in newer versions of sklearn
-            gmm = GMM(n_components=2, covariance_type='spherical').fit(diffrac_normalized_list.reshape(-1,1))
-            print "gmm.means_"
-            print gmm.means_
-            min_mean_model = np.argmin(gmm.means_)
-            print "gmm.weights_"
-            print gmm.weights_
-            max_weight_model = np.argmax(gmm.weights_)
-            print "[np.sqrt(x) for x in gmm.covars_]"
-            print [np.sqrt(x) for x in gmm.covars_]
+            #kdrew: create two models, one with a single gaussian and one with two gaussians
+            gmm1 = GMM(n_components=1, covariance_type='spherical').fit(diffrac_normalized_list.reshape(-1,1))
+            gmm2 = GMM(n_components=2, covariance_type='spherical').fit(diffrac_normalized_list.reshape(-1,1))
+            #kdrew: Calculate their Baysian Information Criterion which penalizes additional parameters 
+            gmm1_bic = gmm1.bic(diffrac_normalized_list.reshape(-1,1))
+            gmm2_bic = gmm2.bic(diffrac_normalized_list.reshape(-1,1))
+            print "gmm1 BIC: %s" % gmm1_bic
+            print "gmm2 BIC: %s" % gmm2_bic
 
-            #kdrew: tests to make sure the model with the lowest mean is also the dominant peak, also checks that the dominant peak is above some threshold of dominance
-            if min_mean_model != max_weight_model or np.max(gmm.weights_) < min_weight_threshold:
-                print "WARNING: highest weighted model does not equal lowest mean model or min_weight_threshold not satisfied, *not* using gaussian mixture model"
+            print "gmm2.means_ %s" % gmm2.means_
+            min_mean_model = np.argmin(gmm2.means_)
+            print "gmm2.weights_ %s" % gmm2.weights_
+            max_weight_model = np.argmax(gmm2.weights_)
+            print "[np.sqrt(x) for x in gmm2.covars_] %s" % [np.sqrt(x) for x in gmm2.covars_]
+
+            #kdrew: use Baysian Information Criterion for model selection
+            #kdrew: also tests to make sure the model with the lowest mean is the dominant peak, 
+            #kdrew: also checks that the dominant peak is above some threshold of dominance (might not be necessary anymore with BIC selection but nice to have option
+            if gmm1_bic < gmm2_bic or min_mean_model != max_weight_model or np.max(gmm2.weights_) < min_weight_threshold:
+                print "WARNING: Two-component GMM has higher BIC than one-component GMM or \n highest weighted model does not equal lowest mean model or \n min_weight_threshold not satisfied, *not* using gaussian mixture model"
                 mean_tmp = np.mean(diffrac_normalized_list)
                 std_tmp = np.std(diffrac_normalized_list)
             else:
-                mean_tmp = gmm.means_[min_mean_model][0]
-                std_tmp = np.sqrt(gmm.covars_[min_mean_model][0])
+                mean_tmp = gmm2.means_[min_mean_model][0]
+                std_tmp = np.sqrt(gmm2.covars_[min_mean_model][0])
 
         else:
             mean_tmp = np.mean(diffrac_normalized_list)
@@ -285,7 +296,12 @@ def calc_sliding_zscore(feat_df, window=100, use_gmm=False, min_weight_threshold
 
         print "diffrac_normalized_list %s" % diffrac_normalized_list
         print "id: %s mean_tmp: %s std_tmp: %s" % (id1, mean_tmp, std_tmp)
-        i_diffrac_normalized =  feat_df.ix[id1]['diffrac_normalized']
+        if log_transform:
+            #kdrew: add pseudo-count of 0.1
+            i_diffrac_normalized =  np.log10(feat_df.ix[id1]['diffrac_normalized']+0.1)
+        else:
+            i_diffrac_normalized =  feat_df.ix[id1]['diffrac_normalized']
+
         zscore = (i_diffrac_normalized - mean_tmp)/std_tmp
         sliding_zscore_dict[id1] = zscore
 
