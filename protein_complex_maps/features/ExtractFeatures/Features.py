@@ -62,15 +62,22 @@ class Elut():
         ## TBD
         pass
             
-    def normalize(self,by='row'):
+    def normalize(self,by=['column']):
         '''Normalize the loaded dataframe by row or by column sums'''
         assert not self.is_normalized, "DataFrame already normalized"
         self._prenormed_df = self.df # save df in hidden var before normalizing
-        if by == 'row':
-            self.df = self.df.div(self.df.sum(axis=1), axis=0)
-        elif by == 'column':
+        did_something = False
+        if 'column' in by:
             self.df = self.df/self.df.sum()
-        else: raise Exception("must specify either 'row' or 'column'")
+            did_something = True
+        if 'row_sum' in by:
+            self.df = self.df.div(self.df.sum(axis=1), axis=0)
+            did_something = True
+        if 'row_max' in by:
+            self.df = self.df.div(self.df.max(axis=1), axis=0)
+            did_something = True
+        if did_something == False: 
+            raise Exception("Must specify 'row_max,' 'row_sum', or 'column'\n{}".format(by))
         self.is_normalized = True
         
     def threshold(self,thresh=5):
@@ -129,6 +136,7 @@ class ElutFeatures(Elut,features.FeatureFunctions,resampling.FeatureResampling):
                 "euclidean",
                 "canberra",
                 "braycurtis",
+                "invbraycurtis",
                 "cosine",
                 "sum_difference"]
                 
@@ -159,8 +167,17 @@ class ElutFeatures(Elut,features.FeatureFunctions,resampling.FeatureResampling):
         ## work on 1d pdist output
         return ( sum( feature_function( resample_function(df,rep=i) ) for i in range(iterations) ) / iterations )
         
-    def extract_features(self,feature,resampling=None,iterations=None,threshold=None):
-        '''Return a DataFrame of features'''
+    def extract_features(self,feature,resampling=False,iterations=False,threshold=False,normalize=False):
+        '''
+        Returns a DataFrame of features
+        
+        Parameters:
+            `feature`: <str> Feature to extract. Must be one of the features available in self.available_features
+            `resampling`: <str> Whether to resample and average. Must be either poisson_noise or bootstrap
+            `iterations`: <int> Used with resampling. Number of iterations to resample for
+            `threshold`: <int or float> Remove rows with fewer than `threshold` spectral matches
+            `normalize`: <list of str> Whether to normalize the data. Can be one or several of: row_sum, row_max, column
+        '''
         
         # Assign the function to extract features
         feat = "_" + feature # because I'm hiding actual feature functions
@@ -180,14 +197,15 @@ class ElutFeatures(Elut,features.FeatureFunctions,resampling.FeatureResampling):
                 raise Warning("No rows left after thresholding")
                 return None
             self._analysis["threshold"] = "thresh"+str(threshold)
+            
+        if normalize:
+            self.normalize(normalize)
+            self._analysis["normalize"] = 'norm' + "".join(normalize)
         
         if feature in ["jensen_shannon","kullback_leibler"]:
-            if self.is_normalized:
-                raise Warning('''Don't normalize by rows before extracting Kullback-Leibler or 
-                Jensen-Shannon features. It will be done again.''')
-            print "Adding pseudocounts and normalizing for JS or KL divergence"
+            print "Adding pseudocounts and re-normalizing for JS or KL divergence"
             self.df = self.df + 1
-            self.normalize(by='row')
+            self.normalize(by='row_max')
             
         ## Don't like this part, because it could add pseudocounts twice if jensen-shannon + poisson
         if resampling == "poisson_noise": # this is how Traver's function does it, for some reason
@@ -211,7 +229,7 @@ class ElutFeatures(Elut,features.FeatureFunctions,resampling.FeatureResampling):
         
         # Store information on what analysis was done
         a_list = []
-        for a in ["feature", "resampling", "reps", "threshold"]:
+        for a in ["feature", "resampling", "reps", "threshold", "normalize"]:
             if a in self._analysis: 
                 a_list.append(self._analysis[a])
         self.analyses.append( "_".join(a_list) )
