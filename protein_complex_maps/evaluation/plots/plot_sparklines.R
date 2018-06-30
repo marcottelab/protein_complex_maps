@@ -10,24 +10,37 @@ suppressPackageStartupMessages(library(cowplot))
 
 suppressPackageStartupMessages(library(argparse))
 
+#print("before argument parser setup")
 # create parser object
 parser <- ArgumentParser()
 # specify our desired options
 # by default ArgumentParser will add an help option
 parser$add_argument("-f", "--filenames", nargs='+', dest="filenames", required=TRUE,
                         help="Input elution profile")
+#print("after -f")
 parser$add_argument("-o", "--output_filename", action="store", required=TRUE,
                         dest="output_filename", help="Output filename for resulting plot")
+#print("after -o")
 parser$add_argument("-p", "--proteins", nargs='+', dest="protein_ids", required=TRUE,
                         help="Proteins to plot")
+#print("after -p")
 parser$add_argument("-n", "--parse_fraction_name", nargs='+', dest="parse_fraction_name", required=TRUE,
                         help="Fields to separate fraction name into, example: cell_type condition col_type fraction date, use -n fraction for default behavior")
+#print("after -n")
 parser$add_argument("-m", "--id_mapping", dest="id_mapping", required=TRUE,
                         help="Uniprot mapping file")
+#print("after -m")
 parser$add_argument("-g", "--id_column", dest="id_column", default="genename", help="Column to use for protein identifier, default = genename")
+#print("after -g")
+#kdrew: a bit tricky to debug but in the help string, need spaces between default = FALSE or else it was choke with an unhelpful error message
+parser$add_argument("-x", "--old_elution_format", action="store_true", default=FALSE, 
+                        help="Input elution profile files are of the old file format with TotalCount field, default = FALSE")
+#print("after -x")
 parser$add_argument("-s", "--fraction_name_sep", dest="fraction_name_sep", default='_', help="Separator to separate fraction name, default = _")
 
+#print("before parsing args")
 args <- parser$parse_args()
+#print(args)
 
 #filename <- "/stor/work/Marcotte/project/kdrew/data/protein_complex_maps/shared_complexes/source_data/elutions_protein_counts/CeDmHsMmSp_ms2_elutions/Hs_helaN_1003.prot_count_uniqpeps2_FDR0010"
 #output_filename <- "/project/kdrew/data/tmp/hela_tidy_trim_df.pdf"
@@ -47,14 +60,16 @@ bare_sparklines <- function(z, return_leg=FALSE){
         geom_line(alpha=0.9) +
         scale_linetype_manual(values=c("solid","F1")) + 
         scale_color_manual(values= c("black", "firebrick2","black","dodgerblue4","#8b104e")) 
-    #kdrew: return 
+    #kdrew: return  legend
     if(return_leg){
         plt <- plt + theme(legend.title=element_blank(), legend.text=element_text(size=6), legend.position="bottom" )
     }
     else{
         plt <- plt + theme(axis.text.x=element_blank(), axis.title.y = element_text(angle = 0, size=6), legend.position="none")
-    }
+    }                   
+    #plt <- plt + theme(axis.text.y = element_text(size=8), axis.line = element_line(colour = "green", size = 1, linetype = "solid")) 
     final_plt <- ggplotGrob(plt)
+    #final_plt <- gtable_remove_grobs(final_plt, c('xlab-b', 'axis-b'))
     final_plt <- gtable_remove_grobs(final_plt, c('xlab-b', 'axis-b','axis-l', 'spacer'))
     final_plt <- gtable_squash_rows(final_plt, c(1,2,3, 4, 5, 8,9, 10))
     final_plt <- gtable_squash_cols(final_plt, c(2,3,5,6))
@@ -69,12 +84,19 @@ for( fname in args$filenames )
     #kdrew: readin elution matrix
     fractionation_df = read.table(fname, header=TRUE, comment.char='!')
 
-    #kdrew: rename protein id column
-    fractionation_df$ID <- fractionation_df$X.ProtID
-    fractionation_df$X.ProtID <- NULL
 
     #kdrew: dense matrix to sparse matrix format (tidy)
-    fractionation_tidy_df <- fractionation_df %>% droplevels %>% subset(select=-TotalCount) %>% tidyr::gather(key = fraction, value = speccounts, -ID)
+    #kdrew: for new elut format remove subset(select=-TotalCount) clause
+    if(args$old_elution_format){
+        #kdrew: rename protein id column
+        fractionation_df$ID <- fractionation_df$X.ProtID
+        fractionation_df$X.ProtID <- NULL
+        fractionation_tidy_df <- fractionation_df %>% droplevels %>% subset(select=-TotalCount) %>% tidyr::gather(key = fraction, value = speccounts, -ID)
+    }
+    else {
+        fractionation_df$ID <- rownames(fractionation_df)
+        fractionation_tidy_df <- fractionation_df %>% droplevels %>% tidyr::gather(key = fraction, value = speccounts, -ID)
+    }
 
     print(args$parse_fraction_name)
     if(args$parse_fraction_name[1] != "fraction") {
