@@ -41,7 +41,8 @@ def main():
 
     parser.add_argument("--use_scores", action="store_true", dest="use_scores", required=False, default=True, 
                                     help="Use scores in clustering if scores present, default=True")
-
+    parser.add_argument("--steps", action="store", dest="steps", required=False, type=int, default=4, 
+                                    help="Number of steps fo walktrap to take, default=4")
     #parser.add_argument("--write_distance_matrix", action="store", dest="write_distance_matrix", required=False, default=True, 
     #                                help="Write table of pairwise distances")
     parser.add_argument("--tree_cutoff_fractions", action="store", dest="tree_cutoff_fractions", required=False, default=[0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2,0.1], 
@@ -52,7 +53,6 @@ def main():
                                     help="Optional: Path to annotations file. A tab-delimited file with protein ids in first column and annotations in second")
  
     args = parser.parse_args()
-    print(args.header)
 
 
     if args.header == True:
@@ -62,18 +62,19 @@ def main():
          scores_nodups = pd.read_csv(args.input_edges, sep=args.sep, header=None)
 
     if len(scores_nodups.columns) == 3:
-         scores_nodups.columns = ['ID1', 'ID2', 'weight']    
-         print(scores_nodups.head)
-         #This is necessary because the weight must be treated as a distance, where closer is better
-         #Inverse to fix, following suggestion in https://toreopsahl.com/tnet/weighted-networks/shortest-paths/
-         print("Inverting weights to distances")
-         if args.threshold:
+        scores_nodups.columns = ['ID1', 'ID2', 'weight']    
+        print(scores_nodups.head)
+        if args.threshold:
              print(args.threshold)
              scores_nodups = scores_nodups[scores_nodups['weight'] >= args.threshold]
+        if args.method == "shortest_path":
+             #This is necessary because the weight must be treated as a distance, where closer is better
+             #Inverse to fix, following suggestion in https://toreopsahl.com/tnet/weighted-networks/shortest-paths/
+             print("Inverting weights to distances for shortest path. Not necessary for walktrap, 'weights: The edge weights. Larger edge weights increase the probability that an edge is selected by the random walker. In other words, larger edge weights correspond to stronger connections.'")
+ 
+             scores_nodups['weight'] = 1/scores_nodups['weight']
 
-         scores_nodups['weight'] = 1/scores_nodups['weight']
-
-         if args.use_scores == False:
+        if args.use_scores == False:
              scores_nodups['weight'] = 1
          
 
@@ -103,12 +104,12 @@ def main():
 
     #Load custom R functions
     robjects.r('''
-    get_dend <- function(df, method){
+    get_dend <- function(df, method, steps=4){
                     #Function to get a dendrogram
                     set.seed(42)
                     graph = graph_from_data_frame(df, directed=FALSE) 
                     if(method == "walktrap"){
-                        dendrogram <- as.dendrogram(cluster_walktrap(graph))  
+                        dendrogram <- as.dendrogram(cluster_walktrap(graph, steps=steps))  
                     }
                     if(method == "shortest_distance"){
                       ds <- distances(graph)
@@ -160,7 +161,7 @@ def main():
     r_cut_dend = robjects.globalenv['cut_dend']
 
     print("Calculate dendrogram")
-    r_dendrogram = r_get_dend(scores_nodups, args.method)
+    r_dendrogram = r_get_dend(scores_nodups, args.method, args.steps)
     print("Get row order from dendrogram")
     r_order = r_order_dend(r_dendrogram)
     print("Cut tree at multiple heights to get clusters of various stringency")
@@ -195,7 +196,7 @@ def main():
     print("Writing csv file")
     csv_outfile = args.outfile + '.csv'
     outdf.to_csv(csv_outfile)
-    print("Writing excel file")
+    print("Writing excel file, might give weird encoding error")
     excel_outfile = args.outfile + '.xlsx'
     outdf.to_excel(excel_outfile)
 
