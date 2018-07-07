@@ -50,7 +50,7 @@ def main():
             cluster_entries.append([id1,id2,prot_pair[0], prot_pair[1]])
 
     cluster_df = pd.DataFrame(cluster_entries, columns=['clustid1','clustid2','id1','id2'])
-    cluster_df['edge_id'] = ["%s (pp) %s" % (x[0],x[1] for x in cluster_df[['clustid1','clustid2']].values]
+    cluster_df['edge_id'] = ["%s (pp) %s" % (x[0],x[1]) for x in cluster_df[['clustid1','clustid2']].values]
     cluster_df['frozenset_ids'] = map(frozenset,cluster_df[['id1','id2']].values)
     cluster_df['frozenset_ids_str_order'] = cluster_df['frozenset_ids'].apply(list).apply(sorted).apply(str)
     pairwise_df = pairwise_df.merge(cluster_df, on='frozenset_ids_str_order', how='outer', suffixes=['','_cluster'])
