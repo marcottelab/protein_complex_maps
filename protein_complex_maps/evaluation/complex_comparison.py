@@ -262,6 +262,8 @@ class ComplexComparison(object):
 
         #kdrew: only evaluate on proteins that are in gold standard set
         clusters = [clust & self.get_gold_standard_proteins() for clust in self.get_clusters()]
+        #print "clusters in gold standard"
+        #print clusters
         clust_max_len = np.max(map(len,clusters))
         gs_max_len = np.max(map(len,self.get_gold_standard()))
 
@@ -278,6 +280,10 @@ class ComplexComparison(object):
         else:
             #kdrew: if max_clique is set but the largest cluster is smaller, use the smaller value
             max_len = min(self.max_clique, clust_max_len)
+
+        #print "max_len: %s" % max_len
+        if max_len < 2:
+            raise Gold_Standard_Overlap_Exception("ERROR: Gold Standard Overlap Warning: no pairs in clusters overlap with gold standard")
 
         cumulative_gs_tp = 0.0
         cumulative_tp = 0.0
@@ -661,6 +667,12 @@ def main():
         plt.savefig(args.plot_filename)
 
 class Exclusion_Complexes_Exception(Exception):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
+
+class Gold_Standard_Overlap_Exception(Exception):
     def __init__(self, value):
         self.value = value
     def __str__(self):
