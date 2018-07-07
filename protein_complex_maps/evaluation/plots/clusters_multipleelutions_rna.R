@@ -4,18 +4,11 @@ library(argparse)
 library(dplyr)
 library(readr)  #for read_csv instead of read.csv
 library(ggplot2)
-library(cowplot) #for formattting
+library(cowplot) #for nice plot formattting
 library(ggridges) #for sparklines
-library(purrr) #for map function
-library(grid)
-library(gridExtra) #For annotation table under sparklines
 
 
-parser <- ArgumentParser(description='Make many sparkline figures, grouped by complex number')
-
-#parser$add_argument('--group_elut_norm', dest='group_elut_norm', action='store', required=TRUE, help='Annotated, normalized tidy elution file')
-#parser$add_argument('--expid', dest='expid', action='store', required=TRUE, help='Base name for output files')
-#parser$add_argument('--annotations', dest='annotations', action='store', required=TRUE, help='virNOG_collapse_annotations')
+parser <- ArgumentParser(description='Make an on demand sparkline figure')
 
 parser$add_argument("-f", "--filenames", nargs='+', dest="filenames", required=TRUE,
                         help="Input elution profile")
@@ -40,7 +33,6 @@ normalit<-function(m){
 
 
 complex_plot <- function(tidy_elution){
-     #Plot one complex at a time, by complex ID
 
         
      plt <- ggplot(data = tidy_elution, aes(x = as.numeric(as.character(fractionnum)), y = ID, height =  norm_speccounts, group = paste(ID, condition), color = condition )) +
@@ -48,11 +40,11 @@ complex_plot <- function(tidy_elution){
         theme_ridges() +
         scale_color_manual(values = c("black", "red")) +
         scale_linetype_manual(values=c("solid","longdash")) +
-          #  ggtitle(label = paste("Cluster", as.character(clusterID))) +
         scale_y_discrete(c(0,1)) +
         theme(axis.title.x = element_blank(), axis.title.y = element_blank(), axis.text.y= element_text(size = 8)) +
         theme(legend.position = "top") + 
         theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())  +
+        #facetting options
         #theme(panel.spacing.x = unit(0.1, "lines")) + 
         #facet_wrap(~spec + experiment_type + tissue,  nrow=1, scales="free_x")+
         NULL 
@@ -63,47 +55,50 @@ complex_plot <- function(tidy_elution){
 print(args)
 
 full_exp_tidy <- data.frame(fraction = character(), speccounts = numeric(), ID = character())
+
 for(fname in args$filenames){
 
    exp <- read_delim(fname, delim = "\t")
-   exp <- exp %>% rename(ID = `#ProtID`) %>% select(-TotalCount)      
-   #ProtID TotalCount      
-   
-   exp_tidy <- exp %>% gather(fraction, speccounts, -ID)
+   #Format column names and tidy elution
+   exp_tidy <- exp %>% 
+              rename(ID = `#ProtID`) %>% 
+              select(-TotalCount) %>% 
+              gather(fraction, speccounts, -ID)
+
+
    if(args$parse_fraction_name[1] != "fraction") {
-      exp_tidy <- exp_tidy %>% separate(fraction, into = args$parse_fraction_name, sep = args$fraction_name_sep, remove = FALSE)
+      exp_tidy <- exp_tidy %>% 
+              separate(fraction, into = args$parse_fraction_name, sep = args$fraction_name_sep, remove = FALSE)
 
     }
+   #Combine any read in files
    full_exp_tidy <- rbind(full_exp_tidy, exp_tidy)
 }
 
 print(full_exp_tidy)
 
-
-filt_exp_tidy <- full_exp_tidy %>% filter(ID %in% args$protein_ids)
-filt_exp_tidy <- filt_exp_tidy %>% group_by(ID) %>%
-                                   mutate(norm_speccounts = normalit(speccounts)) %>%
-                                   ungroup
-
-filt_exp_tidy <- filt_exp_tidy %>% mutate(fractionnum = str_extract(fractionnum,"(\\d)+"))
+#Filter full dataset, and normalize spectral counts between 0 and 1
+#Also remove extra digits from the fractionnum column
+filt_exp_tidy <- full_exp_tidy %>% 
+                          filter(ID %in% args$protein_ids) %>% 
+                          group_by(ID) %>%
+                          mutate(norm_speccounts = normalit(speccounts)) %>%
+                          ungroup %>% 
+                          mutate(fractionnum = str_extract(fractionnum,"(\\d)+"))
 
 
 #Add on uniprot annotation file
 mapping_df <- read_delim(args$id_mapping,  ",")
-print(mapping_df)
-filt_exp_tidy <- filt_exp_tidy %>% left_join(mapping_df, by = c("ID" = "Entry"))
-print("joined")
+filt_exp_tidy <- filt_exp_tidy %>% 
+                      left_join(mapping_df, by = c("ID" = "Entry"))
 
 #Make new column name for selected column
-print(args$id_column)
-print(filt_exp_tidy[,args$id_column])
+#print(args$id_column)
+#print(filt_exp_tidy[,args$id_column])
 
 
-#Fixed as genename
+#Fixed using fixed column genename
 filt_exp_tidy$ID2 <- filt_exp_tidy$genename #filt_exp_tidy[,args$id_column] 
-print(filt_exp_tidy)
-print('here')
-
 
 #print(filt_exp_tidy)
 #Replace any missing IDs 
@@ -112,15 +107,9 @@ print('here')
 #print(filt_exp_tidy)
 
 #Overwrite the original ID column with selected ID column
-print("bla")
-print(filt_exp_tidy)
-print(filt_exp_tidy$ID)
-print(filt_exp_tidy$ID2)
-
 
 filt_exp_tidy$ID <- filt_exp_tidy$ID2
 
-print(filt_exp_tidy)
 
 print("starting plotting")
 clusterplot <- complex_plot(filt_exp_tidy)
