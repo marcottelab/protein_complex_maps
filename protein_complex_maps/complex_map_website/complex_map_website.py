@@ -13,7 +13,7 @@ from wtforms.fields import StringField, SubmitField, TextAreaField
 
 class SearchForm(Form):
     complex_id = StringField(u'Complex ID:')
-    genename = StringField(u'Gene Name (ex. OFD1):')
+    #genename = StringField(u'Gene Name (ex. OFD1):')
     listOfGenenames = TextAreaField(u'List of Gene Names (ex. OFD1 PCM1 CSPP1):')
     enrichment = StringField(u'Enrichment (ex. cilium):')
     protein = StringField(u'Protein (ex. Centrosomal protein):')
@@ -30,14 +30,14 @@ def root(complexes=[]):
     form = SearchForm()
     return render_template('index.html', form=form, complexes=complexes)
 
-@app.route("/displayComplexesForGeneName")
-def displayComplexesForGeneName():
-    genename = request.args.get('genename')
-    form = SearchForm()
-
-    complexes, error = getComplexesForGeneName(genename)
-    return render_template('index.html', form=form, complexes=complexes, error=error)
-
+#@app.route("/displayComplexesForGeneName")
+#def displayComplexesForGeneName():
+#    genename = request.args.get('genename')
+#    form = SearchForm()
+#
+#    complexes, error = getComplexesForGeneName(genename)
+#    return render_template('index.html', form=form, complexes=complexes, error=error)
+#
 def getComplexesForGeneName(genename):
     #kdrew: do error checking
     error = ""
@@ -216,9 +216,10 @@ def searchComplexes():
     form = SearchForm()
     complexes = []
     if form.validate_on_submit():
-        if len(form.genename.data) > 0:
-            return redirect(url_for('displayComplexesForGeneName', genename=form.genename.data))
-        elif len(form.listOfGenenames.data) > 0:
+        #if len(form.genename.data) > 0:
+        #    return redirect(url_for('displayComplexesForGeneName', genename=form.genename.data))
+        #elif len(form.listOfGenenames.data) > 0:
+        if len(form.listOfGenenames.data) > 0:
             return redirect(url_for('displayComplexesForListOfGeneNames', listOfGenenames=form.listOfGenenames.data))
         elif len(form.enrichment.data) > 0:
             return redirect(url_for('displayComplexesForEnrichment', enrichment=form.enrichment.data))
