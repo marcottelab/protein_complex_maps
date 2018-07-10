@@ -164,7 +164,7 @@ def get_from_uniprot( protein_ids, keyword, return_list=False ):
     for i in xrange( (len(protein_ids)/ACC_QUERY_LENGTH)+1 ):
         start_splice = i*ACC_QUERY_LENGTH
         stop_splice = (i+1)*ACC_QUERY_LENGTH
-        report_query = "http://www.uniprot.org/uniprot/?format=tab&query=accession:(%s)&columns=id,%s" % ("+or+".join(protein_ids[start_splice:stop_splice]), keyword)
+        report_query = "https://www.uniprot.org/uniprot/?format=tab&query=accession:(%s)&columns=id,%s" % ("+or+".join(protein_ids[start_splice:stop_splice]), keyword)
         #print report_query
         try:
             f = urllib2.urlopen(report_query)
@@ -209,7 +209,7 @@ def get_from_uniprot_by_genename( gene_ids, organism="", gene_prefix="gene_exact
         start_splice = i*ACC_QUERY_LENGTH
         stop_splice = (i+1)*ACC_QUERY_LENGTH                                                                                 
         genes_formatted = ["%s:%s" % (gene_prefix, id1,) for id1 in gene_ids[start_splice:stop_splice]]
-        report_query = "http://www.uniprot.org/uniprot/?format=tab&query=organism:(%s)+and+(%s)%s" % (organism, "+or+".join(genes_formatted), reviewed_str )
+        report_query = "https://www.uniprot.org/uniprot/?format=tab&query=organism:(%s)+and+(%s)%s" % (organism, "+or+".join(genes_formatted), reviewed_str )
         print report_query
         try:
             #f = urllib2.urlopen(encoded_query)
@@ -322,7 +322,7 @@ def get_pdb_protein_ids( pdbid, database='sifts_pdbsws', reversible=False ):
 #kdrew: uses uniprot webservice to map ids
 #kdrew: from_id and to_id are abbreviations of dbid names which can be found: http://www.uniprot.org/faq/28
 def map_protein_ids( id_list, from_id, to_id, reviewed=False ):
-    url = 'http://www.uniprot.org/mapping/'
+    url = 'https://www.uniprot.org/mapping/'
 
     query_str = ' '.join(id_list)
     params = {

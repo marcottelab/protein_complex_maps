@@ -1,4 +1,5 @@
 from __future__ import print_function
+import sys
 import argparse
 import numpy as np
 import pandas as pd
@@ -7,9 +8,12 @@ import scipy.misc as misc
 import scipy
 import math
 import logging 
+import multiprocessing as mp
 from rpy2.robjects.packages import importr
 from rpy2.robjects.vectors import FloatVector
+from functools import partial
 
+import mpmath as mpm
 
 
 pd.set_option('display.height', 1000)
@@ -17,7 +21,19 @@ pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
-def pval(k,n,m,N, adhoc=False, denm=False, logchoose=False):
+def pval(k,n,m,N):
+    pv = 0.0
+    for i in range(k,int(min(m,n)+1)):
+        pi = ( mpm.binomial(n,i) * mpm.binomial((N-n), (m-i)) ) / mpm.binomial(N,m)
+        pv += pi
+    return pv
+
+#kdrew: calculate pvalue using hypergeometric distribution
+#kdrew: there are a few different implementations to calculate this
+#kdrew: adhoc is Andrew Dalke's method of choose
+#kdrew: denm does not calculate the normalization choose(N,m) but rather normalizes based on m (not a true pval)
+#kdrew: logchoose calculates choose using the log transform (specifically the loggamma function)
+def pval_old(k,n,m,N, adhoc=False, denm=False, logchoose=False):
     #logger.info("%s %s %s %s" % (k,n,m,N))
     pv = 0.0
     for i in range(k,int(min(m,n)+1)):
@@ -30,8 +46,9 @@ def pval(k,n,m,N, adhoc=False, denm=False, logchoose=False):
             r1 = logchoose_func(n, i)
             try:
                 r2 = logchoose_func(N-n, m-i)
-            except ValueError:
-                return 0
+            except ValueError as ve:
+                print(str(ve))
+                return np.nan
             r3 = logchoose_func(N,m)
 
             pi = scipy.exp(r1 + r2 - r3)
@@ -104,145 +121,179 @@ def main():
                                     help="Name of column that specify ids in feature matrix, default=gene_id")
     parser.add_argument("--bait_id_column", action="store", dest="bait_id_column", required=False, default='bait_geneid',
                                     help="Name of column that specify bait ids in feature matrix, default=bait_geneid")
+    parser.add_argument("--abundance_column", action="store", dest="abundance_column", required=False, default='abundance',
+                                    help="Name of column that specifies abundance in feature matrix, default=abundance")
+    parser.add_argument("--abundance_threshold", action="store", type=float, dest="abundance_threshold", required=False, default=0,
+                                    help="Threshold abundance above (>=) a given value, default=0")
     parser.add_argument("--bh_correct", action="store_true", dest="bh_correct", required=False, default=False,
-                                    help="Benjamini-Hochberg correct pvals")
-    parser.add_argument("--denm", action="store_true", dest="denm", required=False, default=False,
-                                    help="Replace denominator of hypergeometric calculation with m-value instead of N choose m, pvalues are nonsense with this option, default=False")
-    parser.add_argument("--logchoose", action="store_true", dest="logchoose", required=False, default=False,
-                                    help="Use logs to deal with large values when calculating choose, default=False")
+                                    help="Benjamini-Hochberg correct pvals, default=False")
+    parser.add_argument("--use_abundance", action="store_true", dest="use_abundance", required=False, default=False,
+                                    help="Use abundance measures when calculating hypergeometric test, default=False (presence-absence)")
     parser.add_argument("--logname", action="store", dest="logname", required=False, default='shared_bait_feature.log',
                                     help="filename for logging, default=shared_bait_feature.log")
+    parser.add_argument("-j", "--numOfProcs", action="store", type=int, dest="numOfProcs", required=False, default=1,
+                                    help="Number of processers, default=1")
     args = parser.parse_args()
 
     setup_log(args.logname)
 
-    feature_table = pd.DataFrame(pd.read_csv(args.feature_matrix, sep=args.sep))
-    output_df = shared_bait_feature(feature_table, args.bait_id_column, args.id_column, args.bh_correct, args.denm, args.logchoose)
+    feature_table = pd.DataFrame(pd.read_csv(args.feature_matrix, sep=args.sep, converters={args.id_column: str, args.bait_id_column: str }))
+    print("Thresholding %s >= %s" % (args.abundance_column, args.abundance_threshold))
+    feature_table = feature_table[feature_table[args.abundance_column] >= args.abundance_threshold]
+    output_df = shared_bait_feature(feature_table, args.bait_id_column, args.id_column, args.abundance_column, args.bh_correct, args.use_abundance, numOfProcs=args.numOfProcs)
     output_df = output_df.sort('neg_ln_pval', ascending=False)
     output_df.to_csv(args.output_file, index=False, header=True)
 
-def shared_bait_feature(feature_table, bait_id_column, id_column, bh_correct=False, denm=False, logchoose=False):
+def shared_bait_feature(feature_table, bait_id_column, id_column, abundance_column='abundance', bh_correct=False, use_abundance=False, numOfProcs = 1):
     print(feature_table)
     print(feature_table.columns.values)
     #kdrew: best to enforce ids as strings
     feature_table['bait_id_column_str'] = feature_table[bait_id_column].apply(str)
     print(feature_table)
     print(feature_table.columns.values)
+
+
+    #kdrew: remove all rows that do not have a valid id
+    q_str = "%s == %s" % (id_column, id_column)
+    feature_table = feature_table.query(q_str)
+
+    feature_table['gene_id_str'] = feature_table[id_column].apply(str)
+
+    if use_abundance:
+        #kdrew: convert all abundances to ints
+        feature_table['abundance_int'] = feature_table[abundance_column].apply(int)
+
+        #kdrew: still working out details about what N should be, whether max abundance of every experiment or sum abundance of every experiment
+        #N = feature_table.groupby("bait_id_column_str")['abundance_int'].sum().sum()
+        N = feature_table.groupby("bait_id_column_str")['abundance_int'].max().sum()
+
+        #kdrew: number of experiments each gene_id is present in
+        ms_values = feature_table.groupby('gene_id_str')['abundance_int'].sum()
+
+    else:
+        N = feature_table['bait_id_column_str'].nunique()
+
+        #kdrew: number of experiments each gene_id is present in
+        ms_values = feature_table.groupby('gene_id_str')[bait_id_column].nunique()
+
+    print("ms_values")
+    print(ms_values)
     #feature_table = feature_table.drop(bait_id_column)
     feature_table = feature_table.set_index('bait_id_column_str')
 
+    #kdrew: create dictionary to store output, gets converted into pandas dataframe at the end
+    output_dict2 = dict()
+    output_dict2['gene_id1'] = []
+    output_dict2['gene_id2'] = []
+    output_dict2['pair_count'] = []
+    output_dict2['neg_ln_pval'] = []
+    output_dict2['pval'] = []
 
+    p = mp.Pool(numOfProcs)
     print("#### printing feature_table_geneid tables ####")
     #kdrew: generating full shared bait table for large datasets is memory intensive, break table down and do one id at a time
-    for geneid in set(feature_table[id_column].values):
-        print("geneid: %s" % geneid)
-        #kdrew: slice feature_table to only have a single id
-        feature_table_geneid = feature_table[feature_table[id_column] == geneid] 
-        #kdrew: join the sliced feature table with the entire feature table on the experiment column (ie. bait_id_column_str)
-        feature_shared_bait_table_geneid = feature_table_geneid.join(feature_table, rsuffix="_right")
-        #print (feature_table_geneid)
-        feature_shared_bait_table_geneid['gene_id1_str'] = feature_shared_bait_table_geneid[id_column].apply(str)
-        feature_shared_bait_table_geneid['gene_id2_str'] = feature_shared_bait_table_geneid[id_column+'_right'].apply(str)
-        feature_shared_bait_table_geneid['IDs'] = map(sorted, zip(feature_shared_bait_table_geneid['gene_id1_str'].values, feature_shared_bait_table_geneid['gene_id2_str'].values))
-        feature_shared_bait_table_geneid['IDs_tup'] = feature_shared_bait_table_geneid['IDs'].apply(tuple)
-        print (feature_shared_bait_table_geneid)
-        feature_shared_bait_table_geneid = feature_shared_bait_table_geneid.reset_index()
-        ks_geneid = feature_shared_bait_table_geneid.groupby('IDs_tup')['bait_id_column_str'].nunique()
-        print(ks_geneid)
-        ms_geneid = feature_table[feature_table[id_column] == geneid]['bait_id_column_str'].nunique()
-        print(ms_geneid)
-    print("#### done printing feature_table_geneid tables ####")
+    gene_id_results = p.map(partial(shared_bait_feature_helper, feature_table=feature_table, id_column=id_column, use_abundance=use_abundance, ms_values=ms_values, N=N), set(feature_table[id_column].values))
 
-    #cmcwhite: join table to itself to get pairs of proteins with same bait
-    feature_shared_bait_table = feature_table.join(feature_table, rsuffix="_right")
-    print(feature_shared_bait_table)
-    print("$$$$ printed full feature_shared_bait_table $$$$")
-
-    #logger.info(feature_shared_bait_table)
-    #print(feature_shared_bait_table)
-
-    feature_shared_bait_table = feature_shared_bait_table.reset_index()
-
-    feature_shared_bait_table['gene_id1_str'] = feature_shared_bait_table[id_column].apply(str)
-    feature_shared_bait_table['gene_id2_str'] = feature_shared_bait_table[id_column+'_right'].apply(str)
-
-    feature_shared_bait_table['IDs'] = map(sorted, zip(feature_shared_bait_table['gene_id1_str'].values, feature_shared_bait_table['gene_id2_str'].values))
-
-    print(feature_shared_bait_table)
-    print(feature_shared_bait_table.columns.values)
-  
-    ##kdrew: generate tuple of set so groupby works, apparently cannot use cmp on sets
-    feature_shared_bait_table['IDs_tup'] = feature_shared_bait_table['IDs'].apply(tuple)
-
-    #kdrew: number of times pair is found (unique baits), 'k' in Hart etal 2007 
-    ks = feature_shared_bait_table.groupby('IDs_tup')['bait_id_column_str'].nunique()
-    print("KS KS KS KS KS KS KS KS")
-    print(ks)
-    #kdrew: number of times individual id is found (unique baits), 'm' and 'n' in Hart etal 2007 
-    ms = feature_shared_bait_table.groupby('gene_id1_str')['bait_id_column_str'].nunique()
-    print("MS MS MS MS MS MS MS MS")
-    print(ms)
-    #kdrew: number of total experiments (unique baits), 'N' in Hart etal 2007 
-    N = feature_shared_bait_table['bait_id_column_str'].nunique()
-    #print(ks, ms, N)
-    #for gene_ids in bioplex_feature_shared_bait_table.gene_id_tup:
-    output_dict = dict()
-    output_dict['gene_id1'] = []
-    output_dict['gene_id2'] = []
-    output_dict['pair_count'] = []
-    output_dict['neg_ln_pval'] = []
-    output_dict['pval'] = []
-
-    #logger.info(ks)
-    #print(ks)
-    for gene_ids_str in ks.index:
-        #print(gene_ids_str)
-        #gene_ids_clean = gene_ids_str.translate(None, "[\'],")
-        #gene_ids = gene_ids_clean.split()
-
-        gene_ids = list(gene_ids_str)
-        #print(gene_ids)
-        if len(gene_ids) == 2:
-            #logger.info(gene_ids) #cdm print out pairs of gene IDs
-            #print(gene_ids) #cdm print out pairs of gene IDs
-            k = ks[gene_ids_str]
-            m = ms[gene_ids[0]]
-            n = ms[gene_ids[1]]
-            #cdm:We don't want coelution of the same protein...
-            if gene_ids[0]==gene_ids[1]:
-                 continue
-            #print k
-            #print m
-            #print n
-            #p = stats.hypergeom.cdf(k, N, m, n)
-            try:
-               p = pval(k,n,m,N, denm=denm, logchoose=logchoose)
-               neg_ln_p = -1.0*math.log(p)
-               #print("%s k:%s n:%s m:%s -ln(p):%s" % (gene_ids, k, m, n, neg_ln_p))
-
-               output_dict['gene_id1'].append(gene_ids[0])
-               output_dict['gene_id2'].append(gene_ids[1])
-               output_dict['pair_count'].append(k)
-               output_dict['neg_ln_pval'].append(neg_ln_p)
-               output_dict['pval'].append(p)
-            except Exception as e:
-                 #logger.info(str(e))
-                 print(str(e))
-                 continue
-             
- 
+    for gene_id_result in gene_id_results:
+        output_dict2['gene_id1'] = output_dict2['gene_id1'] + gene_id_result['gene_id1']
+        output_dict2['gene_id2'] = output_dict2['gene_id2'] + gene_id_result['gene_id2']
+        output_dict2['pair_count'] = output_dict2['pair_count'] + gene_id_result['pair_count']
+        output_dict2['neg_ln_pval'] = output_dict2['neg_ln_pval'] + gene_id_result['neg_ln_pval']
+        output_dict2['pval'] = output_dict2['pval'] + gene_id_result['pval']
 
     if bh_correct:
+        #kdrew: use Benjamini Hochberg from R to correct for multiple hypothesis testing
         stats = importr('stats')
-        p_adjust = stats.p_adjust(FloatVector(output_dict['pval']), method = 'BH')
-        output_dict['pval_corr'] = p_adjust
-        output_dict['neg_ln_pval_corr'] = [-1.0*math.log(p) for p in p_adjust]
+        p_adjust = stats.p_adjust(FloatVector(output_dict2['pval']), method = 'BH')
+        output_dict2['pval_corr'] = p_adjust
+        output_dict2['neg_ln_pval_corr'] = []
+        #kdrew: original code without error handling [-1.0*math.log(p) for p in p_adjust]
+        for p in p_adjust:
+            try:
+                output_dict2['neg_ln_pval_corr'].append(-1.0*mpm.log(p))
+            except ValueError as ve:
+                print(str(ve))
+                output_dict2['neg_ln_pval_corr'].append(np.nan)
 
-    #kdrew: not sure why this is here, CDM?
-    #output_df= output_df[['gene_id1','gene_id2','neg_ln_pval']]
-    
-    output_df = pd.DataFrame(output_dict)
+    output_df = pd.DataFrame(output_dict2)
     return output_df
+
+
+def shared_bait_feature_helper(geneid, feature_table, id_column, use_abundance, ms_values, N ):
+    print("geneid: %s" % geneid)
+    sys.stdout.flush()
+    #kdrew: slice feature_table to only have a single id
+    feature_table_geneid = feature_table[feature_table[id_column] == geneid] 
+    #kdrew: join the sliced feature table with the entire feature table on the experiment column (ie. bait_id_column_str)
+    feature_shared_bait_table_geneid = feature_table_geneid.join(feature_table, rsuffix="_right")
+    #print (feature_table_geneid)
+
+    #kdrew: make ids into strings and generate tuples of pairs of genes
+    feature_shared_bait_table_geneid['gene_id1_str'] = feature_shared_bait_table_geneid[id_column].apply(str)
+    feature_shared_bait_table_geneid['gene_id2_str'] = feature_shared_bait_table_geneid[id_column+'_right'].apply(str)
+    feature_shared_bait_table_geneid['IDs'] = map(sorted, zip(feature_shared_bait_table_geneid['gene_id1_str'].values, feature_shared_bait_table_geneid['gene_id2_str'].values))
+    feature_shared_bait_table_geneid['IDs_tup'] = feature_shared_bait_table_geneid['IDs'].apply(tuple)
+    print (feature_shared_bait_table_geneid)
+    sys.stdout.flush()
+
+    #kdrew: calculate the number of experiments that each pair of proteins share
+    feature_shared_bait_table_geneid = feature_shared_bait_table_geneid.reset_index()
+
+    if use_abundance:
+        #kdrew: still working out proper way of calculating k, sum isn't going to work because k could end up > n which makes n choose k = 0.0
+        feature_shared_bait_table_geneid['min_abundance'] = feature_shared_bait_table_geneid[['abundance_int','abundance_int_right']].min(axis=1)
+        #feature_shared_bait_table_geneid['sum_abundance'] = feature_shared_bait_table_geneid[['abundance_int','abundance_int_right']].sum(axis=1)
+        #ks_geneid = feature_shared_bait_table_geneid.groupby('gene_id2_str')['sum_abundance'].sum()
+        ks_geneid = feature_shared_bait_table_geneid.groupby('gene_id2_str')['min_abundance'].sum()
+
+    else:
+        ks_geneid = feature_shared_bait_table_geneid.groupby('gene_id2_str')['bait_id_column_str'].nunique()
+
+    print("ks_geneid")
+    print(ks_geneid)
+    sys.stdout.flush()
+
+    return_output_dict2 = dict()
+    return_output_dict2['gene_id1'] = []
+    return_output_dict2['gene_id2'] = []
+    return_output_dict2['pair_count'] = []
+    return_output_dict2['neg_ln_pval'] = []
+    return_output_dict2['pval'] = []
+
+    for gene_id2 in ks_geneid.index:
+        k = ks_geneid[str(gene_id2)]
+        m = ms_values[str(gene_id2)]
+        n = ms_values[str(geneid)]
+
+        #kdrew: do not calculate for the same gene
+        if str(geneid) == str(gene_id2):
+            continue
+
+        try:
+            p = pval(k,n,m,N)
+            try:
+                neg_ln_p = -1.0*mpm.log(p)
+            except ValueError as ve:
+                print(str(ve))
+                neg_ln_p = np.nan
+
+            #print("calculated pval")
+            #print("%s,%s k:%s m:%s n:%s N:%s -ln(p):%s" % (geneid, gene_id2, k, m, n, N, neg_ln_p))
+
+            return_output_dict2['gene_id1'].append(str(geneid))
+            return_output_dict2['gene_id2'].append(str(gene_id2))
+            return_output_dict2['pair_count'].append(k)
+            return_output_dict2['neg_ln_pval'].append(neg_ln_p)
+            return_output_dict2['pval'].append(p)
+
+        except Exception as e:
+            #logger.info(str(e))
+            print("Exception (%s, %s): %s" % (geneid, gene_id2, str(e)))
+            continue
+
+    return return_output_dict2
+
+
 
 if __name__ == "__main__":
     main()

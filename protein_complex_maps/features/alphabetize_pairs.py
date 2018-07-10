@@ -51,9 +51,7 @@ def main():
     #Saving as intermediate variable is necessary for large dataframes (at least over 9 million rows)
     #For troubleshooting, progress_apply gives a progress bar, but needs tqdm package
     #x =  df[df.columns[args.columns2alphabetize]].progress_apply(sorted,axis=1)
-    intermediate_df =  df[df.columns[args.columns2alphabetize]].apply(sorted,axis=1)
-    df[df.columns[args.columns2alphabetize]] = intermediate_df
-
+    df = alphabetize_df(df, args.columns2alphabetize)
     #print(df)
     if args.sep == '\\t':
            args.sep = '\t'
@@ -61,6 +59,11 @@ def main():
 
     df.to_csv(args.outfile, header=False, index=False, sep=args.sep)
 
+
+def alphabetize_df(df, columns2alphabetize):
+    intermediate_df =  df[df.columns[columns2alphabetize]].apply(sorted,axis=1)
+    df[df.columns[columns2alphabetize]] = intermediate_df
+    return df
 
 
 

@@ -34,7 +34,7 @@ def main():
                                     help="Flag for only outputting rows with labels other than 0 (usually -1, 1), default=False")
     parser.add_argument("--nofilter_label", action="store_true", dest="nofilter_label", required=False, default=False,
                                     help="Do not filter by label, combine the entire feature matrix with results, default=False")
-    parser.add_argument("--output_file", action="store", dest="output_file", required=True, 
+    parser.add_argument("--output_filename", action="store", dest="output_file", required=True, 
                                     help="Filename of output file")
     parser.add_argument("--id_columns", action="store", dest="id_columns", nargs='+', required=False, default=['key1','key2'],
                                     help="List of columns that specify ids in feature matrix, default: key1 key2")
@@ -43,13 +43,14 @@ def main():
 
     args = parser.parse_args()
 
-    results = pd.read_csv(args.input_results,sep=' ')
+    results = pd.read_csv(args.input_results,sep=' ') 
     results.columns = ['svm_predicted_label','svm_pos_prob','svm_neg_prob']
 
     print results
     print " "
 
-    features = pd.read_csv(args.feature_matrix,sep=args.sep)
+    features = pd.read_csv(args.feature_matrix,sep=args.sep, converters={x:str for x in args.id_columns})
+    #features = pd.read_csv(args.feature_matrix,sep=args.sep)
     print features
     print " "
     if args.nofilter_label:
