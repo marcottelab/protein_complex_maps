@@ -37,12 +37,15 @@ complex_plot <- function(tidy_elution){
         
      plt <- ggplot(data = tidy_elution, aes(x = as.numeric(as.character(fractionnum)), y = ID, height =  norm_speccounts, group = paste(ID, condition), color = condition )) +
         geom_ridgeline(stat = "identity", alpha = 0, scale = 0.9, size = 0.3) +
-        theme_ridges() +
+        theme_ridges(center_axis_labels = TRUE) +
         scale_color_manual(values = c("black", "red")) +
         scale_linetype_manual(values=c("solid","longdash")) +
         scale_y_discrete(c(0,1)) +
-        theme(axis.title.x = element_blank(), axis.title.y = element_blank(), axis.text.y= element_text(size = 8)) +
+        xlab("Fraction") +
+        theme(axis.title.y = element_blank(), axis.text.y= element_text(size = 8)) +
         theme(legend.position = "top") + 
+        theme(axis.ticks.x=element_line(color='black')) + 
+        theme(axis.ticks.y=element_blank()) + 
         theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())  +
         #facetting options
         #theme(panel.spacing.x = unit(0.1, "lines")) + 
