@@ -14,6 +14,7 @@ parser.add_argument("--log",action='store_true',help="Write log of inputs")
 parser.add_argument("--in_pickle",action='store_true',help="Whether to accept input as pickled DataFrame from pandas. Default `False`")
 parser.add_argument("--out_pickle",action='store_true',help="Whether to save output as pickled DataFrame. Default `False`")
 parser.add_argument("--z_transform",action='store_true',help="Perform Fisher's Z-tranform on correlation data before averaging")
+parser.add_argument("--missing_penalization_factor",default=False,type=float,help="How strongly to penalize the absence of a pair from an elution. Larger = higher penalty")
 args = parser.parse_args()
 
 if __name__ == '__main__':
@@ -48,6 +49,16 @@ if __name__ == '__main__':
     if args.z_transform:
         merged[merged == 1.0] = .9999999999
         merged = np.arctanh(merged)
+        
+    ## To penalize missing data, add columns of zeros to the merged elutions
+    ## The number of columns added is missing_penalization_factor * number_of_elutions.
+    ## Idea is that adding a small number of columns with 0s will minimally affect the 
+    ## that are widely observed and more strongly affect those found only in a few fractions
+    ## So the best bet is to keep missing_penalization_factor low, maybe .2 or so.
+    if args.missing_penalization_factor:
+        n_to_add = int( args.missing_penalization_factor * len(merged.columns) )
+        for i in xrange(n_to_add):
+            merged["dummy{}".format(i)] = 0
         
     avgFuncD = {"mean": functools.partial( merged.mean ),
                 "median": functools.partial( merged.median ),
