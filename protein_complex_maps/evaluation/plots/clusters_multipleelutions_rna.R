@@ -22,6 +22,8 @@ parser$add_argument("-m", "--id_mapping", dest="id_mapping", required=TRUE,
                         help="Uniprot mapping file")
 parser$add_argument("-g", "--id_column", dest="id_column", default="genename", help="Broken, has to be genename. Column to use for protein identifier, default = genename")
 parser$add_argument("-s", "--fraction_name_sep", dest="fraction_name_sep", default='_', help="Separator to separate fraction name, default = _")
+parser$add_argument("-x", "--old_elution_format", action="store_true", default=FALSE, 
+                        help="Input elution profile files are of the old file format with TotalCount field, default = FALSE")
 
 
 
@@ -63,10 +65,18 @@ for(fname in args$filenames){
 
    exp <- read_delim(fname, delim = "\t")
    #Format column names and tidy elution
-   exp_tidy <- exp %>% 
-              rename(ID = `#ProtID`) %>% 
-              select(-TotalCount) %>% 
-              gather(fraction, speccounts, -ID)
+   if(args$old_elution_format){
+       exp_tidy <- exp %>% 
+                  rename(ID = `#ProtID`) %>% 
+                  select(-TotalCount) %>% 
+                  gather(fraction, speccounts, -ID)
+   }
+   else {
+       print(exp)
+       exp_tidy <- exp %>% 
+                  rename(ID = 'X1') %>% 
+                  gather(fraction, speccounts, -ID)
+   }
 
 
    if(args$parse_fraction_name[1] != "fraction") {
