@@ -9,7 +9,7 @@ import Bio.Seq as Seq
 import Bio.SeqRecord as SeqRecord
 import Bio.Alphabet as ba
 
-ACC_QUERY_LENGTH = 100
+ACC_QUERY_LENGTH = 500
 FUZZY_MATCH_THRESHOLD = 0.25
 
 ##kdrew: queries uniprot for protein sequence length
@@ -160,12 +160,13 @@ def get_from_uniprot( protein_ids, keyword, return_list=False ):
 
     protein_ids = protein_ids + cleaned_protein_ids
 
+    print "len(protein_ids) : %s" % len(protein_ids)
     #kdrew: break up query into chunks so as not to get 414 error
     for i in xrange( (len(protein_ids)/ACC_QUERY_LENGTH)+1 ):
         start_splice = i*ACC_QUERY_LENGTH
         stop_splice = (i+1)*ACC_QUERY_LENGTH
-        report_query = "https://www.uniprot.org/uniprot/?format=tab&query=accession:(%s)&columns=id,%s" % ("+or+".join(protein_ids[start_splice:stop_splice]), keyword)
-        #print report_query
+        report_query = "http://www.uniprot.org/uniprot/?format=tab&query=accession:(%s)&columns=id,%s" % ("+or+".join(protein_ids[start_splice:stop_splice]), keyword)
+        print report_query
         try:
             f = urllib2.urlopen(report_query)
         except urllib2.HTTPError, msg:

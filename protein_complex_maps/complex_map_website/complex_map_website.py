@@ -8,12 +8,13 @@ app = cdb.get_app()
 
 #from flask.ext.wtf import Form
 from flask_wtf import Form
-from wtforms.fields import StringField, SubmitField, TextAreaField
+from wtforms.fields import StringField, SubmitField, TextAreaField, BooleanField
 
 
 class SearchForm(Form):
     complex_id = StringField(u'Complex ID:')
     #genename = StringField(u'Gene Name (ex. OFD1):')
+    rnp_select = BooleanField(label=u'RNP Select')
     listOfGenenames = TextAreaField(u'List of Gene Names (ex. OFD1 PCM1 CSPP1):')
     enrichment = StringField(u'Enrichment (ex. cilium):')
     protein = StringField(u'Protein (ex. Centrosomal protein):')
@@ -74,8 +75,15 @@ def getComplexesForGeneName(genename):
 
 @app.route("/displayComplexesForListOfGeneNames")
 def displayComplexesForListOfGeneNames():
+    print "request: %s" % request
+    print "request.form: %s" % request.form
+    print "request.args: %s" % request.args
+    print "request.method: %s" % request.method
+
     listOfGenenames = request.args.get('listOfGenenames').split()
-    form = SearchForm()
+    rnp_select = request.args.get('rnp_select', default=False)
+    form = SearchForm(request.form)
+
     #kdrew: do error checking
     error=None
 
@@ -104,7 +112,7 @@ def displayComplexesForListOfGeneNames():
     error_proteins = []
     for gene in all_genes:
         try:
-            proteins = db.session.query(cdb.Protein).filter((cdb.Protein.gene_id == gene.gene_id)).all()
+            proteins = db.session.query(cdb.Protein).filter((cdb.Protein.id == gene.protein_key)).all()
 
         except NoResultFound:
             if error == None:
@@ -139,39 +147,49 @@ def displayComplexesForListOfGeneNames():
             error = ""
         error = error + "No complexes found for genenames: %s\n" % ', '.join([p.genename() for p in error_proteins])
 
+
+    #kdrew: only return complexes that are rnps
+    complexes = [x for x in complexes if x.is_rnp()]
+        
+    if rnp_select == 'True':
+        print "in if rnp_select: %s" % rnp_select
+        complexes = [x for x in complexes if x.is_rnp_select()]
+
     #complexes = list(set(complexes))
     complexes = [x[1] for x in sorted(((complexes.count(e), e) for e in set(complexes)), reverse=True)]
+
 
     #print [p.id for p in all_proteins]
     return render_template('index.html', form=form, complexes=complexes, prot_ids=[p.id for p in all_proteins], error=error)
 
-@app.route("/displayComplexesForEnrichment")
-def displayComplexesForEnrichment():
-    enrichment = request.args.get('enrichment')
-    form = SearchForm()
-    error=None
-    #print enrichment
-    #kdrew: do error checking
-    try:
-        enrichment_complex_keys_query = db.session.query(cdb.ComplexEnrichment.complex_key).filter(
-                    ( cdb.ComplexEnrichment.t_name.like('%'+enrichment+'%')) | (cdb.ComplexEnrichment.term_id.like('%'+enrichment+'%' ) ) )
-        enrichment_complex_keys = enrichment_complex_keys_query.all()
-        enrichment_complex_keys_set = set([x[0] for x in enrichment_complex_keys])
-        if len(enrichment_complex_keys_set) == 0:
-            complexes = []
-        else:
-            complexes = db.session.query(cdb.Complex).filter(cdb.Complex.id.in_(enrichment_complex_keys_set)).all()
-    except NoResultFound:
-        complexes = []
+#@app.route("/displayComplexesForEnrichment")
+#def displayComplexesForEnrichment():
+#    enrichment = request.args.get('enrichment')
+#    form = SearchForm()
+#    error=None
+#    #print enrichment
+#    #kdrew: do error checking
+#    try:
+#        enrichment_complex_keys_query = db.session.query(cdb.ComplexEnrichment.complex_key).filter(
+#                    ( cdb.ComplexEnrichment.t_name.like('%'+enrichment+'%')) | (cdb.ComplexEnrichment.term_id.like('%'+enrichment+'%' ) ) )
+#        enrichment_complex_keys = enrichment_complex_keys_query.all()
+#        enrichment_complex_keys_set = set([x[0] for x in enrichment_complex_keys])
+#        if len(enrichment_complex_keys_set) == 0:
+#            complexes = []
+#        else:
+#            complexes = db.session.query(cdb.Complex).filter(cdb.Complex.id.in_(enrichment_complex_keys_set)).all()
+#    except NoResultFound:
+#        complexes = []
+#
+#    if len(complexes) == 0:
+#        error = "No complexes found for given enrichment term: %s" % enrichment
+#
+#    return render_template('index.html', form=form, complexes=complexes, error=error)
 
-    if len(complexes) == 0:
-        error = "No complexes found for given enrichment term: %s" % enrichment
-
-    return render_template('index.html', form=form, complexes=complexes, error=error)
-
-@app.route("/displayComplexesForProtein")
+@app.route("/displayComplexesForProtein", methods=['GET', 'POST'])
 def displayComplexesForProtein():
     protein_search = request.args.get('protein')
+    rnp_select = request.args.get('rnp_select', default=False)
     form = SearchForm()
     error = None
     #print protein
@@ -188,6 +206,13 @@ def displayComplexesForProtein():
 
     except NoResultFound:
         complexes = []
+
+    #kdrew: only return complexes that are rnps
+    complexes = [x for x in complexes if x.is_rnp()]
+        
+    if rnp_select == 'True':
+        complexes = [x for x in complexes if x.is_rnp_select()]
+
 
     if len(complexes) == 0:
         error = "No complexes found for given search term: %s" % protein_search
@@ -220,11 +245,13 @@ def searchComplexes():
         #    return redirect(url_for('displayComplexesForGeneName', genename=form.genename.data))
         #elif len(form.listOfGenenames.data) > 0:
         if len(form.listOfGenenames.data) > 0:
-            return redirect(url_for('displayComplexesForListOfGeneNames', listOfGenenames=form.listOfGenenames.data))
-        elif len(form.enrichment.data) > 0:
-            return redirect(url_for('displayComplexesForEnrichment', enrichment=form.enrichment.data))
+            print "form.rnp_select.data: %s" % form.rnp_select.data
+            print "form.listOfGenenames.data: %s" % form.listOfGenenames.data
+            return redirect(url_for('displayComplexesForListOfGeneNames', listOfGenenames=form.listOfGenenames.data, rnp_select=form.rnp_select.data))
+        #elif len(form.enrichment.data) > 0:
+        #    return redirect(url_for('displayComplexesForEnrichment', enrichment=form.enrichment.data, rnp_select=form.rnp_select.data))
         elif len(form.protein.data) > 0:
-            return redirect(url_for('displayComplexesForProtein', protein=form.protein.data))
+            return redirect(url_for('displayComplexesForProtein', protein=form.protein.data, rnp_select=form.rnp_select.data))
 
 
     #kdrew: added hoping it would fix redirect problem on stale connections

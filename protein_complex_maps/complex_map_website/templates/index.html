@@ -98,15 +98,20 @@
 
 
 
-    <form method="POST" action="/search">
+    <form method=post action="/search" >
         {{ form.hidden_tag() }}
         {{ form.listOfGenenames.label }} {{ form.listOfGenenames(size=50) }}
         <br>
         <br>
+        <!--
         {{ form.enrichment.label }} {{ form.enrichment(size=50) }}
         <br/>
         <br/>
+        -->
         {{ form.protein.label }} {{ form.protein(size=50) }}
+        <br/>
+        <br/>
+        {{ form.rnp_select.label }} {{ form.rnp_select() }}
         <br/>
         <br/>
         {{ form.submit }}
@@ -119,70 +124,120 @@
     {% endif %}
 
     <ul>
+    <div align='right'>
+        <span class="label label-success">&nbsp</span> = DIFFRAC &nbsp
+        <span class="label label-primary">&nbsp</span> = Low Throughput &nbsp
+        <span class="label label-info">&nbsp</span> = High Throughput  &nbsp
+    </div>
 
+    <table class="table table-striped">
+    <thead>
+        <tr>
+            <th style="width: 8%">Complex</th>
+            <th style="width: 60%">Genes</th>
+            <th>Status
+                <button class="btn btn-default btn-xs" onclick="rnpSelectFunction()">?</button>
+                <script>
+                function rnpSelectFunction() {
+                    alert("RNP Select is a class of ribonucleoprotein complexes in which there is ample evidence in chromatography data of being an RNP \n\n To be considered as an RNP Select complex, a complex needs to pass three requirements: \n\n 1) >50% of subunits are annotated with either High Throughput, Low Throughput or DIFFRAC (FDR <= 0.05) \n\n 2) Average correlation of chromatography profiles for complex subunits > 0.75 \n\n 3) >50% of subunits have a DIFFRAC FDR <= 0.5 ");
+                }
+                </script>                                                    
+            </th>
+            <th>RNP Complex Evidence
+                <button class="btn btn-default btn-xs" onclick="rnpEvidenceFunction()">?</button>
+                <script>
+                function rnpEvidenceFunction() {
+                    alert("Ribonucleoprotein complex evidence: \n\n A complex has >50% of protein subunits annotated with either High Throughput, Low Throughput or DIFFRAC\n\n High Throughput evidence: protein is reported in Trendel et al. 2018, Queiroz et al. 2018, Huang et al. 2018, Bao et al. 2018, Baltz et al. 2012, Beckmann et al. 2015, Kramer et al. 2014, Castello et al. 2012, Castello et al. 2016, Conrad et al. 2016_chr or Conrad et al. 2016 (see references)\n\n Low Throughput evidence: protein is annotated as an ribonucleoprotein in Uniprot keywords or RNA Binding in Gene Ontology\n\n DIFFRAC evidence: protein has DIFFRAC FDR <= 0.05");
+                }
+                </script>                                                    
+            </th>
+        </tr>
+    </thead>
+    <tbody>
     {% for comp in complexes %}
-        <h3>Complex: {{ comp.complex_link()|safe }} </h3>
-        <h3>Proteins:</h3>
-        <table class="table table-striped">
-            <thead>
-            <tr>
-                <th>Genename</th>
-                <th>Complexes</th>
-                <th>Protein Name</th>
-                <th>Links</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- kdrew: list searched genes first -->
-            {% for prot in comp.proteins %}
-                {% if prot.id in prot_ids %}
-                    <tr>
-                        <td><strong>{{ prot.genename() }}</strong></td>
-                        <td>
-                        {% for comp in prot.complexes %}
-                            {{ comp.complex_link()|safe }}
-                        {% else %}
-                        <!--
-                            <em> No complexes</em>
-                          -->
-                        {% endfor %}
-                        </td>
-                        <td> {{prot.proteinname}}</td>
-                        <td>{{ prot.uniprot_link()|safe }} &nbsp {{ prot.ncbi_link()|safe }}</td>
-                    </tr>
-                {% endif %}
-            {% else %}
-                <em> No proteins</em>
-            {% endfor %}
-            <!-- kdrew: list the non-searched genes -->
-            {% for prot in comp.proteins %}
-                {% if prot.id not in prot_ids %}
-                    <tr>
-                        <td>{{ prot.genename() }}</td>
-                        <td>
-                            {% for comp in prot.complexes %}
-                                {{ comp.complex_link()|safe }}
-                            {% else %}
+        {% if comp.is_rnp() %}
+        <tr>
+            <td>
+                {{ comp.complex_link()|safe }}
+            </td>
+            <td>
+                <!-- kdrew: list searched genes first -->
+                {% for prot in comp.proteins %}
+                    {% if prot.id in prot_ids %}
+                        <strong>{{ prot.genename() }}</strong> &nbsp
+                        
                             <!--
+                            {% for comp_p in prot.complexes %}
+                                {% if comp_p.rnp_label != '' %}
+                                    {{ comp_p.complex_link()|safe }}
+                                {% endif %}
+                            {% else %}
                                 <em> No complexes</em>
-                              -->
                             {% endfor %}
-                        </td>
-                        <td> {{prot.proteinname}}</td>
-                        <td>{{ prot.uniprot_link()|safe }} &nbsp {{ prot.ncbi_link()|safe }}</td>
-                    </tr>
+                            <td> {{prot.proteinname}}</td>
+                            <td>{{ prot.uniprot_link()|safe }}</td>
+                            -->
+                    {% endif %}
+                {% else %}
+                    <em> No proteins</em>
+                {% endfor %}
+                <!-- kdrew: list the non-searched genes -->
+                {% for prot in comp.proteins %}
+                    {% if prot.id not in prot_ids %}
+                            {{ prot.genename() }}  &nbsp
+                            <!--
+                            <td>
+                                {% for comp_p in prot.complexes %}
+                                    {% if comp_p.rnp_label != '' %}
+                                        {{ comp_p.complex_link()|safe }}
+                                    {% endif %}
+                                {% else %}
+                                    <em> No complexes</em>
+                                {% endfor %}
+                            </td>
+                            <td> {{prot.proteinname}}</td>
+                            <td>{{ prot.uniprot_link()|safe }}</td>
+                        </tr>
+                                  -->
+                    {% endif %}
+                {% else %}
+                    <em> No proteins</em>
+                {% endfor %}
+            </td>
+            <td>
+                {% if comp.is_rnp_select() %}
+                    <span class="label label-danger">RNP Select</span>&nbsp
                 {% endif %}
-            {% else %}
-                <em> No proteins</em>
-            {% endfor %}
-            </tbody>
-        </table>
-        <br>
-    {% else %}
-    <!--
-        <em>No complexes</em>
-      -->
+            </td>
+            <td>
+                {% if comp.rnp_label == 'ht' %}
+                    <a href="#" class="label label-info" data-toggle="tooltip" title="High Throughput"> &nbsp </a> 
+                {% elif comp.rnp_label == 'rnabinding' %}
+                    <a href="#" class="label label-primary" data-toggle="tooltip" title="Low Throughput"> &nbsp </a> 
+                {% elif comp.rnp_label == 'ht_rnabinding' %}
+                    <a href="#" class="label label-primary" data-toggle="tooltip" title="Low Throughput"> &nbsp </a> &nbsp
+                    <a href="#" class="label label-info" data-toggle="tooltip" title="High Throughput"> &nbsp </a> 
+                {% elif comp.rnp_label == 'sign_ht_rnabinding' %}
+                    <a href="#" class="label label-success" data-toggle="tooltip" title="DIFFRAC"> &nbsp </a>         &nbsp
+                    <a href="#" class="label label-primary" data-toggle="tooltip" title="Low Throughput"> &nbsp </a>   &nbsp
+                    <a href="#" class="label label-info" data-toggle="tooltip" title="High Throughput"> &nbsp </a> 
+                {% elif comp.rnp_label == 'sign_ht' %}
+                    <a href="#" class="label label-success" data-toggle="tooltip" title="DIFFRAC"> &nbsp </a>           &nbsp
+                    <a href="#" class="label label-info" data-toggle="tooltip" title="High Throughput"> &nbsp </a> 
+                {% elif comp.rnp_label == 'sign' or comp.rnp_label == 'sign20_08corr' %}
+                    <a href="#" class="label label-success" data-toggle="tooltip" title="DIFFRAC"> &nbsp </a> 
+                {% endif %}
+            </td>
+        </tr>
+        {% else %}
+        <!--
+            <em>No complexes</em>
+          -->
+        {% endif %}
     {% endfor %}
+                </tbody>
+            </table>
+            <br>
 
     </ul>
 
@@ -196,5 +251,10 @@
     <script src="../static/js/docs.min.js"></script>
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <script src="../static/js/ie10-viewport-bug-workaround.js"></script>
+    <script>
+        $(document).ready(function(){
+            $('[data-toggle="tooltip"]').tooltip();
+        });
+    </script>
   </body>
 </html>

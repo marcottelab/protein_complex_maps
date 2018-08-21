@@ -91,10 +91,15 @@
         {{ form.listOfGenenames.label }} {{ form.listOfGenenames(size=50) }}
         <br>
         <br>
+        <!--
         {{ form.enrichment.label }} {{ form.enrichment(size=50) }}
         <br/>
         <br/>
+        -->
         {{ form.protein.label }} {{ form.protein(size=50) }}
+        <br/>
+        <br/>
+        {{ form.rnp_select.label }} {{ form.rnp_select() }}
         <br/>
         <br/>
         {{ form.submit }}
@@ -106,30 +111,97 @@
     {% endif %}
 
 <ul>
-<h3>Complex: {{ comp.complex_link()|safe }}</h3>
+<h3>
+    Complex: {{ comp.complex_link()|safe }}
+    {% if comp.is_rnp_select() %}
+        &nbsp <span class="label label-danger">RNP Select</span>
+        <button class="btn btn-default btn-xs" onclick="rnpSelectFunction()">?</button>
+        <script>
+        function rnpSelectFunction() {
+            alert("RNP Select is a class of ribonucleoprotein complexes in which there is ample evidence in chromatography data of being an RNP \n\n To be considered as an RNP Select complex, a complex needs to pass three requirements: \n\n 1) >50% of subunits are annotated with either High Throughput, Low Throughput or DIFFRAC (FDR <= 0.05) \n\n 2) Average correlation of chromatography profiles for complex subunits > 0.75 \n\n 3) >50% of subunits have a DIFFRAC FDR <= 0.5 ");
+        }
+        </script>                                                    
+    {% endif %}
+</h3>
+<h3>
+    RNP Evidence:
+    {% if comp.rnp_label == 'ht' %}
+        <a href="#" class="label label-info" data-toggle="tooltip" title="High Throughput"> High Throughput </a> &nbsp 
+    {% elif comp.rnp_label == 'rnabinding' %}
+        <a href="#" class="label label-primary" data-toggle="tooltip" title="Low Throughput"> Low Throughput</a> &nbsp 
+    {% elif comp.rnp_label == 'ht_rnabinding' %}
+        <a href="#" class="label label-primary" data-toggle="tooltip" title="Low Throughput"> Low Throughput</a> &nbsp
+        <a href="#" class="label label-info" data-toggle="tooltip" title="High Throughput"> High Throughput </a> &nbsp 
+    {% elif comp.rnp_label == 'sign_ht_rnabinding' %}
+        <a href="#" class="label label-success" data-toggle="tooltip" title="DIFFRAC"> DIFFRAC </a>         &nbsp
+        <a href="#" class="label label-primary" data-toggle="tooltip" title="Low Throughput"> Low Throughput</a> &nbsp 
+        <a href="#" class="label label-info" data-toggle="tooltip" title="High Throughput"> High Throughput </a> &nbsp
+    {% elif comp.rnp_label == 'sign_ht' %}
+        <a href="#" class="label label-info" data-toggle="tooltip" title="High Throughput"> High Throughput </a> &nbsp 
+        <a href="#" class="label label-success" data-toggle="tooltip" title="DIFFRAC"> DIFFRAC </a>         &nbsp
+    {% elif comp.rnp_label == 'sign' or comp.rnp_label == 'sign20_08corr' %}
+        <a href="#" class="label label-success" data-toggle="tooltip" title="DIFFRAC"> DIFFRAC </a>         &nbsp
+    {% endif %}
+    <button class="btn btn-default btn-xs" onclick="rnpEvidenceFunction()">?</button>
+    <script>
+    function rnpEvidenceFunction() {
+        alert("Ribonucleoprotein complex evidence: \n\n A complex has >50% of protein subunits annotated with either High Throughput, Low Throughput or DIFFRAC\n\n High Throughput evidence: protein is reported in Trendel et al. 2018, Queiroz et al. 2018, Huang et al. 2018, Bao et al. 2018, Baltz et al. 2012, Beckmann et al. 2015, Kramer et al. 2014, Castello et al. 2012, Castello et al. 2016, Conrad et al. 2016_chr or Conrad et al. 2016 (see references)\n\n Low Throughput evidence: protein is annotated as an ribonucleoprotein in Uniprot keywords or RNA Binding in Gene Ontology\n\n DIFFRAC evidence: protein has DIFFRAC FDR <= 0.05");
+    }
+    </script>                                                    
+</h3>
+
 <a href="#Proteins" class="btn btn-default" data-toggle="collapse">Proteins</a>
 <div id="Proteins" class="collapse in">
+    <br>
+    <div align='right'>
+        <span class="label label-success">&nbsp</span> = DIFFRAC &nbsp
+        <span class="label label-primary">&nbsp</span> = Low Throughput &nbsp
+        <span class="label label-info">&nbsp</span> = High Throughput  &nbsp
+    </div>
     <table class="table table-striped">
         <thead>
         <tr>
             <th>Genename</th>
             <th>Complexes</th>
             <th>Protein Name</th>
+            <th style="width: 30%">RBP Evidence 
+                <button class="btn btn-default btn-xs" onclick="rbpEvidenceFunction()">?</button>
+                <script>
+                function rbpEvidenceFunction() {
+                    alert("RNA binding protein evidence: \n\n High Throughput evidence: protein is reported in Trendel et al. 2018, Queiroz et al. 2018, Huang et al. 2018, Bao et al. 2018, Baltz et al. 2012, Beckmann et al. 2015, Kramer et al. 2014, Castello et al. 2012, Castello et al. 2016, Conrad et al. 2016_chr or Conrad et al. 2016 (see references)\n\n Low Throughput evidence: protein is annotated as an ribonucleoprotein in Uniprot keywords or RNA Binding in Gene Ontology\n\n DIFFRAC evidence: protein has DIFFRAC FDR <= 0.05");
+                }
+                </script>                                                    
+            
+            </th>
             <th>Links</th>
         </tr>
         </thead>
         <tbody>
-        {% for prot in comp.proteins %}
+        {% for prot in comp.proteinsOrderedByEvidence() %}
             <tr>
                 <td>{{ prot.genename() }}</td>
                 <td>
-                    {% for comp in prot.complexes %}
-                        {{ comp.complex_link()|safe }}
+                    {% for comp_p in prot.complexes %}
+                        {% if comp_p.is_rnp() %}
+                            {{ comp_p.complex_link()|safe }}
+                        {% endif %}
                     {% else %}
                     {% endfor %}
                 </td>
                 <td> {{prot.proteinname}}</td>
-                <td>{{ prot.uniprot_link()|safe }} &nbsp {{ prot.ncbi_link()|safe }}</td>
+                <td> 
+                    {% for evidence in prot.rbp_evidences %}
+                        {% if 'low throughput' in evidence.evidence_type %}
+                            <a href="#" class="label label-primary" data-toggle="tooltip" title={{evidence.evidence}}>&nbsp</a>
+                        {% elif 'diffrac' in evidence.evidence_type %}
+                            <a href="#" class="label label-success" data-toggle="tooltip" title={{evidence.evidence}}>&nbsp</a>
+                        {% elif 'high throughput' in evidence.evidence_type %}
+                            <a href="#" class="label label-info" data-toggle="tooltip" title={{evidence.evidence}}>&nbsp</a>
+                        {% else %}
+                        {% endif %}
+                    {% endfor %}
+                </td>
+                <td>{{ prot.uniprot_link()|safe }} </td>
             </tr>
         {% else %}
             <em> No proteins</em>
@@ -138,6 +210,8 @@
     </table>
 </div>
 
+
+<!--
 <br>
 <br>
 <a href="#Enrichments" class="btn btn-default" data-toggle="collapse">Enrichments</a>
@@ -215,6 +289,8 @@
     </table>
 </div>
 
+-->
+
 <br>
 <br>
 <a href="#Images" class="btn btn-default" data-toggle="collapse">Images</a>
@@ -223,14 +299,15 @@
     <button class="btn btn-default btn-xs" onclick="imageFunction()">?</button>
     <script>
     function imageFunction() {
-    alert("ClusterMap shows raw data support across available experiments for given complex.\n\nPercentile Rank scores were calculated based on Bioplex zscore, Hein prey.bait.correlation and Wan spectral counts.\n\nOnly experiments for which one or more of the subunits are present are displayed");
+    alert("Sparkline plots show elution profiles for both control and RNAse treated samples for given complex.\n\nThe y-axis of each protein's plot is the measured abundance in each size exclusion chromatography fraction. \n\n");
     }
     </script>                                                    
 <br>
 Click to enlarge
 <br>
-<a href="/static/images/clustermaps/bioplex_hein_wan_matrix_{{comp.complex_id}}.png" target="_blank">
-<img src="/static/images/clustermaps/bioplex_hein_wan_matrix_{{comp.complex_id}}.png" alt="ClusterMap" width=100% height=100%> 
+<a href="/static/images/sparklines/Anna_HEK_SEC_020118_rnaseA_corum_humap_{{comp.complex_id}}-1.png" target="_blank">
+    <!-- <img src="/static/images/sparklines/Anna_HEK_SEC_020118_rnaseA_corum_humap_{{comp.complex_id}}-1.png" alt="Sparklines" width=100% height=100%> -->
+<img src="/static/images/sparklines/Anna_HEK_SEC_020118_rnaseA_corum_humap_{{comp.complex_id}}-1.png" alt="Sparklines">
 </div>
 
 <br>
@@ -245,6 +322,11 @@ Click to enlarge
     <script src="../static/js/docs.min.js"></script>
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <script src="../static/js/ie10-viewport-bug-workaround.js"></script>
+    <script>
+        $(document).ready(function(){
+            $('[data-toggle="tooltip"]').tooltip();
+        });
+    </script>
   </body>
 </html>
 
