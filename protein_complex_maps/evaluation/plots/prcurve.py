@@ -37,8 +37,12 @@ def main():
                                     help="Only tally predictions above probability threshold")
     parser.add_argument("--plot_thresholds", action="store_true", dest="plot_thresholds", required=False, default=False,
                                     help="Add probability threshold markers to plot")
+    parser.add_argument("--threshold_markers", action="store", dest="threshold_markers", nargs='+', required=False, default=[1.0,0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2,0.1],
+                                    help="Sets which thresholds to plot along prcurve, default=[1.0,0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2,0.1]")
     parser.add_argument("--complete_benchmark", action="store_true", dest="complete_benchmark", required=False, default=False,
                                     help="Use the complete benchmark and set the probablility to 0.0, default=False")
+    parser.add_argument("--add_tiny_noise", action="store_true", dest="add_tiny_noise", required=False, default=False,
+                                    help="Add tiny bit of noise to scores of each prediction to separate predictions with same score, default=False")
 
     args = parser.parse_args()
 
@@ -98,23 +102,36 @@ def main():
         neg_list = []
         pos_list = []
         for result_pair in results_dict.keys():
+            #kdrew: add a tiny bit of noise to scores so that predictions with all of the same scores are separated, should fix straight line at end of pr plots
+            if args.add_tiny_noise:
+                tiny_noise = np.random.random()/1000000
+            else:
+                tiny_noise = 0.0
             if args.threshold == None or args.threshold <= results_dict[result_pair]:
                 if result_pair in ppis:
                     true_array.append(1)
-                    prob_array.append(results_dict[result_pair])
+                    prob_array.append(results_dict[result_pair]+tiny_noise)
                     pos_list.append((result_pair, results_dict[result_pair]))
                 elif result_pair in neg_ppis:
                     true_array.append(-1)
-                    prob_array.append(results_dict[result_pair])
+                    prob_array.append(results_dict[result_pair]+tiny_noise)
                     neg_list.append((result_pair, results_dict[result_pair]))
 
         if args.complete_benchmark:
             for ppi in set(ppis) - set(results_dict.keys()):
                 true_array.append(1)
-                prob_array.append(0.0)
+                if args.add_tiny_noise:
+                    tiny_noise = np.random.random()/1000000
+                    prob_array.append(tiny_noise)
+                else:
+                    prob_array.append(0.0)
             for neg_ppi in set(neg_ppis) - set(results_dict.keys()):
                 true_array.append(-1)
-                prob_array.append(0.0)
+                if args.add_tiny_noise:
+                    tiny_noise = np.random.random()/1000000
+                    prob_array.append(tiny_noise)
+                else:
+                    prob_array.append(0.0)
 
 
         sorted_neg_list = sorted(neg_list, key=lambda k: k[1])
@@ -143,134 +160,25 @@ def main():
 
         if args.plot_thresholds:
             #kdrew: set the index of the entry >= to threshold
-            #kdrew: if there is no entry >= to threshold, set the index to the previous index
-            try:
-                indexOf1 = next(x[0] for x in enumerate(thresholds) if x[1] >= 0.1) 
-            except StopIteration:
-                pass
-            try:
-                indexOf2 = next(x[0] for x in enumerate(thresholds) if x[1] >= 0.2) 
-            except StopIteration:
-                indexOf2 = index01
-            try:
-                indexOf3 = next(x[0] for x in enumerate(thresholds) if x[1] >= 0.3) 
-            except StopIteration:
-                indexOf3 = indexOf2
-            try:
-                indexOf4 = next(x[0] for x in enumerate(thresholds) if x[1] >= 0.4) 
-            except StopIteration:
-                indexOf4 = indexOf3
-            try:
-                indexOf5 = next(x[0] for x in enumerate(thresholds) if x[1] >= 0.5) 
-            except StopIteration:
-                indexOf5 = indexOf4
-            try:
-                indexOf6 = next(x[0] for x in enumerate(thresholds) if x[1] >= 0.6) 
-            except StopIteration:
-                indexOf6 = indexOf5
-            try:
-                indexOf7 = next(x[0] for x in enumerate(thresholds) if x[1] >= 0.7) 
-            except StopIteration:
-                indexOf7 = indexOf6
-            try:
-                indexOf8 = next(x[0] for x in enumerate(thresholds) if x[1] >= 0.8) 
-            except StopIteration:
-                indexOf8 = indexOf7
-            try:
-                indexOf9 = next(x[0] for x in enumerate(thresholds) if x[1] >= 0.9) 
-            except StopIteration:
-                indexOf9 = indexOf8
-            try:
-                indexOf10 = next(x[0] for x in enumerate(thresholds) if x[1] >= 1.0) 
-            except StopIteration:
-                indexOf10 = indexOf9
-
-            print thresholds[indexOf1]
-            print indexOf1
-            print thresholds[indexOf2]
-            print indexOf2
-            print thresholds[indexOf3]
-            print indexOf3
-            print thresholds[indexOf4]
-            print indexOf4
-            print thresholds[indexOf10]
-            print indexOf10
-
-            #print thresholds[indexOf1-1]
-            #print thresholds[indexOf10-1]
+            threshold_indices = dict()
+            #kdrew: ensure passed in arguments are floats
+            for threshold_marker in [float(x) for x in args.threshold_markers]:
+                try:
+                    threshold_indices[threshold_marker] = next(i for i,x in enumerate(thresholds) if x >= threshold_marker) 
+                except StopIteration:
+                    pass
 
             threshold_precisions = []
             threshold_recalls = []
             threshold_labels = []
-            print "threshold 0.1"
-            print "precision: %s" % precision[indexOf1]
-            print "recall: %s" % recall[indexOf1]
-            threshold_precisions.append(precision[indexOf1])
-            threshold_recalls.append(recall[indexOf1])
-            threshold_labels.append('0.1')
-            
-            print "threshold 0.2"
-            print "precision: %s" % precision[indexOf2]
-            print "recall: %s" % recall[indexOf2]
-            threshold_precisions.append(precision[indexOf2])
-            threshold_recalls.append(recall[indexOf2])
-            threshold_labels.append('0.2')
-            
-            print "threshold 0.3"
-            print "precision: %s" % precision[indexOf3]
-            print "recall: %s" % recall[indexOf3]
-            threshold_precisions.append(precision[indexOf3])
-            threshold_recalls.append(recall[indexOf3])
-            threshold_labels.append('0.3')
-            
-            print "threshold 0.4"
-            print "precision: %s" % precision[indexOf4]
-            print "recall: %s" % recall[indexOf4]
-            threshold_precisions.append(precision[indexOf4])
-            threshold_recalls.append(recall[indexOf4])
-            threshold_labels.append('0.4')
-            
-            print "threshold 0.5"
-            print "precision: %s" % precision[indexOf5]
-            print "recall: %s" % recall[indexOf5]
-            threshold_precisions.append(precision[indexOf5])
-            threshold_recalls.append(recall[indexOf5])
-            threshold_labels.append('0.5')
-            
-            print "threshold 0.6"
-            print "precision: %s" % precision[indexOf6]
-            print "recall: %s" % recall[indexOf6]
-            threshold_precisions.append(precision[indexOf6])
-            threshold_recalls.append(recall[indexOf6])
-            threshold_labels.append('0.6')
-            
-            print "threshold 0.7"
-            print "precision: %s" % precision[indexOf7]
-            print "recall: %s" % recall[indexOf7]
-            threshold_precisions.append(precision[indexOf7])
-            threshold_recalls.append(recall[indexOf7])
-            threshold_labels.append('0.7')
+            for threshold_marker in threshold_indices:
+                threshold_precisions.append(precision[threshold_indices[threshold_marker]])
+                threshold_recalls.append(recall[threshold_indices[threshold_marker]])
+                threshold_labels.append(threshold_marker)
 
-            print "threshold 0.8"
-            print "precision: %s" % precision[indexOf8]
-            print "recall: %s" % recall[indexOf8]
-            threshold_precisions.append(precision[indexOf8])
-            threshold_recalls.append(recall[indexOf8])
-            threshold_labels.append('0.8')
-            
-            print "threshold 0.9"
-            print "precision: %s" % precision[indexOf9]
-            print "recall: %s" % recall[indexOf9]
-            threshold_precisions.append(precision[indexOf9])
-            threshold_recalls.append(recall[indexOf9])
-            threshold_labels.append('0.9')
-
-            print "threshold 1.0"
-            print "precision: %s" % precision[indexOf10]
-            print "recall: %s" % recall[indexOf10]
-            threshold_precisions.append(precision[indexOf10])
-            threshold_recalls.append(recall[indexOf10])
-            threshold_labels.append('1.0')
+                print "threshold %s" % threshold_marker
+                print "precision: %s" % precision[threshold_indices[threshold_marker]]
+                print "recall: %s" % recall[threshold_indices[threshold_marker]]
 
 
         label = args.results_wprob[i]
