@@ -17,8 +17,8 @@ def main():
                                     help="Directory of protein_complex_maps scripts")
     parser.add_argument("--libsvm_dir", action="store", dest="libsvm_dir", required=False, default="",
                                     help="Directory of svm-scale svm-train and svm-predict")
-    parser.add_argument("--c_values", action="store", dest="c_values", nargs='+', type=float, required=False, default=[0.00390625, 0.0078125, 2, 32, 128],
-                                    help="List of C parameter values to evaluate, default = 0.00390625 0.0078125 2 32 128")
+    parser.add_argument("--c_values", action="store", dest="c_values", nargs='+', type=float, required=False, default=[0.00390625, 0.0078125, 2.0, 32.0, 128.0],
+                                    help="List of C parameter values to evaluate, default = 0.00390625 0.0078125 2.0 32.0 128.0")
     parser.add_argument("--gamma_values", action="store", dest="gamma_values", nargs='+', type=float, required=False, default=[0.015625, 0.03125, 0.0625, 0.125, 0.5],
                                     help="List of gamma parameter values to evaluate, default = 0.015625 0.03125 0.0625 0.125 0.5")
     parser.add_argument("--kernel_values", action="store", dest="kernel_values", nargs='+', type=int, required=False, default=[2],

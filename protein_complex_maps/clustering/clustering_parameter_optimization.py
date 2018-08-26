@@ -34,10 +34,14 @@ def main():
                                     help="Filename of output clusters for best set of parameters")
     parser.add_argument("--random_seed", action="store", type=int, dest="random_seed", required=False, default=None,
                                     help="Sets random seed (int), default=None")
-    parser.add_argument("--bootstrap_iter", action="store", type=int, dest="bootstrap_iter", required=False, default=10,
-                                    help="Number of bootstrap iterations (int, default=10)")
-    parser.add_argument("--bootstrap_fraction", action="store", type=float, dest="bootstrap_fraction", required=False, default=0.5,
-                                    help="Fraction of edges to sample for bootstrapping, default=0.5")
+
+    parser.add_argument("--ppi_fraction", action="store", dest="ppi_fraction", nargs='+', required=False, 
+                                    default=[0.005,0.01,0.05,.1,.25,.5,.75,1.0], 
+                                    help="Use top fraction for further clustering, default = 0.005 0.01 0.05 .1 .25 .5 .75 1.0")
+    parser.add_argument("--ppi_threshold_score", action="store", dest="ppi_threshold_score", nargs='+', required=False, 
+                                    default=[1.0,0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2,0.1],
+                                    help="Use ppis with score higher or equal to threshold score, default = 1.0 0.9 0.8 0.7 0.6 0.5 0.4 0.3 0.2 0.1")
+
     parser.add_argument("--clusterone", action="store", dest="clustone_jar", required=False, 
                                     default="/home/kdrew/programs/clusterone/cluster_one-1.0.jar",
                                     help="Location of cluster_one jar file, default= /home/kdrew/programs/clusterone/cluster_one-1.0.jar")
@@ -53,15 +57,7 @@ def main():
     parser.add_argument("--clusterone_seed_method", action="store", dest="clusterone_seed_method", nargs='+', required=False, 
                                     default=['nodes'], 
                                     help="ClusterOne seed method parameter sweep (nodes, cliques, unused_nodes, edges, default = nodes")
-    #parser.add_argument("--score_transform", action="store", dest="score_transform", nargs='+', required=False, 
-    #                                default=['none'], 
-    #                                help="Transform to apply to scores before clustering (none, log, default = none")
-    parser.add_argument("--ppi_fraction", action="store", dest="ppi_fraction", nargs='+', required=False, 
-                                    default=[0.005,0.01,0.05,.1,.25,.5,.75,1.0], 
-                                    help="Use top fraction for further clustering, default = 0.005 0.01 0.05 .1 .25 .5 .75 1.0")
-    parser.add_argument("--ppi_threshold_score", action="store", dest="ppi_threshold_score", nargs='+', required=False, 
-                                    default=[1.0,0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2,0.1],
-                                    help="Use ppis with score higher or equal to threshold score, default = 1.0 0.9 0.8 0.7 0.6 0.5 0.4 0.3 0.2 0.1")
+
     parser.add_argument("--clixo_bin", action="store", dest="clixo_bin", required=False, 
                                     default='~/programs/mhk7-clixo_0.3-a2b23b0/clixo')
     parser.add_argument("--clixo_alpha", action="store", dest="clixo_alpha", nargs='+', required=False, 
@@ -70,12 +66,14 @@ def main():
     parser.add_argument("--clixo_beta", action="store", dest="clixo_beta", nargs='+', required=False, 
                                     default=[None],
                                     help="Clixo Beta parameter, default = None")
+
     parser.add_argument("--mcl", action="store", dest="mcl_bin", required=False, 
                                     default='mcl',
                                     help="Location of mcl binary, default = 'mcl' ")
     parser.add_argument("--mcl_inflation", action="store", dest="mcl_inflation", nargs='+', required=False, 
                                     default=[None],
                                     help="MCL Inflation (-I) parameter, default = [None] (no 2-stage clustering), docs suggest = 1.2 - 5.0")
+
     parser.add_argument("--cfinder", action="store", dest="cfinder_exe", required=False, 
                                     default="/home/kdrew/programs/CFinder-2.0.6--1448/CFinder_commandline64",
                                     help="Location of CFinder executable, default= /home/kdrew/programs/CFinder-2.0.6--1448/CFinder_commandline64")
@@ -88,11 +86,18 @@ def main():
     parser.add_argument("--cfinder_timeout", action="store", dest="cfinder_timeout", nargs='+', required=False, 
                                     default=[None],
                                     help="Cfinder timeout (-t) parameter, default = None (use CFinder's default setting, recommended: 10)")
+
     parser.add_argument("--trim2threshold", action="store_true", dest="trim2threshold", required=False, default=False,
                                     help="Trim final clusters of subunits that do not have an edge that passes the threshold_score, default=False")
     parser.add_argument("--twostep_combination", action="store", dest="twostep_combination", nargs='+', required=False, 
                                     default=['clusterone','mcl'],
                                     help="Combination of two step clustering, default = [clusterone,mcl], options=[clusterone,mcl,cfinder,agglomod,clixo]")
+
+    parser.add_argument("--bootstrap_iter", action="store", type=int, dest="bootstrap_iter", required=False, default=10,
+                                    help="Number of bootstrap iterations (int, default=10)")
+    parser.add_argument("--bootstrap_fraction", action="store", type=float, dest="bootstrap_fraction", required=False, default=0.5,
+                                    help="Fraction of edges to sample for bootstrapping, default=0.5")
+
     parser.add_argument("--eval_metric", action="store", dest="eval_metric", required=False, default='mmr',
                                     help="Evaluation metric used to determine best set of parameters (mmr, acc, sensitivity, ppv, clique_precision_mean, clique_recall_mean), default=mmr")
     parser.add_argument("--output_all", action="store_true", dest="output_all", required=False, default=False,
@@ -104,18 +109,17 @@ def main():
     parser.add_argument("--nodelete", action="store_true", dest="nodelete", required=False, default=False,
                                     help="When set, does not delete temporary files")
 
+
     args = parser.parse_args()
 
     if not os.path.isfile(args.clustone_jar):
         raise IOError("File not found: %s" % args.clustone_jar)
-
 
     #kdrew: read gold standard into list
     gstd_file = open(args.gold_standard_filename,"rb")
     gold_standard_complexes = []
     for line in gstd_file.readlines():
         gold_standard_complexes.append(line.split())
-
 
     #kdrew: original commandline for clusterone
     #java -jar ~/programs/clusterone/cluster_one-1.0.jar blake_bioplex_merge_wkeys_deduped_corum_train_labeled.libsvm0.scaleByTrain.resultWprob_pairs_noself_nodups_wprob.txt > blake_bioplex_merge_wkeys_deduped_corum_train_labeled.libsvm0.scaleByTrain.resultWprob_pairs_noself_nodups_wprob.txt.clusterone
@@ -124,19 +128,12 @@ def main():
     with open (args.input_network, "r") as input_network_file:
         input_network_list = input_network_file.readlines()
 
-
+    #kdrew: parse input network into dictionary of id1, id2 = score
     ppi_scores = dict()
     for ppi in input_network_list:
         ppi_scores[frozenset([ppi.split()[0],ppi.split()[1]])] = float(ppi.split()[2])
 
     random.seed(args.random_seed)
-    #for i in range(args.bootstrap_iter):
-
-    #kdrew: size and density are clusterOne parameters
-    #size_sweep = [2,]
-    #density_sweep=[.1,.25,.3,.35,]
-    #kdrew: fraction is the fraction of top ppis to include
-    #fraction_sweep=[0.005,0.01,0.05,.1,.25,.5,.75,1.0]
 
     size_sweep = args.clusterone_size
     overlap_sweep = args.clusterone_max_overlap
