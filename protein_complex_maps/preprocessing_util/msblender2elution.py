@@ -17,7 +17,7 @@ def main():
                         choices = ['protcount', 'pepcount'],
                         help="Choose which type of msblender output to aggregate, default=protcount")
     parser.add_argument("--spectral_count_type", action="store", dest="spectral_count_type", choices = ['Unweighted', 'Weighted', 'Unique'], required=False, default='Unique',
-                        help="Which spectral count type should be stored? Unweighted, Weighted or Unique (default)")
+                        help="For protcount files, which spectral count type should be stored? Unweighted, Weighted or Unique (default)")
     parser.add_argument("--remove_zero_unique", action="store_true", dest="remove_zero_unique", required=False, default=False,
                         help="Flag for removing entries with zero unique matches, default=False")
     parser.add_argument("--fraction_name_from_filename", action="store_true", dest="fraction_name_from_filename", required=False, default=False,
