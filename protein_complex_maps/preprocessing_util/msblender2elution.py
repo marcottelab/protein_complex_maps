@@ -13,7 +13,10 @@ def main():
                         help="Filenames of MSblender prot_count files")
     parser.add_argument("--output_filename", action="store", dest="output_filename", required=True,
                         help="Filenames of MSblender prot_count files")
-    parser.add_argument("--spectral_count_type", action="store", dest="spectral_count_type", required=False, default='Unique',
+    parser.add_argument("--msblender_filetype", action="store", dest="msblender_filetype", required=False, default="protcount",
+                        choices = ['protcount', 'pepcount'],
+                        help="Choose which type of msblender output to aggregate, default=protcount")
+    parser.add_argument("--spectral_count_type", action="store", dest="spectral_count_type", choices = ['Unweighted', 'Weighted', 'Unique'], required=False, default='Unique',
                         help="Which spectral count type should be stored? Unweighted, Weighted or Unique (default)")
     parser.add_argument("--remove_zero_unique", action="store_true", dest="remove_zero_unique", required=False, default=False,
                         help="Flag for removing entries with zero unique matches, default=False")
@@ -28,24 +31,33 @@ def main():
     parser.add_argument("--parse_uniprot_id", action="store_true", dest="parse_uniprot_id", required=False, default=False,
                         help="Parse out the uniprot id from the index and store in index, default=False")
 
+
+
     args = parser.parse_args()
 
     elution_profile_df = pd.DataFrame() 
     
     for i, filename in enumerate(args.prot_count_files):
         print "Reading {}".format(filename)
-        df = pd.read_table(filename, index_col=0)
+
         
         ## BJL: Useful code if we want to eventually parse other MSBlender outfiles besided .group
         #else:
         #   #kdrew: the non-group files have an extra line at the bottom for total counts
         #   df = pd.read_table(filename, index_col=0, skip_footer=1)
-        
-        single_elution_df = pd.DataFrame(df[args.spectral_count_type])
+        if args.msblender_filetype == "protcount":         
+            df = pd.read_table(filename, index_col=0)
 
-        if args.remove_zero_unique:
-            single_elution_df = single_elution_df[single_elution_df['Unique'] > 0]
+            if args.remove_zero_unique:
+                df = df[df['Unique'] > 0]
 
+            single_elution_df = pd.DataFrame(df[args.spectral_count_type])
+   
+        if args.msblender_filetype == "pepcount":
+              df = pd.read_table(filename, index_col=0, skiprows = 1)
+              single_elution_df = pd.DataFrame(df['TotalCount']) 
+
+ 
         if args.fraction_name_from_filename:
             fraction_name = os.path.basename(filename).split('.')[0]
             #print fraction_name # Debugging
@@ -53,7 +65,7 @@ def main():
             single_elution_df.columns = [fraction_name]
         else:
             single_elution_df.columns = [i]
-
+    
         #print single_elution_df # Debugging
         elution_profile_df = pd.concat([elution_profile_df, single_elution_df], axis=1)
 
