@@ -91,6 +91,8 @@ def main():
                                     help="Where to store temporary files generated during processing, default=None (defaults to OS level tmp), in memory suggestion = /dev/shm/")
     parser.add_argument("--nodelete", action="store_true", dest="nodelete", required=False, default=False,
                                     help="When set, does not delete temporary files")
+    parser.add_argument("--starting_id_num", action="store", type=int, dest="starting_id_num", required=False, default=0,
+                                    help="Start the clustering identifier (ii) at a specific integer, default=0)")
 
 
     args = parser.parse_args()
@@ -135,6 +137,10 @@ def main():
     network_input_list = []
     #kdrew: enumerate through all combinations of inputs
     for ii, parameters  in enumerate(it.product(args.clusterone_size, args.clusterone_density, args.clusterone_max_overlap, args.clusterone_seed_method, args.mcl_inflation, args.clixo_alpha, args.clixo_beta, args.cfinder_cliquesize, args.cfinder_timeout, args.ppi_threshold_score)):
+
+        #kdrew: start ii at a different number other than default 0
+        ii = ii+args.starting_id_num
+
         #/print ii, parameters
         sys.stdout.flush()
         #kdrew: unpack parameters
