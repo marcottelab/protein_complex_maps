@@ -19,12 +19,33 @@ def sum_difference_pairs(P,Q):
     sum_abs_D = np.sum(abs_D)
     return sum_abs_D
 
+def xcorr(P,Q, zscore=True):
+    '''Compute normalized cross correlation for two vectors
+       If zscor==True, will calculate (X - mean(all_lags)) / stdev(all_lags)
+       Otherwise, it calculates only zero-lag value by default
+       np.correlate with 'full' arguments and for ex. lag = 2 returns vector with order:
+             [-2lag, -1lag, 0lag, 1lag, 2lag], so the middle value is the zero lag correlation.
+    '''
+    if zscore ==  True:
+        a = np.correlate(P, Q, "full")
+        xcorrval = (a[len(a)/2] - np.mean(a)) / np.std(a)
+
+    elif zscore == False:
+        xcorrval = np.correlate(P, Q)
+
+    return xcorrval
+
+
 class FeatureFunctions:
 
     '''All return a NxN matrix of features'''
 
     def __init__(self): pass
-    
+ 
+    def _xcorr(self,df):
+        '''Return cross correlation matrix'''
+        return dist.squareform( dist.pdist(df, lambda x,y: xcorr(x,y)) )
+   
     def _jensen_shannon(self,df):
         '''Return matrix of Jensen-Shannon divergences'''
         return dist.squareform( dist.pdist(df, lambda x,y: js_pairs(x,y)) )

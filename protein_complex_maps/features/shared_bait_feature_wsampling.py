@@ -204,11 +204,11 @@ def subsampling(feature_table, bait_id_column):
        #df_list  = map(lambda df_i: grouped.get_group(df_i),sampled_df)
        #sampled_df = pd.concat(df_list, axis=0, join='outer')    
 
-       sample_size = int(0.3 * len(feature_table.Fraction.unique()))
+       sample_size = int(0.3 * len(feature_table[bait_id_column].unique()))
        #logger.info("sample_size: ", str(sample_size))
 
-       selected_names = np.random.choice(feature_table.Fraction.unique(), sample_size, replace=False)
-       sub_table = feature_table[feature_table.Fraction.isin(selected_names)]
+       selected_names = np.random.choice(feature_table[bait_id_column].unique(), sample_size, replace=False)
+       sub_table = feature_table[feature_table[bait_id_column].isin(selected_names)]
        print(type(sub_table))
        print(sub_table.shape)
        logger.info(sub_table.head)
