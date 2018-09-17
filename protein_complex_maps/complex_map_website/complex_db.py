@@ -190,6 +190,11 @@ class RBPStats(db.Model):
     sliding_pvalues = db.Column(db.Float) 
     sliding_pvalues_fdrcor = db.Column(db.Float) 
 
+    #kdrew: tests if protein is not significant but below the 50% FDR
+    def is_diffrac_50(self,):
+        if self.sliding_pvalues_fdrcor > 0.05 and self.sliding_pvalues_fdrcor < 0.5:
+            return True
+
 
 class ProteinComplexMapping(db.Model):
     """A mapping between proteins and complexes"""
