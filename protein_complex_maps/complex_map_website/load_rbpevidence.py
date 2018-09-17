@@ -31,6 +31,7 @@ def main():
 
 
         if p == None:
+            print "%s not found" % index
             continue
 
         #ACC,low_throughput,high_throughput,computational,rnabinding,rnabinding_uniprot,trendel,queiroz,huang,bao,HEK293-RIC_Hs_Baltz2012,HuH7-IC_Hs_Beckmann2015,HeLa-RNPxl_Hs_Kramer2014,HeLa-IC_Hs_Castello2012,HeLa-RBDmap_Hs_Castello2016,K562-serIC-chr_Hs_Conrad2016_chr,K562-serIC_Hs_Conrad2016,Enzyme,Metabolism,"""Metabolic.Enzyme""",annotation

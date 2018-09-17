@@ -28,7 +28,8 @@ def main():
         p = db.session.query(cdb.Protein).filter_by(uniprot_acc=index).first()
 
         if p == None:
-            continue
+            p = cdb.get_or_create(db, cdb.Protein, uniprot_acc=index, genename=row['Gene names  (primary )'], proteinname=row['Protein names'])
+            db.session.add(p)
 
         rbps = cdb.get_or_create(db, cdb.RBPStats, protein_key=p.id, 
 

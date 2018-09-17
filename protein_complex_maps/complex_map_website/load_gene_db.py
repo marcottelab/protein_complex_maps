@@ -50,12 +50,15 @@ def main():
         p1 = db.session.query(cdb.Protein).filter_by(uniprot_acc=prot_id).first()
         if p1:
             #kdrew: add all genenames to Gene table and link to protein instance
-            for genename in genename_map[prot_id]:
-                print genename
-                if genename != None:
-                    gene = cdb.get_or_create(db,cdb.Gene, genename=genename, protein_key = p1.id)
-                    db.session.add(gene)
-                    db.session.commit()
+            try:
+                for genename in genename_map[prot_id]:
+                    print genename
+                    if genename != None:
+                        gene = cdb.get_or_create(db,cdb.Gene, genename=genename, protein_key = p1.id)
+                        db.session.add(gene)
+                        db.session.commit()
+            except KeyError:
+                print "No genename for %s" % (prot_id)
         else:
             print "Cannot find proteins %s" % (prot_id)
 

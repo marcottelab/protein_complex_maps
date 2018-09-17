@@ -30,6 +30,7 @@ def main():
 
 
         if p == None:
+            print "%s not found" % index
             continue
 
         if row['Keywords'] == row['Keywords'] and 'Ribonucleoprotein' in row['Keywords']:
@@ -38,6 +39,10 @@ def main():
 
         if row['sliding_pvalues_fdrcor'] <= 0.05:
             rbpe = cdb.get_or_create(db, cdb.RBPEvidence, protein_key=p.id, evidence_type='diffrac', evidence='DIFFRAC (significant)')
+            db.session.add(rbpe)
+
+        if row['sliding_pvalues_fdrcor'] > 0.05 and row['sliding_pvalues_fdrcor'] < 0.5:
+            rbpe = cdb.get_or_create(db, cdb.RBPEvidence, protein_key=p.id, evidence_type='diffrac50', evidence='DIFFRAC (50)')
             db.session.add(rbpe)
 
         db.session.commit()
