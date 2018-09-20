@@ -189,7 +189,7 @@ def main():
     ni_df.to_csv(parameter_filename)
 
     #kdrew: call clustering on parameter combinations
-    cluster_predictions = p.map(cluster_helper, network_input_list)
+    p.map(cluster_helper, network_input_list)
 
     p.close()
     p.join()
@@ -402,7 +402,7 @@ def cluster_helper(parameter_dict):
                 output_file.write(' '.join(cluster))
                 output_file.write("\n")
 
-    return predicted_clusters, i
+    #return predicted_clusters, i
 
 
 def trim_clusters2threshold(predicted_clusters, threshold_score, ppi_scores):
