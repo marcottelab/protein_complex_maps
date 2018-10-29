@@ -7,4 +7,4 @@ tmp
 tmp*
 *.fasta
 *.Rhistory
-
+.attic

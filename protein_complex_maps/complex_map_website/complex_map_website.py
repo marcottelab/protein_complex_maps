@@ -15,9 +15,9 @@ class SearchForm(Form):
     complex_id = StringField(u'Complex ID:')
     #genename = StringField(u'Gene Name (ex. OFD1):')
     rnp_select = BooleanField(label=u'RNP Select')
-    listOfGenenames = TextAreaField(u'List of Gene Names (ex. OFD1 PCM1 CSPP1):')
+    listOfGenenames = TextAreaField(u'List of Gene Names (ex. RFC1 RFC2 RFC3):')
     enrichment = StringField(u'Enrichment (ex. cilium):')
-    protein = StringField(u'Protein (ex. Centrosomal protein):')
+    protein = StringField(u'Protein (ex. ribosomal):')
     submit = SubmitField(u'Search')
 
 from flask import render_template

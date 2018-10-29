@@ -142,19 +142,42 @@
       </ul>
       <br>
       -->
+
+      <h4>DIF-FRAC RNA Binding Proteins</h4>
+      <ul>
+          <li><a href="/static/downloads/Table_S1_diffrac_scores_20180917.xlsx" target="_blank">Table of identified RNA Binding Proteins (xlsx)</a></li>
+          <li>
+                DIF-FRAC scores, pvalues and annotations for proteins from HEK293T, Hemolysate and mESCs experiments.
+          </li>
+      </ul>
+      <br>
       <h4>Cytoscape Network</h4>
       <ul>
           <li><a href="/static/downloads/huMAP_CORUM_wSEC2_RNP_MAP_20180709.cys" target="_blank">Cytoscape Network</a></li>
       </ul>
       <br>
-      <br>
-      <!--
       <h4>Code</h4>
       <ul>
-          <li><a href="https://github.com/marcottelab/protein_complex_maps_public" target="_blank">Protein Complex Maps (GitHub)</a>
+          <li><a href="https://github.com/marcottelab/diffrac" target="_blank">Diffrac Code(GitHub)</a>
           </li>
       </ul>
-      -->
+      <br>
+      <h4>Docker</h4>
+      <ul>
+          <li><a href="/static/downloads/diffrac_docker.tar" target="_blank">Diffrac Docker image</a>
+          </li>
+      </ul>
+      <ol>
+          <li>
+              Load docker image: <code>docker load --input diffrac_docker.tar</code>
+          </li>
+          <li>
+              Run docker image: <code>docker run -it kdrew/diffrac_docker /bin/bash</code>
+          </li>
+          <li>
+              Run unit tests: <code>python test/test_diffrac.py</code>
+          </li>
+      </ol>
 
       <br>
       <h4> License </h4>
