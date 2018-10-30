@@ -57,6 +57,18 @@ class Complex(db.Model):
         retstr = "<a href=displayComplexes?complex_key=%s>%s</a>" % (self.complex_id, self.complex_id)
         return retstr
 
+    def corum_complex_link(self,):
+        retstr = ""
+        if self.corum_id != -1:
+            retstr = retstr + "<a href=http://mips.helmholtz-muenchen.de/corum/#?complexID=%s target=\"_blank\">CORUM</a> " % (self.corum_id)
+        return retstr
+
+    def humap_complex_link(self,):
+        retstr = ""
+        if self.humap_id != -1:
+            retstr = retstr + "<a href=http://hu.proteincomplexes.org/displayComplexes?complex_key=%s target=\"_blank\">hu.MAP</a> " % (self.humap_id)
+        return retstr
+
     #kdrew: a bit of a bottleneck when serving pages, has to generate all combinations of proteins in complex and then search for combination in edge table
     #kdrew: seems like there should be a better way of doing this, either 1) combining protein keys as a single index or 2) storing mapping between complex and edges directly
     def edges(self,):

@@ -112,7 +112,13 @@
 
 <ul>
 <h3>
-    Complex: {{ comp.complex_link()|safe }}
+    Complex: {{ comp.complex_link()|safe }} 
+    {% if comp.corum_id  != -1 %}
+        | {{ comp.corum_complex_link()|safe }} 
+    {% endif %}
+    {% if comp.humap_id  != -1 %}
+        | {{ comp.humap_complex_link()|safe }}  
+    {% endif %}
     {% if comp.is_rnp_select() %}
         &nbsp <span class="label label-danger">RNP Select</span>
         <button class="btn btn-default btn-xs" onclick="rnpSelectFunction()">?</button>
