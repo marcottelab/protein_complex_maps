@@ -55,7 +55,6 @@ def main():
         featfile.close()
         print(feats)
 
-    outfile = open(args.output_script_name,"wb")
 
     if args.group_train_predict_scripts:
         feature2libsvm_group_outfile = open("%s.%s.sh" % ('.'.join(args.output_script_name.split('.')[:-1]), "feature2libsvm_group"), "wb")
@@ -63,6 +62,8 @@ def main():
         train_group_outfile = open("%s.%s.sh" % ('.'.join(args.output_script_name.split('.')[:-1]), "train_group"), "wb")
         predict_group_outfile = open("%s.%s.sh" % ('.'.join(args.output_script_name.split('.')[:-1]), "predict_group"), "wb")
         results2pairs_group_outfile = open("%s.%s.sh" % ('.'.join(args.output_script_name.split('.')[:-1]), "results2pairs_group"), "wb")
+    else:
+        outfile = open(args.output_script_name,"wb")
 
     for i in xrange(len(args.train_files)):
         train_file = args.train_files[i]
