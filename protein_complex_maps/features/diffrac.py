@@ -240,7 +240,7 @@ def calc_sliding_zscore(feat_df, window=100, use_gmm=False, min_weight_threshold
         i_abnd = feat_df.ix[id1]['mean_abundance']
         #kdrew: entries greater than current id
         if 'annotated' in feat_df.columns:
-            gt_entries = feat_df.query("~annotated and (mean_abundance > %s)" % i_abnd).sort_values('mean_abundance')['mean_abundance']
+            gt_entries = feat_df.query("~annotated and (mean_abundance >= %s)" % i_abnd).sort_values('mean_abundance')['mean_abundance']
             lt_entries = feat_df.query("~annotated and (mean_abundance < %s)" % i_abnd).sort_values('mean_abundance', ascending=False)['mean_abundance']
         else:
             print "WARNING: Couldn't find column 'annotated', using all rows for distribution"
