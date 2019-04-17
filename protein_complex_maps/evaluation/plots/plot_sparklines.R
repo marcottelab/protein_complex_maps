@@ -10,6 +10,8 @@ suppressPackageStartupMessages(library(cowplot))
 
 suppressPackageStartupMessages(library(argparse))
 
+
+print("plot_sparklines script: (use clusters_multipleelutions_rna.R to plot DIFFRAC sparklines)")
 # create parser object
 parser <- ArgumentParser()
 # specify our desired options
