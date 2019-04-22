@@ -15,7 +15,7 @@ from sklearn.metrics import average_precision_score
 
 from matplotlib import rcParams
 rcParams.update({'figure.autolayout': True})
-rcParams.update({'grid': False})
+#rcParams.update({'grid': False})
 mpl.rc('pdf', fonttype=42)
 import seaborn as sns
 sns.set_style("white")
@@ -35,29 +35,38 @@ def main():
                                     help="End time (min) fractions stop being collected, (example 75.0)")
     parser.add_argument("--collection_period", action="store", type=float, dest="collection_period", required=False, default=None,
                                     help="Time period (min) fractions are collected for (example: .75 for 45 secs")
-    parser.add_argument("--colors", action="store", dest="colors", nargs='+', required=False, default=["black","red","green","orange"],
+    parser.add_argument("--normalize", action="store_true", dest="normalize", required=False, default=False,
+                                    help="Normalize individual chromatograms to max value = 1.0, default = False")
+    parser.add_argument("--colors", action="store", dest="colors", nargs='+', required=False, default=["black","red","green","orange","pink","purple"],
                                     help="Colors to use for plotting, default=(black red green orange)")
     parser.add_argument("--ignore_lines", action="store", type=int, dest="ignore_lines", required=False, default=38,
                                     help="Number of top non-data lines to ignore in Chromeleon file. default=38")
 
     args = parser.parse_args()
 
-    #kdrew: update here 04/18/19
-
-    chromatogram_file_dict = dict()
+    chromatogram_file_list = []
     for i, filename in enumerate(args.chromatogram_files):
 
         df = pd.read_csv(filename, header=args.ignore_lines, sep='\t', thousands=',')
+        df['Normalized Value'] = df['Value (mAU)'] / df['Value (mAU)'].max()
 
+        chromatogram_file_list.append(df)
+
+    value_col_name = "Value (mAU)"
+    if args.normalize:
+        value_col_name = "Normalized Value"
+
+    for i, df in enumerate(chromatogram_file_list):
+
+        #kdrew: color is chosen based on a itertools slice of a cycle which looks a little hacky, surprised there isn't a more elegant solution
+        color = [j for j in it.islice(it.cycle(args.colors),0,len(chromatogram_file_list))][i]
+
+        label = args.chromatogram_files[i]
         if args.labels != None and len(args.labels) == len(args.chromatogram_files):
-            chromatogram_file_dict[args.labels[i]] = df
-        else:
-            chromatogram_file_dict[filename] = df
+            label = args.labels[i]
 
-
-
-    for i, label in enumerate(chromatogram_file_dict.keys()):
-        ax = sns.lineplot(x="Time (min)", y="Value (mAU)", data=chromatogram_file_dict[label], color=it.cycle(args.colors)[i], label=label)
+        #kdrew: plot chromatogram line from dataframe
+        ax = sns.lineplot(x="Time (min)", y=value_col_name, data=df, color=color, label=args.labels[i])
 
     #kdrew: set axis for fraction numbers
     if args.start_collecting != None or args.stop_collecting != None or args.collection_period != None:
@@ -68,15 +77,10 @@ def main():
         ax3.set_xticklabels(range(len(fraction_mins))[::10])
         ax3.set_xlabel("Fractions")
 
+    if args.normalize:
+        plt.ylim(-0.1,1.1)
 
     plt.legend(loc="upper right",fontsize=8)
-
-    #plt.xlabel('Recall')
-    #plt.ylabel('Precision')
-    #plt.ylim([0.0, 1.05])
-    #plt.xlim([0.0, 1.0])
-    ##plt.title('Precision-Recall example: AUC={0:0.2f}'.format(average_precision))
-    #plt.title('Precision-Recall')
 
     plt.savefig(args.output_file)
 
