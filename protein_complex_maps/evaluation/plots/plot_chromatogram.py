@@ -39,6 +39,10 @@ def main():
                                     help="Normalize individual chromatograms to max value = 1.0, default = False")
     parser.add_argument("--colors", action="store", dest="colors", nargs='+', required=False, default=["black","red","green","orange","pink","purple"],
                                     help="Colors to use for plotting, default=(black red green orange)")
+    parser.add_argument("--standard_time", action="store", dest="standard_time", nargs='+', required=False, default=[],
+                                    help="Retention time of standards run on column, example = '22.796667 31.836667 35.333333 37.683333 38.950000 39.930000 43.093333', default = ''")
+    parser.add_argument("--standard_mass", action="store", dest="standard_mass", nargs='+', required=False, default=[],
+                                    help="Sizes of standards run on column, example = '2000 669 443 200 150 66 29', default = ''")
     parser.add_argument("--ignore_lines", action="store", type=int, dest="ignore_lines", required=False, default=38,
                                     help="Number of top non-data lines to ignore in Chromeleon file. default=38")
 
@@ -66,7 +70,7 @@ def main():
             label = args.labels[i]
 
         #kdrew: plot chromatogram line from dataframe
-        ax = sns.lineplot(x="Time (min)", y=value_col_name, data=df, color=color, label=args.labels[i])
+        ax = sns.lineplot(x="Time (min)", y=value_col_name, data=df, color=color, label=label)
 
     #kdrew: set axis for fraction numbers
     if args.start_collecting != None or args.stop_collecting != None or args.collection_period != None:
@@ -77,8 +81,15 @@ def main():
         ax3.set_xticklabels(range(len(fraction_mins))[::10])
         ax3.set_xlabel("Fractions")
 
+
+    std_times = [float(x) for x in args.standard_time]
+    for i,x in enumerate(std_times):
+        ax.axvline(x, color="black", ls='dashed', alpha=0.5, linewidth=0.5)
+        ax.annotate(args.standard_mass[i], xy=(x, 1.12), xycoords='data', xytext=(-2.5, 0.0), textcoords='offset points', ha="center", rotation=90, fontsize=6,)
+
+
     if args.normalize:
-        plt.ylim(-0.1,1.1)
+        plt.ylim(-0.1,1.18)
 
     plt.legend(loc="upper right",fontsize=8)
 
