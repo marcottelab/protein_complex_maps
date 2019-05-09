@@ -1,4 +1,5 @@
 
+import os
 import argparse
 import numpy as np
 import multiprocessing as mp
@@ -58,6 +59,9 @@ def main():
     compare2goldstandard_input_list = []
 
     for i, cluster_filename in enumerate(args.cluster_filenames):
+
+        if os.stat(cluster_filename).st_size == 0:
+            continue
 
         parameter_dict = dict()
         parameter_dict['cluster_filename'] = cluster_filename
