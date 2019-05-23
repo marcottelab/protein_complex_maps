@@ -10,8 +10,8 @@ import pickle
 import pandas as pd
 import itertools as it
 
-from sklearn.metrics import precision_recall_curve
-from sklearn.metrics import average_precision_score
+#from sklearn.metrics import precision_recall_curve
+#from sklearn.metrics import average_precision_score
 
 from matplotlib import rcParams
 rcParams.update({'figure.autolayout': True})
