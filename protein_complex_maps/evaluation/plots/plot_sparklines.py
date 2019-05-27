@@ -88,12 +88,27 @@ def main():
         for j, label in enumerate(file_dict.keys()):
             if args.parse_fraction_name != None:
                 x = [int(c.split(args.fraction_name_sep)[args.parse_fraction_name.index('fraction')]) for c in df.columns]
-            axarr[i].plot(x,file_dict[label].loc[uid].values, color=list(it.islice(it.cycle(args.colors),j+1))[j], label=label)
-            #ax = sns.lineplot(x="Time (min)", y="Value (mAU)", data=file_dict[label], color=it.cycle(args.colors)[i], label=label)
 
-        genename = annotations_table.loc[uid][args.id_column]
-        axarr[i].set_ylabel(genename, rotation=0, y=1.08)
-        axarr[i].get_yaxis().set_ticks([])
+            try:
+                try:
+                    axarr[i].plot(x,file_dict[label].loc[uid].values, color=list(it.islice(it.cycle(args.colors),j+1))[j], label=label)
+                except TypeError:
+                    axarr.plot(x,file_dict[label].loc[uid].values, color=list(it.islice(it.cycle(args.colors),j+1))[j], label=label)
+                #ax = sns.lineplot(x="Time (min)", y="Value (mAU)", data=file_dict[label], color=it.cycle(args.colors)[i], label=label)
+            except KeyError:
+                continue
+
+
+        try:
+            genename = annotations_table.loc[uid][args.id_column]
+        except KeyError:
+            genename = uid
+        try:
+            axarr[i].set_ylabel(genename, rotation=0, y=1.08)
+            axarr[i].get_yaxis().set_ticks([])
+        except TypeError:
+            axarr.set_ylabel(genename, rotation=0, y=1.08)
+            axarr.get_yaxis().set_ticks([])
 
     sns.despine( left=True, bottom=True)
 
