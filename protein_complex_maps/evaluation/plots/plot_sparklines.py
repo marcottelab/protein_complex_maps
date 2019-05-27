@@ -57,9 +57,15 @@ def main():
 
         if args.labels != None and len(args.labels) == len(args.filenames):
             file_dict[args.labels[i]] = df
+        elif args.parse_fraction_name != None:
+            #kdrew: parse the column name to get the condition as label
+            file_dict[df.columns[0].split(args.fraction_name_sep)[args.parse_fraction_name.index('condition')]] = df
         else:
+            #kdrew: default to the filename as label
             file_dict[filename] = df
 
+
+        #kdrew: find max number of fractions
         linspace_max = max(linspace_max, df.shape[1]) 
 
 
@@ -78,6 +84,8 @@ def main():
         x = np.linspace(1,linspace_max,num=linspace_max)
         #print x
         for j, label in enumerate(file_dict.keys()):
+            if args.parse_fraction_name != None:
+                x = [int(c.split(args.fraction_name_sep)[args.parse_fraction_name.index('fraction')]) for c in df.columns]
             axarr[i].plot(x,file_dict[label].loc[uid].values, color=list(it.islice(it.cycle(args.colors),j+1))[j], label=label)
             #ax = sns.lineplot(x="Time (min)", y="Value (mAU)", data=file_dict[label], color=it.cycle(args.colors)[i], label=label)
 
@@ -85,7 +93,7 @@ def main():
         axarr[i].set_ylabel(genename, rotation=0, y=1.08)
         axarr[i].get_yaxis().set_ticks([])
 
-    sns.despine( left=True)
+    sns.despine( left=True, bottom=True)
 
     plt.legend(loc="upper right",fontsize=8)
 
