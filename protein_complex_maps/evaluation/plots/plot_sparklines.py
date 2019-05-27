@@ -1,4 +1,6 @@
 
+#kdrew: partial original code from ipython notebook: HEK293T_SEC_cntl_RNaseA
+
 import numpy as np
 import matplotlib as mpl
 mpl.use('Agg')
