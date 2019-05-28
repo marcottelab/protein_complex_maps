@@ -46,6 +46,10 @@ def main():
                                     help="Column id of annotations index (ex. uniprot ACC), default = 0")
     parser.add_argument("--old_elut_format", action="store_true", dest="old_elut_format", required=False, default=False,
                                     help="Input elut files are of the old depricated format, default=False")
+    parser.add_argument("--standard_fractions", action="store", dest="standard_fractions", nargs='+', required=False, default=[],
+                                    help="Fraction index of standards run on column, example = '18 30 34 37 39 40 45', default = ''")
+    parser.add_argument("--standard_mass", action="store", dest="standard_mass", nargs='+', required=False, default=[],
+                                    help="Sizes of standards run on column, example = '2000 669 443 200 150 66 29', default = ''")
 
     args = parser.parse_args()
 
@@ -81,23 +85,37 @@ def main():
             if uid in file_dict[label].index and uid not in uids: 
                 uids.append(uid)
 
+    std_fractions = [float(x) for x in args.standard_fractions]
     f, axarr = plt.subplots(len(uids), sharex=True)
     for i, uid in enumerate(uids):
         x = np.linspace(1,linspace_max,num=linspace_max)
         #print x
+        max_val = max([max(file_dict[label].loc[uid].values) for label in file_dict.keys()])
         for j, label in enumerate(file_dict.keys()):
             if args.parse_fraction_name != None:
                 x = [int(c.split(args.fraction_name_sep)[args.parse_fraction_name.index('fraction')]) for c in df.columns]
 
+            #kdrew: try to see if id is in data frame
             try:
+                #kdrew: try to plot multiple axes
                 try:
                     axarr[i].plot(x,file_dict[label].loc[uid].values, color=list(it.islice(it.cycle(args.colors),j+1))[j], label=label)
+                    #kdrew: only annotate with standards on the first plot
+                    if j == 0:
+                        for k, std_frac in enumerate(std_fractions):
+                            axarr[i].axvline(std_frac, color="black", ls='dashed', alpha=0.5, linewidth=0.5)
+                            if i == 0:
+                                axarr[i].annotate(args.standard_mass[k], xy=(std_frac, max_val), xycoords='data', xytext=(-2.5, 0.0), textcoords='offset points', ha="center", rotation=90, fontsize=6,)
                 except TypeError:
                     axarr.plot(x,file_dict[label].loc[uid].values, color=list(it.islice(it.cycle(args.colors),j+1))[j], label=label)
+                    #kdrew: only annotate with standards on the first plot
+                    if j == 0:
+                        for k,std_frac  in enumerate(std_fractions):
+                            axarr.axvline(std_frac, color="black", ls='dashed', alpha=0.5, linewidth=0.5)
+                            axarr.annotate(args.standard_mass[k], xy=(std_frac, max_val+(max_val*0.01)), xycoords='data', xytext=(-2.5, 0.0), textcoords='offset points', ha="center", rotation=90, fontsize=6,)
                 #ax = sns.lineplot(x="Time (min)", y="Value (mAU)", data=file_dict[label], color=it.cycle(args.colors)[i], label=label)
             except KeyError:
                 continue
-
 
         try:
             genename = annotations_table.loc[uid][args.id_column]
@@ -110,9 +128,18 @@ def main():
             axarr.set_ylabel(genename, rotation=0, y=1.08)
             axarr.get_yaxis().set_ticks([])
 
-    sns.despine( left=True, bottom=True)
+    #kdrew: remove xticks
+    try:
+        for i in range(len(axarr)):
+            axarr[i].set_xticks([])
+    except TypeError:
+            axarr.set_xticks([])
+    
+    sns.despine( left=True, bottom=True )
 
     plt.legend(loc="upper right",fontsize=8)
+
+
 
     plt.savefig(args.output_filename)
 
