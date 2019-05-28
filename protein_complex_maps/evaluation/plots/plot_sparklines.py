@@ -90,7 +90,10 @@ def main():
     for i, uid in enumerate(uids):
         x = np.linspace(1,linspace_max,num=linspace_max)
         #print x
-        max_val = max([max(file_dict[label].loc[uid].values) for label in file_dict.keys()])
+        try:
+            max_val = max([max(file_dict[label].loc[uid].values) for label in file_dict.keys()])
+        except KeyError:
+            continue
         for j, label in enumerate(file_dict.keys()):
             if args.parse_fraction_name != None:
                 x = [int(c.split(args.fraction_name_sep)[args.parse_fraction_name.index('fraction')]) for c in df.columns]
