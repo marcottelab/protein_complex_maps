@@ -131,9 +131,11 @@ def main():
     #kdrew: remove xticks
     try:
         for i in range(len(axarr)):
-            axarr[i].set_xticks([])
+            #axarr[i].set_xticks([])
+            axarr[i].tick_params(axis=u'both', which=u'both',length=0)
     except TypeError:
-            axarr.set_xticks([])
+            #axarr.set_xticks([])
+            axarr.tick_params(axis=u'both', which=u'both',length=0)
     
     sns.despine( left=True, bottom=True )
 
