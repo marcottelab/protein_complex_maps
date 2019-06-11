@@ -18,17 +18,17 @@ from wtforms.fields import StringField, SubmitField
 from model import InputForm
 from compute import compute
 from flask import make_response
-from lineplot import make_protein_sparklines
+#from lineplot import make_protein_sparklines
 from validate_query import valid_query
 from get_species import identify_species
 from get_groups_from_prots import get_groups
 from make_conv_tables import make_conversion_tables
-from get_distributions import sampling_process, run_process, annotate_nodes
-import plot_corum_dists as pcd
+#from get_distributions import sampling_process, run_process, annotate_nodes
+#import plot_corum_dists as pcd
 
 
-from bokeh.resources import INLINE
-from bokeh.util.string import encode_utf8
+#from bokeh.resources import INLINE
+#from bokeh.util.string import encode_utf8
 
 #PLOT_OPTIONS = dict(plot_width=800, plot_height=300)
 #SCATTER_OPTIONS = dict(size=12, alpha=0.5)
