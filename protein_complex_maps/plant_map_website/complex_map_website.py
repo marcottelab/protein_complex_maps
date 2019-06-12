@@ -122,7 +122,8 @@ def displayComplexesForOrthogroupID():
                       print(hiersel.orthogroups[2].OrthogroupID)
                       print(hiersel.orthogroups[3].OrthogroupID)
                       for j in range(len(hiersel.orthogroups)):
-                              pring(j)
+                              print(j)
+                              print(hiersel.orthogroups[j].OrthogroupID)
                 
                    #holding the four sets of clusters like this seems not great, but go for now
                 #for i in ['clustid_1' , 'clustid_2', 'clustid_3', 'clustid_4']:
