@@ -59,8 +59,8 @@ class Protein(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     ProteinID = db.Column(db.String(63))
     Spec = db.Column(db.String(63))
-
-
+    orthogroups = db.relationship('Orthogroup', secondary = 'orthogroup_protein_mapping', backref = db.backref('Proteins'), lazy = 'select') # or 'lazy = 'dynamic'
+ 
 #class Edge(db.Model):
 #    """A orthogroup orthogroup edge"""
 #    id = db.Column(db.Integer, primary_key=True)

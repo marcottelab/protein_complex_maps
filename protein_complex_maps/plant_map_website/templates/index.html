@@ -64,7 +64,7 @@
             <caption>{{ comp.clustid_set}}</caption>
             <thead>
             <tr>
-                <th>{{ comp.clustid_set }}</th>
+                <th>OrthogroupID</th>
                 <th>Complexes</th>
                 <th>Protein Name</th>
                 <th>Links</th>
@@ -74,8 +74,6 @@
             {% for prot in comp.orthogroups %}
 
                 <tr>
-                    <td>{{ comp.clustid_set }}</td>
-                    <td>{{ prot }}</td>
                     <td>{{ prot.OrthogroupID }}</td>
                     <td>
                         <!--

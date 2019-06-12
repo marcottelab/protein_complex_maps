@@ -114,17 +114,13 @@ def displayComplexesForOrthogroupID():
                 # Loop through displaying each 
                 complexes = orthogroup_clusters.hiercomplexes
                 print("complexes", complexes)
-                #for i in range(len(orthogroup_clusters.hiercomplexes)):
-                #      hiersel = orthogroup_clusters.hiercomplexes[i]
-                for prot in orthogroup_clusters.hiercomplexes:
-                      print(prot)
-                      print(dir(prot))                            
-                      for bla in prot.orthogroups:
-                             print(bla.OrthogroupID)
+                #Keep for trouble shooting syntax
+                #for prot in orthogroup_clusters.hiercomplexes:
+                #      print(prot)
+                #      print(dir(prot))                            
+                #      for bla in prot.orthogroups:
+                #             print(bla.OrthogroupID)
                              
-
-                      #for j in range(len(hiersel.orthogroups)):
-                      #        print(hiersel.orthogroups[j].OrthogroupID)
                 
 
 
