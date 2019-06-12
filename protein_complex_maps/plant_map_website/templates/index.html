@@ -59,11 +59,12 @@
     <ul>
 
     {% for comp in complexes %}
-        <h3>Complex: {{ comp.clustid_set }} </h3>
+        <!--<h2>Complex: {{ comp.clustid_set }}</h2>-->
         <table class="table table-striped">
+            <caption>{{ comp.clustid_set}}</caption>
             <thead>
             <tr>
-                <th>Genename</th>
+                <th>{{ comp.clustid_set }}</th>
                 <th>Complexes</th>
                 <th>Protein Name</th>
                 <th>Links</th>
