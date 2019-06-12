@@ -37,7 +37,7 @@ class Hiercomplex(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     clustid = db.Column(db.Integer, unique = False)
     clustid_set = db.Column(db.String(63))
-    orthogroups = db.relationship('Orthogroup', secondary = 'orthogroup_complex_mapping', backref = db.backref('hiercomplexes'), lazy = 'dynamic')
+    orthogroups = db.relationship('Orthogroup', secondary = 'orthogroup_complex_mapping', backref = db.backref('hiercomplexes'), lazy = 'select') # or 'lazy = 'dynamic'
   
 
 #class Conversion(db.Model):
