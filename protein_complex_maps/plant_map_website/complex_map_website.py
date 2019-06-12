@@ -91,7 +91,7 @@ def displayComplexesForOrthogroupID():
         return render_template('index.html', form = form, complexes = [], error = error)
 
 
-    #complexes = []
+    complexes = []
     for OrthogroupID in OrthogroupIDs: 
         #try:
         #    proteins = db.session.query(cdb.Protein).filter((cdb.Protein.gene_id == gene.gene_id)).all()
@@ -105,67 +105,33 @@ def displayComplexesForOrthogroupID():
         #for protein in proteins:
             try:
                 print("troubleshooting start")
-                #print(OrthogroupID)
                 print(dir(OrthogroupID))
-                #print(OrthogroupID.id)
     
                 orthogroup_clusters = (db.session.query(cdb.Orthogroup).filter(cdb.Orthogroup.id == OrthogroupID.id)).first()
+                print(dir(orthogroup_clusters))
+                # Can get hier complexes associated with an orthogroup ID, 
+                # Then get member proteins of each cluster level
+                # Loop through displaying each 
+                complexes = orthogroup_clusters.hiercomplexes
+                print("complexes", complexes)
+                #for i in range(len(orthogroup_clusters.hiercomplexes)):
+                #      hiersel = orthogroup_clusters.hiercomplexes[i]
+                for prot in orthogroup_clusters.hiercomplexes:
+                      print(prot)
+                      print(dir(prot))                            
+                      for bla in prot.orthogroups:
+                             print(bla.OrthogroupID)
+                             
 
-                #Can pull four complexes orthogroup is in
-                #But can I pull all orthogroups in each complex?
-                for i in range(len(orthogroup_clusters.hiercomplexes)):
-                      hiersel = orthogroup_clusters.hiercomplexes[i]
-                      print(hiersel.clustid, hiersel.clustid_set)
-                      print(dir(hiersel.orthogroups))
-                      print(hiersel.orthogroups[0].OrthogroupID)
-                      print(hiersel.orthogroups[1].OrthogroupID)
-                      print(hiersel.orthogroups[2].OrthogroupID)
-                      print(hiersel.orthogroups[3].OrthogroupID)
-                      for j in range(len(hiersel.orthogroups)):
-                              print(j)
-                              print(hiersel.orthogroups[j].OrthogroupID)
+                      #for j in range(len(hiersel.orthogroups)):
+                      #        print(hiersel.orthogroups[j].OrthogroupID)
                 
-                   #holding the four sets of clusters like this seems not great, but go for now
-                #for i in ['clustid_1' , 'clustid_2', 'clustid_3', 'clustid_4']:
-                
-                print(breakhere)
-                print(dir(OrthogroupID.hiercomplexes))
-                #Just getting the first orthogroup
-                newquery = db.session.query(cdb.Hiercomplex).filter(cdb.Hiercomplex.id == hier_sel.id).all()
-                for x in newquery:
-                       print(dir(x))
-                       print(x.orthogroups)
-                       print(x.orthogroups[0])
-                       print(dir(x.orthogroups[0]))
-                       print(x.orthogroups[0].OrthogroupID)
-                print(stop)
-                #Get associated orthogroupIDs with heircomplex ID.
-
-                #print(stop)
-                #print(dir(db.session.query(cdb.Hiercomplex)))
-                #xs = db.session.query(cdb.Hiercomplex).filter(cdb.Hiercomplex.orthogroup_key == Orthogroup.id).limit(5).all()
-                #for row in xs:
-                #    print(row)
-                #print(nope)
-                #ortho_hier_mapping = db.session.query(cdb.OrthogroupComplexMapping).filter((cdb.OrthogroupComplexMapping.orthogroup_key == OrthogroupID.id)).first()
-              
-                #clusters = db.session.query(cdb.Hiercomplex).filter((cdb.Hiercomplex.id == ortho_hier_mapping.hiercomplex_key)).first()
-                #print(nah)
-                #print(dir(clusters)) 
-                #'clustid_1', 'clustid_2', 'clustid_3', 'clustid_4' 
-                #complexes = complexes + OrthogroupID.complexes
-                #print(clusters.clustid_1, clusters.clustid_2, clusters.clustid_3, clusters.clustid_4)
-                #complexes = [clusters.clustid_1, clusters.clustid_2, clusters.clustid_3, clusters.clustid_4]
-
-                #for level in complexes:
-                #      print(level)
-                      
 
 
             except NoResultFound:
                 continue
 
-    if len(complexes) == 0:
+    if len(orthogroup_clusters.hiercomplexes) == 0:
         error = "No complexes found for given virNOG orthogroup ID: %s" % OrthogroupID
 
     #complexes = list(set(complexes))
