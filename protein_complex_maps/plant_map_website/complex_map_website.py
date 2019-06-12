@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import random
 from bs4 import BeautifulSoup
 from collections import OrderedDict
@@ -14,17 +15,14 @@ app = cdb.get_app()
 #from flask.ext.wtf import Form
 from flask_wtf import Form
 from wtforms.fields import StringField, SubmitField
-#testing viz
-from model import InputForm
-from compute import compute
 from flask import make_response
-#from lineplot import make_protein_sparklines
-from validate_query import valid_query
-from get_species import identify_species
-from get_groups_from_prots import get_groups
-from make_conv_tables import make_conversion_tables
-#from get_distributions import sampling_process, run_process, annotate_nodes
-#import plot_corum_dists as pcd
+#from scripts.lineplot import make_protein_sparklines
+#from scripts.validate_query import valid_query
+#from scripts.get_species import identify_species
+#from scripts.get_groups_from_prots import get_groups
+#from scripts.make_conv_tables import make_conversion_tables
+#from scripts.get_distributions import sampling_process, run_process, annotate_nodes
+#import scripts.plot_corum_dists as pcd
 
 
 #from bokeh.resources import INLINE
@@ -57,10 +55,9 @@ def getitems(obj, item, default):
 
 
 class SearchForm(Form):
-    complex_id = StringField(u'Complex ID:')
-    genename = StringField(u'Gene Name (ex. OFD1):')
-    enrichment = StringField(u'Enrichment (ex. cilium):')
-    protein = StringField(u'Protein (ex. Centrosomal protein):')
+    OrthogroupID = StringField(u'virNOG ID ex: ENOG411DWGM :')
+    ProteinID = StringField(u'Protein ID ex. F4KCR6 Q0DTU0_ORYSJ AT4G01395')
+    #enrichment = StringField(u'Enrichment (ex. cilium):')
     submit = SubmitField(u'Search')
 
 from flask import render_template
@@ -69,77 +66,98 @@ from flask import url_for, redirect, request, jsonify
 
 @app.route("/")
 def root(complexes=[]):
-    print complexes
+    print(complexes)
     #complexes = cdb.Complex.query.all()
     form = SearchForm()
     return render_template('index.html', form=form, complexes=complexes)
 
-@app.route("/displayComplexesForGeneName")
-def displayComplexesForGeneName():
-    genename = request.args.get('genename')
+
+
+
+@app.route("/displayComplexesForOrthogroupID")
+def displayComplexesForOrthogroupID():
+    OrthogroupID = request.args.get('OrthogroupID')
     form = SearchForm()
     #kdrew: do error checking
     error=None
 
-    #kdrew: tests to see if genename is a valid genename
-    #protein = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.genename) == func.upper(genename))).one()
-    genes = db.session.query(cdb.Gene).filter((func.upper(cdb.Gene.genename) == func.upper(genename))).all()
+    #kdrew: tests to see if orthogroup is a valid orthogroup ID
+    OrthogroupIDs = db.session.query(cdb.Orthogroup).filter((func.upper(cdb.Orthogroup.OrthogroupID) == func.upper(OrthogroupID))).all()
 
-    if len(genes) == 0:
+    if len(OrthogroupIDs) == 0:
         #kdrew: input genename is not valid, flash message
-        error = "Could not find given genename: %s" % genename
+        error = "Could not find given virNOG orthogroup ID: %s" % OrthogroupID
 
-        return render_template('index.html', form=form, complexes=[], error=error)
+        return render_template('index.html', form = form, complexes = [], error = error)
 
 
-    complexes = []
-    for gene in genes:
-        try:
-            proteins = db.session.query(cdb.Protein).filter((cdb.Protein.gene_id == gene.gene_id)).all()
-
-        except NoResultFound:
-            #kdrew: input genename is not valid, flash message
-            error = "Could not find given genename: %s" % genename
-
-            return render_template('index.html', form=form, complexes=[], error=error)
-
-        for protein in proteins:
+    #complexes = []
+    for OrthogroupID in OrthogroupIDs: 
+        #try:
+        #    proteins = db.session.query(cdb.Protein).filter((cdb.Protein.gene_id == gene.gene_id)).all()
+        #
+        #except NoResultFound:
+        #    #kdrew: input genename is not valid, flash message
+        #    error = "Could not find given genename: %s" % genename
+        #
+        #    return render_template('index.html', form=form, complexes=[], error=error)
+        #
+        #for protein in proteins:
             try:
-                complexes = complexes + protein.complexes
+                #print(OrthogroupID)
+                print(dir(OrthogroupID))
+                print(OrthogroupID.id)
+    
+                # Two step solution
+                # Need to get one step fix            
+                ortho_hier_mapping = db.session.query(cdb.OrthogroupComplexMapping).filter((cdb.OrthogroupComplexMapping.orthogroup_key == OrthogroupID.id)).first()
+              
+                clusters = db.session.query(cdb.Hiercomplex).filter((cdb.Hiercomplex.id == ortho_hier_mapping.hiercomplex_key)).first()
+                print(dir(clusters)) 
+                #'clustid_1', 'clustid_2', 'clustid_3', 'clustid_4' 
+                #complexes = complexes + OrthogroupID.complexes
+                print(clusters.clustid_1, clusters.clustid_2, clusters.clustid_3, clusters.clustid_4)
+                complexes = [clusters.clustid_1, clusters.clustid_2, clusters.clustid_3, clusters.clustid_4]
+
+                for level in complexes:
+                      print(level)
+                      
+                print(nah)
+
             except NoResultFound:
                 continue
 
     if len(complexes) == 0:
-        error = "No complexes found for given genename: %s" % genename
+        error = "No complexes found for given virNOG orthogroup ID: %s" % OrthogroupID
 
-    complexes = list(set(complexes))
+    #complexes = list(set(complexes))
 
-    return render_template('index.html', form=form, complexes=complexes, error=error)
+    return render_template('index.html', form = form, complexes = complexes, error = error)
 
-@app.route("/displayComplexesForEnrichment")
-def displayComplexesForEnrichment():
-    enrichment = request.args.get('enrichment')
-    form = SearchForm()
-    error=None
-    #print enrichment
-    #kdrew: do error checking
-    try:
-        enrichment_complex_keys_query = db.session.query(cdb.ComplexEnrichment.complex_key).filter(
-                    ( cdb.ComplexEnrichment.t_name.like('%'+enrichment+'%')) | (cdb.ComplexEnrichment.term_id.like('%'+enrichment+'%' ) ) )
-        enrichment_complex_keys = enrichment_complex_keys_query.all()
-        enrichment_complex_keys_set = set([x[0] for x in enrichment_complex_keys])
-        if len(enrichment_complex_keys_set) == 0:
-            complexes = []
-        else:
-            complexes = db.session.query(cdb.Complex).filter(cdb.Complex.id.in_(enrichment_complex_keys_set)).all()
-    except NoResultFound:
-        complexes = []
-
-    if len(complexes) == 0:
-        error = "No complexes found for given enrichment term: %s" % enrichment
-
-    return render_template('index.html', form=form, complexes=complexes, error=error)
-
+#@app.route("/displayComplexesForEnrichment")
+#def displayComplexesForEnrichment():
+#    enrichment = request.args.get('enrichment')
+#    form = SearchForm()
+#    error=None
+#    #print enrichment
+#    #kdrew: do error checking
+#    try:
+#        enrichment_complex_keys_query = db.session.query(cdb.ComplexEnrichment.complex_key).filter(
+#                    ( cdb.ComplexEnrichment.t_name.like('%'+enrichment+'%')) | (cdb.ComplexEnrichment.term_id.like('%'+enrichment+'%' ) ) )
+#        enrichment_complex_keys = enrichment_complex_keys_query.all()
+#        enrichment_complex_keys_set = set([x[0] for x in enrichment_complex_keys])
+#        if len(enrichment_complex_keys_set) == 0:
+#            complexes = []
+#        else:
+#            complexes = db.session.query(cdb.Complex).filter(cdb.Complex.id.in_(enrichment_complex_keys_set)).all()
+#    except NoResultFound:
+#        complexes = []
+#
+#    if len(complexes) == 0:
+#        error = "No complexes found for given enrichment term: %s" % enrichment
+#
+#    return render_template('index.html', form=form, complexes=complexes, error=error)
+#
 @app.route("/displayComplexesForProtein")
 def displayComplexesForProtein():
     protein_search = request.args.get('protein')
@@ -187,16 +205,15 @@ def searchComplexes():
     form = SearchForm()
     complexes = []
     if form.validate_on_submit():
-        if len(form.genename.data) > 0:
-            return redirect(url_for('displayComplexesForGeneName', genename=form.genename.data))
-        elif len(form.enrichment.data) > 0:
-            return redirect(url_for('displayComplexesForEnrichment', enrichment=form.enrichment.data))
-        elif len(form.protein.data) > 0:
-            return redirect(url_for('displayComplexesForProtein', protein=form.protein.data))
+        if len(form.OrthogroupID.data) > 0:
+            return redirect(url_for('displayComplexesForOrthogroupID', OrthogroupID = form.OrthogroupID.data))
+        elif len(form.ProteinID.data) > 0:
+            return redirect(url_for('displayComplexesForProteinID', ProteinID = form.ProteinID.data))
 
 
     #kdrew: added hoping it would fix redirect problem on stale connections
-    return render_template('index.html', form=form, complexes=complexes)
+    return render_template('index.html', form = form, complexes = complexes)
+
 
 
 #testing viz

@@ -38,19 +38,13 @@
     {% endif %}
     -->
 
-    
-
-
 
     <form method="POST" action="/search">
         {{ form.hidden_tag() }}
-        {{ form.genename.label }} {{ form.genename(size=50) }}
+        {{ form.ProteinID.label }} {{ form.ProteinID(size=50) }}
         <br>
         <br>
-        {{ form.enrichment.label }} {{ form.enrichment(size=50) }}
-        <br/>
-        <br/>
-        {{ form.protein.label }} {{ form.protein(size=50) }}
+        {{ form.OrthogroupID.label }} {{ form.OrthogroupID(size=50) }}
         <br/>
         <br/>
         {{ form.submit }}
@@ -65,7 +59,7 @@
     <ul>
 
     {% for comp in complexes %}
-        <h3>Complex: {{ comp.complex_link()|safe }} </h3>
+        <h3>Complex: {{ comp |safe }} </h3>
         <h3>Proteins:</h3>
         <table class="table table-striped">
             <thead>
@@ -90,7 +84,6 @@
                         {% endfor %}
                     </td>
                     <td> {{prot.proteinname}}</td>
-                    <td>{{ prot.uniprot_link()|safe }} &nbsp {{ prot.ncbi_link()|safe }}</td>
                 </tr>
             {% else %}
                 <em> No proteins</em>

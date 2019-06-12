@@ -41,35 +41,42 @@ class Hiercomplex(db.Model):
     clustid_4 = db.Column(db.Integer, unique = False)
    
 
-class Conversion(db.Model):
-    """A mapping between different OrthogroupID types"""
-    id = db.Column(db.Integer, primary_key=True)
-    OrthogroupID = db.Column(db.String(63))
-    Spec = db.Column(db.String(63))
-    ProteinID = db.Column(db.String(63)) 
+#class Conversion(db.Model):
+#    """A mapping between different OrthogroupID types"""
+#    id = db.Column(db.Integer, primary_key=True)
+#    OrthogroupID = db.Column(db.String(63))
+#    Spec = db.Column(db.String(63))
+#    ProteinID = db.Column(db.String(63)) 
 
 class Orthogroup(db.Model):
     """A single group"""
     id = db.Column(db.Integer, primary_key=True)
     OrthogroupID = db.Column(db.String(63))
-    #complexes = db.relationship('Complex', secondary='protein_complex_mapping',  back_populates='groups', lazy='dynamic')
+    #complexes = db.relationship('Hiercomplex', secondary = 'OrthogroupComplexMapping',  back_populates='groups', lazy='dynamic')
+
+class Protein(db.Model):
+    """A single group"""
+    id = db.Column(db.Integer, primary_key=True)
+    ProteinID = db.Column(db.String(63))
+    Spec = db.Column(db.String(63))
+
 
 #class Edge(db.Model):
-#    """A group group edge"""
+#    """A orthogroup orthogroup edge"""
 #    id = db.Column(db.Integer, primary_key=True)
-#    OrthogroupID_key = db.Column(db.Integer, db.ForeignKey('group.id') )
-#    OrthogroupID_key2 = db.Column(db.Integer, db.ForeignKey('group.id') )
+#    OrthogroupID_key = db.Column(db.Integer, db.ForeignKey('orthogroup.id') )
+#    OrthogroupID_key2 = db.Column(db.Integer, db.ForeignKey('orthogroup.id') )
 #    in_complex = db.Column(db.Integer)
 #    score =db.Column(db.Float)
 #
 #    evidences = db.relationship('Evidence', lazy='dynamic')
-#    #group_key_genename = db.relationship('Edge', primaryjoin='Edge.group_key'=='Conversion.genename', foreign_keys='Conversion.genename')
-#    #group_key2_genename = db.relationship('Edge', primaryjoin='Edge.group_key2'=='Conversion.genename', foreign_keys='Conversion.genename')
+#    #orthogroup_key_genename = db.relationship('Edge', primaryjoin='Edge.orthogroup_key'=='Conversion.genename', foreign_keys='Conversion.genename')
+#    #orthogroup_key2_genename = db.relationship('Edge', primaryjoin='Edge.orthogroup_key2'=='Conversion.genename', foreign_keys='Conversion.genename')
 #
-#    def get_groups(self,):
-#        group1 = db.session.query(Orthogroup).filter(Orthogroup.id==self.group_key).first()
-#        group2 = db.session.query(Orthogroup).filter(Orthogroup.id==self.group_key2).first()
-#        return (group1, group2)
+#    def get_orthogroups(self,):
+#        orthogroup1 = db.session.query(Orthogroup).filter(Orthogroup.id==self.orthogroup_key).first()
+#        orthogroup2 = db.session.query(Orthogroup).filter(Orthogroup.id==self.orthogroup_key2).first()
+#        return (orthogroup1, orthogroup2)
 #
 #
 
@@ -80,5 +87,11 @@ class OrthogroupComplexMapping(db.Model):
     """A mapping between groups and complexes"""
     orthogroup_key = db.Column(db.Integer, db.ForeignKey('orthogroup.id'), primary_key=True)
     hiercomplex_key = db.Column(db.Integer, db.ForeignKey('hiercomplex.id'), primary_key=True)
+
+
+class OrthogroupProteinMapping(db.Model):
+    """A mapping between groups and complexes"""
+    orthogroup_key = db.Column(db.Integer, db.ForeignKey('orthogroup.id'), primary_key=True)
+    protein_key = db.Column(db.Integer, db.ForeignKey('protein.id'), primary_key=True)
 
 

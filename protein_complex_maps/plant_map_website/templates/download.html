@@ -17,7 +17,7 @@
           <ul class="nav navbar-nav">
             <li><a href="/">Home</a></li>
             <li><a href="/proteinquery">ProteinQuery</a></li>
-            <li><a href="finder">InteractionFinder</a></li>
+            <li><a href="/finder">InteractionFinder</a></li>
             <li><a href="/about">About</a></li>
             <li class="active"><a href="/download">Download</a></li>
           </ul>
@@ -31,40 +31,38 @@
       <div class="page-header">
         <h1>Download</h1>
       </div>
-      <h4>Complex Map Files</h4>
+      <h4>Plant Complex Map Files</h4>
       <ul>
-          <li><a href="/static/downloads/clusters.txt" target="_blank">Protein Complex Map</a>
+
+allplants_feature_matrix_missing1.unscaled.top100.edges                                         plant_virNOG_orthology.csv
+allplants_feature_matrix_missing1.unscaled.top100.edges.3steps.fdr10.threshold504.walktrap.csv  virNOG_collapse_annotations.txt
+allplants_feature_matrix_missing1.unscaled.xlsx                                                 virNOG_elut_norm_annot_wide_ordered.csv
+
+          <li><a href="/static/data/allplants_feature_matrix_missing1.unscaled.xlsx" target="_blank">Protein Complexes</a>
               <ul>
-                  <li>Description: Complexes generated from two stage clustering of fully intergrated protein interaction network</li>
-                  <li>Format: geneid geneid geneid ... (one complex per line)</li>
+                  <li>Description: Annotated complexes generated from walktrap diffusion clustering of FDR <10% interactions (CF-MSscore cutoff 0.504) </li>
               </ul>                                                                            
           </li>
-          <li><a href="/static/downloads/pairsWprob.txt" target="_blank">Protein Interaction Network with probability scores</a>
+          <li><a href="/static/data/allplants_feature_matrix_missing1.unscaled.top100.edges" target="_blank">Protein Interaction Network with probability scores</a>
               <ul>
-                  <li>Description: Co-complex protein pairs that are observed in the protein complex map with the corresponding svm probability score. </li>
-                  <li>Format: geneid [tab] geneid [tab] score</li>
+                  <li>Description: Co-complex protein pairs that are observed in the protein complex map with the corresponding CF-MS score. </li>
+                  <li>Format: OrthogroupID1 [tab] OrthogroupID2 [tab] Score</li>
               </ul>
           </li>
       </ul>
       <br>
       <h4>Additional database input files</h4>
       <ul>
-          <li><a href="/static/downloads/nodeTable.txt" target="_blank">Node Table</a>
+          <li><a href="/static/data/virNOG_collapse_annotations.txt" target="_blank">Orthogroup Annotations</a>
               <ul>
-                  <li>Description: Cluster ids and additional identifiers for proteins in the complex map</li>
+                  <li>Description: Annotations for all orthogroups</li>
                   <li>Format: acc,clustid,clustid_key,genename,key(geneid),proteinname,uniprot_link</li>
               </ul>
           </li>
-          <li><a href="/static/downloads/enrichment.txt" target="_blank">Enrichment Table</a>
+          <li><a href="/static/data/plant_virNOG_orthology.csv" target="_blank">Translation Table</a>
               <ul>
-                  <li>Description: Output from gprofiler for each complex, Bonferroni-corrected hypergeometric p < 0.05 </li>
-                  <li>Format: complex: [id] [newline] #  signf   corr. p-value   T   Q   Q&T Q&T/Q   Q&T/T   term ID     t type  t group    t name and depth in group        Q&T list</li>
-              </ul>
-          </li>
-          <li><a href="/static/downloads/edges.txt" target="_blank">Edge Table</a>
-              <ul>
-                  <li>Description: List of edges in the complex map with svm probability score and boolean values for each evidence type determining support for the edge</li>
-                  <li>Format: id1   score   fractions   bioplex hein    bioplex_prey    hein_prey </li>
+                  <li>Mapping of eggNOG virNOG OrthogroupID to ProteinIDs</li>
+                  <li>Format: OrthogroupID1 [tab] Species code [tab] ProteinID</li>       
               </ul>
           </li>
       </ul>
@@ -114,6 +112,16 @@
           </li>
       </ul>
       <br>
+      <h4>Elution table</h4>
+      <ul>
+          <li><a href = "virNOG_elut_norm_annot_wide_ordered.csv" target="_blank">Elution</a>
+              <ul>
+                  <li>Description: Orthogroup normalized spectral count elutions</li>
+                  <li>Format: OrthogroupID,[features]</li>
+              </ul>
+          </li>
+      </ul>   
+
       <h4>Feature Matrix</h4>
       <ul>
           <li><a href="/static/downloads/feature_matrix.txt.gz" target="_blank">Feature Matrix (gz)</a>
