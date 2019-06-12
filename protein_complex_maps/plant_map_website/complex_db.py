@@ -35,10 +35,8 @@ def get_or_create(db, model, **kwargs):
 class Hiercomplex(db.Model):
     """A single complex"""
     id = db.Column(db.Integer, primary_key=True)
-    clustid_1 = db.Column(db.Integer, unique = False)
-    clustid_2 = db.Column(db.Integer, unique = False)
-    clustid_3 = db.Column(db.Integer, unique = False)
-    clustid_4 = db.Column(db.Integer, unique = False)
+    clustid = db.Column(db.Integer, unique = False)
+    clustid_set = db.Column(db.String(63))
     orthogroups = db.relationship('Orthogroup', secondary = 'orthogroup_complex_mapping', backref = db.backref('hiercomplexes'), lazy = 'dynamic')
   
 

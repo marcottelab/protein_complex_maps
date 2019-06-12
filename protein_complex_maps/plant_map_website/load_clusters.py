@@ -49,14 +49,31 @@ def main():
 
         #print("prior", OrthogroupID, clustid_1, clustid_2, clustid_3, clustid_4)
 
-        h = cdb.get_or_create(db, cdb.Hiercomplex, clustid_1 = clustid_1, clustid_2 = clustid_2, clustid_3 = clustid_3, clustid_4 = clustid_4)
+        h1 = cdb.get_or_create(db, cdb.Hiercomplex, clustid = clustid_1, clustid_set = 'clustid_1') 
+        h2 = cdb.get_or_create(db, cdb.Hiercomplex, clustid = clustid_2, clustid_set = 'clustid_2') 
+        h3 = cdb.get_or_create(db, cdb.Hiercomplex, clustid = clustid_3, clustid_set = 'clustid_3') 
+        h4 = cdb.get_or_create(db, cdb.Hiercomplex, clustid = clustid_4, clustid_set = 'clustid_4') 
+
         o = cdb.get_or_create(db, cdb.Orthogroup, OrthogroupID = OrthogroupID)
-        db.session.add(h)
+        db.session.add(h1)
+        db.session.add(h2)
+        db.session.add(h3)
+        db.session.add(h4)
+
         db.session.add(o)
         db.session.commit()
 
-        ocm = cdb.get_or_create(db, cdb.OrthogroupComplexMapping, orthogroup_key=o.id, hiercomplex_key=h.id)
-        db.session.add(ocm)
+        ocm1 = cdb.get_or_create(db, cdb.OrthogroupComplexMapping, orthogroup_key=o.id, hiercomplex_key=h1.id)
+        ocm2 = cdb.get_or_create(db, cdb.OrthogroupComplexMapping, orthogroup_key=o.id, hiercomplex_key=h2.id)
+        ocm3 = cdb.get_or_create(db, cdb.OrthogroupComplexMapping, orthogroup_key=o.id, hiercomplex_key=h3.id)
+        ocm4 = cdb.get_or_create(db, cdb.OrthogroupComplexMapping, orthogroup_key=o.id, hiercomplex_key=h4.id)
+ 
+
+        db.session.add(ocm1)
+        db.session.add(ocm2)
+        db.session.add(ocm3)
+        db.session.add(ocm4)
+
         db.session.commit()
 
 

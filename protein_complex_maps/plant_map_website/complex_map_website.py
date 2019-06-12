@@ -106,12 +106,41 @@ def displayComplexesForOrthogroupID():
             try:
                 print("troubleshooting start")
                 #print(OrthogroupID)
-                #print(dir(OrthogroupID))
+                print(dir(OrthogroupID))
                 #print(OrthogroupID.id)
     
                 orthogroup_clusters = (db.session.query(cdb.Orthogroup).filter(cdb.Orthogroup.id == OrthogroupID.id)).first()
-                print(orthogroup_clusters.hiercomplexes[0].clustid_1)
-                print(next)            
+
+                #Can pull four complexes orthogroup is in
+                #But can I pull all orthogroups in each complex?
+                for i in range(len(orthogroup_clusters.hiercomplexes)):
+                      hiersel = orthogroup_clusters.hiercomplexes[i]
+                      print(hiersel.clustid, hiersel.clustid_set)
+                      print(dir(hiersel.orthogroups))
+                      print(hiersel.orthogroups[0].OrthogroupID)
+                      print(hiersel.orthogroups[1].OrthogroupID)
+                      print(hiersel.orthogroups[2].OrthogroupID)
+                      print(hiersel.orthogroups[3].OrthogroupID)
+                      for j in range(len(hiersel.orthogroups)):
+                              pring(j)
+                
+                   #holding the four sets of clusters like this seems not great, but go for now
+                #for i in ['clustid_1' , 'clustid_2', 'clustid_3', 'clustid_4']:
+                
+                print(breakhere)
+                print(dir(OrthogroupID.hiercomplexes))
+                #Just getting the first orthogroup
+                newquery = db.session.query(cdb.Hiercomplex).filter(cdb.Hiercomplex.id == hier_sel.id).all()
+                for x in newquery:
+                       print(dir(x))
+                       print(x.orthogroups)
+                       print(x.orthogroups[0])
+                       print(dir(x.orthogroups[0]))
+                       print(x.orthogroups[0].OrthogroupID)
+                print(stop)
+                #Get associated orthogroupIDs with heircomplex ID.
+
+                #print(stop)
                 #print(dir(db.session.query(cdb.Hiercomplex)))
                 #xs = db.session.query(cdb.Hiercomplex).filter(cdb.Hiercomplex.orthogroup_key == Orthogroup.id).limit(5).all()
                 #for row in xs:
