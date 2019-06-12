@@ -59,8 +59,7 @@
     <ul>
 
     {% for comp in complexes %}
-        <h3>Complex: {{ comp |safe }} </h3>
-        <h3>Proteins:</h3>
+        <h3>Complex: {{ comp.clustid_set }} </h3>
         <table class="table table-striped">
             <thead>
             <tr>
@@ -71,19 +70,18 @@
             </tr>
         </thead>
         <tbody>
-            {% for prot in comp.proteins %}
+            {% for prot in comp.orthogroups %}
+
                 <tr>
-                    <td>{{ prot.genename() }}</td>
+                    <td>{{ comp.clustid_set }}</td>
+                    <td>{{ prot }}</td>
+                    <td>{{ prot.OrthogroupID }}</td>
                     <td>
-                        {% for comp in prot.complexes %}
-                            {{ comp.complex_link()|safe }}
-                        {% else %}
                         <!--
                             <em> No complexes</em>
                           -->
                         {% endfor %}
                     </td>
-                    <td> {{prot.proteinname}}</td>
                 </tr>
             {% else %}
                 <em> No proteins</em>
@@ -91,11 +89,9 @@
             </tbody>
         </table>
         <br>
-    {% else %}
     <!--
         <em>No complexes</em>
       -->
-    {% endfor %}
 
     </ul>
 {% include 'jumbotron.html' %}
