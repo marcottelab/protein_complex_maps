@@ -104,25 +104,33 @@ def displayComplexesForOrthogroupID():
         #
         #for protein in proteins:
             try:
+                print("troubleshooting start")
                 #print(OrthogroupID)
-                print(dir(OrthogroupID))
-                print(OrthogroupID.id)
+                #print(dir(OrthogroupID))
+                #print(OrthogroupID.id)
     
-                # Two step solution
-                # Need to get one step fix            
-                ortho_hier_mapping = db.session.query(cdb.OrthogroupComplexMapping).filter((cdb.OrthogroupComplexMapping.orthogroup_key == OrthogroupID.id)).first()
+                orthogroup_clusters = (db.session.query(cdb.Orthogroup).filter(cdb.Orthogroup.id == OrthogroupID.id)).first()
+                print(orthogroup_clusters.hiercomplexes[0].clustid_1)
+                print(next)            
+                #print(dir(db.session.query(cdb.Hiercomplex)))
+                #xs = db.session.query(cdb.Hiercomplex).filter(cdb.Hiercomplex.orthogroup_key == Orthogroup.id).limit(5).all()
+                #for row in xs:
+                #    print(row)
+                #print(nope)
+                #ortho_hier_mapping = db.session.query(cdb.OrthogroupComplexMapping).filter((cdb.OrthogroupComplexMapping.orthogroup_key == OrthogroupID.id)).first()
               
-                clusters = db.session.query(cdb.Hiercomplex).filter((cdb.Hiercomplex.id == ortho_hier_mapping.hiercomplex_key)).first()
-                print(dir(clusters)) 
+                #clusters = db.session.query(cdb.Hiercomplex).filter((cdb.Hiercomplex.id == ortho_hier_mapping.hiercomplex_key)).first()
+                #print(nah)
+                #print(dir(clusters)) 
                 #'clustid_1', 'clustid_2', 'clustid_3', 'clustid_4' 
                 #complexes = complexes + OrthogroupID.complexes
-                print(clusters.clustid_1, clusters.clustid_2, clusters.clustid_3, clusters.clustid_4)
-                complexes = [clusters.clustid_1, clusters.clustid_2, clusters.clustid_3, clusters.clustid_4]
+                #print(clusters.clustid_1, clusters.clustid_2, clusters.clustid_3, clusters.clustid_4)
+                #complexes = [clusters.clustid_1, clusters.clustid_2, clusters.clustid_3, clusters.clustid_4]
 
-                for level in complexes:
-                      print(level)
+                #for level in complexes:
+                #      print(level)
                       
-                print(nah)
+
 
             except NoResultFound:
                 continue

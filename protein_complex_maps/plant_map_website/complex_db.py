@@ -39,7 +39,8 @@ class Hiercomplex(db.Model):
     clustid_2 = db.Column(db.Integer, unique = False)
     clustid_3 = db.Column(db.Integer, unique = False)
     clustid_4 = db.Column(db.Integer, unique = False)
-   
+    orthogroups = db.relationship('Orthogroup', secondary = 'orthogroup_complex_mapping', backref = db.backref('hiercomplexes'), lazy = 'dynamic')
+  
 
 #class Conversion(db.Model):
 #    """A mapping between different OrthogroupID types"""
@@ -52,7 +53,8 @@ class Orthogroup(db.Model):
     """A single group"""
     id = db.Column(db.Integer, primary_key=True)
     OrthogroupID = db.Column(db.String(63))
-    #complexes = db.relationship('Hiercomplex', secondary = 'OrthogroupComplexMapping',  back_populates='groups', lazy='dynamic')
+    #complexes = db.relationship('Hiercomplex', secondary = 'OrthogroupComplexMapping',  back_populates='Hiercomplex', lazy='dynamic')
+    #hiercomplexes = db.relationship('Hiercomplex', secondary = 'orthogroup_complex_mapping', backref = db.backref('orthogroups'), lazy = 'dynamic')
 
 class Protein(db.Model):
     """A single group"""
