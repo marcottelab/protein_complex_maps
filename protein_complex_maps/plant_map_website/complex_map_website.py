@@ -24,6 +24,7 @@ from flask import make_response
 #from scripts.get_distributions import sampling_process, run_process, annotate_nodes
 #import scripts.plot_corum_dists as pcd
 
+app.jinja_env.add_extension('jinja2.ext.do') #Allow appending to list in html 
 
 #from bokeh.resources import INLINE
 #from bokeh.util.string import encode_utf8
@@ -71,7 +72,7 @@ class SearchForm(Form):
 
     OrthogroupID = StringField(u'virNOG ID ex: ENOG411DWGM :')
     ProteinID = StringField(u'Protein ID ex. F4KCR6 Q0DTU0_ORYSJ AT4G01395')
-    Species = SelectField(u'Species', choices = species_list)
+    Species = SelectField(u'Species', choices = species_list, default = 'arath')
     #enrichment = StringField(u'Enrichment (ex. cilium):')
     submit = SubmitField(u'Search')
 
@@ -93,13 +94,13 @@ def root(complexes=[]):
 def displayComplexesForOrthogroupID():
     Species = request.args.get('Species')
     print(Species)   
-    OrthogroupID = request.args.get('OrthogroupID')
+    Input_OrthogroupID = request.args.get('OrthogroupID')
     form = SearchForm()
     #kdrew: do error checking
     error=None
 
     #kdrew: tests to see if orthogroup is a valid orthogroup ID
-    OrthogroupIDs = db.session.query(cdb.Orthogroup).filter((func.upper(cdb.Orthogroup.OrthogroupID) == func.upper(OrthogroupID))).all()
+    OrthogroupIDs = db.session.query(cdb.Orthogroup).filter((func.upper(cdb.Orthogroup.OrthogroupID) == func.upper(Input_OrthogroupID))).all()
 
     if len(OrthogroupIDs) == 0:
         #kdrew: input genename is not valid, flash message
@@ -153,25 +154,29 @@ def displayComplexesForOrthogroupID():
 
     #complexes = list(set(complexes))
 
-    return render_template('index.html', form = form, complexes = complexes, Species = Species, error = error)
+    return render_template('index.html', form = form, complexes = complexes, Species = Species, Input_OrthogroupID = Input_OrthogroupID, error = error)
 
 @app.route("/displayComplexesForProteinID")
 def displayComplexesForProteinID():
-    ProteinID = request.args.get('ProteinID')
+
+
+    Input_ProteinID = request.args.get('ProteinID')
     form = SearchForm()
     #kdrew: do error checking
     error=None 
     
-    ProteinIDs = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.ProteinID) == func.upper(ProteinID))).first()
+    ProteinIDs = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.ProteinID) == func.upper(Input_ProteinID))).first()
 
     if len(ProteinIDs.orthogroups) == 0:
         #kdrew: input ProteinID is not valid, flash message
-        error = "Could not find given Protein ID: %s" % ProteinID
+        error = "Could not find given Protein ID: %s" % Input_ProteinID
 
         return render_template('index.html', form = form, complexes = [], error = error)
 
 
     OrthogroupID = ProteinIDs.orthogroups[0].OrthogroupID
+    Species = ProteinIDs.Spec
+
     OrthogroupIDs = db.session.query(cdb.Orthogroup).filter((func.upper(cdb.Orthogroup.OrthogroupID) == func.upper(OrthogroupID))).all()
     
     complexes = []
@@ -185,38 +190,11 @@ def displayComplexesForProteinID():
     if len(orthogroup_clusters.hiercomplexes) == 0:
         error = "No complexes found for given virNOG orthogroup ID: %s" % OrthogroupID
 
-    print(dir(orthogroup_clusters))
-    print(dir(orthogroup_clusters.Proteins))
 
-    return render_template('index.html', form = form, complexes = complexes, error = error)
+    return render_template('index.html', form = form, complexes = complexes, Species = Species, Input_ProteinID = Input_ProteinID, error = error)
 
 
 
-
-#@app.route("/displayComplexesForEnrichment")
-#def displayComplexesForEnrichment():
-#    enrichment = request.args.get('enrichment')
-#    form = SearchForm()
-#    error=None
-#    #print enrichment
-#    #kdrew: do error checking
-#    try:
-#        enrichment_complex_keys_query = db.session.query(cdb.ComplexEnrichment.complex_key).filter(
-#                    ( cdb.ComplexEnrichment.t_name.like('%'+enrichment+'%')) | (cdb.ComplexEnrichment.term_id.like('%'+enrichment+'%' ) ) )
-#        enrichment_complex_keys = enrichment_complex_keys_query.all()
-#        enrichment_complex_keys_set = set([x[0] for x in enrichment_complex_keys])
-#        if len(enrichment_complex_keys_set) == 0:
-#            complexes = []
-#        else:
-#            complexes = db.session.query(cdb.Complex).filter(cdb.Complex.id.in_(enrichment_complex_keys_set)).all()
-#    except NoResultFound:
-#        complexes = []
-#
-#    if len(complexes) == 0:
-#        error = "No complexes found for given enrichment term: %s" % enrichment
-#
-#    return render_template('index.html', form=form, complexes=complexes, error=error)
-#
 @app.route("/displayComplexesForProtein")
 def displayComplexesForProtein():
     protein_search = request.args.get('protein')
@@ -287,7 +265,7 @@ def searchComplexes():
 
 @app.route('/finder', methods=['GET'])
 def finding():
-    """ Very simple embedding of a polynomial chart
+    """ Query the network
     """
     conversion_tbl = pd.read_csv("all_tophits_protlength.txt", sep="\t")
 
@@ -414,156 +392,6 @@ def finding():
     )
     return encode_utf8(html)
 
-@app.route('/complexdisplay')
-def display_complex():
-    conversion_tbl = pd.read_csv("all_tophits_protlength.txt", sep="\t")
-
-    #Save this in a file somewhere
-    spec_conv_dict = {"Arabidopsis thaliana":"arath", "Brassica oleraceae":"braol", "Chlamydomonas reinhardtii":"chlre", "Oryza sativa":"orysj",
-"Selaginella moellendorfii":"selml", "Triticum aestivum":"traes", "Ceratopteris richardii":"cerri", "All plants":"allplants"}  
-
-    # Grab the inputs arguments from the URL
-    args = request.args
-
-    proteins =  getitem(args, 'proteins', "WRK58_ARATH Q9SR92")
-    species_longform =  getitem(args, 'species_longform', "All plants")
-
-
-    print species_longform
-
-    species = spec_conv_dict[species_longform]
-    print species
-    protein_list = proteins.split(" ")
-    protein_table, group_table = make_conversion_tables(protein_list, conversion_tbl, species)
-
-    input_protein_species = identify_species(protein_list, conversion_tbl)[0]
-    input_protein_species_longform = [x for x in spec_conv_dict.keys() if spec_conv_dict[x] == input_protein_species][0]
-
-    print(species)
-    #There's some redundancy with make_conversion_table pulling groupIDs
-    #Going to be sql'd anyway later
-    complexes = get_groups(protein_list, conversion_tbl)
-    print complexes
-     
- 
-    #js and cs needed for the plot
-    js_resources = INLINE.render_js()
-    css_resources = INLINE.render_css()
-
-    try:
-       results1 = make_protein_sparklines(complexes, species, species_longform, conversion_tbl)
-       script1, div1 = results1
-    except Exception as e:
-        print e
-        print "Something went wrong"
-        script1="No input proteins observed in proteomics data for " + species_longform
-        div1="none"
-
-    #Get plot over to the html webpage
-    html = render_template(
-        'complexdisplay.html',
-        js_resources=js_resources,
-        css_resources=css_resources,
-        complexes=complexes,
-        proteins=proteins,
-        prot_tbl=protein_table,
-        group_tbl=group_table,
-        species_longform=species_longform,
-        inp_species_longform=input_protein_species_longform,
-        plot_script1=script1,
-        plot_div1=div1,
- 
-    )
- 
-    return encode_utf8(html)
-
-@app.route('/sparkline_simple')
-def spark():
-    """ Simple sparkline
-    """
-
-    # Grab the inputs arguments from the URL
-    args = request.args
-
-    # Get all the form arguments in the url with defaults
-    #color = colors[getitem(args, 'color', 'Black')]
-    #_from = int(getitem(args, '_from', 0))
-    #to = int(getitem(args, 'to', 10))
-    complexes = getitem(args, 'complexes', "ENOG410IDXB ENOG410IDXU")
- 
-
-    # Create a polynomial line graph with those arguments
-    #x = list(range(_from, to + 1))
-    #fig = figure(title="Polynomial")
-    #fig.line(x, [i ** 2 for i in x], color=color, line_width=2)
-
-    results = make_sparklines(complexes)
-
-    js_resources = INLINE.render_js()
-    css_resources = INLINE.render_css()
-
-    script, div = results
-    html = render_template(
-        'viewer.html',
-        plot_script=script,
-        plot_div=div,
-        js_resources=js_resources,
-        css_resources=css_resources,
-        complexes=complexes
-    )
-    return encode_utf8(html)
-
-@app.route('/proteinquery')
-def protein_query():
-    """ Query a list of proteins against out data
-    """
-    conversion_tbl = pd.read_csv("all_tophits_protlength.txt", sep="\t")
-
-    #Save this in a file somewhere
-    spec_conv_dict = {"Arabidopsis thaliana":"arath", "Brassica oleraceae":"braol", "Chlamydomonas reinhardtii":"chlre", "Oryza sativa":"orysj",
-"Selaginella moellendorfii":"selml", "Triticum aestivum":"traes", "Ceratopteris richardii":"cerri", "All plants":"allplants"}  
-
-    # Grab the inputs arguments from the URL
-    args = request.args
-
-    proteins =  getitem(args, 'proteins', "WRK58_ARATH Q9SR92")
-    species_longform =  getitem(args, 'species_longform', "All plants")
-
-
-    print species_longform
-
-    species = spec_conv_dict[species_longform]
-    print species
-    protein_list = proteins.split(" ")
-    protein_list = valid_query(protein_list, conversion_tbl)
-    protein_table, group_table = make_conversion_tables(protein_list, conversion_tbl, species)
-
-    input_protein_species = identify_species(protein_list, conversion_tbl)[0]
-    input_protein_species_longform = [x for x in spec_conv_dict.keys() if spec_conv_dict[x] == input_protein_species][0]
-
-
-    proteins_plus = proteins.replace(" ", "+")
-    species_longform_plus =species_longform.replace(" ", "+")
-    display_link = "http://127.0.0.1:5000/proteinquery?proteins={}&species_longform={}".format(proteins_plus, species_longform_plus)
-     
- 
-    #js and cs needed for the plot
-    js_resources = INLINE.render_js()
-    css_resources = INLINE.render_css()
-
-    #Get plot over to the html webpage
-    html = render_template(
-        'proteinquery.html',
-        js_resources=js_resources,
-        css_resources=css_resources,
-        proteins=proteins,
-        disp_link= display_link 
-    )
-    return encode_utf8(html)
-
-
-
-
 @app.route("/about")
 def displayAbout():
     return render_template('about.html')
@@ -577,5 +405,155 @@ if __name__ == "__main__":
     db.create_all()  # make our sqlalchemy tables
     app.run(threaded=True, debug=True)
     
+
+#@app.route('/proteinquery')
+#def protein_query():
+#    """ Query a list of proteins against out data
+#    """
+#    conversion_tbl = pd.read_csv("all_tophits_protlength.txt", sep="\t")
+#
+#    #Save this in a file somewhere
+#    spec_conv_dict = {"Arabidopsis thaliana":"arath", "Brassica oleraceae":"braol", "Chlamydomonas reinhardtii":"chlre", "Oryza sativa":"orysj",
+#"Selaginella moellendorfii":"selml", "Triticum aestivum":"traes", "Ceratopteris richardii":"cerri", "All plants":"allplants"}  
+#
+#    # Grab the inputs arguments from the URL
+#    args = request.args
+#
+#    proteins =  getitem(args, 'proteins', "WRK58_ARATH Q9SR92")
+#    species_longform =  getitem(args, 'species_longform', "All plants")
+#
+#
+#    print species_longform
+#
+#    species = spec_conv_dict[species_longform]
+#    print species
+#    protein_list = proteins.split(" ")
+#    protein_list = valid_query(protein_list, conversion_tbl)
+#    protein_table, group_table = make_conversion_tables(protein_list, conversion_tbl, species)
+#
+#    input_protein_species = identify_species(protein_list, conversion_tbl)[0]
+#    input_protein_species_longform = [x for x in spec_conv_dict.keys() if spec_conv_dict[x] == input_protein_species][0]
+#
+#
+#    proteins_plus = proteins.replace(" ", "+")
+#    species_longform_plus =species_longform.replace(" ", "+")
+#    display_link = "http://127.0.0.1:5000/proteinquery?proteins={}&species_longform={}".format(proteins_plus, species_longform_plus)
+#     
+# 
+#    #js and cs needed for the plot
+#    js_resources = INLINE.render_js()
+#    css_resources = INLINE.render_css()
+#
+#    #Get plot over to the html webpage
+#    html = render_template(
+#        'proteinquery.html',
+#        js_resources=js_resources,
+#        css_resources=css_resources,
+#        proteins=proteins,
+#        disp_link= display_link 
+#    )
+#    return encode_utf8(html)
+#
+
+#@app.route('/complexdisplay')
+#def display_complex():
+#    conversion_tbl = pd.read_csv("all_tophits_protlength.txt", sep="\t")
+#
+#    #Save this in a file somewhere
+#    spec_conv_dict = {"Arabidopsis thaliana":"arath", "Brassica oleraceae":"braol", "Chlamydomonas reinhardtii":"chlre", "Oryza sativa":"orysj",
+#"Selaginella moellendorfii":"selml", "Triticum aestivum":"traes", "Ceratopteris richardii":"cerri", "All plants":"allplants"}  
+#
+#    # Grab the inputs arguments from the URL
+#    args = request.args
+#
+#    proteins =  getitem(args, 'proteins', "WRK58_ARATH Q9SR92")
+#    species_longform =  getitem(args, 'species_longform', "All plants")
+#
+#
+#    print species_longform
+#
+#    species = spec_conv_dict[species_longform]
+#    print species
+#    protein_list = proteins.split(" ")
+#    protein_table, group_table = make_conversion_tables(protein_list, conversion_tbl, species)
+#
+#    input_protein_species = identify_species(protein_list, conversion_tbl)[0]
+#    input_protein_species_longform = [x for x in spec_conv_dict.keys() if spec_conv_dict[x] == input_protein_species][0]
+#
+#    print(species)
+#    #There's some redundancy with make_conversion_table pulling groupIDs
+#    #Going to be sql'd anyway later
+#    complexes = get_groups(protein_list, conversion_tbl)
+#    print complexes
+#     
+# 
+#    #js and cs needed for the plot
+#    js_resources = INLINE.render_js()
+#    css_resources = INLINE.render_css()
+#
+#    try:
+#       results1 = make_protein_sparklines(complexes, species, species_longform, conversion_tbl)
+#       script1, div1 = results1
+#    except Exception as e:
+#        print e
+#        print "Something went wrong"
+#        script1="No input proteins observed in proteomics data for " + species_longform
+#        div1="none"
+#
+#    #Get plot over to the html webpage
+#    html = render_template(
+#        'complexdisplay.html',
+#        js_resources=js_resources,
+#        css_resources=css_resources,
+#        complexes=complexes,
+#        proteins=proteins,
+#        prot_tbl=protein_table,
+#        group_tbl=group_table,
+#        species_longform=species_longform,
+#        inp_species_longform=input_protein_species_longform,
+#        plot_script1=script1,
+#        plot_div1=div1,
+# 
+#    )
+# 
+#    return encode_utf8(html)
+#
+#@app.route('/sparkline_simple')
+#def spark():
+#    """ Simple sparkline
+#    """
+#
+#    # Grab the inputs arguments from the URL
+#    args = request.args
+#
+#    # Get all the form arguments in the url with defaults
+#    #color = colors[getitem(args, 'color', 'Black')]
+#    #_from = int(getitem(args, '_from', 0))
+#    #to = int(getitem(args, 'to', 10))
+#    complexes = getitem(args, 'complexes', "ENOG410IDXB ENOG410IDXU")
+# 
+#
+#    # Create a polynomial line graph with those arguments
+#    #x = list(range(_from, to + 1))
+#    #fig = figure(title="Polynomial")
+#    #fig.line(x, [i ** 2 for i in x], color=color, line_width=2)
+#
+#    results = make_sparklines(complexes)
+#
+#    js_resources = INLINE.render_js()
+#    css_resources = INLINE.render_css()
+#
+#    script, div = results
+#    html = render_template(
+#        'viewer.html',
+#        plot_script=script,
+#        plot_div=div,
+#        js_resources=js_resources,
+#        css_resources=css_resources,
+#        complexes=complexes
+#    )
+#    return encode_utf8(html)
+#
+#
 
 
