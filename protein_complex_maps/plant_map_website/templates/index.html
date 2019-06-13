@@ -65,22 +65,25 @@
             <thead>
             <tr>
                 <th>OrthogroupID</th>
-                <th>Complexes</th>
                 <th>Protein Name</th>
-                <th>Links</th>
+                <th>Species</th>
             </tr>
         </thead>
         <tbody>
             {% for prot in comp.orthogroups %}
-
+                <!--{% set proteinValues = [] %}
+                    {% for x in prot.Proteins%}
+                        {% set proteinValues = proteinValues + [x.ProteinID] %}
+                    {% endfor %}-->
                 <tr>
                     <td>{{ prot.OrthogroupID }}</td>
                     <td>
-                        <!--
-                            <em> No complexes</em>
-                          -->
+
+                    {% for x in prot.Proteins %}
+                    {{ x.ProteinID }}
+                    {% endfor %}
+                    </td> 
                         {% endfor %}
-                    </td>
                 </tr>
             {% else %}
                 <em> No proteins</em>

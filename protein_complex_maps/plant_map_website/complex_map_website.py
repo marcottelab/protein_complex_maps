@@ -108,18 +108,22 @@ def displayComplexesForOrthogroupID():
                 print(dir(OrthogroupID))
     
                 orthogroup_clusters = (db.session.query(cdb.Orthogroup).filter(cdb.Orthogroup.id == OrthogroupID.id)).first()
-                print(dir(orthogroup_clusters))
+                #print(dir(orthogroup_clusters))
                 # Can get hier complexes associated with an orthogroup ID, 
                 # Then get member proteins of each cluster level
                 # Loop through displaying each 
+                #complexes = orthogroup_clusters.hiercomplexes
+                #print(dir(orthogroup_clusters.hiercomplexes))
                 complexes = orthogroup_clusters.hiercomplexes
                 print("complexes", complexes)
                 #Keep for trouble shooting syntax
                 #for prot in orthogroup_clusters.hiercomplexes:
                 #      print(prot)
-                #      print(dir(prot))                            
+                      #print(dir(prot))                            
                 #      for bla in prot.orthogroups:
+                #             print(dir(bla))
                 #             print(bla.OrthogroupID)
+                #             print(bla.Proteins)
                              
                 
 
@@ -133,6 +137,44 @@ def displayComplexesForOrthogroupID():
     #complexes = list(set(complexes))
 
     return render_template('index.html', form = form, complexes = complexes, error = error)
+
+@app.route("/displayComplexesForProteinID")
+def displayComplexesForProteinID():
+    ProteinID = request.args.get('ProteinID')
+    form = SearchForm()
+    #kdrew: do error checking
+    error=None 
+    
+    ProteinIDs = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.ProteinID) == func.upper(ProteinID))).first()
+
+    if len(ProteinIDs.orthogroups) == 0:
+        #kdrew: input ProteinID is not valid, flash message
+        error = "Could not find given Protein ID: %s" % ProteinID
+
+        return render_template('index.html', form = form, complexes = [], error = error)
+
+
+    OrthogroupID = ProteinIDs.orthogroups[0].OrthogroupID
+    OrthogroupIDs = db.session.query(cdb.Orthogroup).filter((func.upper(cdb.Orthogroup.OrthogroupID) == func.upper(OrthogroupID))).all()
+    
+    complexes = []
+    for OrthogroupID in OrthogroupIDs: 
+            try:
+                orthogroup_clusters = (db.session.query(cdb.Orthogroup).filter(cdb.Orthogroup.id == OrthogroupID.id)).first()
+                complexes = orthogroup_clusters.hiercomplexes
+            except NoResultFound:
+                continue
+
+    if len(orthogroup_clusters.hiercomplexes) == 0:
+        error = "No complexes found for given virNOG orthogroup ID: %s" % OrthogroupID
+
+    print(dir(orthogroup_clusters))
+    print(dir(orthogroup_clusters.Proteins))
+
+    return render_template('index.html', form = form, complexes = complexes, error = error)
+
+
+
 
 #@app.route("/displayComplexesForEnrichment")
 #def displayComplexesForEnrichment():
