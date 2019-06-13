@@ -42,8 +42,8 @@ def main():
             #if 'complex:' i        #print line
             split_line = line.split(',')
             OrthogroupID = split_line[0]
-            Spec = split_line[1]
-            ProteinID = split_line[2].strip("\n")
+            ProteinID = split_line[1]
+            Spec = split_line[2].strip("\n")
             #convert = cdb.get_or_create(db, cdb.Conversion,
             #                                OrthogroupID = OrthogroupID,
             #                                Spec = Spec,
@@ -65,5 +65,19 @@ def main():
 if __name__ == "__main__":
 
     main()
-
+#with open('million_users.csv', 'r') as csv_file:
+#    csv_reader = csv.reader(csv_file)
+#
+#buffer = []
+#for row in reader:
+#    buffer.append({
+#        'OrthogroupI': row[0],
+#         'ProteinID': row[1],
+#          'Spec': row[2]
+#    })
+#    if len(buffer) % 10000 == 0:
+#        session.bulk_insert_mappings(buffer)
+#        buffer = []
+#
+#session.bulk_insert_mappings(buffer)
 
