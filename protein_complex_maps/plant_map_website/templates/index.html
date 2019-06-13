@@ -30,7 +30,7 @@
 {% include 'jumbotron.html' %}
 
       <div class="page-header">
-        <h1>Search for a protein</h1>
+        <h3>Search for a protein or orthogroup</h3>
       </div>
     <!--kdrew: problem with stale CSRF tokens, this prints error message
     {% if form.errors %}
@@ -41,13 +41,13 @@
 
     <form method="POST" action="/search">
         {{ form.hidden_tag() }}
-        {{ form.ProteinID.label }} {{ form.ProteinID(size=50) }}
+        {{ form.ProteinID.label }} {{ form.ProteinID(size=50, value = Input_ProteinID) }}
         <br>
         <br>
-        {{ form.OrthogroupID.label }} {{ form.OrthogroupID(size=50) }}
+        {{ form.OrthogroupID.label }} {{ form.OrthogroupID(size=50, value = Input_OrthogroupID) }}
         <br/>
         <br/>
-        {{ form.Species.label }} {{ form.Species }}
+        {{ form.Species.label }} {{ form.Species(value = Species) }}
         <br/>
         <br/>
 
@@ -63,6 +63,8 @@
 
     <ul>
 
+    <!-- https://www.uniprot.org/uniprot/?query=I1KDU3+OR+I1M368+OR+I1M369+OR+I1M370+OR+K7KX13&sort=score -->
+
     {% for comp in complexes %}
         <!--<h2>Complex: {{ comp.clustid_set }}</h2>-->
         <table class="table table-striped">
@@ -72,24 +74,25 @@
                 <th>OrthogroupID</th>
                 <th>Protein Name</th>
                 <th>Species</th>
+                <th>Uniprot Link</th>
             </tr>
         </thead>
         <tbody>
             {% for prot in comp.orthogroups %}
-                <!--{% set proteinValues = [] %}
-                    {% for x in prot.Proteins%}
-                        {% set proteinValues = proteinValues + [x.ProteinID] %}
-                    {% endfor %}-->
                 <tr>
                     <td>{{ prot.OrthogroupID }}</td>
                     
-
-                    <td>{% for x in prot.Proteins %}
+                        {% set uni_url = "https://www.uniprot.org/uniprot/?query=" %}
+                        {% set protlist = [] %}
+                        {% for x in prot.Proteins %}
                            {% if x.Spec == Species %}
-                              {{ x.ProteinID }}
+                              {% do protlist.append(x.ProteinID) %}
+                           
                            {% endif %}
-                        {% endfor %} </td> 
+                        {% endfor %} 
+		    <td>{{ protlist | join(' ') }}</td>
                     <td>{{ Species }}</td>
+                    <td><a href = https://www.uniprot.org/uniprot/?query={{protlist | join("+OR+") }}>Uniprot</a> </td>
               {% endfor %}
 
                 </tr>
