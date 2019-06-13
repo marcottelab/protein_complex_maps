@@ -14,7 +14,7 @@ app = cdb.get_app()
 
 #from flask.ext.wtf import Form
 from flask_wtf import Form
-from wtforms.fields import StringField, SubmitField
+from wtforms.fields import StringField, SubmitField, SelectField
 from flask import make_response
 #from scripts.lineplot import make_protein_sparklines
 #from scripts.validate_query import valid_query
@@ -55,8 +55,23 @@ def getitems(obj, item, default):
 
 
 class SearchForm(Form):
+    species_list = [("arath","Arabidopsis"), 
+                    ("braol","Broccoli"), 
+                    ("chlre","Chlamydomonas"),
+                    ("cocnu","Coconut"), 
+                    ("cansa","Hemp"), 
+                    ("sollc","Tomato"), 
+                    ("maize", "Maize"), 
+                    ("chqui", "Quinoa"), 
+                    ("orysj","Rice"), 
+                    ("soybn","Soy"), 
+                    ("selml", "Spikemoss"), 
+                    ("wheat", "Wheat"), 
+                    ("cerri", "C-Fern")]
+
     OrthogroupID = StringField(u'virNOG ID ex: ENOG411DWGM :')
     ProteinID = StringField(u'Protein ID ex. F4KCR6 Q0DTU0_ORYSJ AT4G01395')
+    Species = SelectField(u'Species', choices = species_list)
     #enrichment = StringField(u'Enrichment (ex. cilium):')
     submit = SubmitField(u'Search')
 
@@ -76,6 +91,8 @@ def root(complexes=[]):
 
 @app.route("/displayComplexesForOrthogroupID")
 def displayComplexesForOrthogroupID():
+    Species = request.args.get('Species')
+    print(Species)   
     OrthogroupID = request.args.get('OrthogroupID')
     form = SearchForm()
     #kdrew: do error checking
@@ -88,7 +105,7 @@ def displayComplexesForOrthogroupID():
         #kdrew: input genename is not valid, flash message
         error = "Could not find given virNOG orthogroup ID: %s" % OrthogroupID
 
-        return render_template('index.html', form = form, complexes = [], error = error)
+        return render_template('index.html', form = form, complexes = [], error = error, Species = Species)
 
 
     complexes = []
@@ -119,7 +136,7 @@ def displayComplexesForOrthogroupID():
                 #Keep for trouble shooting syntax
                 #for prot in orthogroup_clusters.hiercomplexes:
                 #      print(prot)
-                      #print(dir(prot))                            
+                #      #print(dir(prot))                            
                 #      for bla in prot.orthogroups:
                 #             print(dir(bla))
                 #             print(bla.OrthogroupID)
@@ -136,7 +153,7 @@ def displayComplexesForOrthogroupID():
 
     #complexes = list(set(complexes))
 
-    return render_template('index.html', form = form, complexes = complexes, error = error)
+    return render_template('index.html', form = form, complexes = complexes, Species = Species, error = error)
 
 @app.route("/displayComplexesForProteinID")
 def displayComplexesForProteinID():
@@ -248,10 +265,14 @@ def searchComplexes():
     complexes = []
     if form.validate_on_submit():
         if len(form.OrthogroupID.data) > 0:
-            return redirect(url_for('displayComplexesForOrthogroupID', OrthogroupID = form.OrthogroupID.data))
+            if len(form.Species.data) > 0:
+               print("heyyyyy")
+               return redirect(url_for('displayComplexesForOrthogroupID', OrthogroupID = form.OrthogroupID.data, Species = form.Species.data))
+
+            else:
+               return redirect(url_for('displayComplexesForOrthogroupID', OrthogroupID = form.OrthogroupID.data))
         elif len(form.ProteinID.data) > 0:
             return redirect(url_for('displayComplexesForProteinID', ProteinID = form.ProteinID.data))
-
 
     #kdrew: added hoping it would fix redirect problem on stale connections
     return render_template('index.html', form = form, complexes = complexes)
