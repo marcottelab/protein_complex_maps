@@ -85,7 +85,9 @@
                     
 
                     <td>{% for x in prot.Proteins %}
-                        {{ x.ProteinID }}
+                           {% if x.Spec == Species %}
+                              {{ x.ProteinID }}
+                           {% endif %}
                         {% endfor %} </td> 
                     <td>{{ Species }}</td>
               {% endfor %}
