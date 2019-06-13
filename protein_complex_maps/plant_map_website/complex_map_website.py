@@ -136,12 +136,14 @@ def displayComplexesForOrthogroupID():
                 print("complexes", complexes)
                 #Keep for trouble shooting syntax
                 #for prot in orthogroup_clusters.hiercomplexes:
-                #      print(prot)
-                #      #print(dir(prot))                            
-                #      for bla in prot.orthogroups:
-                #             print(dir(bla))
-                #             print(bla.OrthogroupID)
-                #             print(bla.Proteins)
+                      #print(prot)
+                      #print(dir(prot))                            
+                      #for bla in prot.orthogroups:
+                      #       print(bla.Orthoannots)
+                      #       print(dir(bla.Orthoannots))
+                             #irint(dir(bla))
+                             #print(bla.OrthogroupID)
+                             #print(bla.Proteins)
                              
                 
 

@@ -60,6 +60,15 @@ class Protein(db.Model):
     ProteinID = db.Column(db.String(63))
     Spec = db.Column(db.String(63))
     orthogroups = db.relationship('Orthogroup', secondary = 'orthogroup_protein_mapping', backref = db.backref('Proteins'), lazy = 'select') # or 'lazy = 'dynamic'
+
+class Orthoannot(db.Model):
+    """A single group"""
+    id = db.Column(db.Integer, primary_key=True)
+    EggnogAnnot = db.Column(db.String(63))
+    Tair = db.Column(db.String(63))
+    ArathGenenames = db.Column(db.String(63))
+    orthogroups = db.relationship('Orthogroup', secondary = 'orthogroup_annot_mapping', backref = db.backref('Orthoannots'), lazy = 'select') # or 'lazy = 'dynamic'
+ 
  
 #class Edge(db.Model):
 #    """A orthogroup orthogroup edge"""
@@ -93,5 +102,11 @@ class OrthogroupProteinMapping(db.Model):
     """A mapping between groups and complexes"""
     orthogroup_key = db.Column(db.Integer, db.ForeignKey('orthogroup.id'), primary_key=True)
     protein_key = db.Column(db.Integer, db.ForeignKey('protein.id'), primary_key=True)
+
+
+class OrthogroupAnnotMapping(db.Model):
+    """A mapping between groups and complexes"""
+    orthogroup_key = db.Column(db.Integer, db.ForeignKey('orthogroup.id'), primary_key=True)
+    orthoannot_key = db.Column(db.Integer, db.ForeignKey('orthoannot.id'), primary_key=True)
 
 
