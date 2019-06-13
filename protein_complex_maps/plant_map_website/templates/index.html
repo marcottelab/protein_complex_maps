@@ -72,27 +72,49 @@
             <thead>
             <tr>
                 <th>OrthogroupID</th>
-                <th>Protein Name</th>
+                <th>Protein Name(s)</th>
                 <th>Species</th>
+                <th>Orthogroup Annotation</th>
+                <th>Arabidopsis Gene Name(s)</th>
+                <th>TAIR Link(s)</th>
                 <th>Uniprot Link</th>
             </tr>
         </thead>
         <tbody>
-            {% for prot in comp.orthogroups %}
+            {% for og in comp.orthogroups %}
                 <tr>
-                    <td>{{ prot.OrthogroupID }}</td>
+                    <td>{{ og.OrthogroupID }}</td>
                     
-                        {% set uni_url = "https://www.uniprot.org/uniprot/?query=" %}
                         {% set protlist = [] %}
-                        {% for x in prot.Proteins %}
+                        {% for x in og.Proteins %}
                            {% if x.Spec == Species %}
                               {% do protlist.append(x.ProteinID) %}
                            
                            {% endif %}
                         {% endfor %} 
+
 		    <td>{{ protlist | join(' ') }}</td>
+
                     <td>{{ Species }}</td>
-                    <td><a href = https://www.uniprot.org/uniprot/?query={{protlist | join("+OR+") }}>Uniprot</a> </td>
+                       
+                    <td>{% for x in og.Orthoannots %}
+                             {{ x.EggnogAnnot }}
+                        {% endfor %} </td>
+
+                    <td>{% for x in og.Orthoannots %}
+                             {{ x.ArathGenenames }}
+                        {% endfor %} </td>
+
+                    <td>{% for x in og.Orthoannots %}
+                             {% set tairlist = x.Tair.split(',') %}
+                                 {% for locus in tairlist %}
+                                      <a href = https://www.arabidopsis.org/servlets/TairObject?type=locus&name={{ locus }}>{{ locus }}</a>
+                                 {% endfor %}
+                           
+                        {% endfor %} </td>
+
+                        
+                    <td><a href = https://www.uniprot.org/uniprot/?query=id:{{protlist | join("+OR+id:") }}>Uniprot</a> </td>
               {% endfor %}
 
                 </tr>
