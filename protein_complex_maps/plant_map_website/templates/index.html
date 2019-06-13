@@ -47,6 +47,11 @@
         {{ form.OrthogroupID.label }} {{ form.OrthogroupID(size=50) }}
         <br/>
         <br/>
+        {{ form.Species.label }} {{ form.Species }}
+        <br/>
+        <br/>
+
+
         {{ form.submit }}
     </form>
 
@@ -77,13 +82,14 @@
                     {% endfor %}-->
                 <tr>
                     <td>{{ prot.OrthogroupID }}</td>
-                    <td>
+                    
 
-                    {% for x in prot.Proteins %}
-                    {{ x.ProteinID }}
-                    {% endfor %}
-                    </td> 
-                        {% endfor %}
+                    <td>{% for x in prot.Proteins %}
+                        {{ x.ProteinID }}
+                        {% endfor %} </td> 
+                    <td>{{ Species }}</td>
+              {% endfor %}
+
                 </tr>
             {% else %}
                 <em> No proteins</em>
