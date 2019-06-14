@@ -15,11 +15,11 @@ h2              { font-size: 12pt; }
     /* add bootstrap jumbotron background image */
     background: url("/static/images/header_plantmap.jpg");
     /* change bootstrap jumbotron text color */
-    color:#FFFFFF !important;
+    color:#303030 !important;
     font-weight:bold!important ;
     background-size: auto 320%;
     font-family: "Nunito", sans-serif!important;
-
+    height:100px
     border-radius: 2px!important;
 }
    
