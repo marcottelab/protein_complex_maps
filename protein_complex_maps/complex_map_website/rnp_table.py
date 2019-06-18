@@ -47,11 +47,11 @@ def main():
         complexes_dict['high_throughput'] = False
         complexes_dict['low_throughput'] = False
         complexes_dict['diffrac'] = False
-        if c.rnp_label == 'ht':
+        if c.rnp_label == 'ht' or c.rnp_label == 'ht_rnabinding' or c.rnp_label == 'sign_ht_rnabinding' or c.rnp_label == 'sign_ht':
             complexes_dict['high_throughput'] = True
-        elif c.rnp_label == 'rnabinding':
-            complexes_dict['low_throughput'] = True
-        elif c.rnp_label == 'sign' or c.rnp_label == 'sign20_08corr':
+        if c.rnp_label == 'rnabinding' or c.rnp_label == 'ht_rnabinding' or c.rnp_label == 'sign_ht_rnabinding' or c.rnp_label == 'sign_rnabinding':
+            complexes_dict['low_throughput'] = True                                                                                 
+        if c.rnp_label == 'sign' or c.rnp_label == 'sign20_08corr' or c.rnp_label == 'sign_ht_rnabinding' or c.rnp_label == 'sign_ht' or c.rnp_label == 'sign_rnabinding' or c.is_rnp_select():
             complexes_dict['diffrac'] = True
 
         complexes_dict['rnp_select'] = c.is_rnp_select()
