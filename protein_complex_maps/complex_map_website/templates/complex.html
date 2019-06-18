@@ -214,9 +214,9 @@
                     {% endfor %}
                 </td>
                 <td> 
-                    {% for rbp_stat in prot.rbp_stats%}
-                        {{'%.2E' % rbp_stat.sliding_pvalues_fdrcor}}
-                    {% endfor %}
+                    {% if prot.rbp_stats|length > 0 %}
+                        {{'%.2E' % prot.rbp_stats[0].sliding_pvalues_fdrcor}}
+                    {% endif %}
                 </td>
                 <td>{{ prot.uniprot_link()|safe }} </td>
             </tr>
