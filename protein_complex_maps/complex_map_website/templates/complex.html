@@ -215,7 +215,9 @@
                 </td>
                 <td> 
                     {% if prot.rbp_stats|length > 0 %}
-                        {{'%.2E' % prot.rbp_stats[0].sliding_pvalues_fdrcor}}
+                        {% if prot.rbp_stats[0].sliding_pvalues_fdrcor != None %}
+                            {{'%.2E' % prot.rbp_stats[0].sliding_pvalues_fdrcor}}
+                        {% endif %}
                     {% endif %}
                 </td>
                 <td>{{ prot.uniprot_link()|safe }} </td>
