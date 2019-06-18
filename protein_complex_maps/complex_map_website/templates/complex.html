@@ -179,6 +179,7 @@
                 </script>                                                    
             
             </th>
+            <th>P-value</th>
             <th>Links</th>
         </tr>
         </thead>
@@ -210,6 +211,11 @@
                         {% if rbp_stat.is_diffrac_50() %}
                             <a href="#" class="label label-success" data-toggle="tooltip" title='DIFFRAC50'>50</a>
                         {% endif %}
+                    {% endfor %}
+                </td>
+                <td> 
+                    {% for rbp_stat in prot.rbp_stats%}
+                        {{'%.2E' % rbp_stat.sliding_pvalues_fdrcor}}
                     {% endfor %}
                 </td>
                 <td>{{ prot.uniprot_link()|safe }} </td>
@@ -304,8 +310,8 @@
 
 <br>
 <br>
-<a href="#Images" class="btn btn-default" data-toggle="collapse">Images</a>
-<div id="Images" class="collapse">
+<a href="#ElutionProfile" class="btn btn-default" data-toggle="collapse">Elution Profiles</a>
+<div id="ElutionProfile" class="collapse in">
 <br>
     <button class="btn btn-default btn-xs" onclick="imageFunction()">?</button>
     <script>

@@ -57,6 +57,10 @@ class Complex(db.Model):
         retstr = "<a href=displayComplexes?complex_key=%s>%s</a>" % (self.complex_id, self.complex_id)
         return retstr
 
+    def complex_link_button(self,):
+        retstr = "<a href=displayComplexes?complex_key=%s class='btn btn-default btn-sm' role='button'>%s</a>" % (self.complex_id, self.complex_id)
+        return retstr
+
     def corum_complex_link(self,):
         retstr = ""
         if self.corum_id != -1:
