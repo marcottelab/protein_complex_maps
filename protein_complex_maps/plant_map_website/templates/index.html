@@ -64,8 +64,8 @@
     <ul>
 
     <!-- https://www.uniprot.org/uniprot/?query=I1KDU3+OR+I1M368+OR+I1M369+OR+I1M370+OR+K7KX13&sort=score -->
-
-    {% for comp in complexes %}
+    <h4> Complexes ordered from most restrictive to most inclusive. </h4>
+    {% for comp in complexes reversed %}
         <!--<h2>Complex: {{ comp.clustid_set }}</h2>-->
         <table class="table table-striped">
             <caption>{{ comp.clustid_set}}</caption>

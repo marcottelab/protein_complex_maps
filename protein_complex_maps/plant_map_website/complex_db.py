@@ -5,6 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func, or_, and_
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///plant.db'
 
 app.config['SECRET_KEY'] = 'please, tell nobody'
@@ -27,8 +28,8 @@ def get_or_create(db, model, **kwargs):
         return instance
     else:
         instance = model(**kwargs)
-        session.add(instance)
-        session.commit()
+        #session.add(instance)
+        #session.commit()
     return instance
 
 
@@ -49,14 +50,14 @@ class Hiercomplex(db.Model):
 
 class Orthogroup(db.Model):
     """A single group"""
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement = True)
     OrthogroupID = db.Column(db.String(63))
     #complexes = db.relationship('Hiercomplex', secondary = 'OrthogroupComplexMapping',  back_populates='Hiercomplex', lazy='dynamic')
     #hiercomplexes = db.relationship('Hiercomplex', secondary = 'orthogroup_complex_mapping', backref = db.backref('orthogroups'), lazy = 'dynamic')
 
 class Protein(db.Model):
     """A single group"""
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     ProteinID = db.Column(db.String(63))
     Spec = db.Column(db.String(63))
     orthogroups = db.relationship('Orthogroup', secondary = 'orthogroup_protein_mapping', backref = db.backref('Proteins'), lazy = 'select') # or 'lazy = 'dynamic'
