@@ -57,6 +57,10 @@ def main():
             try:    
                 o = cdb.get_or_create(db, cdb.Orthogroup, OrthogroupID = OrthogroupID)
                 p = cdb.get_or_create(db, cdb.Protein, ProteinID = ProteinID, Spec = Spec)
+                os.append(o)  
+                ps.append(p)
+                #print(o)
+                #print(p)
                 #db.session.add(o)
                 #db.session.add(p)
                 #db.session.commit()
@@ -65,13 +69,15 @@ def main():
                 #db.session.add(opm)
                 #db.session.commit()
             except Exception as E:
-                error_count = error_count + 1
-                if error_count < 1:
-                    sleep(1)                   
-                    o = cdb.get_or_create(db, cdb.Orthogroup, OrthogroupID = OrthogroupID)
-                    p = cdb.get_or_create(db, cdb.Protein, ProteinID = ProteinID, Spec = Spec)
-                    os.append(o)
-                    ps.append(p)
+                 print(E)
+                 continue
+            #    error_count = error_count + 1
+            #    if error_count < 1:
+            #        sleep(1)                   
+            #        o = cdb.get_or_create(db, cdb.Orthogroup, OrthogroupID = OrthogroupID)
+            #        p = cdb.get_or_create(db, cdb.Protein, ProteinID = ProteinID, Spec = Spec)
+            #        os.append(o)
+            #        ps.append(p)
                     #db.session.add(o)
                     #db.session.add(p)
             
@@ -79,25 +85,34 @@ def main():
                     #db.session.add(opm)
                     #opms.append(opm)
                     #db.session.commit()
-                else: 
-                   print(E)
-                   continue
+            #    else: 
+            #       print(E)
+            #       continue
                
-            if count % 100 == 0:
+            if count % 10000 == 0:
+                 
                 print(count, str(time.time() - t0))
                 t0 = time.time()
-                db.session.add_all(os)
-                db.session.add_all(ps)
-                for i in range(len(os)):
-                   opm = cdb.get_or_create(db, cdb.OrthogroupProteinMapping, orthogroup_key=os[i].id, protein_key=ps[i].id)
-                   opms.append(opm)
-                db.session.add_all(opms)
-                os = []
-                ps = []
-                opms = []
-                db.session.flush()
+                #print(os, ps)
+    db.session.add_all(os)
+    db.session.add_all(ps) 
+    db.session.flush()  # Gets each object updated with its .id
+    print("added all")
+    count2 = 0
+    for i in range(len(os)):
+        if count2 % 10000 == 0:
+            print(count2)
+        count2 = count2 + 1
+        opm = cdb.get_or_create(db, cdb.OrthogroupProteinMapping, orthogroup_key=os[i].id, protein_key=ps[i].id)
+        opms.append(opm)
+    db.session.add_all(opms)
+    print("add all opms")
+    #os = []
+   #             ps = []
+   #             opms = []
+    #            db.session.commit()
 
-
+    #db.session.flush()
     db.session.commit()
 
   
