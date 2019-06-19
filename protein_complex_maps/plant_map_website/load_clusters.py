@@ -1,4 +1,4 @@
-
+from __future__ import print_function
 import argparse
 import numpy as np
 import itertools as it
@@ -29,7 +29,7 @@ def main():
     count = 1
     for line in csvreader:
         if count % 100 == 0:
-            print count
+            print(count)
         count = count + 1
 
         # CDM header

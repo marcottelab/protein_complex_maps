@@ -1,13 +1,15 @@
-
+from __future__ import print_function
 import argparse
-import numpy as np
-import itertools as it
+#import numpy as np
+
+#import itertools as it
 
 import csv
-import matplotlib.pyplot as plt
-#import protein_complex_maps.complex_map_website.complex_db as cdb
+import time
+#from time import sleep
 import complex_db as cdb
 import pandas as pd
+
 
 def main():
 
@@ -32,12 +34,13 @@ def main():
     conversion_table = open(args.conversion_file,"rb")
     complex_id = None
     count = 1
-
+    t0  = time.time()
     with(open(args.conversion_file,"rb")) as conversion_table:
-        
+       
+        os = []
+        ps = [] 
+        opms = [] 
         for line in conversion_table.readlines():
-            if count % 100 == 0:
-                print count
             count = count + 1    
             #if 'complex:' i        #print line
             split_line = line.split(',')
@@ -49,18 +52,55 @@ def main():
             #                                Spec = Spec,
             #                                ProteinID = ProteinID,
             #                                )
-     
-    
-            o = cdb.get_or_create(db, cdb.Orthogroup, OrthogroupID = OrthogroupID)
-            p = cdb.get_or_create(db, cdb.Protein, ProteinID = ProteinID, Spec = Spec)
-            db.session.add(o)
-            db.session.add(p)
-            db.session.commit()
-    
-            opm = cdb.get_or_create(db, cdb.OrthogroupProteinMapping, orthogroup_key=o.id, protein_key=p.id)
-            db.session.add(opm)
-            db.session.commit()    
+            # Find a better way to do this. Avoid concurrent loading and error
+            error_count = 0
+            try:    
+                o = cdb.get_or_create(db, cdb.Orthogroup, OrthogroupID = OrthogroupID)
+                p = cdb.get_or_create(db, cdb.Protein, ProteinID = ProteinID, Spec = Spec)
+                #db.session.add(o)
+                #db.session.add(p)
+                #db.session.commit()
+        
+                #opm = cdb.get_or_create(db, cdb.OrthogroupProteinMapping, orthogroup_key=o.id, protein_key=p.id)
+                #db.session.add(opm)
+                #db.session.commit()
+            except Exception as E:
+                error_count = error_count + 1
+                if error_count < 1:
+                    sleep(1)                   
+                    o = cdb.get_or_create(db, cdb.Orthogroup, OrthogroupID = OrthogroupID)
+                    p = cdb.get_or_create(db, cdb.Protein, ProteinID = ProteinID, Spec = Spec)
+                    os.append(o)
+                    ps.append(p)
+                    #db.session.add(o)
+                    #db.session.add(p)
+            
+                    #opm = cdb.get_or_create(db, cdb.OrthogroupProteinMapping, orthogroup_key=o.id, protein_key=p.id)
+                    #db.session.add(opm)
+                    #opms.append(opm)
+                    #db.session.commit()
+                else: 
+                   print(E)
+                   continue
+               
+            if count % 100 == 0:
+                print(count, str(time.time() - t0))
+                t0 = time.time()
+                db.session.add_all(os)
+                db.session.add_all(ps)
+                for i in range(len(os)):
+                   opm = cdb.get_or_create(db, cdb.OrthogroupProteinMapping, orthogroup_key=os[i].id, protein_key=ps[i].id)
+                   opms.append(opm)
+                db.session.add_all(opms)
+                os = []
+                ps = []
+                opms = []
+                db.session.flush()
 
+
+    db.session.commit()
+
+  
 
 if __name__ == "__main__":
 
