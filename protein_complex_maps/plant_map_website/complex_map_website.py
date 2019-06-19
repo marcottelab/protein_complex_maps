@@ -104,7 +104,7 @@ def displayComplexesForOrthogroupID():
 
     if len(OrthogroupIDs) == 0:
         #kdrew: input genename is not valid, flash message
-        error = "Could not find given virNOG orthogroup ID: %s" % OrthogroupID
+        error = "Could not find given virNOG orthogroup ID: %s" % Input_OrthogroupID
 
         return render_template('index.html', form = form, complexes = [], error = error, Species = Species)
 

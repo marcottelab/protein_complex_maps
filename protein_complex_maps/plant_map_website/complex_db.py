@@ -50,14 +50,14 @@ class Hiercomplex(db.Model):
 
 class Orthogroup(db.Model):
     """A single group"""
-    id = db.Column(db.Integer, primary_key=True, autoincrement = True)
+    id = db.Column(db.Integer, primary_key=True) #, autoincrement = True)
     OrthogroupID = db.Column(db.String(63))
     #complexes = db.relationship('Hiercomplex', secondary = 'OrthogroupComplexMapping',  back_populates='Hiercomplex', lazy='dynamic')
     #hiercomplexes = db.relationship('Hiercomplex', secondary = 'orthogroup_complex_mapping', backref = db.backref('orthogroups'), lazy = 'dynamic')
 
 class Protein(db.Model):
     """A single group"""
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id = db.Column(db.Integer, primary_key=True) #, autoincrement=True)
     ProteinID = db.Column(db.String(63))
     Spec = db.Column(db.String(63))
     orthogroups = db.relationship('Orthogroup', secondary = 'orthogroup_protein_mapping', backref = db.backref('Proteins'), lazy = 'select') # or 'lazy = 'dynamic'
