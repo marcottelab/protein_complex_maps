@@ -35,34 +35,26 @@ def get_or_create(db, model, **kwargs):
 
 class Hiercomplex(db.Model):
     """A single complex"""
-    # Each Hiercomplex contains multiple orthogroups
-    # Many to Many
+    # Each complex contains multiple orthogroups
+    # One orthogroup can belong to many complexes
+    # Many complexes to Many orthogroups
     id = db.Column(db.Integer, primary_key=True)
     clustid = db.Column(db.Integer, unique = False)
     clustid_set = db.Column(db.String(63))
     orthogroups = db.relationship('Orthogroup', secondary = 'orthogroup_complex_mapping', backref = db.backref('hiercomplexes'), lazy = 'select') # or 'lazy = 'dynamic'
   
 
-#class Conversion(db.Model):
-#    """A mapping between different OrthogroupID types"""
-#    id = db.Column(db.Integer, primary_key=True)
-#    OrthogroupID = db.Column(db.String(63))
-#    Spec = db.Column(db.String(63))
-#    ProteinID = db.Column(db.String(63)) 
-
 class Orthogroup(db.Model):
     """A single group"""
     id = db.Column(db.Integer, primary_key=True) #, autoincrement = True)
     OrthogroupID = db.Column(db.String(63), unique = True)
-    #complexes = db.relationship('Hiercomplex', secondary = 'OrthogroupComplexMapping',  back_populates='Hiercomplex', lazy='dynamic')
-    #hiercomplexes = db.relationship('Hiercomplex', secondary = 'orthogroup_complex_mapping', backref = db.backref('orthogroups'), lazy = 'dynamic')
     __table_args__ = (UniqueConstraint('OrthogroupID'),)
 
 
 class Protein(db.Model):
     """A single group"""
     # Each protein is only in one orthogroup, but each orthogroup has many proteins
-    # One to Many
+    # One orthogroup to Many proteins
     id = db.Column(db.Integer, primary_key=True) #, autoincrement=True)
     ProteinID = db.Column(db.String(63))
     Spec = db.Column(db.String(63))
@@ -75,7 +67,7 @@ class Protein(db.Model):
 
 class Orthoannot(db.Model):
     """A single group"""
-    # One to One 
+    # One orthoannotation to One orthogroup
     id = db.Column(db.Integer, primary_key=True)
     EggnogAnnot = db.Column(db.String(63))
     Tair = db.Column(db.String(63))
@@ -85,13 +77,35 @@ class Orthoannot(db.Model):
     #orthogroups = db.relationship('Orthogroup', secondary = 'orthogroup_annot_mapping', backref = db.backref('Orthoannots'), lazy = 'select') # or 'lazy = 'dynamic'
  
 
+
 class Score(db.Model):
     """A orthogroup orthogroup edge with score"""
+    # One orthogroup has Many scores
+   # Each score has two orthogroups
     id = db.Column(db.Integer, primary_key=True)
-    OrthogroupID1_key = db.Column(db.Integer, db.ForeignKey('orthogroup.id') )
-    OrthogroupID2_key = db.Column(db.Integer, db.ForeignKey('orthogroup.id') )
-    ScoreVal = db.Column(db.Float)
+    InteractionID = db.Column(db.Integer)
+    OrthogroupID_key = db.Column(db.Integer, db.ForeignKey('orthogroup.id') )
+    ScoreVal = db.Column(db.Float) # redundant
+    scores = db.relationship("Orthogroup", backref = "Scores", lazy = "select")
+#    OrthogroupID1_key = db.Column(db.Integer, db.ForeignKey('orthogroup.id') )
+#    OrthogroupID2_key = db.Column(db.Integer, db.ForeignKey('orthogroup.id') )
+#    ScoreVal = db.Column(db.Float)
+     
 
+#class Score(db.Model):
+#    """A orthogroup orthogroup edge with score"""
+    # One orthogroup has Many scores
+    # Each score has two orthogroups
+#    id = db.Column(db.Integer, primary_key=True)
+#    OrthogroupID1_key = db.Column(db.Integer, db.ForeignKey('orthogroup.id') )
+#    OrthogroupID2_key = db.Column(db.Integer, db.ForeignKey('orthogroup.id') )
+#    ScoreVal = db.Column(db.Float)
+    # Not sure if this will work
+#    orthogroup1s = db.relationship("Orthogroup", backref = "Scores", lazy = "select", foreign_keys = 'Score.OrthogroupID1_key')
+#    orthogroup2s = db.relationship("Orthogroup", backref = "Scores", lazy = "select", foreign_keys = 'Score.OrthogroupID2_key')
+
+    #Payments = db.relationship('Payment', backref = 'payer', lazy = 'dynamic', foreign_keys = 'Payment.uidPayer')
+    #Received = db.realtionship('Payment', backref = 'Receiver', lazy = 'dynamic, foreign_keys = 'Payment.uidReceiver') 
 
  
 #class Edge(db.Model):
