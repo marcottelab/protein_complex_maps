@@ -56,12 +56,12 @@ def getitems(obj, item, default):
 
 
 class SearchForm(Form):
-    species_list = [("arath","Arabidopsis"), 
-                    ("braol","Broccoli"), 
-                    ("chlre","Chlamydomonas"),
-                    ("cocnu","Coconut"), 
-                    ("cansa","Hemp"), 
-                    ("sollc","Tomato"), 
+    species_list = [("arath", "Arabidopsis"), 
+                    ("braol", "Broccoli"), 
+                    ("chlre", "Chlamydomonas"),
+                    ("cocnu", "Coconut"), 
+                    ("cansa", "Hemp"), 
+                    ("sollc", "Tomato"), 
                     ("maize", "Maize"), 
                     ("chqui", "Quinoa"), 
                     ("orysj","Rice"), 
@@ -98,20 +98,21 @@ def displayComplexesForOrthogroupID():
     form = SearchForm()
     #kdrew: do error checking
     error=None
-
+    print(Species)
+    print(Input_OrthogroupID)
     #kdrew: tests to see if orthogroup is a valid orthogroup ID
     OrthogroupIDs = db.session.query(cdb.Orthogroup).filter((func.upper(cdb.Orthogroup.OrthogroupID) == func.upper(Input_OrthogroupID))).all()
-
+    print(OrthogroupIDs)
     if len(OrthogroupIDs) == 0:
         #kdrew: input genename is not valid, flash message
         error = "Could not find given virNOG orthogroup ID: %s" % Input_OrthogroupID
 
         return render_template('index.html', form = form, complexes = [], error = error, Species = Species)
-
-
+    print(OrthogroupIDs[0]) 
     complexes = []
-    for OrthogroupID in OrthogroupIDs: 
-        #try:
+    for OrthogroupID in [OrthogroupIDs[0]]: 
+            print(OrthogroupID.OrthogroupID)            
+           #try:
         #    proteins = db.session.query(cdb.Protein).filter((cdb.Protein.gene_id == gene.gene_id)).all()
         #
         #except NoResultFound:
@@ -123,7 +124,7 @@ def displayComplexesForOrthogroupID():
         #for protein in proteins:
             try:
                 print("troubleshooting start")
-                print(dir(OrthogroupID))
+                #print(dir(OrthogroupID))
     
                 orthogroup_clusters = (db.session.query(cdb.Orthogroup).filter(cdb.Orthogroup.id == OrthogroupID.id)).first()
                 #print(dir(orthogroup_clusters))
@@ -134,17 +135,21 @@ def displayComplexesForOrthogroupID():
                 #print(dir(orthogroup_clusters.hiercomplexes))
                 complexes = orthogroup_clusters.hiercomplexes
                 print("complexes", complexes)
+                
                 #Keep for trouble shooting syntax
-                #for prot in orthogroup_clusters.hiercomplexes:
-                      #print(prot)
-                      #print(dir(prot))                            
-                      #for bla in prot.orthogroups:
-                      #       print(bla.Orthoannots)
-                      #       print(dir(bla.Orthoannots))
-                             #irint(dir(bla))
+                for prot in orthogroup_clusters.hiercomplexes:
+                      print(prot)
+                      print(dir(prot))                            
+                      for bla in prot.orthogroups:
+                             print(dir(bla))
+                             print(bla.Orthoannots)
+                             #print(dir(bla.Orthoannots))
+                             #print(dir(bla))
                              #print(bla.OrthogroupID)
                              #print(bla.Proteins)
-                             
+                             #for p in bla.Proteins:
+                             #     print(p.ProteinID, p.Spec)
+                             #print(stop)             
                 
 
 
@@ -152,7 +157,7 @@ def displayComplexesForOrthogroupID():
                 continue
 
     if len(orthogroup_clusters.hiercomplexes) == 0:
-        error = "No complexes found for given virNOG orthogroup ID: %s" % OrthogroupID
+        error = "No complexes found for given virNOG orthogroup ID: %s" % Input_OrthogroupID
 
     #complexes = list(set(complexes))
 

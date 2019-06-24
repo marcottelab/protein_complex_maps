@@ -2,7 +2,7 @@
 from flask import Flask
 #from flask.ext.sqlalchemy import SQLAlchemy
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import func, or_, and_
+from sqlalchemy import func, or_, and_, UniqueConstraint
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -35,6 +35,8 @@ def get_or_create(db, model, **kwargs):
 
 class Hiercomplex(db.Model):
     """A single complex"""
+    # Each Hiercomplex contains multiple orthogroups
+    # Many to Many
     id = db.Column(db.Integer, primary_key=True)
     clustid = db.Column(db.Integer, unique = False)
     clustid_set = db.Column(db.String(63))
@@ -51,25 +53,43 @@ class Hiercomplex(db.Model):
 class Orthogroup(db.Model):
     """A single group"""
     id = db.Column(db.Integer, primary_key=True) #, autoincrement = True)
-    OrthogroupID = db.Column(db.String(63))
+    OrthogroupID = db.Column(db.String(63), unique = True)
     #complexes = db.relationship('Hiercomplex', secondary = 'OrthogroupComplexMapping',  back_populates='Hiercomplex', lazy='dynamic')
     #hiercomplexes = db.relationship('Hiercomplex', secondary = 'orthogroup_complex_mapping', backref = db.backref('orthogroups'), lazy = 'dynamic')
+    __table_args__ = (UniqueConstraint('OrthogroupID'),)
+
 
 class Protein(db.Model):
     """A single group"""
+    # Each protein is only in one orthogroup, but each orthogroup has many proteins
+    # One to Many
     id = db.Column(db.Integer, primary_key=True) #, autoincrement=True)
     ProteinID = db.Column(db.String(63))
     Spec = db.Column(db.String(63))
     orthogroups = db.relationship('Orthogroup', secondary = 'orthogroup_protein_mapping', backref = db.backref('Proteins'), lazy = 'select') # or 'lazy = 'dynamic'
+    __table_args__ = (UniqueConstraint('ProteinID'),)
+
 
 class Orthoannot(db.Model):
     """A single group"""
+    # One to One 
     id = db.Column(db.Integer, primary_key=True)
     EggnogAnnot = db.Column(db.String(63))
     Tair = db.Column(db.String(63))
     ArathGenenames = db.Column(db.String(63))
-    orthogroups = db.relationship('Orthogroup', secondary = 'orthogroup_annot_mapping', backref = db.backref('Orthoannots'), lazy = 'select') # or 'lazy = 'dynamic'
+    OrthogroupID_key = db.Column(db.Integer, db.ForeignKey('orthogroup.id') )
+    orthogroups = db.relationship("Orthogroup", backref = "Orthoannots", lazy = "select")
+    #orthogroups = db.relationship('Orthogroup', secondary = 'orthogroup_annot_mapping', backref = db.backref('Orthoannots'), lazy = 'select') # or 'lazy = 'dynamic'
  
+
+class Score(db.Model):
+    """A orthogroup orthogroup edge with score"""
+    id = db.Column(db.Integer, primary_key=True)
+    OrthogroupID1_key = db.Column(db.Integer, db.ForeignKey('orthogroup.id') )
+    OrthogroupID2_key = db.Column(db.Integer, db.ForeignKey('orthogroup.id') )
+    ScoreVal = db.Column(db.Float)
+
+
  
 #class Edge(db.Model):
 #    """A orthogroup orthogroup edge"""
@@ -105,9 +125,9 @@ class OrthogroupProteinMapping(db.Model):
     protein_key = db.Column(db.Integer, db.ForeignKey('protein.id'), primary_key=True)
 
 
-class OrthogroupAnnotMapping(db.Model):
-    """A mapping between groups and complexes"""
-    orthogroup_key = db.Column(db.Integer, db.ForeignKey('orthogroup.id'), primary_key=True)
-    orthoannot_key = db.Column(db.Integer, db.ForeignKey('orthoannot.id'), primary_key=True)
+#class OrthogroupAnnotMapping(db.Model):
+#    """A mapping between groups and complexes"""
+#    orthogroup_key = db.Column(db.Integer, db.ForeignKey('orthogroup.id'), primary_key=True)
+#    orthoannot_key = db.Column(db.Integer, db.ForeignKey('orthoannot.id'), primary_key=True)
 
 
