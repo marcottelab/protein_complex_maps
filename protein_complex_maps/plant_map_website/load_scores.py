@@ -44,10 +44,6 @@ def main():
         for line in score_table.readlines():
             if "P_1" in line: #header
                  continue
-            if count % 1000 == 0:
-                print(count, str(time.time() - t0))
-                t0 = time.time()
-
             count = count + 1
 
             split_line = line.split(',')
@@ -58,13 +54,25 @@ def main():
 
             o1 = db.session.query(cdb.Orthogroup).filter_by(OrthogroupID = OrthogroupID1).first()
             o2 = db.session.query(cdb.Orthogroup).filter_by(OrthogroupID = OrthogroupID2).first()
-            #db.session.flush()
-            scr = cdb.get_or_create(db, cdb.Score, OrthogroupID1_key=o1.id, OrthogroupID2_key=o2.id, ScoreVal = ScoreVal)
-            scrs.append(scr)
+
+            scr1 = cdb.get_or_create(db, cdb.Score, InteractionID = count, OrthogroupID_key=o1.id, ScoreVal = ScoreVal)
+            scrs.append(scr1)
+
+            scr2 = cdb.get_or_create(db, cdb.Score, InteractionID = count, OrthogroupID_key=o2.id, ScoreVal = ScoreVal)
+            scrs.append(scr2)
+
+            if count % 1000 == 0:
+                print(count, str(time.time() - t0))
+                t0 = time.time()
+                db.session.add_all(scrs)
+                db.session.flush()
+                db.session.commit()
+                scrs = []
       
     db.session.add_all(scrs)
+    db.session.flush()
     db.session.commit()
-
+    print("added all scores")
 
 if __name__ == "__main__":
     main()
