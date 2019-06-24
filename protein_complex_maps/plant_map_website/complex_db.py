@@ -66,8 +66,11 @@ class Protein(db.Model):
     id = db.Column(db.Integer, primary_key=True) #, autoincrement=True)
     ProteinID = db.Column(db.String(63))
     Spec = db.Column(db.String(63))
-    orthogroups = db.relationship('Orthogroup', secondary = 'orthogroup_protein_mapping', backref = db.backref('Proteins'), lazy = 'select') # or 'lazy = 'dynamic'
+    #orthogroups = db.relationship('Orthogroup', secondary = 'orthogroup_protein_mapping', backref = db.backref('Proteins'), lazy = 'select') # or 'lazy = 'dynamic'
     __table_args__ = (UniqueConstraint('ProteinID'),)
+    OrthogroupID_key = db.Column(db.Integer, db.ForeignKey('orthogroup.id') )
+    orthogroups = db.relationship("Orthogroup", backref = "Proteins", lazy = "select")
+
 
 
 class Orthoannot(db.Model):
@@ -118,11 +121,11 @@ class OrthogroupComplexMapping(db.Model):
     orthogroup_key = db.Column(db.Integer, db.ForeignKey('orthogroup.id'), primary_key=True)
     hiercomplex_key = db.Column(db.Integer, db.ForeignKey('hiercomplex.id'), primary_key=True)
 
-
-class OrthogroupProteinMapping(db.Model):
-    """A mapping between groups and complexes"""
-    orthogroup_key = db.Column(db.Integer, db.ForeignKey('orthogroup.id'), primary_key=True)
-    protein_key = db.Column(db.Integer, db.ForeignKey('protein.id'), primary_key=True)
+# To Do delete this class
+#class OrthogroupProteinMapping(db.Model):
+#    """A mapping between groups and complexes"""
+#    orthogroup_key = db.Column(db.Integer, db.ForeignKey('orthogroup.id'), primary_key=True)
+#    protein_key = db.Column(db.Integer, db.ForeignKey('protein.id'), primary_key=True)
 
 
 #class OrthogroupAnnotMapping(db.Model):
