@@ -4,12 +4,16 @@ import argparse
 
 #import itertools as it
 
-import csv
+#import csv
 import time
-#from time import sleep
-import complex_db as cdb
-import pandas as pd
+#import numpy as np
+#import itertools as it
 
+#import csv
+#import matplotlib.pyplot as plt
+#import protein_complex_maps.complex_map_website.complex_db as cdb
+import complex_db as cdb
+#import pandas as pd
 
 def main():
 
@@ -34,14 +38,17 @@ def main():
     conversion_table = open(args.conversion_file,"rb")
     complex_id = None
     count = 1
-    t0  = time.time()
+    t0 = time.time()
+    opms = []
     with(open(args.conversion_file,"rb")) as conversion_table:
-       
-        os = []
-        ps = [] 
-        opms = [] 
+
         for line in conversion_table.readlines():
-            count = count + 1    
+            if "ProteinID" in line:
+                 continue
+            if count % 1000 == 0:
+                print(count, str(time.time() - t0))
+                t0 = time.time()
+            count = count + 1
             #if 'complex:' i        #print line
             split_line = line.split(',')
             OrthogroupID = split_line[0]
@@ -52,87 +59,16 @@ def main():
             #                                Spec = Spec,
             #                                ProteinID = ProteinID,
             #                                )
-            # Find a better way to do this. Avoid concurrent loading and error
-            error_count = 0
-            try:    
-                o = cdb.get_or_create(db, cdb.Orthogroup, OrthogroupID = OrthogroupID)
-                p = cdb.get_or_create(db, cdb.Protein, ProteinID = ProteinID, Spec = Spec)
-                os.append(o)  
-                ps.append(p)
-                #print(o)
-                #print(p)
-                #db.session.add(o)
-                #db.session.add(p)
-                #db.session.commit()
-        
-                #opm = cdb.get_or_create(db, cdb.OrthogroupProteinMapping, orthogroup_key=o.id, protein_key=p.id)
-                #db.session.add(opm)
-                #db.session.commit()
-            except Exception as E:
-                 print(E)
-                 continue
-            #    error_count = error_count + 1
-            #    if error_count < 1:
-            #        sleep(1)                   
-            #        o = cdb.get_or_create(db, cdb.Orthogroup, OrthogroupID = OrthogroupID)
-            #        p = cdb.get_or_create(db, cdb.Protein, ProteinID = ProteinID, Spec = Spec)
-            #        os.append(o)
-            #        ps.append(p)
-                    #db.session.add(o)
-                    #db.session.add(p)
-            
-                    #opm = cdb.get_or_create(db, cdb.OrthogroupProteinMapping, orthogroup_key=o.id, protein_key=p.id)
-                    #db.session.add(opm)
-                    #opms.append(opm)
-                    #db.session.commit()
-            #    else: 
-            #       print(E)
-            #       continue
-               
-            if count % 10000 == 0:
-                 
-                print(count, str(time.time() - t0))
-                t0 = time.time()
-                #print(os, ps)
-    db.session.add_all(os)
-    db.session.add_all(ps) 
-    db.session.flush()  # Gets each object updated with its .id
-    print("added all")
-    count2 = 0
-    for i in range(len(os)):
-        if count2 % 10000 == 0:
-            print(count2)
-        count2 = count2 + 1
-        opm = cdb.get_or_create(db, cdb.OrthogroupProteinMapping, orthogroup_key=os[i].id, protein_key=ps[i].id)
-        opms.append(opm)
-    db.session.add_all(opms)
-    print("add all opms")
-    #os = []
-   #             ps = []
-   #             opms = []
-    #            db.session.commit()
 
-    #db.session.flush()
+            o = db.session.query(cdb.Orthogroup).filter_by(OrthogroupID = OrthogroupID).first()
+            p = db.session.query(cdb.Protein).filter_by(ProteinID = ProteinID).first()
+            #db.session.flush()
+            opm = cdb.get_or_create(db, cdb.OrthogroupProteinMapping, orthogroup_key=o.id, protein_key=p.id)
+            opms.append(opm)
+      
+    db.session.add_all(opms)
     db.session.commit()
 
-  
 
 if __name__ == "__main__":
-
     main()
-#with open('million_users.csv', 'r') as csv_file:
-#    csv_reader = csv.reader(csv_file)
-#
-#buffer = []
-#for row in reader:
-#    buffer.append({
-#        'OrthogroupI': row[0],
-#         'ProteinID': row[1],
-#          'Spec': row[2]
-#    })
-#    if len(buffer) % 10000 == 0:
-#        session.bulk_insert_mappings(buffer)
-#        buffer = []
-#
-#session.bulk_insert_mappings(buffer)
-

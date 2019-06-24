@@ -50,14 +50,14 @@ def main():
                 EggnogAnnot = split_line[24]
                 Tair = split_line[23].strip("\n")
             #print(OrthogroupID, ArathGenenames, EggnogAnnot, Tair)
-                a = cdb.get_or_create(db, cdb.Orthoannot, EggnogAnnot = EggnogAnnot, Tair = Tair, ArathGenenames = ArathGenenames)
                 o = cdb.get_or_create(db, cdb.Orthogroup, OrthogroupID = OrthogroupID)
+                a = cdb.get_or_create(db, cdb.Orthoannot, OrthogroupID_key = o.id, EggnogAnnot = EggnogAnnot, Tair = Tair, ArathGenenames = ArathGenenames)
                 db.session.add(a)
                 db.session.commit()
     
-                oam = cdb.get_or_create(db, cdb.OrthogroupAnnotMapping, orthogroup_key=o.id, orthoannot_key=a.id)
-                db.session.add(oam)
-                db.session.commit()    
+                #oam = cdb.get_or_create(db, cdb.OrthogroupAnnotMapping, orthogroup_key=o.id, orthoannot_key=a.id)
+                #db.session.add(oam)
+                #db.session.commit()    
             except Exception as e:
                  continue
 
