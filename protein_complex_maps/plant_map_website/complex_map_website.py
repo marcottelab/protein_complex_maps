@@ -15,6 +15,10 @@ app = cdb.get_app()
 from flask_wtf import FlaskForm  #Changed from just Form to avoid deprecation warning
 from wtforms.fields import StringField, SubmitField, SelectField
 from flask import make_response
+
+
+from flask import render_template
+from flask import url_for, redirect, request, jsonify
 #from scripts.lineplot import make_protein_sparklines
 #from scripts.validate_query import valid_query
 #from scripts.get_species import identify_species
@@ -73,10 +77,11 @@ class SearchForm(FlaskForm):
     ProteinID = StringField(u'Protein ID ex. F4KCR6 Q0DTU0_ORYSJ AT4G01395')
     Species = SelectField(u'Species', choices = species_list, default = 'arath')
     #enrichment = StringField(u'Enrichment (ex. cilium):')
-    submit = SubmitField(u'Search')
+    #submit = SubmitField(u'Search')
+    submit = SubmitField(u'Search complexes')
+   
+    submitinteractions = SubmitField(u'Get top interactions')
 
-from flask import render_template
-from flask import url_for, redirect, request, jsonify
 
 
 @app.route("/")
@@ -168,8 +173,6 @@ def displayComplexesForProteinID():
 
     if len(orthogroup_clusters.hiercomplexes) == 0:
         error = "No complexes found for given Protein ID %s and its virNOG orthogroup ID: %s" % (Input_ProteinID, OrthogroupID.OrthogroupID)
-
-
     return render_template('index.html', form = form, complexes = complexes, Species = Species, Input_ProteinID = Input_ProteinID, error = error)
 
 
@@ -177,22 +180,65 @@ def displayComplexesForProteinID():
 def searchComplexes():
     form = SearchForm()
     complexes = []
+    print("formvalues")
+    print(form.submit, form.submit.data)
+    print(form.submitinteractions, form.submitinteractions.data)
+
     if form.validate_on_submit():
-        if len(form.OrthogroupID.data) > 0:
-            if len(form.Species.data) > 0:
-               return redirect(url_for('displayComplexesForOrthogroupID', OrthogroupID = form.OrthogroupID.data, Species = form.Species.data))
 
-            else:
-               return redirect(url_for('displayComplexesForOrthogroupID', OrthogroupID = form.OrthogroupID.data))
-        elif len(form.ProteinID.data) > 0:
-            return redirect(url_for('displayComplexesForProteinID', ProteinID = form.ProteinID.data))
-
+        if form.submit.data == True:
+            if len(form.OrthogroupID.data) > 0:
+                if len(form.Species.data) > 0:
+                   return redirect(url_for('displayComplexesForOrthogroupID', OrthogroupID = form.OrthogroupID.data, Species = form.Species.data))
+    
+                else:
+                   return redirect(url_for('displayComplexesForOrthogroupID', OrthogroupID = form.OrthogroupID.data))
+            elif len(form.ProteinID.data) > 0:
+                return redirect(url_for('displayComplexesForProteinID', ProteinID = form.ProteinID.data))
+        
+        if form.submitinteractions.data == True:
+            if len(form.OrthogroupID.data) > 0:
+                if len(form.Species.data) > 0:
+                   return redirect(url_for('getInteractionsForOrthogroupID', OrthogroupID = form.OrthogroupID.data, Species = form.Species.data))
+    
+                else:
+                   return redirect(url_for('getInteractionsForOrthogroupID', OrthogroupID = form.OrthogroupID.data))
+            elif len(form.ProteinID.data) > 0:
+                return redirect(url_for('getInteractionsForProteinID', ProteinID = form.ProteinID.data))
+ 
     #kdrew: added hoping it would fix redirect problem on stale connections
     return render_template('index.html', form = form, complexes = complexes)
 
 
+@app.route("/getInteractionsForOrthogroupID")
+def getInteractionsForOrthogroupID():
+    print("GET INTERACTIONS")
+    Species = request.args.get('Species')
+    Input_OrthogroupID = request.args.get('OrthogroupID')
+    form = SearchForm()
+    error=None
 
+    #CDM: See if orthogroup is a valid orthogroup ID
+    OrthogroupID = OrthogroupQuery(Input_OrthogroupID, Species, error, cdb,'getinteractions.html')
+    print(dir(OrthogroupID))
+    return render_template('getinteractions.html', form = form,  Species = Species, Input_OrthogroupID = Input_OrthogroupID, error = error)
 
+#@app.route('/getinteractions')
+#def searchInteractions():
+#    form = SearchForm()
+#    complexes = []
+#    if form.validate_on_submit():
+#        if len(form.OrthogroupID.data) > 0:
+#            if len(form.Species.data) > 0:
+#               return redirect(url_for('getInteractionsForOrthogroupID', OrthogroupID = form.OrthogroupID.data, Species = form.Species.data))
+#
+#            else:
+#               return redirect(url_for('getInteractionsForOrthogroupID', OrthogroupID = form.OrthogroupID.data))
+#        elif len(form.ProteinID.data) > 0:
+#            return redirect(url_for('getInteractionsForProteinID', ProteinID = form.ProteinID.data))
+#
+#    #kdrew: added hoping it would fix redirect problem on stale connections
+#    return render_template('getinteractions.html', form = form)
 
 
 
