@@ -12,8 +12,7 @@ from sqlalchemy import func, or_
 db = cdb.get_db()
 app = cdb.get_app()
 
-#from flask.ext.wtf import Form
-from flask_wtf import Form
+from flask_wtf import FlaskForm  #Changed from just Form to avoid deprecation warning
 from wtforms.fields import StringField, SubmitField, SelectField
 from flask import make_response
 #from scripts.lineplot import make_protein_sparklines
@@ -55,7 +54,7 @@ def getitems(obj, item, default):
        
 
 
-class SearchForm(Form):
+class SearchForm(FlaskForm):
     species_list = [("arath", "Arabidopsis"), 
                     ("braol", "Broccoli"), 
                     ("chlre", "Chlamydomonas"),
@@ -85,123 +84,130 @@ def root(complexes=[]):
     print(complexes)
     #complexes = cdb.Complex.query.all()
     form = SearchForm()
-    return render_template('index.html', form=form, complexes=complexes)
+    return render_template('index.html', form = form, complexes = complexes)
 
-
-
-
-@app.route("/displayComplexesForOrthogroupID")
-def displayComplexesForOrthogroupID():
-    Species = request.args.get('Species')
-    print(Species)   
-    Input_OrthogroupID = request.args.get('OrthogroupID')
-    form = SearchForm()
-    #kdrew: do error checking
-    error=None
-    print(Species)
-    print(Input_OrthogroupID)
-    #kdrew: tests to see if orthogroup is a valid orthogroup ID
-    OrthogroupIDs = db.session.query(cdb.Orthogroup).filter((func.upper(cdb.Orthogroup.OrthogroupID) == func.upper(Input_OrthogroupID))).all()
-    print(OrthogroupIDs)
-    if len(OrthogroupIDs) == 0:
+def OrthogroupQuery(Input_OrthogroupID, Species, error, cdb, template):
+    OrthogroupID = db.session.query(cdb.Orthogroup).filter((func.upper(cdb.Orthogroup.OrthogroupID) == func.upper(Input_OrthogroupID))).first()
+    print(OrthogroupID)
+    #if len(OrthogroupIDs) == 0:
+    if not OrthogroupID:
         #kdrew: input genename is not valid, flash message
         error = "Could not find given virNOG orthogroup ID: %s" % Input_OrthogroupID
 
-        return render_template('index.html', form = form, complexes = [], error = error, Species = Species)
-    print(OrthogroupIDs[0]) 
-    complexes = []
-    for OrthogroupID in [OrthogroupIDs[0]]: 
-            print(OrthogroupID.OrthogroupID)            
-           #try:
-        #    proteins = db.session.query(cdb.Protein).filter((cdb.Protein.gene_id == gene.gene_id)).all()
-        #
-        #except NoResultFound:
-        #    #kdrew: input genename is not valid, flash message
-        #    error = "Could not find given genename: %s" % genename
-        #
-        #    return render_template('index.html', form=form, complexes=[], error=error)
-        #
-        #for protein in proteins:
-            try:
-                print("troubleshooting start")
-                #print(dir(OrthogroupID))
-    
-                orthogroup_clusters = (db.session.query(cdb.Orthogroup).filter(cdb.Orthogroup.id == OrthogroupID.id)).first()
-                #print(dir(orthogroup_clusters))
-                # Can get hier complexes associated with an orthogroup ID, 
-                # Then get member proteins of each cluster level
-                # Loop through displaying each 
-                #complexes = orthogroup_clusters.hiercomplexes
-                #print(dir(orthogroup_clusters.hiercomplexes))
-                complexes = orthogroup_clusters.hiercomplexes
-                print("complexes", complexes)
-                
+        return render_template(template, form = form, complexes = [], error = error, Species = Species)
+    return(OrthogroupID)
+
+def ProteinQuery(Input_ProteinID, error, cdb, template):
+    ProteinID = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.ProteinID) == func.upper(Input_ProteinID))).first()
+    print(ProteinID)
+    print(ProteinID.orthogroups)
+    if not ProteinID.orthogroups:
+        #kdrew: input ProteinID is not valid, flash message
+        error = "Could not find orthogroup for given Protein ID: %s" % Input_ProteinID
+
+        return render_template(tmplate, form = form, complexes = [], error = error)
+
+
+    OrthogroupID_string = ProteinID.orthogroups.OrthogroupID
+    Species = ProteinID.Spec
+
+    OrthogroupID = db.session.query(cdb.Orthogroup).filter((func.upper(cdb.Orthogroup.OrthogroupID) == func.upper(OrthogroupID_string))).first()
+
+    return ProteinID, OrthogroupID, Species
+
+def troubleshoot_clusters(orthogroup_clusters):
                 #Keep for trouble shooting syntax
-                for prot in orthogroup_clusters.hiercomplexes:
-                      print(prot)
-                      print(dir(prot))                            
-                      for bla in prot.orthogroups:
-                             print(dir(bla))
-                             print(bla.Orthoannots)
+                #for prot in orthogroup_clusters.hiercomplexes:
+                #      print(prot)
+                #      print(dir(prot))                            
+                #      for bla in prot.orthogroups:
+                #             print(dir(bla))
+                #             print(bla.Orthoannots)
                              #print(dir(bla.Orthoannots))
                              #print(dir(bla))
                              #print(bla.OrthogroupID)
-                             #print(bla.Proteins)
-                             #for p in bla.Proteins:
-                             #     print(p.ProteinID, p.Spec)
+                #             print("Protein object", bla.Proteins)
+                #             for p in bla.Proteins:
+                #                  print(p.ProteinID, p.Spec)
                              #print(stop)             
-                
+            return 0
 
 
-            except NoResultFound:
-                continue
+ 
+@app.route("/displayComplexesForOrthogroupID")
+def displayComplexesForOrthogroupID():
+    Species = request.args.get('Species')
+    Input_OrthogroupID = request.args.get('OrthogroupID')
+    form = SearchForm()
+    error=None
 
+    #CDM: See if orthogroup is a valid orthogroup ID
+    OrthogroupID = OrthogroupQuery(Input_OrthogroupID, Species, error, cdb,'index.html')
+    print(OrthogroupID.OrthogroupID)
+    complexes = []
+    orthogroup_clusters = (db.session.query(cdb.Orthogroup).filter(cdb.Orthogroup.id == OrthogroupID.id)).first()
+    # Get hier complexes associated with an orthogroup ID, Then get member proteins of each cluster level
+    complexes = orthogroup_clusters.hiercomplexes
+    
+    #troubleshoot_clusters(orthogroup_clusters)               
     if len(orthogroup_clusters.hiercomplexes) == 0:
         error = "No complexes found for given virNOG orthogroup ID: %s" % Input_OrthogroupID
-
-    #complexes = list(set(complexes))
 
     return render_template('index.html', form = form, complexes = complexes, Species = Species, Input_OrthogroupID = Input_OrthogroupID, error = error)
 
 @app.route("/displayComplexesForProteinID")
 def displayComplexesForProteinID():
-
-
     Input_ProteinID = request.args.get('ProteinID')
     form = SearchForm()
-    #kdrew: do error checking
     error=None 
-    
-    ProteinIDs = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.ProteinID) == func.upper(Input_ProteinID))).first()
 
-    if len(ProteinIDs.orthogroups) == 0:
-        #kdrew: input ProteinID is not valid, flash message
-        error = "Could not find given Protein ID: %s" % Input_ProteinID
-
-        return render_template('index.html', form = form, complexes = [], error = error)
-
-
-    OrthogroupID = ProteinIDs.orthogroups[0].OrthogroupID
-    Species = ProteinIDs.Spec
-
-    OrthogroupIDs = db.session.query(cdb.Orthogroup).filter((func.upper(cdb.Orthogroup.OrthogroupID) == func.upper(OrthogroupID))).all()
-    
+    ProteinID, OrthogroupID, Species = ProteinQuery(Input_ProteinID, error, cdb, "index.html")
     complexes = []
-    for OrthogroupID in OrthogroupIDs: 
-            try:
-                orthogroup_clusters = (db.session.query(cdb.Orthogroup).filter(cdb.Orthogroup.id == OrthogroupID.id)).first()
-                complexes = orthogroup_clusters.hiercomplexes
-            except NoResultFound:
-                continue
+    orthogroup_clusters = (db.session.query(cdb.Orthogroup).filter(cdb.Orthogroup.id == OrthogroupID.id)).first()
+    complexes = orthogroup_clusters.hiercomplexes
 
     if len(orthogroup_clusters.hiercomplexes) == 0:
-        error = "No complexes found for given virNOG orthogroup ID: %s" % OrthogroupID
+        error = "No complexes found for given Protein ID %s and its virNOG orthogroup ID: %s" % (Input_ProteinID, OrthogroupID.OrthogroupID)
 
 
     return render_template('index.html', form = form, complexes = complexes, Species = Species, Input_ProteinID = Input_ProteinID, error = error)
 
 
+@app.route(u'/search', methods=[u'POST'])
+def searchComplexes():
+    form = SearchForm()
+    complexes = []
+    if form.validate_on_submit():
+        if len(form.OrthogroupID.data) > 0:
+            if len(form.Species.data) > 0:
+               return redirect(url_for('displayComplexesForOrthogroupID', OrthogroupID = form.OrthogroupID.data, Species = form.Species.data))
 
+            else:
+               return redirect(url_for('displayComplexesForOrthogroupID', OrthogroupID = form.OrthogroupID.data))
+        elif len(form.ProteinID.data) > 0:
+            return redirect(url_for('displayComplexesForProteinID', ProteinID = form.ProteinID.data))
+
+    #kdrew: added hoping it would fix redirect problem on stale connections
+    return render_template('index.html', form = form, complexes = complexes)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Unused below here
 @app.route("/displayComplexesForProtein")
 def displayComplexesForProtein():
     protein_search = request.args.get('protein')
@@ -227,40 +233,7 @@ def displayComplexesForProtein():
 
     return render_template('index.html', form=form, complexes=complexes, error=error)
 
-@app.route("/displayComplexes")
-def displayComplexes():
-    complex_key = request.args.get('complex_key')
-    form = SearchForm()
-    error=None
-    #kdrew: do error checking
-    try:
-        comp = db.session.query(cdb.Complex).filter_by(complex_id=complex_key).one()
-    except NoResultFound:
-        comp = None
 
-    if comp == None:
-        error = "No complexes found: %s" % complex_key
-
-    return render_template('complex.html', form=form, comp=comp, error=error)
-
-
-@app.route(u'/search', methods=[u'POST'])
-def searchComplexes():
-    form = SearchForm()
-    complexes = []
-    if form.validate_on_submit():
-        if len(form.OrthogroupID.data) > 0:
-            if len(form.Species.data) > 0:
-               print("heyyyyy")
-               return redirect(url_for('displayComplexesForOrthogroupID', OrthogroupID = form.OrthogroupID.data, Species = form.Species.data))
-
-            else:
-               return redirect(url_for('displayComplexesForOrthogroupID', OrthogroupID = form.OrthogroupID.data))
-        elif len(form.ProteinID.data) > 0:
-            return redirect(url_for('displayComplexesForProteinID', ProteinID = form.ProteinID.data))
-
-    #kdrew: added hoping it would fix redirect problem on stale connections
-    return render_template('index.html', form = form, complexes = complexes)
 
 
 
