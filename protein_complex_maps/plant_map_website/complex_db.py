@@ -80,7 +80,7 @@ class Score(db.Model):
     InteractionID = db.Column(db.Integer)
     OrthogroupID_key = db.Column(db.Integer, db.ForeignKey('orthogroup.id') )
     ScoreVal = db.Column(db.Float) # redundant
-    scores = db.relationship("Orthogroup", backref = "Scores", lazy = "select")
+    scores = db.relationship("Orthogroup", backref = "Scores", lazy = "select") # varname should be orthogroups
 
 class OrthogroupComplexMapping(db.Model):
     """A mapping between groups and complexes"""

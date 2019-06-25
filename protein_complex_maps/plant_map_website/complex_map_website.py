@@ -176,6 +176,44 @@ def displayComplexesForProteinID():
     return render_template('index.html', form = form, complexes = complexes, Species = Species, Input_ProteinID = Input_ProteinID, error = error)
 
 
+@app.route("/getInteractionsForOrthogroupID")
+def getInteractionsForOrthogroupID():
+    print("GET INTERACTIONS")
+    Species = request.args.get('Species')
+    Input_OrthogroupID = request.args.get('OrthogroupID')
+    form = SearchForm()
+    error=None
+
+    # Need to get OrthogroupID propagating to Score
+    OrthogroupID = OrthogroupQuery(Input_OrthogroupID, Species, error, cdb,'index.html')
+    print(OrthogroupID.OrthogroupID)
+    print(dir(OrthogroupID))
+    print(OrthogroupID.Scores)
+    print(dir(OrthogroupID.Scores))
+    edgecodes = []
+    interactions = []
+    for score in OrthogroupID.Scores:
+        print(score.ScoreVal, score.InteractionID)
+        interaction = db.session.query(cdb.Score).filter(cdb.Score.InteractionID == score.InteractionID).all()
+        interactions.append(interaction)
+        #for p in pair:
+        #   print(p.scores.OrthogroupID)        
+
+          
+
+    #orthogroup_clusters = (db.session.query(cdb.Orthogroup).filter(cdb.Orthogroup.id == OrthogroupID.id)).first()
+ 
+
+    
+    #CDM: See if orthogroup is a valid orthogroup ID
+    #OrthogroupID = OrthogroupQuery(Input_OrthogroupID, Species, error, cdb,'getinteractions.html')
+    #print(dir(OrthogroupID))
+    return render_template('getinteractions.html', form = form, interactions = interactions,  Species = Species, Input_OrthogroupID = Input_OrthogroupID, error = error)
+
+
+
+
+
 @app.route(u'/search', methods=[u'POST'])
 def searchComplexes():
     form = SearchForm()
@@ -208,20 +246,6 @@ def searchComplexes():
  
     #kdrew: added hoping it would fix redirect problem on stale connections
     return render_template('index.html', form = form, complexes = complexes)
-
-
-@app.route("/getInteractionsForOrthogroupID")
-def getInteractionsForOrthogroupID():
-    print("GET INTERACTIONS")
-    Species = request.args.get('Species')
-    Input_OrthogroupID = request.args.get('OrthogroupID')
-    form = SearchForm()
-    error=None
-
-    #CDM: See if orthogroup is a valid orthogroup ID
-    OrthogroupID = OrthogroupQuery(Input_OrthogroupID, Species, error, cdb,'getinteractions.html')
-    print(dir(OrthogroupID))
-    return render_template('getinteractions.html', form = form,  Species = Species, Input_OrthogroupID = Input_OrthogroupID, error = error)
 
 #@app.route('/getinteractions')
 #def searchInteractions():
