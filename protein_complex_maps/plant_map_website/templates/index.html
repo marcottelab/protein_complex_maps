@@ -15,7 +15,7 @@
         <div id="navbar" class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
             <li class="active"><a href="/">Home</a></li>
-            <li><a href="/proteinquery">ProteinQuery</a></li>
+            <li><a href="/getinteractions">GetInteractions</a></li>
             <li><a href="finder">InteractionFinder</a></li>
             <li><a href="/about">About</a></li>
             <li><a href="/download">Download</a></li>
@@ -38,22 +38,7 @@
     {% endif %}
     -->
 
-
-    <form method="POST" action="/search">
-        {{ form.hidden_tag() }}
-        {{ form.ProteinID.label }} {{ form.ProteinID(size=50, value = Input_ProteinID) }}
-        <br>
-        <br>
-        {{ form.OrthogroupID.label }} {{ form.OrthogroupID(size=50, value = Input_OrthogroupID) }}
-        <br/>
-        <br/>
-        {{ form.Species.label }} {{ form.Species(value = Species) }}
-        <br/>
-        <br/>
-
-
-        {{ form.submit }}
-    </form>
+    {% include 'protsearchform.html' %}
 
     <p>
 
@@ -129,5 +114,4 @@
       -->
 
     </ul>
-{% include 'jumbotron.html' %}
 
