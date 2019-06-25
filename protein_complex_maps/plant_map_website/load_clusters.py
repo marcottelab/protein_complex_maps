@@ -11,6 +11,8 @@ import sys
 #import protein_complex_maps.plant_map_website.complex_db as cdb
 import complex_db as cdb
 
+
+# Make consistent with other loader scripts
 def main():
 
     parser = argparse.ArgumentParser(description="Loads sql tables from input files")

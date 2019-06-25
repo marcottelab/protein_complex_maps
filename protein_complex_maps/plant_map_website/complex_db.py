@@ -1,6 +1,4 @@
-
 from flask import Flask
-#from flask.ext.sqlalchemy import SQLAlchemy
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func, or_, and_, UniqueConstraint
 
@@ -28,8 +26,8 @@ def get_or_create(db, model, **kwargs):
         return instance
     else:
         instance = model(**kwargs)
-        #session.add(instance)
-        #session.commit()
+        #session.add(instance) # unnecessary?
+        #session.commit() # unnecessary?
     return instance
 
 
@@ -63,8 +61,6 @@ class Protein(db.Model):
     OrthogroupID_key = db.Column(db.Integer, db.ForeignKey('orthogroup.id') )
     orthogroups = db.relationship("Orthogroup", backref = "Proteins", lazy = "select")
 
-
-
 class Orthoannot(db.Model):
     """A single group"""
     # One orthoannotation to One orthogroup
@@ -76,8 +72,6 @@ class Orthoannot(db.Model):
     orthogroups = db.relationship("Orthogroup", backref = "Orthoannots", lazy = "select")
     #orthogroups = db.relationship('Orthogroup', secondary = 'orthogroup_annot_mapping', backref = db.backref('Orthoannots'), lazy = 'select') # or 'lazy = 'dynamic'
  
-
-
 class Score(db.Model):
     """A orthogroup orthogroup edge with score"""
     # One orthogroup has Many scores
@@ -87,6 +81,25 @@ class Score(db.Model):
     OrthogroupID_key = db.Column(db.Integer, db.ForeignKey('orthogroup.id') )
     ScoreVal = db.Column(db.Float) # redundant
     scores = db.relationship("Orthogroup", backref = "Scores", lazy = "select")
+
+class OrthogroupComplexMapping(db.Model):
+    """A mapping between groups and complexes"""
+    orthogroup_key = db.Column(db.Integer, db.ForeignKey('orthogroup.id'), primary_key=True)
+    hiercomplex_key = db.Column(db.Integer, db.ForeignKey('hiercomplex.id'), primary_key=True)
+
+# To Do delete this class
+#class OrthogroupProteinMapping(db.Model):
+#    """A mapping between groups and complexes"""
+#    orthogroup_key = db.Column(db.Integer, db.ForeignKey('orthogroup.id'), primary_key=True)
+#    protein_key = db.Column(db.Integer, db.ForeignKey('protein.id'), primary_key=True)
+
+
+#class OrthogroupAnnotMapping(db.Model):
+#    """A mapping between groups and complexes"""
+#    orthogroup_key = db.Column(db.Integer, db.ForeignKey('orthogroup.id'), primary_key=True)
+#    orthoannot_key = db.Column(db.Integer, db.ForeignKey('orthoannot.id'), primary_key=True)
+
+
 #    OrthogroupID1_key = db.Column(db.Integer, db.ForeignKey('orthogroup.id') )
 #    OrthogroupID2_key = db.Column(db.Integer, db.ForeignKey('orthogroup.id') )
 #    ScoreVal = db.Column(db.Float)
@@ -128,23 +141,5 @@ class Score(db.Model):
 #
 
     
-
-
-class OrthogroupComplexMapping(db.Model):
-    """A mapping between groups and complexes"""
-    orthogroup_key = db.Column(db.Integer, db.ForeignKey('orthogroup.id'), primary_key=True)
-    hiercomplex_key = db.Column(db.Integer, db.ForeignKey('hiercomplex.id'), primary_key=True)
-
-# To Do delete this class
-#class OrthogroupProteinMapping(db.Model):
-#    """A mapping between groups and complexes"""
-#    orthogroup_key = db.Column(db.Integer, db.ForeignKey('orthogroup.id'), primary_key=True)
-#    protein_key = db.Column(db.Integer, db.ForeignKey('protein.id'), primary_key=True)
-
-
-#class OrthogroupAnnotMapping(db.Model):
-#    """A mapping between groups and complexes"""
-#    orthogroup_key = db.Column(db.Integer, db.ForeignKey('orthogroup.id'), primary_key=True)
-#    orthoannot_key = db.Column(db.Integer, db.ForeignKey('orthoannot.id'), primary_key=True)
 
 
