@@ -1,0 +1,16 @@
+<form method="POST" action="/search">
+        {{ form.hidden_tag() }}
+        {{ form.ProteinID.label }} {{ form.ProteinID(size=50, value = Input_ProteinID) }}
+        <br>
+        <br>
+        {{ form.OrthogroupID.label }} {{ form.OrthogroupID(size=50, value = Input_OrthogroupID) }}
+        <br/>
+        <br/>
+        {{ form.Species.label }} {{ form.Species(value = Species) }}
+        <br/>
+        <br/>
+
+
+        {{ form.submit }}
+        {{ form.submitinteractions }}
+</form>
