@@ -10,4 +10,3 @@ echo "Load CF-MS scores"
 python scripts/load_scores.py --score_file static/data/allplants_feature_matrix_missing1.unscaled.top100.edges.top10k 
 echo "Load Orthogroup Protein conversion"
 python scripts/load_prot.py --conversion_file static/data/plant_virNOG_orthology.csv    
-
