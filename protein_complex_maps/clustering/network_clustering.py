@@ -84,6 +84,8 @@ def main():
     parser.add_argument("--twostep_combination", action="store", dest="twostep_combination", nargs='+', required=False, 
                                     default=['clusterone','mcl'],
                                     help="Combination of two step clustering, default = [clusterone,mcl], options=[clusterone,mcl,cfinder,agglomod,clixo]")
+    parser.add_argument("--unweighted_one_step", action="store_true", dest="unweighted_one_step", required=False, default=False,
+                                    help="Do not use weights for the first step of clustering, default = False")
 
     parser.add_argument("--procs", action="store", type=int, dest="procs", required=False, default=1,
                                     help="Number processors to use (int), default=1)")
@@ -176,17 +178,18 @@ def main():
         parameter_dict['timeout'] = str(timeout)
         parameter_dict['twostep_combination'] = args.twostep_combination
         parameter_dict['trim2threshold'] = args.trim2threshold
-        parameter_dict['i'] = ii
+        parameter_dict['unweighted_one_step'] = args.unweighted_one_step
+        parameter_dict['ii'] = ii
         parameter_dict['nodelete'] = args.nodelete 
 
         #kdrew: append to list of parameters for input into multiprocessor map
         network_input_list.append(parameter_dict) 
 
     #kdrew: write out parameter file
-    cols = ['size', 'density', 'overlap', 'seed_method', 'fraction', 'threshold_score',  'inflation', 'clixo_alpha', 'clixo_beta', 'cliquesize', 'timeout', 'twostep_combination', 'trim2threshold']
+    cols = ['ii', 'size', 'density', 'overlap', 'seed_method', 'fraction', 'threshold_score',  'inflation', 'clixo_alpha', 'clixo_beta', 'cliquesize', 'timeout', 'twostep_combination', 'trim2threshold','unweighted_one_step']
     ni_df = pd.DataFrame(network_input_list)[cols]
     parameter_filename = "%s.params" % (".".join(args.output_file.split('.')[:-1]))
-    ni_df.to_csv(parameter_filename)
+    ni_df.to_csv(parameter_filename, index=False)
 
     #kdrew: call clustering on parameter combinations
     p.map(cluster_helper, network_input_list)
@@ -208,7 +211,7 @@ def cluster_helper(parameter_dict):
     seed_method = parameter_dict['seed_method']
     fraction = parameter_dict['fraction']
     threshold_score = parameter_dict['threshold_score']
-    i = parameter_dict['i']
+    ii = parameter_dict['ii']
     #kdrew: added some defaults, might want to think harder about the others
     clixo_alpha = parameter_dict.get('clixo_alpha',None)
     clixo_beta = parameter_dict.get('clixo_beta',None)
@@ -216,6 +219,8 @@ def cluster_helper(parameter_dict):
     cliquesize = parameter_dict.get('cliquesize',None)
     timeout = parameter_dict.get('timeout',None)
     trim2threshold = parameter_dict.get('trim2threshold',False)
+    unweighted_one_step = parameter_dict.get('unweighted_one_step',False)
+
     nodelete = parameter_dict.get('nodelete',False)
 
     twostep_combination = parameter_dict['twostep_combination']
@@ -230,7 +235,10 @@ def cluster_helper(parameter_dict):
         #kdrew: write input_network to temp file
         #fileTemp.write(input_network_str)
         for ppi in input_network_list:
-            fileTemp.write(ppi)
+            if unweighted_one_step:
+                fileTemp.write("%s\n" % ' '.join(ppi.split()[:2]))
+            else:
+                fileTemp.write(ppi)
         fileTemp.close()
 
         if twostep_combination[0] == 'clusterone':
@@ -240,10 +248,10 @@ def cluster_helper(parameter_dict):
             #kdrew: run clustering
             proc = sp.Popen(['java', '-jar', args.clustone_jar, fileTemp.name, '-s', size, '-d', density, '--max-overlap', overlap, '--seed-method', seed_method], stdout=sp.PIPE, stderr=sp.PIPE)
             clust_out, err = proc.communicate()
-            #print clust_out
+            print clust_out
 
             #kdrew: probably should do some error checking 
-            #print err
+            print err
 
             #kdrew: take output of cluster one (predicted clusters) and store them into list
             predicted_clusters = []
@@ -396,13 +404,13 @@ def cluster_helper(parameter_dict):
 
     #kdrew: output clusters
     if args.output_file != None:
-        output_filename = "%s.ii%s.%s" % (".".join(args.output_file.split('.')[:-1]), i,  args.output_file.split('.')[-1])
+        output_filename = "%s.ii%s.%s" % (".".join(args.output_file.split('.')[:-1]), ii,  args.output_file.split('.')[-1])
         with open (output_filename, "w") as output_file:
             for cluster in predicted_clusters:
                 output_file.write(' '.join(cluster))
                 output_file.write("\n")
 
-    #return predicted_clusters, i
+    #return predicted_clusters, ii
 
 
 def trim_clusters2threshold(predicted_clusters, threshold_score, ppi_scores):
