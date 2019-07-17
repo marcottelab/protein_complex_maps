@@ -90,6 +90,10 @@ def main():
     cumulative_precision_dict = dict()
     cumulative_recall_dict = dict()
     numOfClusters_dict = dict()
+    weighted_clique_precision_dict = dict()
+    weighted_clique_recall_dict = dict()
+    totalClusters_dict = dict()
+    totalProteins_dict = dict()
     
     #kdrew: put the results into dictionaries
     for result in compare2goldstandard_results:
@@ -100,6 +104,10 @@ def main():
         cumulative_precision_dict[result['ii']] = result['cumulative_precision_list']
         cumulative_recall_dict[result['ii']] = result['cumulative_recall_list']
         numOfClusters_dict[result['ii']] = result['numOfClusters']
+        weighted_clique_precision_dict[result['ii']] = result['weighted_clique_precision']
+        weighted_clique_recall_dict[result['ii']] = result['weighted_clique_recall']
+        totalClusters_dict[result['ii']] = result['totalClusters']
+        totalProteins_dict[result['ii']] = result['totalProteins']
 
     #kdrew: store all dictionaries into a master dictionary
     pr_dict['precision'] = precision_dict
@@ -109,10 +117,14 @@ def main():
     pr_dict['cumulative_precision'] = cumulative_precision_dict
     pr_dict['cumulative_recall'] = cumulative_recall_dict
     pr_dict['numOfClusters'] = numOfClusters_dict
+    pr_dict['weighted_clique_precision'] = weighted_clique_precision_dict
+    pr_dict['weighted_clique_recall'] = weighted_clique_recall_dict
+    pr_dict['totalClusters'] = totalClusters_dict
+    pr_dict['totalProteins'] = totalProteins_dict
 
     #kdrew: output results 
     outfile = open(args.output_filename,"wb")
-    outfile.write("ii$precision_list$recall_list$f1score_list$grand_f1score$cumulative_precision$cumulative_recall$numOfClusters\n" )
+    outfile.write("ii$precision_list$recall_list$f1score_list$grand_f1score$cumulative_precision$cumulative_recall$numOfClusters$weighted_clique_precision$weighted_clique_recall$totalClusters$totalProteins\n" )
     for ii in pr_dict['precision'].keys():
         print ii
         precision_out = ",".join(map(str,pr_dict['precision'][ii]))
@@ -122,7 +134,11 @@ def main():
         cumulative_precision_out = ",".join(map(str,pr_dict['cumulative_precision'][ii]))
         cumulative_recall_out = ",".join(map(str,pr_dict['cumulative_recall'][ii]))
         numOfClusters_out = ",".join(map(str,pr_dict['numOfClusters'][ii]))
-        outfile.write("%s$%s$%s$%s$%s$%s$%s$%s\n" % (ii,precision_out, recall_out, f1score_out, grand_f1score_out, cumulative_precision_out, cumulative_recall_out, numOfClusters_out))
+        weighted_clique_precision_out = str(pr_dict['weighted_clique_precision'][ii])
+        weighted_clique_recall_out = str(pr_dict['weighted_clique_recall'][ii])
+        totalClusters_out = str(pr_dict['totalClusters'][ii])
+        totalProteins_out = str(pr_dict['totalProteins'][ii])
+        outfile.write("%s$%s$%s$%s$%s$%s$%s$%s$%s$%s$%s$%s\n" % (ii,precision_out, recall_out, f1score_out, grand_f1score_out, cumulative_precision_out, cumulative_recall_out, numOfClusters_out, weighted_clique_precision_out, weighted_clique_recall_out, totalClusters_out, totalProteins_out))
 
     outfile.close()
 
@@ -162,6 +178,8 @@ def compare2goldstandard(parameter_dict):
     
     result_dict = cplx_compare.clique_comparison_metric()
     #print result_dict
+    #kdrew: are these guaranteed ordered? doesn't look like it if ordered based on keys, probably get away with it because keys are integers
+    #kdrew: this should all be done with a pandas dataframe anyway
     precision_list = [result_dict[x]['precision'] for x in result_dict.keys()]
     recall_list = [result_dict[x]['recall'] for x in result_dict.keys()]
     f1score_list = [result_dict[x]['f1score'] for x in result_dict.keys()]
@@ -182,6 +200,12 @@ def compare2goldstandard(parameter_dict):
 
     #f1score_hmean_dict[ii] = cplx_compare.clique_comparison_metric_grandf1score()
     grand_f1score = cplx_compare.clique_comparison_metric_grandf1score()
+    weighted_clique_precision = cplx_compare.clique_comparision_metric_weighted_precision()
+    weighted_clique_recall = cplx_compare.clique_comparision_metric_weighted_recall()
+
+    totalClusters = len(cplx_compare.get_clusters())
+    totalProteins = len(cplx_compare.get_cluster_proteins())
+
     #print f1score_hmean_dict[ii]
 
 
@@ -192,7 +216,7 @@ def compare2goldstandard(parameter_dict):
     #
     #return return_dict
 
-    return {'ii':ii, 'boot_iteration':boot_iteration, 'precision_list':precision_list, 'recall_list':recall_list, 'f1score_list':f1score_list, 'grand_f1score':grand_f1score, 'cumulative_precision_list':cumulative_precision_list, 'cumulative_recall_list':cumulative_recall_list, 'numOfClusters':numOfClusters_list}
+    return {'ii':ii, 'boot_iteration':boot_iteration, 'precision_list':precision_list, 'recall_list':recall_list, 'f1score_list':f1score_list, 'grand_f1score':grand_f1score, 'cumulative_precision_list':cumulative_precision_list, 'cumulative_recall_list':cumulative_recall_list, 'numOfClusters':numOfClusters_list, 'weighted_clique_precision':weighted_clique_precision, 'weighted_clique_recall':weighted_clique_recall, 'totalClusters':totalClusters, 'totalProteins':totalProteins}
 
 #kdrew: reads in precision recall file and returns dictionary
 def read_pr_file(filename, names=None):

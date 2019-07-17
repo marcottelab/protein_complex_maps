@@ -28,7 +28,10 @@ class ComplexComparison(object):
         for x in gold_standard:
             self.gold_standard_proteins = self.gold_standard_proteins.union(x)
 
+        self.cluster_proteins = set()
         self.clusters = [set(x) for x in clusters]
+        for x in clusters:
+            self.cluster_proteins = self.cluster_proteins.union(x)
 
         if remove_non_gold_standard_proteins:
             self.remove_non_gold_standard_proteins()
@@ -72,6 +75,9 @@ class ComplexComparison(object):
 
     def get_clusters(self,):
         return self.clusters
+
+    def get_cluster_proteins(self,):
+        return self.cluster_proteins
 
     def get_na_table(self,):
         if self.na_table is None:
@@ -252,6 +258,20 @@ class ComplexComparison(object):
             recall_mean = np.mean(recall_list)
 
         return {'precision_mean':precision_mean,'recall_mean':recall_mean}
+
+    def clique_comparision_metric_weighted_precision(self, force=False):
+        result_dict = self.clique_comparison_metric(force=force)
+        total_weight = sum([result_dict[x]['numOfClusters'] for x in result_dict.keys()])
+        weighted_precision = 1.0*sum([result_dict[x]['precision'] * result_dict[x]['numOfClusters'] for x in result_dict.keys()]) / total_weight
+
+        return weighted_precision
+
+    def clique_comparision_metric_weighted_recall(self, force=False):
+        result_dict = self.clique_comparison_metric(force=force)
+
+        weighted_recall = 1.0*sum([result_dict[x]['recall']*result_dict[x]['numOfClusters'] for x in result_dict.keys()]) / sum([result_dict[x]['numOfClusters'] for x in result_dict.keys()])
+        return weighted_recall
+
 
     #kdrew: calculate precision, recall and f1score for all clique sizes up to largest cluster
     def clique_comparison_metric(self, force=False):
@@ -648,12 +668,14 @@ def main():
     clique_pr_mean = ccmm['precision_mean']
     clique_re_mean = ccmm['recall_mean']
     clique_f1grand = cplx_compare.clique_comparison_metric_grandf1score(mean_func=np.mean)
+    clique_weighted_precision = cplx_compare.clique_comparision_metric_weighted_precision()
+    clique_weighted_recall = cplx_compare.clique_comparision_metric_weighted_recall()
     wccmm = cplx_compare.clique_comparison_metric_mean(weighted=True)
     clique_weighted_pr_mean = wccmm['precision_mean']
     clique_weighted_re_mean = wccmm['recall_mean']
     clique_weighted_hmean = hmean([wccmm['precision_mean'],wccmm['recall_mean']])
-    print "Sensitivity\tPPV\tACC\tMMR\tPWMMR\tMMR_PWMMR_hmean\tPrecision measure\tRecall measure\tPrecision Recall product\tClique Precision Mean\tRecall Mean\tF-Grand K-Clique\tClique Weighted Precision Mean\tWeighted Recall Mean\tClique Weighted hmean (F-weighted K-Clique)\n"
-    print "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" % (sensitivity, ppv, acc, mmr, pwmmr, pwmmr_hmean, precision_measure, recall_measure, precision_recall_product, clique_pr_mean, clique_re_mean, clique_f1grand, clique_weighted_pr_mean, clique_weighted_re_mean, clique_weighted_hmean) 
+    print "Sensitivity\tPPV\tACC\tMMR\tPWMMR\tMMR_PWMMR_hmean\tPrecision measure\tRecall measure\tPrecision Recall product\tClique Precision Mean\tRecall Mean\tF-Grand K-Clique\tClique Weighted Precision Mean\tWeighted Recall Mean\tClique Weighted hmean (F-weighted K-Clique), Clique Weighted Precision, Clique Weighted Recall\n"
+    print "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" % (sensitivity, ppv, acc, mmr, pwmmr, pwmmr_hmean, precision_measure, recall_measure, precision_recall_product, clique_pr_mean, clique_re_mean, clique_f1grand, clique_weighted_pr_mean, clique_weighted_re_mean, clique_weighted_hmean, clique_weighted_precision, clique_weighted_recall) 
 
 
     if args.plot_filename != None:
