@@ -19,28 +19,9 @@ from flask import make_response
 
 from flask import render_template
 from flask import url_for, redirect, request, jsonify
-#from scripts.lineplot import make_protein_sparklines
-#from scripts.validate_query import valid_query
-#from scripts.get_species import identify_species
-#from scripts.get_groups_from_prots import get_groups
-#from scripts.make_conv_tables import make_conversion_tables
-#from scripts.get_distributions import sampling_process, run_process, annotate_nodes
-#import scripts.plot_corum_dists as pcd
 
 app.jinja_env.add_extension('jinja2.ext.do') #Allow appending to list in html 
 
-#from bokeh.resources import INLINE
-#from bokeh.util.string import encode_utf8
-
-#PLOT_OPTIONS = dict(plot_width=800, plot_height=300)
-#SCATTER_OPTIONS = dict(size=12, alpha=0.5)
-
-colors = {
-    'Black': '#000000',
-    'Red':   '#FF0000',
-    'Green': '#00FF00',
-    'Blue':  '#0000FF',
-}
 
 def getitem(obj, item, default):
     if item not in obj:
@@ -108,7 +89,7 @@ def ProteinQuery(Input_ProteinID, error, cdb, template):
     print(ProteinID.orthogroups)
     if not ProteinID.orthogroups:
         #kdrew: input ProteinID is not valid, flash message
-        error = "Could not find orthogroup for given Protein ID: %s" % Input_ProteinID
+        error = "Could not find orthogroup for given Protein ID: %s.\n Try using a Uniprot.org Accession" % Input_ProteinID
 
         return render_template(template, form = form, complexes = [], error = error)
 
@@ -361,81 +342,6 @@ def searchComplexes():
  
     #kdrew: added hoping it would fix redirect problem on stale connections
     return render_template('index.html', form = form, complexes = complexes)
-
-#@app.route('/getinteractions')
-#def searchInteractions():
-#    form = SearchForm()
-#    complexes = []
-#    if form.validate_on_submit():
-#        if len(form.OrthogroupID.data) > 0:
-#            if len(form.Species.data) > 0:
-#               return redirect(url_for('getInteractionsForOrthogroupID', OrthogroupID = form.OrthogroupID.data, Species = form.Species.data))
-#
-#            else:
-#               return redirect(url_for('getInteractionsForOrthogroupID', OrthogroupID = form.OrthogroupID.data))
-#        elif len(form.ProteinID.data) > 0:
-#            return redirect(url_for('getInteractionsForProteinID', ProteinID = form.ProteinID.data))
-#
-#    #kdrew: added hoping it would fix redirect problem on stale connections
-#    return render_template('getinteractions.html', form = form)
-
-
-
-
-
-#@app.route(u'/search', methods=[u'POST'])
-#def searchComplexes():
-#    form = SearchForm()
-#    complexes = []
-#    print("formvalues")
-#    print(form.submit, form.submit.data)
-#    print(form.submitinteractions, form.submitinteractions.data)
-#
-#    if form.validate_on_submit():
-#
-#        if form.submit.data == True:
-#            if len(form.OrthogroupID.data) > 0:
-#                if len(form.Species.data) > 0:
-#                   return redirect(url_for('displayComplexesForOrthogroupID', OrthogroupID = form.OrthogroupID.data, Species = form.Species.data))
-#    
-#                else:
-#                   return redirect(url_for('displayComplexesForOrthogroupID', OrthogroupID = form.OrthogroupID.data))
-#            elif len(form.ProteinID.data) > 0:
-#                return redirect(url_for('displayComplexesForProteinID', ProteinID = form.ProteinID.data))
-#        
-#        if form.submitinteractions.data == True:
-#            if len(form.OrthogroupID.data) > 0:
-#                if len(form.Species.data) > 0:
-#                   return redirect(url_for('getInteractionsForOrthogroupID', OrthogroupID = form.OrthogroupID.data, Species = form.Species.data))
-#    
-#                else:
-#                   return redirect(url_for('getInteractionsForOrthogroupID', OrthogroupID = form.OrthogroupID.data))
-#            elif len(form.ProteinID.data) > 0:
-#                return redirect(url_for('getInteractionsForProteinID', ProteinID = form.ProteinID.data))
-# 
-#    #kdrew: added hoping it would fix redirect problem on stale connections
-#    return render_template('index.html', form = form, complexes = complexes)
-
-#@app.route('/getinteractions')
-#def searchInteractions():
-#    form = SearchForm()
-#    complexes = []
-#    if form.validate_on_submit():
-#        if len(form.OrthogroupID.data) > 0:
-#            if len(form.Species.data) > 0:
-#               return redirect(url_for('getInteractionsForOrthogroupID', OrthogroupID = form.OrthogroupID.data, Species = form.Species.data))
-#
-#            else:
-#               return redirect(url_for('getInteractionsForOrthogroupID', OrthogroupID = form.OrthogroupID.data))
-#        elif len(form.ProteinID.data) > 0:
-#            return redirect(url_for('getInteractionsForProteinID', ProteinID = form.ProteinID.data))
-#
-#    #kdrew: added hoping it would fix redirect problem on stale connections
-#    return render_template('getinteractions.html', form = form)
-
-
-
-
 
 
 

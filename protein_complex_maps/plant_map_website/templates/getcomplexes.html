@@ -100,8 +100,10 @@
                         
                     <td><a href = https://www.uniprot.org/uniprot/?query=id:{{protlist | join("+OR+id:") }}>Uniprot</a> </td>
               {% endfor %}
+             {{comp.clustid_set}}_{{comp.clustid}}.svg
+             <img src="static/complexes/{{comp.clustid_set}}_{{comp.clustid}}.svg">
 
-                </tr>
+                             </tr>
             {% else %}
                 <em> No proteins</em>
             {% endfor %}
