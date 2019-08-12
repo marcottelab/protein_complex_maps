@@ -81,7 +81,7 @@ sparkline_fxn <- function(df, fracinfo, sel, specchoice = NULL, order = NULL, he
     #ID_order_quo <- enquo(ID_order)
     df_complete %>% mutate(ID = fct_relevel(ID, {{ ID_order }}))
 
-    plt <- ggplot(df_complete, aes( x = fct_reorder(FractionID, FractionID_order),
+    plt <- ggplot(df_complete, aes( x = fct_rev(fct_reorder(FractionID, FractionID_order)),
                                     y = fct_relevel(ID, {{ ID_order }}),
                                     height = expnorm_PeptideCount,
                                     group = fct_relevel(ID, {{ ID_order }}))) +
@@ -108,7 +108,16 @@ sparkline_fxn <- function(df, fracinfo, sel, specchoice = NULL, order = NULL, he
 
     filename <- paste0("static/complexes/", clustid_set, "_", as.character(clustid), ".svg")
     print(filename)
-    plt %>% ggsave(filename, ., device = "svg", width = 10, units = "in")
+
+    #if(length(selection) < 10){
+    #      height = 0.75 * length(selection)
+    #      }
+    #else{
+    #  height = 8
+    #}
+    #print(height)
+
+    plt %>% ggsave(filename, ., device = "svg", units = "in")
     #return(plt)
 
 }
@@ -117,27 +126,6 @@ sparkline_fxn <- function(df, fracinfo, sel, specchoice = NULL, order = NULL, he
 
 
 safe_sparklines <- safely(sparkline_fxn)
-
-#map(data, ~ safe_function(.x))
-
-#arath_virNOG_orthology <- read_orthology("protein_identification/eggnog_mapping/arath_hmmer_virNOG.mapping",  "arath", TRUE)
-#braol_virNOG_orthology <- read_orthology("protein_identification/eggnog_mapping/braol_hmmer_virNOG.mapping", "braol", TRUE)
-#chlre_virNOG_orthology <- read_orthology("protein_identification/eggnog_mapping/chlre_hmmer_virNOG.mapping", "chlre", TRUE)
-#sollc_virNOG_orthology <- read_orthology("protein_identification/eggnog_mapping/sollc_hmmer_virNOG.mapping", "sollc", TRUE)
-#soybn_virNOG_orthology <- read_orthology("protein_identification/eggnog_mapping/soybn_hmmer_virNOG.mapping", "soybn", TRUE)
-#cocnu_virNOG_orthology <- read_orthology("protein_identification/eggnog_mapping/cocnu_hmmer_virNOG.mapping",  "cocnu")
-#orysj_virNOG_orthology <- read_orthology("protein_identification/eggnog_mapping/orysj_hmmer_virNOG.mapping",  "orysj", TRUE)
-#chqui_virNOG_orthology <- read_orthology("protein_identification/eggnog_mapping/chqui_hmmer_virNOG.mapping",  "chqui")
-#wheat_virNOG_orthology <- read_orthology("protein_identification/eggnog_mapping/wheat_hmmer_virNOG.mapping",  "wheat", TRUE)
-#selml_virNOG_orthology <- read_orthology("protein_identification/eggnog_mapping/selml_hmmer_virNOG.mapping",  "selml", TRUE)
-#cerri_virNOG_orthology <- read_orthology("protein_identification/eggnog_mapping/cerri_hmmer_virNOG.mapping",  "cerri")
-#cansa_virNOG_orthology <- read_orthology("protein_identification/eggnog_mapping/cansa_hmmer_virNOG.mapping",  "cansa")
-#maize_virNOG_orthology <- read_orthology("protein_identification/eggnog_mapping/maize_hmmer_virNOG.mapping",  "maize")
-#
-#plant_virNOG_orthology <- rbind(arath_virNOG_orthology, braol_virNOG_orthology, soybn_virNOG_orthology, cansa_virNOG_orthology, chqui_virNOG_orthology, sollc_virNOG_orthology, cocnu_virNOG_orthology,  wheat_virNOG_orthology, orysj_virNOG_orthology, selml_virNOG_orthology, cerri_virNOG_orthology, chlre_virNOG_orthology, maize_virNOG_orthology)
-#
-#
-##Downloaded from uniprot, Entry Mass Length table
 
 tissue_order <- c("green", "sprout", "dark", "nuclei", "seed")
 
@@ -180,7 +168,7 @@ all_fraction_info <- left_join(fraction_order, experiment_order, by= c("Experime
 virNOG_elut_norm_annot <- virNOG_elut_norm  %>%
   left_join(all_fraction_info, by = c("FractionID", "ExperimentID", "spec"))
 # Should not change row numbers
-
+sss
 complex_info <- read_csv("clustid_key.csv")
 
 #Will go faster on hopper
