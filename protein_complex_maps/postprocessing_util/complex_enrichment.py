@@ -3,8 +3,10 @@ import numpy as np
 import argparse
 import itertools as it
 
+import requests
 import subprocess as sp
 
+import pandas as pd
 
 
 def main():
@@ -28,7 +30,14 @@ def main():
     if args.output_filename != None:
         output_file = open(args.output_filename,'wb')
 
+    background_proteins = []
+    if args.background_filename != None:
+        background_file = open(args.background_filename,'rb')
+        for line in background_file.readlines():
+            background_proteins.append(line.split()[0])
+
     complex_file = open(args.complex_filename,'rb')
+    results_df = None
     for i, complex_line in enumerate(complex_file.readlines()):
         if args.output_filename != None:
             output_file.write("complex: %s\n" % (i,))
@@ -37,22 +46,49 @@ def main():
             print "complex: %s" % (i,)
             print """#  signf   corr. p-value   T   Q   Q&T Q&T/Q   Q&T/T   term ID     t type  t group    t name and depth in group        Q&T list"""
         
-        proc = sp.Popen(['gprofiler.py', complex_line, '-c', args.correction_method, '-e', '-B', args.background_filename ], stdout=sp.PIPE, stderr=sp.PIPE)
-        gprofiler_out, err = proc.communicate()
+
+        r = requests.post(
+                url='https://biit.cs.ut.ee/gprofiler/api/gost/profile/',
+                json={
+                    'organism':'hsapiens',
+                    'query':complex_line.split(),
+                    'no_iea':True,
+                    'no_evidences':False,
+                    'domain_scope':'custom',
+                    'background':background_proteins,
+                    }
+                )
+        for res in r.json()['result']:
+            res['complex_id'] = i
+            print res
+            #kdrew: this field makes converting to a dataframe difficult
+            #res['intersections'] = ' '.join(res['intersections'])
+            #kdrew: convert so that we know which genes are annotated
+            res['intersection_genes'] = ' '.join([yy for i,yy in enumerate(complex_line.split()) if len(res['intersections'][i]) > 0])
+            del res['intersections']
+            if results_df is None:
+                results_df = pd.DataFrame.from_dict(res)
+            else:
+                results_df = pd.concat([results_df, pd.DataFrame.from_dict(res)])
+    print results_df
+
+        #proc = sp.Popen(['gprofiler.py', complex_line, '-c', args.correction_method, '-e', '-B', args.background_filename ], stdout=sp.PIPE, stderr=sp.PIPE)
+        #gprofiler_out, err = proc.communicate()
 
         #print "corr. p-value\tterm ID\tt name"
-        for line in gprofiler_out.split('\n'):
-            line_sp = line.split('\t')
-            if len(line_sp) >= 13:
-                if args.output_filename != None:
-                    #output_file.write("%s\t%s\t%s\n" % (line_sp[2], line_sp[8], line_sp[11]))
-                    output_file.write("%s\n" % (line,))
-                else:
-                    #print "%s\t%s\t%s" % (line_sp[2], line_sp[8], line_sp[11])
-                    print line
+        #for line in gprofiler_out.split('\n'):
+        #    line_sp = line.split('\t')
+        #    if len(line_sp) >= 13:
+        #        if args.output_filename != None:
+        #            #output_file.write("%s\t%s\t%s\n" % (line_sp[2], line_sp[8], line_sp[11]))
+        #            output_file.write("%s\n" % (line,))
+        #        else:
+        #            #print "%s\t%s\t%s" % (line_sp[2], line_sp[8], line_sp[11])
+        #            print line
 
 
-    output_file.close()
+    if args.output_filename != None:
+        output_file.close()
                 
 
 
