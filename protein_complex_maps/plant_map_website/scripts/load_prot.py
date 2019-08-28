@@ -1,14 +1,7 @@
 from __future__ import print_function
 import argparse
-#import numpy as np
-
-#import itertools as it
-
-import csv
 import time
-#from time import sleep
-import complex_db as cdb
-import pandas as pd
+import plant_complex_db as cdb
 
 
 def main():
@@ -16,14 +9,12 @@ def main():
     parser = argparse.ArgumentParser(description="Loads a conversion table")
     parser.add_argument("--conversion_file", action="store", dest="conversion_file", required=True,                                                      help="At least 3 column comma-separated file of eggnogID Spec ProteinID")            
 
-
     args = parser.parse_args()
 
     db = cdb.get_db()
     app = cdb.get_app()
 
     db.create_all()
-    #conversion_table = open(args.protein_file,"rb")
     count = 1
     t0  = time.time()
     with(open(args.conversion_file,"rb")) as conversion_table:
@@ -45,10 +36,8 @@ def main():
                  
                 print(count, str(time.time() - t0))
                 t0 = time.time()
-                #print(os, ps)
                 db.session.add_all(ps)
                 db.session.flush()  # Gets each object updated with its .id
-                #print("added all ProteinIDs!")
                 db.session.commit()
                 ps = []    
  
@@ -56,11 +45,6 @@ def main():
     #db.session.flush()  # Gets each object updated with its .id
     print("added all ProteinIDs!")
     #db.session.commit()
-
-      
-
-
-
   
 
 if __name__ == "__main__":

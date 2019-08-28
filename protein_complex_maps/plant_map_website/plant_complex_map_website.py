@@ -3,7 +3,7 @@ import random
 from bs4 import BeautifulSoup
 from collections import OrderedDict
 #import protein_complex_maps.plant_map_website.complex_db as cdb
-import complex_db as cdb
+import plant_complex_db as cdb
 import pandas as pd
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy import func, or_

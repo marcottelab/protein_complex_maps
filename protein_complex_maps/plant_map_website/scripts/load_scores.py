@@ -1,19 +1,7 @@
 from __future__ import print_function
 import argparse
-#import numpy as np
-
-#import itertools as it
-
-#import csv
 import time
-#import numpy as np
-#import itertools as it
-
-#import csv
-#import matplotlib.pyplot as plt
-#import protein_complex_maps.complex_map_website.complex_db as cdb
-import complex_db as cdb
-#import pandas as pd
+import plant_complex_db as cdb
 
 def main():
 
@@ -21,11 +9,6 @@ def main():
 
     parser.add_argument("--score_file", action="store", dest="score_file", required=True,
                                     help="3 column tab-separated file of eggnogID eggnogID score")
-
-
-
-    #cdm: db_data/blake_bioplex_prey_hein_revisitTrain_corum_train_labeled.libsvm0.scaleByTrain.resultsWprob_pairs_noself_nodups_wprob.txt
-
 
 
     args = parser.parse_args()
