@@ -55,7 +55,7 @@ class SearchForm(FlaskForm):
                     ("cerri", "C-Fern")]
 
     OrthogroupID = StringField(u'virNOG Orthogroup ID ex: ENOG411DWGM :')
-    ProteinID = StringField(u'Protein ID ex. F4KCR6')
+    ProteinID = StringField(u'Protein ID ex. F4KCR6, SC13A_ARATH, AT1G02090')
     Species = SelectField(u'Species', choices = species_list, default = 'arath')
     #enrichment = StringField(u'Enrichment (ex. cilium):')
     #submit = SubmitField(u'Search')
@@ -123,7 +123,7 @@ def troubleshoot_clusters(orthogroup_clusters):
 @app.route("/displayComplexesForOrthogroupID")
 def displayComplexesForOrthogroupID():
     Species = request.args.get('Species')
-    Input_OrthogroupID = request.args.get('OrthogroupID')
+    Input_OrthogroupID = request.args.get('OrthogroupID').strip().upper()
     form = SearchForm()
     error=None
 
@@ -143,7 +143,7 @@ def displayComplexesForOrthogroupID():
 
 @app.route("/displayComplexesForProteinID")
 def displayComplexesForProteinID():
-    Input_ProteinID = request.args.get('ProteinID')
+    Input_ProteinID = request.args.get('ProteinID').strip().upper()
     form = SearchForm()
     error=None 
 
@@ -160,7 +160,7 @@ def displayComplexesForProteinID():
 @app.route("/getInteractionsForOrthogroupID")
 def getInteractionsForOrthogroupID():
     Species = request.args.get('Species')
-    Input_OrthogroupID = request.args.get('OrthogroupID')
+    Input_OrthogroupID = request.args.get('OrthogroupID').strip().upper()
     form = SearchForm()
     error=None
 
@@ -174,7 +174,7 @@ def getInteractionsForOrthogroupID():
 
 @app.route("/getInteractionsForProteinID")
 def getInteractionsForProteinID():
-    Input_ProteinID = request.args.get('ProteinID')
+    Input_ProteinID = request.args.get('ProteinID').strip().upper()
     form = SearchForm()
     error=None
 
