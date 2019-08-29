@@ -90,16 +90,28 @@ def ProteinQuery(Input_ProteinID, error, cdb, template):
     if not ProteinID.orthogroups:
         #kdrew: input ProteinID is not valid, flash message
         error = "Could not find orthogroup for given Protein ID: %s.\n Try using a Uniprot.org Accession" % Input_ProteinID
-
         return render_template(template, form = form, complexes = [], error = error)
 
+    print("ProteinID.orthogroups length", len(ProteinID.orthogroups))
+    if len(ProteinID.orthogroups > 1):
+        return render_template('resolveambiguity.html', prot = ProteinID, form = form, error = error)
 
-    OrthogroupID_string = ProteinID.orthogroups.OrthogroupID
+    else:
+        OrthogroupID_string = ProteinID.orthogroups.OrthogroupID
+
     Species = ProteinID.Spec
 
     OrthogroupID = db.session.query(cdb.Orthogroup).filter((func.upper(cdb.Orthogroup.OrthogroupID) == func.upper(OrthogroupID_string))).first()
-
     return ProteinID, OrthogroupID, Species
+
+#@app.route("/resolveAmbiguity")
+
+
+#def ResolveProteinQueryAmbiquity(ProteinID.orthogroups):
+
+
+   
+
 
 def troubleshoot_clusters(orthogroup_clusters):
                 #Keep for trouble shooting syntax

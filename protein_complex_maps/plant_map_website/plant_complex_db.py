@@ -57,7 +57,7 @@ class Protein(db.Model):
     ProteinID = db.Column(db.String(63))
     Spec = db.Column(db.String(63))
     #orthogroups = db.relationship('Orthogroup', secondary = 'orthogroup_protein_mapping', backref = db.backref('Proteins'), lazy = 'select') # or 'lazy = 'dynamic'
-    __table_args__ = (UniqueConstraint('ProteinID'),)
+    #__table_args__ = (UniqueConstraint('ProteinID'),)
     OrthogroupID_key = db.Column(db.Integer, db.ForeignKey('orthogroup.id') )
     orthogroups = db.relationship("Orthogroup", backref = "Proteins", lazy = "select")
 

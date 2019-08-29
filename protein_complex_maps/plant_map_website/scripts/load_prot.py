@@ -24,6 +24,10 @@ def main():
             count = count + 1 
             if "ProteinID" in line:
                 continue
+            if count % 1000 == 1:
+                print(count)
+
+
             split_line = line.split(',')   
             OrthogroupID = split_line[0]
             ProteinID = split_line[1]

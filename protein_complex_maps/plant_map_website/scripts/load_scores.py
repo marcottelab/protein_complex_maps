@@ -29,6 +29,9 @@ def main():
                  continue
             count = count + 1
 
+            if count % 1000 == 1:
+               print(count)
+
             split_line = line.split(',')
             OrthogroupID1 = split_line[0]
             OrthogroupID2 = split_line[1]
