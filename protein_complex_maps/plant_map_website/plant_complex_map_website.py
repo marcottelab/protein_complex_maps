@@ -72,6 +72,7 @@ def root(complexes=[]):
     form = SearchForm()
     return render_template('index.html', form = form, complexes = complexes)
 
+
 def OrthogroupQuery(Input_OrthogroupID, Species, error, cdb, template):
     OrthogroupID = db.session.query(cdb.Orthogroup).filter((func.upper(cdb.Orthogroup.OrthogroupID) == func.upper(Input_OrthogroupID))).first()
     print(OrthogroupID)
@@ -83,26 +84,52 @@ def OrthogroupQuery(Input_OrthogroupID, Species, error, cdb, template):
         return render_template(template, form = form, complexes = [], error = error, Species = Species)
     return(OrthogroupID)
 
+
+
 def ProteinQuery(Input_ProteinID, error, cdb, template):
-    ProteinID = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.ProteinID) == func.upper(Input_ProteinID))).first()
-    print(ProteinID)
-    print(ProteinID.orthogroups)
-    if not ProteinID.orthogroups:
+    ProteinID = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.ProteinID) == func.upper(Input_ProteinID))).all()
+    #print("HERE")
+    #print(ProteinID.orthogroups)
+    #print(ProteinID.orthogroups)
+    #print("ProteinID.orthogroups length", len(ProteinID.orthogroups))
+    if len(ProteinID) > 1:
+        return render_template('resolveambiguity.html', prot = ProteinID)
+
+
+
+    if not ProteinID[0].orthogroups:
         #kdrew: input ProteinID is not valid, flash message
         error = "Could not find orthogroup for given Protein ID: %s.\n Try using a Uniprot.org Accession" % Input_ProteinID
         return render_template(template, form = form, complexes = [], error = error)
 
-    print("ProteinID.orthogroups length", len(ProteinID.orthogroups))
-    if len(ProteinID.orthogroups > 1):
-        return render_template('resolveambiguity.html', prot = ProteinID, form = form, error = error)
-
-    else:
-        OrthogroupID_string = ProteinID.orthogroups.OrthogroupID
+    # Do the OrthogroupID and SPEC finding AFTER return 
+    # Just return ProteinID, then do error and ambiguity return after this function in function that calls this one
+    OrthogroupID_string = ProteinID.orthogroups.OrthogroupID
 
     Species = ProteinID.Spec
 
     OrthogroupID = db.session.query(cdb.Orthogroup).filter((func.upper(cdb.Orthogroup.OrthogroupID) == func.upper(OrthogroupID_string))).first()
     return ProteinID, OrthogroupID, Species
+
+
+#def ProteinQuery(Input_ProteinID, error, cdb, template):
+#    ProteinID = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.ProteinID) == func.upper(Input_ProteinID))).first()
+#    print(ProteinID)
+#    print(ProteinID.orthogroups)
+#    if not ProteinID.orthogroups:
+#        #kdrew: input ProteinID is not valid, flash message
+#        error = "Could not find orthogroup for given Protein ID: %s" % Input_ProteinID
+#
+#        return render_template(tmplate, form = form, complexes = [], error = error)
+#
+#    OrthogroupID_string = ProteinID.orthogroups.OrthogroupID
+#    Species = ProteinID.Spec
+#
+#    OrthogroupID = db.session.query(cdb.Orthogroup).filter((func.upper(cdb.Orthogroup.OrthogroupID) == func.upper(OrthogroupID_string))).first()
+#
+#    return ProteinID, OrthogroupID, Species
+
+
 
 #@app.route("/resolveAmbiguity")
 
@@ -160,6 +187,7 @@ def displayComplexesForProteinID():
     error=None 
 
     ProteinID, OrthogroupID, Species = ProteinQuery(Input_ProteinID, error, cdb, "index.html")
+
     complexes = []
     orthogroup_clusters = (db.session.query(cdb.Orthogroup).filter(cdb.Orthogroup.id == OrthogroupID.id)).first()
     complexes = orthogroup_clusters.hiercomplexes
@@ -198,35 +226,6 @@ def getInteractionsForProteinID():
         interaction = db.session.query(cdb.Score).filter(cdb.Score.InteractionID == score.InteractionID).all()
         interactions.append(interaction)
     return render_template('getinteractions.html', form = form, interactions = interactions,  Species = Species, Input_ProteinID = Input_ProteinID, error = error)
-
-def OrthogroupQuery(Input_OrthogroupID, Species, error, cdb, template):
-    OrthogroupID = db.session.query(cdb.Orthogroup).filter((func.upper(cdb.Orthogroup.OrthogroupID) == func.upper(Input_OrthogroupID))).first()
-    print(OrthogroupID)
-    #if len(OrthogroupIDs) == 0:
-    if not OrthogroupID:
-        #kdrew: input genename is not valid, flash message
-        error = "Could not find given virNOG orthogroup ID: %s" % Input_OrthogroupID
-
-        return render_template(template, form = form, complexes = [], error = error, Species = Species)
-    return(OrthogroupID)
-
-def ProteinQuery(Input_ProteinID, error, cdb, template):
-    ProteinID = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.ProteinID) == func.upper(Input_ProteinID))).first()
-    print(ProteinID)
-    print(ProteinID.orthogroups)
-    if not ProteinID.orthogroups:
-        #kdrew: input ProteinID is not valid, flash message
-        error = "Could not find orthogroup for given Protein ID: %s" % Input_ProteinID
-
-        return render_template(tmplate, form = form, complexes = [], error = error)
-
-
-    OrthogroupID_string = ProteinID.orthogroups.OrthogroupID
-    Species = ProteinID.Spec
-
-    OrthogroupID = db.session.query(cdb.Orthogroup).filter((func.upper(cdb.Orthogroup.OrthogroupID) == func.upper(OrthogroupID_string))).first()
-
-    return ProteinID, OrthogroupID, Species
 
 def troubleshoot_clusters(orthogroup_clusters):
                 #Keep for trouble shooting syntax

@@ -30,24 +30,11 @@
       <div class="page-header">
         <h3>Search for a protein or orthogroup</h3>
       </div>
-    <!--kdrew: problem with stale CSRF tokens, this prints error message
-    {% if form.errors %}
-        {{ form.errors }}
-    {% endif %}
-    -->
 
-    {% include 'protsearchform.html' %}
-
-    <p>
-
-    {% if error %}
-        <h3>{{error}}</h3>
-    {% endif %}
 
     <ul>
 
     <!-- https://www.uniprot.org/uniprot/?query=I1KDU3+OR+I1M368+OR+I1M369+OR+I1M370+OR+K7KX13&sort=score -->
-        <!--<h2>Complex: {{ comp.clustid_set }}</h2>-->
     <table class="table table-striped">
          <thead>
          <tr>
@@ -87,7 +74,6 @@
         <tbody>
             {% for og in prot.orthogroups %}
                 <tr>
-                    <td>{{ form.OrthogroupID(size=10, value = og.OrthogroupID) }} {{form.submit}}</td>  
 
                     <td><a href = http://eggnogdb.embl.de/#/app/results?target_nogs={{ og.OrthogroupID }}>{{ og.OrthogroupID }}</a></td>
                     
@@ -132,7 +118,6 @@
 
 
                              </tr>
-            {% else %}
                 <em> No proteins</em>
 
 
