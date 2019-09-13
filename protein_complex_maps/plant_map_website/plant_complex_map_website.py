@@ -86,21 +86,33 @@ def OrthogroupQuery(Input_OrthogroupID, Species, error, cdb, template):
 
 
 
-def ProteinQuery(Input_ProteinID, error, cdb, template):
-    ProteinID = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.ProteinID) == func.upper(Input_ProteinID))).all()
-    #print("HERE")
-    #print(ProteinID.orthogroups)
-    #print(ProteinID.orthogroups)
-    #print("ProteinID.orthogroups length", len(ProteinID.orthogroups))
-    if len(ProteinID) > 1:
-        return render_template('resolveambiguity.html', prot = ProteinID)
+def ProteinQuery(Input_ProteinID):
 
+    print("TEST")
+    ProteinIDs = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.ProteinID) == func.upper(Input_ProteinID))).all()
+    return(ProteinIDs)
 
+@app.route("/displayComplexesForProteinID")
+def displayComplexesForProteinID():
+    Input_ProteinID = request.args.get('ProteinID').strip().upper()
+    form = SearchForm()
+    error=None 
+   
+    print(Input_ProteinID)
+   
+    ProteinIDs = ProteinQuery(Input_ProteinID)
 
-    if not ProteinID[0].orthogroups:
+    # Check quality of Input_ProteinID query
+    if len(ProteinIDs) > 1:
+        return render_template('resolveambiguity.html', prots = ProteinIDs)
+
+    if not ProteinIDs:##[0].orthogroups:
         #kdrew: input ProteinID is not valid, flash message
         error = "Could not find orthogroup for given Protein ID: %s.\n Try using a Uniprot.org Accession" % Input_ProteinID
-        return render_template(template, form = form, complexes = [], error = error)
+        return render_template('index.html', form = form, complexes = [], error = error)
+
+    else:
+        ProteinID = ProteinIDs[0]
 
     # Do the OrthogroupID and SPEC finding AFTER return 
     # Just return ProteinID, then do error and ambiguity return after this function in function that calls this one
@@ -109,56 +121,22 @@ def ProteinQuery(Input_ProteinID, error, cdb, template):
     Species = ProteinID.Spec
 
     OrthogroupID = db.session.query(cdb.Orthogroup).filter((func.upper(cdb.Orthogroup.OrthogroupID) == func.upper(OrthogroupID_string))).first()
-    return ProteinID, OrthogroupID, Species
 
-
-#def ProteinQuery(Input_ProteinID, error, cdb, template):
-#    ProteinID = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.ProteinID) == func.upper(Input_ProteinID))).first()
-#    print(ProteinID)
-#    print(ProteinID.orthogroups)
-#    if not ProteinID.orthogroups:
-#        #kdrew: input ProteinID is not valid, flash message
-#        error = "Could not find orthogroup for given Protein ID: %s" % Input_ProteinID
-#
-#        return render_template(tmplate, form = form, complexes = [], error = error)
-#
-#    OrthogroupID_string = ProteinID.orthogroups.OrthogroupID
-#    Species = ProteinID.Spec
-#
-#    OrthogroupID = db.session.query(cdb.Orthogroup).filter((func.upper(cdb.Orthogroup.OrthogroupID) == func.upper(OrthogroupID_string))).first()
-#
-#    return ProteinID, OrthogroupID, Species
-
-
-
-#@app.route("/resolveAmbiguity")
-
-
-#def ResolveProteinQueryAmbiquity(ProteinID.orthogroups):
-
-
-   
-
-
-def troubleshoot_clusters(orthogroup_clusters):
-                #Keep for trouble shooting syntax
-                #for prot in orthogroup_clusters.hiercomplexes:
-                #      print(prot)
-                #      print(dir(prot))                            
-                #      for bla in prot.orthogroups:
-                #             print(dir(bla))
-                #             print(bla.Orthoannots)
-                             #print(dir(bla.Orthoannots))
-                             #print(dir(bla))
-                             #print(bla.OrthogroupID)
-                #             print("Protein object", bla.Proteins)
-                #             for p in bla.Proteins:
-                #                  print(p.ProteinID, p.Spec)
-                             #print(stop)             
-            return 0
-
-
+    print(ProteinID, OrthogroupID, Species)
  
+
+    complexes = []
+    orthogroup_clusters = (db.session.query(cdb.Orthogroup).filter(cdb.Orthogroup.id == OrthogroupID.id)).first()
+    complexes = orthogroup_clusters.hiercomplexes
+
+    if len(orthogroup_clusters.hiercomplexes) == 0:
+        error = "No complexes found for given Protein ID %s and its virNOG orthogroup ID: %s" % (Input_ProteinID, OrthogroupID.OrthogroupID)
+    return render_template('getcomplexes.html', form = form, complexes = complexes, Species = Species, Input_ProteinID = Input_ProteinID, error = error)
+
+
+
+
+
 @app.route("/displayComplexesForOrthogroupID")
 def displayComplexesForOrthogroupID():
     Species = request.args.get('Species')
@@ -179,23 +157,6 @@ def displayComplexesForOrthogroupID():
         error = "No complexes found for given virNOG orthogroup ID: %s" % Input_OrthogroupID
 
     return render_template('getcomplexes.html', form = form, complexes = complexes, Species = Species, Input_OrthogroupID = Input_OrthogroupID, error = error)
-
-@app.route("/displayComplexesForProteinID")
-def displayComplexesForProteinID():
-    Input_ProteinID = request.args.get('ProteinID').strip().upper()
-    form = SearchForm()
-    error=None 
-
-    ProteinID, OrthogroupID, Species = ProteinQuery(Input_ProteinID, error, cdb, "index.html")
-
-    complexes = []
-    orthogroup_clusters = (db.session.query(cdb.Orthogroup).filter(cdb.Orthogroup.id == OrthogroupID.id)).first()
-    complexes = orthogroup_clusters.hiercomplexes
-
-    if len(orthogroup_clusters.hiercomplexes) == 0:
-        error = "No complexes found for given Protein ID %s and its virNOG orthogroup ID: %s" % (Input_ProteinID, OrthogroupID.OrthogroupID)
-    return render_template('getcomplexes.html', form = form, complexes = complexes, Species = Species, Input_ProteinID = Input_ProteinID, error = error)
-
 
 @app.route("/getInteractionsForOrthogroupID")
 def getInteractionsForOrthogroupID():
@@ -227,7 +188,60 @@ def getInteractionsForProteinID():
         interactions.append(interaction)
     return render_template('getinteractions.html', form = form, interactions = interactions,  Species = Species, Input_ProteinID = Input_ProteinID, error = error)
 
-def troubleshoot_clusters(orthogroup_clusters):
+
+
+@app.route(u'/search', methods=[u'POST'])
+def searchComplexes():
+    form = SearchForm()
+    complexes = []
+    print("formvalues")
+    print(form.submit, form.submit.data)
+    print(form.submitinteractions, form.submitinteractions.data)
+
+    if form.validate_on_submit():
+
+        if form.submit.data == True:
+            if len(form.OrthogroupID.data) > 0:
+                if len(form.Species.data) > 0:
+                   return redirect(url_for('displayComplexesForOrthogroupID', OrthogroupID = form.OrthogroupID.data, Species = form.Species.data))
+    
+                else:
+                   return redirect(url_for('displayComplexesForOrthogroupID', OrthogroupID = form.OrthogroupID.data))
+            elif len(form.ProteinID.data) > 0:
+                return redirect(url_for('displayComplexesForProteinID', ProteinID = form.ProteinID.data))
+        
+        if form.submitinteractions.data == True:
+            if len(form.OrthogroupID.data) > 0:
+                if len(form.Species.data) > 0:
+                   return redirect(url_for('getInteractionsForOrthogroupID', OrthogroupID = form.OrthogroupID.data, Species = form.Species.data))
+    
+                else:
+                   return redirect(url_for('getInteractionsForOrthogroupID', OrthogroupID = form.OrthogroupID.data))
+            elif len(form.ProteinID.data) > 0:
+                return redirect(url_for('getInteractionsForProteinID', ProteinID = form.ProteinID.data))
+ 
+    #kdrew: added hoping it would fix redirect problem on stale connections
+    return render_template('index.html', form = form, complexes = complexes)
+
+
+
+@app.route("/about")
+def displayAbout():
+    return render_template('about.html')
+
+@app.route("/download")
+def displayDownload():
+    return render_template('download.html')
+
+
+if __name__ == "__main__":
+    db.create_all()  # make our sqlalchemy tables
+    app.run(threaded=True, debug=True)
+ 
+
+
+
+#def troubleshoot_clusters(orthogroup_clusters):
                 #Keep for trouble shooting syntax
                 #for prot in orthogroup_clusters.hiercomplexes:
                 #      print(prot)
@@ -242,7 +256,7 @@ def troubleshoot_clusters(orthogroup_clusters):
                 #             for p in bla.Proteins:
                 #                  print(p.ProteinID, p.Spec)
                              #print(stop)             
-            return 0
+ #           return 0
 
 
  
@@ -320,73 +334,31 @@ def troubleshoot_clusters(orthogroup_clusters):
 
 
 
-
-@app.route(u'/search', methods=[u'POST'])
-def searchComplexes():
-    form = SearchForm()
-    complexes = []
-    print("formvalues")
-    print(form.submit, form.submit.data)
-    print(form.submitinteractions, form.submitinteractions.data)
-
-    if form.validate_on_submit():
-
-        if form.submit.data == True:
-            if len(form.OrthogroupID.data) > 0:
-                if len(form.Species.data) > 0:
-                   return redirect(url_for('displayComplexesForOrthogroupID', OrthogroupID = form.OrthogroupID.data, Species = form.Species.data))
-    
-                else:
-                   return redirect(url_for('displayComplexesForOrthogroupID', OrthogroupID = form.OrthogroupID.data))
-            elif len(form.ProteinID.data) > 0:
-                return redirect(url_for('displayComplexesForProteinID', ProteinID = form.ProteinID.data))
-        
-        if form.submitinteractions.data == True:
-            if len(form.OrthogroupID.data) > 0:
-                if len(form.Species.data) > 0:
-                   return redirect(url_for('getInteractionsForOrthogroupID', OrthogroupID = form.OrthogroupID.data, Species = form.Species.data))
-    
-                else:
-                   return redirect(url_for('getInteractionsForOrthogroupID', OrthogroupID = form.OrthogroupID.data))
-            elif len(form.ProteinID.data) > 0:
-                return redirect(url_for('getInteractionsForProteinID', ProteinID = form.ProteinID.data))
- 
-    #kdrew: added hoping it would fix redirect problem on stale connections
-    return render_template('index.html', form = form, complexes = complexes)
-
-
-
-
-
-
-
-
-
 # Unused below here
-@app.route("/displayComplexesForProtein")
-def displayComplexesForProtein():
-    protein_search = request.args.get('protein')
-    form = SearchForm()
-    error = None
-    #print protein
-    #kdrew: do error checking
-    complexes = []
-    try:
-        proteins = db.session.query(cdb.Protein).filter(cdb.Protein.proteinname.like('%'+protein_search+'%')).all()
-        for protein in proteins:
-            print protein
-            complexes = complexes + protein.complexes
-
-        #kdrew: remove redudant complexes
-        complexes = list(set(complexes))
-
-    except NoResultFound:
-        complexes = []
-
-    if len(complexes) == 0:
-        error = "No complexes found for given search term: %s" % protein_search
-
-    return render_template('index.html', form=form, complexes=complexes, error=error)
+#@app.route("/displayComplexesForProtein")
+#def displayComplexesForProtein():
+#    protein_search = request.args.get('protein')
+#    form = SearchForm()
+#    error = None
+#    #print protein
+#    #kdrew: do error checking
+#    complexes = []
+#    try:
+#        proteins = db.session.query(cdb.Protein).filter(cdb.Protein.proteinname.like('%'+protein_search+'%')).all()
+#        for protein in proteins:
+#            print protein
+#            complexes = complexes + protein.complexes
+#
+#        #kdrew: remove redudant complexes
+#        complexes = list(set(complexes))
+#
+#    except NoResultFound:
+#        complexes = []
+#
+#    if len(complexes) == 0:
+#        error = "No complexes found for given search term: %s" % protein_search
+#
+#    return render_template('index.html', form=form, complexes=complexes, error=error)
 
 
 
@@ -398,149 +370,137 @@ def displayComplexesForProtein():
 #Breaking up functions
 
 
-@app.route('/finder', methods=['GET'])
-def finding():
-    """ Query the network
-    """
-    conversion_tbl = pd.read_csv("all_tophits_protlength.txt", sep="\t")
-
-    # Grab the inputs arguments from the URL
-    args = request.args
-    # Get all the form arguments in the url with defaults
-    bait =  getitem(args, 'bait', 'F4JY76_ARATH EIF3K_ARATH B3H7J6_ARATH')
-    degree = getitem(args, 'deg', 2)
-
-    #reselect = getitems(args, 'reselect', 1)
- 
-    reselect =   request.args.getlist('reselect')
-
-
-    print("test reselect")
-    print(reselect)
-
-    bait_list = bait.split(" ")
-
-    #check that proteinID inputs are valid
-    bait_list = valid_query(bait_list, conversion_tbl)
-
-    #Identify species of input proteins
-    input_protein_species, longform_species = identify_species(bait_list, conversion_tbl)
-
-
-    #Map from protein to group    
-    protein_table, group_table = make_conversion_tables(bait_list, conversion_tbl, input_protein_species)
-
-
-    #Get groups from a protein list
-    #Somewhat duplicated in make_conversion_tables...
- 
-    #This line only for when there are ortholog groups in the mix  
-    bait = get_groups(bait_list, conversion_tbl)
-
-    bait_str = " ".join(bait)
-
-    #Check for check marks ticked
-    print("reselect", reselect)
-    #checks = getitems('reselect')
-    if reselect :
-        bait_list = reselect
-        bait_str = ' '.join(reselect)
-        bait=bait_list
-
-    print(bait) 
-    try:
-          final_annotated, df_all_prots =run_process(bait, conversion_tbl)
-          med_score, mean_score, suggestions = sampling_process(bait)
-
-          suggestion_str = "\n".join(suggestions)
-          suggestion_df  = pd.DataFrame({'Suggestions': suggestions})
-          print(suggestion_df)
-          suggestion_html = suggestion_df.to_html(classes='SuggestionTbl', index=False) 
-         
-
-    except Exception as E:
-        print(Exception)
-        print("Failed to get results")
-        med_score = "0"
-        mean_score = "0"
-        suggestion_html = "No results found"
-        final_annotated = pd.DataFrame(columns = ['score','Annotation','Annotation2', 'GroupID_key', 'GroupID_key2', 'bait_bait'])
- 
-    print("Draw network")
-
-    try:
-        print(bait, degree)
-        nodes_table, network_script, network_div = pcd.networking(final_annotated, bait, degree, df_all_prots)
-
-
-        formData = request.values if request.method == "POST" else request.values
-        response = "Form Contents <pre>%s</pre>" % "<br/>\n".join(["%s:%s" % item for item in formData.items()] )
-
-
-
-    except Exception as e:
-        print e
-        nodes_table = ""
-        results_table = ""
-        #results_table = df_all_interactions.to_html(classes='ResultsTbl', index=False) 
- 
-        network_script = ""
-        network_div = ""
-    # Create a polynomial line graph with those arguments
-    #x = list(range(_from, to + 1))
-    #fig = figure(title="Polynomial")
-    #fig.line(x, [i ** 2 for i in x], color=color, line_width=2)
-    results_table = final_annotated.to_html(classes='tablesorter" id = "my_id', index=False) 
-    js_resources = INLINE.render_js()
-    css_resources = INLINE.render_css()
-
-    bait_plus = "+".join(bait)
-
-    spec_plus = longform_species.replace(" ", "+")
-
-    elution_link = "http://127.0.0.1:5000/complexdisplay?proteins={}&species_longform={}".format(bait_plus, spec_plus)
-
-
-    #This is temporary until I can get a better network plotter
-    network_div = network_div.replace('<div class="bk-plotdiv"', '')
-    network_div = network_div.replace('</div>', '', 1)
-    network_div = network_div.replace('>', '', 1)
-    html = render_template(
-        'finder.html',
-        #plot_script=script,
-        #plot_div=div,
-        #exp_link=expression_link,
-        elut_link=elution_link,
-        net_script=network_script,
-        net_div=network_div,
-        prot_tbl=protein_table,
-        #proteins=proteins,
-        nodes_tbl=nodes_table,
-        results_tbl=results_table,
-        deg=degree,
-        js_resources=js_resources,
-        median=med_score,
-        mean=mean_score,
-        suggest=suggestion_html,
-        bt=bait_str,
-        css_resources=css_resources,
-    )
-    return encode_utf8(html)
-
-@app.route("/about")
-def displayAbout():
-    return render_template('about.html')
-
-@app.route("/download")
-def displayDownload():
-    return render_template('download.html')
-
-
-if __name__ == "__main__":
-    db.create_all()  # make our sqlalchemy tables
-    app.run(threaded=True, debug=True)
-    
-
+#@app.route('/finder', methods=['GET'])
+#def finding():
+#    """ Query the network
+#    """
+#    conversion_tbl = pd.read_csv("all_tophits_protlength.txt", sep="\t")
+#
+#    # Grab the inputs arguments from the URL
+#    args = request.args
+#    # Get all the form arguments in the url with defaults
+#    bait =  getitem(args, 'bait', 'F4JY76_ARATH EIF3K_ARATH B3H7J6_ARATH')
+#    degree = getitem(args, 'deg', 2)
+#
+#    #reselect = getitems(args, 'reselect', 1)
+# 
+#    reselect =   request.args.getlist('reselect')
+#
+#
+#    print("test reselect")
+#    print(reselect)
+#
+#    bait_list = bait.split(" ")
+#
+#    #check that proteinID inputs are valid
+#    bait_list = valid_query(bait_list, conversion_tbl)
+#
+#    #Identify species of input proteins
+#    input_protein_species, longform_species = identify_species(bait_list, conversion_tbl)
+#
+#
+#    #Map from protein to group    
+#    protein_table, group_table = make_conversion_tables(bait_list, conversion_tbl, input_protein_species)
+#
+#
+#    #Get groups from a protein list
+#    #Somewhat duplicated in make_conversion_tables...
+# 
+#    #This line only for when there are ortholog groups in the mix  
+#    bait = get_groups(bait_list, conversion_tbl)
+#
+#    bait_str = " ".join(bait)
+#
+#    #Check for check marks ticked
+#    print("reselect", reselect)
+#    #checks = getitems('reselect')
+#    if reselect :
+#        bait_list = reselect
+#        bait_str = ' '.join(reselect)
+#        bait=bait_list
+#
+#    print(bait) 
+#    try:
+#          final_annotated, df_all_prots =run_process(bait, conversion_tbl)
+#          med_score, mean_score, suggestions = sampling_process(bait)
+#
+#          suggestion_str = "\n".join(suggestions)
+#          suggestion_df  = pd.DataFrame({'Suggestions': suggestions})
+#          print(suggestion_df)
+#          suggestion_html = suggestion_df.to_html(classes='SuggestionTbl', index=False) 
+#         
+#
+#    except Exception as E:
+#        print(Exception)
+#        print("Failed to get results")
+#        med_score = "0"
+#        mean_score = "0"
+#        suggestion_html = "No results found"
+#        final_annotated = pd.DataFrame(columns = ['score','Annotation','Annotation2', 'GroupID_key', 'GroupID_key2', 'bait_bait'])
+# 
+#    print("Draw network")
+#
+#    try:
+#        print(bait, degree)
+#        nodes_table, network_script, network_div = pcd.networking(final_annotated, bait, degree, df_all_prots)
+#
+#
+#        formData = request.values if request.method == "POST" else request.values
+#        response = "Form Contents <pre>%s</pre>" % "<br/>\n".join(["%s:%s" % item for item in formData.items()] )
+#
+#
+#
+#    except Exception as e:
+#        print e
+#        nodes_table = ""
+#        results_table = ""
+#        #results_table = df_all_interactions.to_html(classes='ResultsTbl', index=False) 
+# 
+#        network_script = ""
+#        network_div = ""
+#    # Create a polynomial line graph with those arguments
+#    #x = list(range(_from, to + 1))
+#    #fig = figure(title="Polynomial")
+#    #fig.line(x, [i ** 2 for i in x], color=color, line_width=2)
+#    results_table = final_annotated.to_html(classes='tablesorter" id = "my_id', index=False) 
+#    js_resources = INLINE.render_js()
+#    css_resources = INLINE.render_css()
+#
+#    bait_plus = "+".join(bait)
+#
+#    spec_plus = longform_species.replace(" ", "+")
+#
+#    elution_link = "http://127.0.0.1:5000/complexdisplay?proteins={}&species_longform={}".format(bait_plus, spec_plus)
+#
+#
+#    #This is temporary until I can get a better network plotter
+#    network_div = network_div.replace('<div class="bk-plotdiv"', '')
+#    network_div = network_div.replace('</div>', '', 1)
+#    network_div = network_div.replace('>', '', 1)
+#    html = render_template(
+#        'finder.html',
+#        #plot_script=script,
+#        #plot_div=div,
+#        #exp_link=expression_link,
+#        elut_link=elution_link,
+#        net_script=network_script,
+#        net_div=network_div,
+#        prot_tbl=protein_table,
+#        #proteins=proteins,
+#        nodes_tbl=nodes_table,
+#        results_tbl=results_table,
+#        deg=degree,
+#        js_resources=js_resources,
+#        median=med_score,
+#        mean=mean_score,
+#        suggest=suggestion_html,
+#        bt=bait_str,
+#        css_resources=css_resources,
+#    )
+#    return encode_utf8(html)
+#
+#   
+#
 #@app.route('/proteinquery')
 #def protein_query():
 #    """ Query a list of proteins against out data
@@ -692,3 +652,47 @@ if __name__ == "__main__":
 #
 
 
+#def ProteinQuery(Input_ProteinID, error, cdb, template):
+#    ProteinID = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.ProteinID) == func.upper(Input_ProteinID))).first()
+#    print(ProteinID)
+#    print(ProteinID.orthogroups)
+#    if not ProteinID.orthogroups:
+#        #kdrew: input ProteinID is not valid, flash message
+#        error = "Could not find orthogroup for given Protein ID: %s" % Input_ProteinID
+#
+#        return render_template(tmplate, form = form, complexes = [], error = error)
+#
+#    OrthogroupID_string = ProteinID.orthogroups.OrthogroupID
+#    Species = ProteinID.Spec
+#
+#    OrthogroupID = db.session.query(cdb.Orthogroup).filter((func.upper(cdb.Orthogroup.OrthogroupID) == func.upper(OrthogroupID_string))).first()
+#
+#    return ProteinID, OrthogroupID, Species
+
+
+
+#@app.route("/resolveAmbiguity")
+
+
+#def ResolveProteinQueryAmbiquity(ProteinID.orthogroups):
+
+
+#def troubleshoot_clusters(orthogroup_clusters):
+                #Keep for trouble shooting syntax
+                #for prot in orthogroup_clusters.hiercomplexes:
+                #      print(prot)
+                #      print(dir(prot))                            
+                #      for bla in prot.orthogroups:
+                #             print(dir(bla))
+                #             print(bla.Orthoannots)
+                             #print(dir(bla.Orthoannots))
+                             #print(dir(bla))
+                             #print(bla.OrthogroupID)
+                #             print("Protein object", bla.Proteins)
+                #             for p in bla.Proteins:
+                #                  print(p.ProteinID, p.Spec)
+                             #print(stop)             
+#            return 0
+
+
+ 
