@@ -59,12 +59,11 @@ class SearchForm(FlaskForm):
     Species = SelectField(u'Species', choices = species_list, default = 'arath')
     #enrichment = StringField(u'Enrichment (ex. cilium):')
     #submit = SubmitField(u'Search')
+    #OrthogroupID_button = SubmitField()   
     submit = SubmitField(u'Search complexes')
-   
     submitinteractions = SubmitField(u'Get top interactions')
-
-
-
+ 
+   
 @app.route("/")
 def root(complexes=[]):
     print(complexes)
@@ -77,18 +76,11 @@ def OrthogroupQuery(Input_OrthogroupID, Species, error, cdb, template):
     OrthogroupID = db.session.query(cdb.Orthogroup).filter((func.upper(cdb.Orthogroup.OrthogroupID) == func.upper(Input_OrthogroupID))).first()
     print(OrthogroupID)
     #if len(OrthogroupIDs) == 0:
-    if not OrthogroupID:
-        #kdrew: input genename is not valid, flash message
-        error = "Could not find given virNOG orthogroup ID: %s" % Input_OrthogroupID
-
-        return render_template(template, form = form, complexes = [], error = error, Species = Species)
     return(OrthogroupID)
 
 
 
 def ProteinQuery(Input_ProteinID):
-
-    print("TEST")
     ProteinIDs = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.ProteinID) == func.upper(Input_ProteinID))).all()
     return(ProteinIDs)
 
@@ -98,13 +90,11 @@ def displayComplexesForProteinID():
     form = SearchForm()
     error=None 
    
-    print(Input_ProteinID)
-   
     ProteinIDs = ProteinQuery(Input_ProteinID)
 
     # Check quality of Input_ProteinID query
     if len(ProteinIDs) > 1:
-        return render_template('resolveambiguity.html', prots = ProteinIDs)
+        return render_template('resolveambiguity.html', prots = ProteinIDs, form = form, error = error)
 
     if not ProteinIDs:##[0].orthogroups:
         #kdrew: input ProteinID is not valid, flash message
@@ -114,16 +104,11 @@ def displayComplexesForProteinID():
     else:
         ProteinID = ProteinIDs[0]
 
-    # Do the OrthogroupID and SPEC finding AFTER return 
-    # Just return ProteinID, then do error and ambiguity return after this function in function that calls this one
     OrthogroupID_string = ProteinID.orthogroups.OrthogroupID
 
     Species = ProteinID.Spec
 
     OrthogroupID = db.session.query(cdb.Orthogroup).filter((func.upper(cdb.Orthogroup.OrthogroupID) == func.upper(OrthogroupID_string))).first()
-
-    print(ProteinID, OrthogroupID, Species)
- 
 
     complexes = []
     orthogroup_clusters = (db.session.query(cdb.Orthogroup).filter(cdb.Orthogroup.id == OrthogroupID.id)).first()
@@ -132,9 +117,6 @@ def displayComplexesForProteinID():
     if len(orthogroup_clusters.hiercomplexes) == 0:
         error = "No complexes found for given Protein ID %s and its virNOG orthogroup ID: %s" % (Input_ProteinID, OrthogroupID.OrthogroupID)
     return render_template('getcomplexes.html', form = form, complexes = complexes, Species = Species, Input_ProteinID = Input_ProteinID, error = error)
-
-
-
 
 
 @app.route("/displayComplexesForOrthogroupID")
@@ -146,13 +128,16 @@ def displayComplexesForOrthogroupID():
 
     #CDM: See if orthogroup is a valid orthogroup ID
     OrthogroupID = OrthogroupQuery(Input_OrthogroupID, Species, error, cdb,'index.html')
-    print(OrthogroupID.OrthogroupID)
+    if not OrthogroupID:
+        #kdrew: input genename is not valid, flash message
+        error = "Could not find given virNOG orthogroup ID: %s" % Input_OrthogroupID
+
+        return render_template(template, form = form, complexes = [], error = error, Species = Species)
     complexes = []
     orthogroup_clusters = (db.session.query(cdb.Orthogroup).filter(cdb.Orthogroup.id == OrthogroupID.id)).first()
     # Get hier complexes associated with an orthogroup ID, Then get member proteins of each cluster level
     complexes = orthogroup_clusters.hiercomplexes
     
-    #troubleshoot_clusters(orthogroup_clusters)               
     if len(orthogroup_clusters.hiercomplexes) == 0:
         error = "No complexes found for given virNOG orthogroup ID: %s" % Input_OrthogroupID
 
@@ -166,6 +151,11 @@ def getInteractionsForOrthogroupID():
     error=None
 
     OrthogroupID = OrthogroupQuery(Input_OrthogroupID, Species, error, cdb,'index.html')
+    if not OrthogroupID:
+        #kdrew: input genename is not valid, flash message
+        error = "Could not find given virNOG orthogroup ID: %s" % Input_OrthogroupID
+
+
     interactions = []
     for score in OrthogroupID.Scores:
         print(score.ScoreVal, score.InteractionID)
@@ -173,13 +163,30 @@ def getInteractionsForOrthogroupID():
         interactions.append(interaction)
     return render_template('getinteractions.html', form = form, interactions = interactions,  Species = Species, Input_OrthogroupID = Input_OrthogroupID, error = error)
 
+
 @app.route("/getInteractionsForProteinID")
 def getInteractionsForProteinID():
     Input_ProteinID = request.args.get('ProteinID').strip().upper()
     form = SearchForm()
     error=None
 
-    ProteinID, OrthogroupID, Species = ProteinQuery(Input_ProteinID, error, cdb, "index.html")
+    ProteinIDs = ProteinQuery(Input_ProteinID)
+
+    # Check quality of Input_ProteinID query
+    if len(ProteinIDs) > 1:
+        return render_template('resolveambiguity.html', prots = ProteinIDs, form = form, error = error)
+
+    if not ProteinIDs:##[0].orthogroups:
+        #kdrew: input ProteinID is not valid, flash message
+        error = "Could not find orthogroup for given Protein ID: %s.\n Try using a Uniprot.org Accession" % Input_ProteinID
+        return render_template('index.html', form = form, complexes = [], error = error)
+
+    else:
+        ProteinID = ProteinIDs[0]
+
+    OrthogroupID_string = ProteinID.orthogroups.OrthogroupID
+
+    Species = ProteinID.Spec
 
     interactions = []
     for score in OrthogroupID.Scores:
@@ -190,16 +197,13 @@ def getInteractionsForProteinID():
 
 
 
-@app.route(u'/search', methods=[u'POST'])
+@app.route(u'/search', methods = ['POST'])
 def searchComplexes():
     form = SearchForm()
     complexes = []
-    print("formvalues")
-    print(form.submit, form.submit.data)
-    print(form.submitinteractions, form.submitinteractions.data)
-
+    
     if form.validate_on_submit():
-
+ 
         if form.submit.data == True:
             if len(form.OrthogroupID.data) > 0:
                 if len(form.Species.data) > 0:

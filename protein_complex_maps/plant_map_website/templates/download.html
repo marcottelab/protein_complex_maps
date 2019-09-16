@@ -27,7 +27,7 @@
 {% include 'jumbotron.html' %}
 
       <div class="page-header">
-        <h1>Download</h1>
+        <h3>Download</h3>
       </div>
       <h4>Plant Complex Map Files</h4>
       <ul>
@@ -63,41 +63,44 @@
       </ul>
       <br>
       <h4>Test and training data</h4>
+      Identifiers (OrthogroupIDs) are <a href="http://eggnogdb.embl.de/">eggNOG</a> <i>viridiplantae</i> orthogroup identifiers
       <ul>
           <li><a href="/static/downloads/train_complexes.txt" target="_blank">Train Complexes</a>
               <ul>
                   <li>Description: List of training complexes used in protein complex discovery pipeline</li>
-                  <li>Format: geneid geneid geneid ... (one complex per line)</li>
+                  <li>Format: OrthogroupID OrthogroupID OrthogroupID ... (one complex per line)</li>
               </ul>
           </li>
           <li><a href="/static/downloads/test_complexes.txt" target="_blank">Test Complexes</a>
               <ul>
                   <li>Description: List of test complexes used in protein complex discovery pipeline</li>
-                  <li>Format: geneid geneid geneid ... (one complex per line)</li>
+                  <li>Format: OrthogroupID OrthogroupID OrthogroupID ... (one complex per line)</li>
               </ul>
           </li>
           <li><a href="/static/downloads/train_ppis.txt" target="_blank">Train Positive PPIs</a>
               <ul>
-                  <li>Description: List of train postive ppis used in protein complex discovery pipeline</li>
-                  <li>Format: geneid geneid </li>
+                  <li>Description: List of train positive ppis used in protein complex discovery pipeline</li>
+                  <li>Format: OrthogroupID OrthogroupID </li>
               </ul>
           </li>
           <li><a href="/static/downloads/train_neg_ppis.txt" target="_blank">Train Negative PPIs</a>
               <ul>
                   <li>Description: List of train negative ppis used in protein complex discovery pipeline</li>
-                  <li>Format: geneid geneid </li>
+                  <li>Note: Since no truly non-interacting proteins exist, these are randomly sampled from observed proteins in our data set</li>
+                  <li>Format: OrthogroupID OrthogroupID </li>
               </ul>
           </li>
           <li><a href="/static/downloads/test_ppis.txt" target="_blank">Test Positive PPIs</a>
               <ul>
                   <li>Description: List of test positive ppis used in protein complex discovery pipeline</li>
-                  <li>Format: geneid geneid </li>
+                  <li>Format: OrthogroupID OrthogroupID </li>
               </ul>
           </li>
           <li><a href="/static/downloads/test_neg_ppis.txt" target="_blank">Test Negative PPIs</a>
               <ul>
                   <li>Description: List of test negative ppis used in protein complex discovery pipeline</li>
-                  <li>Format: geneid geneid </li>
+                  <li>Note: Since no truly non-interacting proteins exist, these are randomly sampled from observed proteinsin our data set</li>
+                  <li>Format: OrthogroupID OrthogroupID </li>
               </ul>
           </li>
       </ul>
@@ -107,14 +110,14 @@
 
           <li><a href="/static/data/virNOG_elut_norm_annot_wide_ordered.csv" target="_blank">Full elution profile</a>
               <ul>
-                  <li>Description: Normalized elution profile of all observed orthogroups </li>
+                  <li>Description: Elution profile of normalized PSMS for all observed orthogroups </li>
                   <li>Format: OrthogroupID,[Fractions]</li>
               </ul>
           </li>
           <li><a href="/static/data/allplants.elut.tidy" target="_blank">Tidy elution profile</a>
               <ul>
                   <li>Description: Tidy elution of all proteins </li>
-                  <li>Format: OrthogroupID,FractionID,PSM,Normalized PSM,...</li>
+                  <li>Format: OrthogroupID,FractionID,PSMs,Normalized PSM,...</li>
               </ul>
           </li>
 

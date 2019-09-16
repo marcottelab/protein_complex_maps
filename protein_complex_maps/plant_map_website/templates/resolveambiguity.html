@@ -32,16 +32,14 @@
       </div>
 
 
-    <ul>
 
-    <h4> Rarely, an  TAIR AT number will map to multiple uniprot proteins, and also match multiple ortholog groups.
-    Please select an OrthogroupID to see data.</h4>
+    <h3><b> Rarely, an  TAIR AT number will map to multiple uniprot proteins, and also match multiple ortholog groups.
+    Please select an OrthogroupID to see data.</b></h4>
 
 	    <!-- https://www.uniprt.org/uniprot/?query=I1KDU3+OR+I1M368+OR+I1M369+OR+I1M370+OR+K7KX13&sort=score -->
 	    <table class="table table-striped">
 		 <thead>
 		 <tr>
-                 <th> Query </th>
 		 <th>OrthogroupID
 			      <button class="btn btn-default btn-xs" onclick="orthogroupFunction()">?</button>
 			      <script>
@@ -49,6 +47,7 @@
 				alert("eggNOG4.0 virNOG (viridiplantae) orthogroup identifier http://eggnogdb.embl.de");
 				}
 			      </script></th>
+                 <th> Query </th>
 			<th>Orthogroup Annotation
 			      <button class="btn btn-default btn-xs" onclick="orthoannotFunction()">?</button>
 			      <script>
@@ -78,9 +77,16 @@
 		<tbody>
  		    {% for prot in prots %}
                      <tr>
+      			 <td>
+                         <form method="POST" action="/search">
+                             {{ form.csrf_token() }}
+                             {{ form.OrthogroupID(value = prot.orthogroups.OrthogroupID, type = "hidden") }}
+                             
+                             {{ form.submit(value = prot.orthogroups.OrthogroupID)  }}
+                         </form>
+                         </td>
 
 			 <td>{{ prot.ProteinID }}</td>
-			 <td> {{ prot.orthogroups.OrthogroupID }} </td>
 			 <td>{% for x in prot.orthogroups.Orthoannots %}
                              {{ x.EggnogAnnot }}
                         {% endfor %} </td>
