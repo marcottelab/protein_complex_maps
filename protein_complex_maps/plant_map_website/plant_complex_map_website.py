@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 import random
-from bs4 import BeautifulSoup
-from collections import OrderedDict
-#import protein_complex_maps.plant_map_website.complex_db as cdb
+#from bs4 import BeautifulSoup
+#from collections import OrderedDict
 import plant_complex_db as cdb
-import pandas as pd
+#import pandas as pd
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy import func, or_
-#import networkx as nx
 
 db = cdb.get_db()
 app = cdb.get_app()
@@ -15,8 +13,6 @@ app = cdb.get_app()
 from flask_wtf import FlaskForm  #Changed from just Form to avoid deprecation warning
 from wtforms.fields import StringField, SubmitField, SelectField
 from flask import make_response
-
-
 from flask import render_template
 from flask import url_for, redirect, request, jsonify
 
@@ -36,8 +32,6 @@ def getitems(obj, item, default):
         print obj.values()
         print obj
         return obj.getlist(item) 
-       
-
 
 class SearchForm(FlaskForm):
     species_list = [("arath", "Arabidopsis"), 
@@ -116,7 +110,7 @@ def displayComplexesForProteinID():
 
     if len(orthogroup_clusters.hiercomplexes) == 0:
         error = "No complexes found for given Protein ID %s and its virNOG orthogroup ID: %s" % (Input_ProteinID, OrthogroupID.OrthogroupID)
-    return render_template('getcomplexes.html', form = form, complexes = complexes, Species = Species, Input_ProteinID = Input_ProteinID, error = error)
+    return render_template('getcomplexes.html', form = form, complexes = complexes, Species = Species, Input_OrthogroupID = OrthogroupID_string, Input_ProteinID = Input_ProteinID, error = error)
 
 
 @app.route("/displayComplexesForOrthogroupID")
@@ -132,7 +126,7 @@ def displayComplexesForOrthogroupID():
         #kdrew: input genename is not valid, flash message
         error = "Could not find given virNOG orthogroup ID: %s" % Input_OrthogroupID
 
-        return render_template(template, form = form, complexes = [], error = error, Species = Species)
+        return render_template('index.html', form = form, complexes = [], error = error, Species = Species)
     complexes = []
     orthogroup_clusters = (db.session.query(cdb.Orthogroup).filter(cdb.Orthogroup.id == OrthogroupID.id)).first()
     # Get hier complexes associated with an orthogroup ID, Then get member proteins of each cluster level
@@ -154,11 +148,10 @@ def getInteractionsForOrthogroupID():
     if not OrthogroupID:
         #kdrew: input genename is not valid, flash message
         error = "Could not find given virNOG orthogroup ID: %s" % Input_OrthogroupID
-
+        return render_template('index.html', form = form, complexes = [], error = error, Species = Species)
 
     interactions = []
     for score in OrthogroupID.Scores:
-        print(score.ScoreVal, score.InteractionID)
         interaction = db.session.query(cdb.Score).filter(cdb.Score.InteractionID == score.InteractionID).all()
         interactions.append(interaction)
     return render_template('getinteractions.html', form = form, interactions = interactions,  Species = Species, Input_OrthogroupID = Input_OrthogroupID, error = error)

@@ -75,12 +75,24 @@
                         }
                       </script></th>
                 <th>TAIR Link(s)</th>
-                <th>Uniprot Link</th>
+                <th>Uniprot Link
+                 <button class="btn btn-default btn-xs" onclick="uniprotFunction()">?</button>
+                      <script>
+                        function protFunction() {
+                        alert("Uniprot link for all proteins in selected species in selected orthogroup. Not available for Ceratopteris (C-fern), coconut, hemp, and quinoa");
+                        }
+                      </script></th>
+                 </th>
             </tr>
         </thead>
         <tbody>
             {% for og in comp.orthogroups %}
+
+                {% if og.OrthogroupID == Input_OrthogroupID %}
+                <tr style="font-weight:bold">
+                {% else %}
                 <tr>
+                {% endif %}
                     <td><a href = http://eggnogdb.embl.de/#/app/results?target_nogs={{ og.OrthogroupID }}>{{ og.OrthogroupID }}</a></td>
                     
                        
