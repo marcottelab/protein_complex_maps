@@ -26,17 +26,8 @@
     <div class="container theme-showcase" role="main">
 
 {% include 'jumbotron.html' %}
-
-      <div class="page-header">
-        <h3>Search for a protein or orthogroup</h3>
-      </div>
-    <!--kdrew: problem with stale CSRF tokens, this prints error message
-    {% if form.errors %}
-        {{ form.errors }}
-    {% endif %}
-    -->
-
-   {% include 'protsearchform.html' %}
+{% include 'introheader.html' %}  
+{% include 'protsearchform.html' %}
 
     <p>
 

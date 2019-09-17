@@ -54,8 +54,8 @@ class SearchForm(FlaskForm):
                     ("wheat", "Wheat"), 
                     ("cerri", "C-Fern")]
 
-    OrthogroupID = StringField(u'virNOG Orthogroup ID ex: ENOG411DWGM :')
-    ProteinID = StringField(u'Protein ID ex. F4KCR6, SC13A_ARATH, AT1G02090')
+    OrthogroupID = StringField(u'virNOG Orthogroup:')
+    ProteinID = StringField(u'Protein ID')
     Species = SelectField(u'Species', choices = species_list, default = 'arath')
     #enrichment = StringField(u'Enrichment (ex. cilium):')
     #submit = SubmitField(u'Search')

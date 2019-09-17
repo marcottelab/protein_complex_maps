@@ -26,17 +26,8 @@
     <div class="container theme-showcase" role="main">
 
 {% include 'jumbotron.html' %}
-
-      <div class="page-header">
-        <h3>Search for a protein or orthogroup</h3>
-      </div>
-    <!--kdrew: problem with stale CSRF tokens, this prints error message
-    {% if form.errors %}
-        {{ form.errors }}
-    {% endif %}
-    -->
-
-    {% include 'protsearchform.html' %}
+{% include 'introheader.html' %}
+{% include 'protsearchform.html' %}
 
     <p>
 
@@ -101,28 +92,39 @@
                              {{ x.ArathGenenames }}
                         {% endfor %} </td>
 
+                        {% set entrylist = [] %}
+                        {% set entrynamelist = [] %}
+                        {% set tairlist = [] %}
+
 
                         {% set protlist = [] %}
                         {% for x in og.Proteins %}
+
                            {% if x.Spec == Species %}
-                              {% do protlist.append(x.ProteinID) %}
-                           
+                              {% if x.IDtype == "Entry" %}
+                                 {% do entrylist.append(x.ProteinID) %}
+                              {% endif %}
+                              {% if x.IDtype == "EntryName" %}
+                                {% do entrynamelist.append(x.ProteinID) %}
+                              {% endif %}
+                        {% endif %} 
+                        {% if x.IDtype == "atnum" %}
+                              {% do tairlist.append(x.ProteinID) %}
                            {% endif %}
+
+
                         {% endfor %} 
 
                     <td>{{ Species }}</td>
-		    <td>{{ protlist | join(' ') }}</td>
+		    <td>{{ entrylist | join(' ') }}</td>
 
-                    <td>{% for x in og.Orthoannots %}
-                             {% set tairlist = x.Tair.split(',') %}
-                                 {% for locus in tairlist %}
-                                      <a href = https://www.arabidopsis.org/servlets/TairObject?type=locus&name={{ locus }}>{{ locus }}</a>
-                                 {% endfor %}
-                           
-                        {% endfor %} </td>
+                    <td>{% for locus in tairlist %}
+                           <a href = https://www.arabidopsis.org/servlets/TairObject?type=locus&name={{ locus }}>{{ locus }}</a>
+                       {% endfor %}</td>
 
+                          
                         
-                    <td><a href = https://www.uniprot.org/uniprot/?query=id:{{protlist | join("+OR+id:") }}>Uniprot</a> </td>
+                    <td><a href = https://www.uniprot.org/uniprot/?query=id:{{entrylist | join("+OR+id:") }}>Uniprot</a> </td>
 
 
 

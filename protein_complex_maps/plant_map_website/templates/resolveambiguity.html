@@ -112,13 +112,12 @@
                               {% if x.IDtype == "EntryName" %}
                                  {% do entrynamelist.append(x.ProteinID) %}
                               {% endif %}
-
+                           {% endif %}
                               {% if x.IDtype == "atnum" %}
                                  {% do tairlist.append(x.ProteinID) %}
                               {% endif %}
 
 
-                           {% endif %}
                         {% endfor %} 
                     <td>arath</td>
                     <td>{{ entrylist | join(' ') }}</td>
