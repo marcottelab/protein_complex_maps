@@ -27,8 +27,8 @@ def main():
 
     #ids = "Q13772 Q13200 O00487 Q9BRP4 O43242 P62195 P43686 Q99460 P62333 P35998 P62191 Q16186 P17980 Q05086 Q15008 Q9Y5K5 Q9UNM6 O00231 O00232 Q53HC0 O75832 P51665 P48556 P55036 Q16401 O00233 Q96EN9"
 
-    if args.output_filename != None:
-        output_file = open(args.output_filename,'wb')
+    #if args.output_filename != None:
+    #    output_file = open(args.output_filename,'wb')
 
     background_proteins = []
     if args.background_filename != None:
@@ -38,13 +38,14 @@ def main():
 
     complex_file = open(args.complex_filename,'rb')
     results_df = None
+    index_count = 0
     for i, complex_line in enumerate(complex_file.readlines()):
-        if args.output_filename != None:
-            output_file.write("complex: %s\n" % (i,))
-            output_file.write("""#  signf   corr. p-value   T   Q   Q&T Q&T/Q   Q&T/T   term ID     t type  t group    t name and depth in group        Q&T list\n""")
-        else:
-            print "complex: %s" % (i,)
-            print """#  signf   corr. p-value   T   Q   Q&T Q&T/Q   Q&T/T   term ID     t type  t group    t name and depth in group        Q&T list"""
+        #if args.output_filename != None:
+        #    output_file.write("complex: %s\n" % (i,))
+        #    output_file.write("""#  signf   corr. p-value   T   Q   Q&T Q&T/Q   Q&T/T   term ID     t type  t group    t name and depth in group        Q&T list\n""")
+
+        print "complex: %s" % (i,)
+        #print """#  signf   corr. p-value   T   Q   Q&T Q&T/Q   Q&T/T   term ID     t type  t group    t name and depth in group        Q&T list"""
         
 
         r = requests.post(
@@ -59,18 +60,25 @@ def main():
                     }
                 )
         for res in r.json()['result']:
+            res['index'] = index_count
+            index_count += 1
             res['complex_id'] = i
             print res
             #kdrew: this field makes converting to a dataframe difficult
             #res['intersections'] = ' '.join(res['intersections'])
             #kdrew: convert so that we know which genes are annotated
-            res['intersection_genes'] = ' '.join([yy for i,yy in enumerate(complex_line.split()) if len(res['intersections'][i]) > 0])
+            res['intersection_genes'] = ' '.join([yy for j,yy in enumerate(complex_line.split()) if len(res['intersections'][j]) > 0])
+            #kdrew: combine parents into a single string otherwise it gets separated into two entries, 
+            #kdrew: put string back into list because pandas complains about all scalars and no index but can't set index through from_dict function
+            res['parents'] = [' '.join(res['parents'])]
             del res['intersections']
             if results_df is None:
                 results_df = pd.DataFrame.from_dict(res)
             else:
                 results_df = pd.concat([results_df, pd.DataFrame.from_dict(res)])
+    results_df = results_df.set_index("index")
     print results_df
+    results_df.to_csv(args.output_filename)
 
         #proc = sp.Popen(['gprofiler.py', complex_line, '-c', args.correction_method, '-e', '-B', args.background_filename ], stdout=sp.PIPE, stderr=sp.PIPE)
         #gprofiler_out, err = proc.communicate()
@@ -87,8 +95,8 @@ def main():
         #            print line
 
 
-    if args.output_filename != None:
-        output_file.close()
+    #if args.output_filename != None:
+    #    output_file.close()
                 
 
 
