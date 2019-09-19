@@ -14,7 +14,7 @@ import itertools as it
 
 from matplotlib import rcParams
 rcParams.update({'figure.autolayout': True})
-rcParams.update({'grid': False})
+#rcParams.update({'grid': False})
 mpl.rc('pdf', fonttype=42)
 import seaborn as sns
 sns.set_style("white")
