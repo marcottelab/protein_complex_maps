@@ -72,7 +72,9 @@ def main():
         #kdrew: plot chromatogram line from dataframe
         ax = sns.lineplot(x="Time (min)", y=value_col_name, data=df, color=color, label=label)
 
+
     #kdrew: set axis for fraction numbers
+    fraction_mins = None
     if args.start_collecting != None or args.stop_collecting != None or args.collection_period != None:
         fraction_mins = np.arange(args.start_collecting, args.stop_collecting, args.collection_period)
         ax3 = ax.twiny()
@@ -82,11 +84,20 @@ def main():
         ax3.set_xlabel("Fractions")
 
 
+
     std_times = [float(x) for x in args.standard_time]
     for i,x in enumerate(std_times):
         ax.axvline(x, color="black", ls='dashed', alpha=0.5, linewidth=0.5)
         ax.annotate(args.standard_mass[i], xy=(x, 1.12), xycoords='data', xytext=(-2.5, 0.0), textcoords='offset points', ha="center", rotation=90, fontsize=6,)
 
+    print fraction_mins
+    print std_times
+    std_fractions = []
+    for st in std_times:
+        std_fractions.append(next(i for i,v in enumerate(fraction_mins) if v > st))
+
+    print "standard_fractions"
+    print ' '.join([str(x) for x in std_fractions])
 
     if args.normalize:
         plt.ylim(-0.1,1.18)
