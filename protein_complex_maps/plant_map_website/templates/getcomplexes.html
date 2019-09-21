@@ -38,7 +38,7 @@
     <ul>
 
     <!-- https://www.uniprot.org/uniprot/?query=I1KDU3+OR+I1M368+OR+I1M369+OR+I1M370+OR+K7KX13&sort=score -->
-    <h3> Complexes ordered from most restrictive to most inclusive. </h3>
+    <h4> Complexes ordered from most restrictive to most inclusive. Start with first listed complex for highest confidence complex membership. The last will be most inclusive, but in some cases too inclusive </h4>
     {% for comp in complexes | reverse %}
         <!--<h2>Complex: {{ comp.clustid_set }}</h2>-->
         <table class="table table-striped">
@@ -88,7 +88,7 @@
         <tbody>
             {% for og in comp.orthogroups %}
 
-                {% if og.OrthogroupID == Input_OrthogroupID %}
+                {% if og.OrthogroupID == current_OrthogroupID %}
                 <tr style="font-weight:bold">
                 {% else %}
                 <tr>
