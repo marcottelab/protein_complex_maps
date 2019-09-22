@@ -8,6 +8,11 @@ import subprocess as sp
 
 import pandas as pd
 
+try:
+   import cPickle as pickle
+except:
+   import pickle
+
 
 def main():
 
@@ -47,6 +52,8 @@ def main():
         print "complex: %s" % (i,)
         #print """#  signf   corr. p-value   T   Q   Q&T Q&T/Q   Q&T/T   term ID     t type  t group    t name and depth in group        Q&T list"""
         
+        if len(complex_line.split()) == 0:
+            continue
 
         r = requests.post(
                 url='https://biit.cs.ut.ee/gprofiler/api/gost/profile/',
@@ -59,6 +66,7 @@ def main():
                     'background':background_proteins,
                     }
                 )
+        query_ids = r.json()['meta']['genes_metadata']['query']['query_1']['mapping'].keys()
         for res in r.json()['result']:
             res['index'] = index_count
             index_count += 1
@@ -67,37 +75,26 @@ def main():
             #kdrew: this field makes converting to a dataframe difficult
             #res['intersections'] = ' '.join(res['intersections'])
             #kdrew: convert so that we know which genes are annotated
-            res['intersection_genes'] = ' '.join([yy for j,yy in enumerate(complex_line.split()) if len(res['intersections'][j]) > 0])
+            res['intersection_genes'] = ' '.join([yy for j,yy in enumerate(query_ids) if len(res['intersections'][j]) > 0])
             #kdrew: combine parents into a single string otherwise it gets separated into two entries, 
             #kdrew: put string back into list because pandas complains about all scalars and no index but can't set index through from_dict function
             res['parents'] = [' '.join(res['parents'])]
             del res['intersections']
+            #kdrew: pandas to_csv chokes on writing the description of an enrichment due to not unicode encoding
+            #kdrew: UnicodeEncodeError: 'ascii' codec can't encode character u'\xef' in position 572: ordinal not in range(128)
+            res['description'] = res['description'].encode('utf-8')
             if results_df is None:
                 results_df = pd.DataFrame.from_dict(res)
             else:
                 results_df = pd.concat([results_df, pd.DataFrame.from_dict(res)])
+
     results_df = results_df.set_index("index")
     print results_df
-    results_df.to_csv(args.output_filename)
-
-        #proc = sp.Popen(['gprofiler.py', complex_line, '-c', args.correction_method, '-e', '-B', args.background_filename ], stdout=sp.PIPE, stderr=sp.PIPE)
-        #gprofiler_out, err = proc.communicate()
-
-        #print "corr. p-value\tterm ID\tt name"
-        #for line in gprofiler_out.split('\n'):
-        #    line_sp = line.split('\t')
-        #    if len(line_sp) >= 13:
-        #        if args.output_filename != None:
-        #            #output_file.write("%s\t%s\t%s\n" % (line_sp[2], line_sp[8], line_sp[11]))
-        #            output_file.write("%s\n" % (line,))
-        #        else:
-        #            #print "%s\t%s\t%s" % (line_sp[2], line_sp[8], line_sp[11])
-        #            print line
-
-
-    #if args.output_filename != None:
-    #    output_file.close()
-                
+    #kdrew: pickle just in case pandas fails again
+    results_pickle = open('results.pkl', 'wb')
+    pickle.dump(results_df, results_pickle)
+    
+    results_df.to_csv(args.output_filename, encoding='utf-8')
 
 
 if __name__ == "__main__":
