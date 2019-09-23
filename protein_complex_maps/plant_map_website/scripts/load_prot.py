@@ -31,10 +31,12 @@ def main():
             split_line = line.split(',')   
             OrthogroupID = split_line[0]
             ProteinID = split_line[1]
-            Spec = split_line[2].strip('\n')
+            Spec = split_line[2]
+            IDtype = split_line[3].strip('\n')
+
             o = db.session.query(cdb.Orthogroup).filter_by(OrthogroupID = OrthogroupID).first()
             #o = cdb.get_or_create(db, cdb.Protein, ProteinID = ProteinID)
-            p = cdb.Protein(ProteinID = ProteinID, Spec = Spec, OrthogroupID_key = o.id) # Plain load
+            p = cdb.Protein(ProteinID = ProteinID, Spec = Spec, IDtype = IDtype, OrthogroupID_key = o.id) # Plain load
             ps.append(p)  
             if count % 10000 == 0:
                  
