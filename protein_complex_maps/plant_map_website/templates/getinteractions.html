@@ -33,7 +33,7 @@
     <p>
 
     {% if error %}
-        <h3>{{error}}</h3>
+        <h5>{{error}}</h5>
     {% endif %}
 
     <ul>
@@ -111,9 +111,6 @@
                          }
                        </script></th>
 
-
-
-
            </tr>
         </thead>                                                                                                                <tbody>
     <tbody>
@@ -122,7 +119,12 @@
             <td> {{ interaction[0].ScoreVal|round(4)}} </td>
 
             {% for node in interaction %}
-                <td><a href = http://eggnogdb.embl.de/#/app/results?target_nogs={{ node.orthogroups.OrthogroupID }}>{{ node.orthogroups.OrthogroupID }}</a></td>{% endfor %}
+                {% if node.orthogroups.OrthogroupID == current_OrthogroupID %}
+                <td style="font-weight:bold">
+                {% else %}
+                <td>
+                {% endif %}
+                <a href = http://eggnogdb.embl.de/#/app/results?target_nogs={{ node.orthogroups.OrthogroupID }}>{{ node.orthogroups.OrthogroupID }}</a></td>{% endfor %}
 
             {% for node in interaction %}
                 <td> {{ node.orthogroups.Orthoannots[0].EggnogAnnot }} </td>{% endfor %}
