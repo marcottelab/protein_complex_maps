@@ -1,6 +1,4 @@
 {% include 'header.html' %}
-
-
     <!-- Fixed navbar -->
     <nav class="navbar navbar-inverse navbar-fixed-top">
       <div class="container">
@@ -32,16 +30,26 @@
       <h4>Plant Complex Map Files</h4>
       <ul>
 
-          <li><a href="/static/data/allplants_feature_matrix_missing1.unscaled.xlsx" target="_blank">Protein Complexes</a>
+          <li><a href="/static/data/allplants_annotated_clusters.xlsx" target="_blank">Protein Complexes</a>
               <ul>
                   <li>Description: Annotated complexes generated from walktrap diffusion clustering of FDR <10% interactions (CF-MS score cutoff 0.504) </li>
               </ul>                                                                            
           </li>
-          <li><a href="/static/data/allplants_feature_matrix_missing1.unscaled.top100.edges" target="_blank">Protein Interaction Network with probability scores</a>
+          <li><a href="/static/data/allplants_clusters.csv" target="_blank">Protein Complexes</a>
               <ul>
-                  <li>Description: Co-complex protein pairs that are observed in the protein complex map with the corresponding CF-MS score. </li>
+                  <li>Description: Plain text complexes generated from walktrap diffusion clustering of FDR <10% interactions (CF-MS score cutoff 0.504) </li>
+                 <li>Note: leftmost columns are more inclusive clusters, rightmost are more harsh/restrictive </li>
+                 <li>More harsh clustering breaks complexes into subcomplexes</li>
+                 <li>Cluster numbers are only informative within the same column</li>
+                 <li>cut_844.2 cut_723.6 cut_542.7 cut_301.5 are cluster strengths displayed on this website</li>
+              </ul>                                                                            
+          </li>
+
+          <li><a href="/static/data/allplants_cfms_scores_annot.txt.gz" target="_blank">Protein Interaction Network with probability scores</a>
+              <ul>
+                  <li>Description: Scores between Orthogroups with the corresponding CF-MS score and eggNOG generated orthogroup descriptions. </li>
                   <li>Note: CF-MS score > 0.5 = 10% FDR, > 0.2 = 50% FDR</li>
-                  <li>Format: OrthogroupID1 [tab] OrthogroupID2 [tab] Score</li>
+                  <li>Format: OrthogroupID1 [tab] OrthogroupID2 [tab] Score [tab] Annotation1 [tab] Annotation2</li>
               </ul>
           </li>
       </ul>
@@ -53,93 +61,122 @@
                   <li>Description: Annotations for all orthogroups</li>
               </ul>
           </li>
-          <li><a href="/static/data/plant_virNOG_orthology.csv" target="_blank">Translation Table</a>
+          <li><a href="/static/data/plant_virNOG_orthology.csv" target="_blank">Translation Table (used in pipeline)</a>
               <ul>
-                  <li>Mapping of eggNOG virNOG OrthogroupID to ProteinIDs</li>
+                  <li>Mapping of eggNOG virNOG OrthogroupID to ProteinIDs used in bioinformatics pipeline</li>
                   <li>Generated with EggNOG mapper against EggNOG4.0 orthogroups</li>
-                  <li>Format: OrthogroupID1 [tab] Species code [tab] ProteinID</li>       
+                  <li>Format: OrthogroupID1 [tab] ProteinID [tab] Species code </li>       
               </ul>
           </li>
+          <li><a href="/static/data/complete_orthology_w_atnums.csv" target="_blank">Translation Table (complete)</a>
+              <ul>
+                  <li>Mapping of eggNOG virNOG OrthogroupID to different encodings of ProteinID</li>
+                  <li>TAIR AT locus, uniprot Accession, uniprot Entry name, Rice locus, Arabidopsis gene name</li>
+                  <li>Format: OrthogroupID1 [tab] ProteinID [tab] Species code [tab] Identifier type</li>       
+              </ul>
+          </li>
+
       </ul>
       <br>
-      <h4>Test and training data</h4>
+
+      <h4>Metadata</h4>
+      <ul>
+          <li><a href="/static/data/Experiment_Order.csv" target="_blank">Experiment metadata</a>
+              <ul>
+                  <li>Description of each fractionation experiment </li>
+                  <li>Format: experiment_name,ExperimentID_order,tissue,experiment_type,spec,ExperimentID</li>
+              </ul>
+          </li>
+          <li><a href="/static/data/Fraction_Details.csv" target="_blank">Fraction metadata</a>
+              <ul>
+                  <li>Description of each fraction in all fractionation experiment </li>
+                  <li>FractionID,frac_order,ExperimentID</li>
+              </ul>
+          </li>
+      </ul>   
+
+
+      <h4>Test and training interactions</h4>
       Identifiers (OrthogroupIDs) are <a href="http://eggnogdb.embl.de/">eggNOG</a> <i>viridiplantae</i> orthogroup identifiers
       <ul>
-          <li><a href="/static/downloads/train_complexes.txt" target="_blank">Train Complexes</a>
+          <li><a href="/static/data/allComplexesCore_photo_euktovirNOG_expansion_merged09_size30_rmLrg_outsidesupport.train_ppis.txt.ordered" target="_blank">Train Positive PPIs</a>
               <ul>
-                  <li>Description: List of training complexes used in protein complex discovery pipeline</li>
-                  <li>Format: OrthogroupID OrthogroupID OrthogroupID ... (one complex per line)</li>
+                  <li>Description: List of training positive ppis used in protein complex discovery pipeline</li>
+                  <li>Contain PPI from CORUM human protein complexes transfered to plant ortholog groups, as well as other supported PPI from TAIR</li>
+                  <li>Format: OrthogroupID [tab] OrthogroupID </li>
               </ul>
           </li>
-          <li><a href="/static/downloads/test_complexes.txt" target="_blank">Test Complexes</a>
-              <ul>
-                  <li>Description: List of test complexes used in protein complex discovery pipeline</li>
-                  <li>Format: OrthogroupID OrthogroupID OrthogroupID ... (one complex per line)</li>
-              </ul>
-          </li>
-          <li><a href="/static/downloads/train_ppis.txt" target="_blank">Train Positive PPIs</a>
-              <ul>
-                  <li>Description: List of train positive ppis used in protein complex discovery pipeline</li>
-                  <li>Format: OrthogroupID OrthogroupID </li>
-              </ul>
-          </li>
-          <li><a href="/static/downloads/train_neg_ppis.txt" target="_blank">Train Negative PPIs</a>
+          <li><a href="/static/data/allplants.labels.filt.negtrain.20k_a" target="_blank">Train Negative PPIs</a>
               <ul>
                   <li>Description: List of train negative ppis used in protein complex discovery pipeline</li>
                   <li>Note: Since no truly non-interacting proteins exist, these are randomly sampled from observed proteins in our data set</li>
-                  <li>Format: OrthogroupID OrthogroupID </li>
+                  <li>Format: OrthogroupID [tab] OrthogroupID </li>
               </ul>
           </li>
-          <li><a href="/static/downloads/test_ppis.txt" target="_blank">Test Positive PPIs</a>
+          <li><a href="/static/data/allComplexesCore_photo_euktovirNOG_expansion_merged09_size30_rmLrg_outsidesupport.test_ppis.txt.ordered" target="_blank">Test Positive PPIs</a>
               <ul>
                   <li>Description: List of test positive ppis used in protein complex discovery pipeline</li>
-                  <li>Format: OrthogroupID OrthogroupID </li>
+                  <li>Format: OrthogroupID [tab] OrthogroupID </li>
               </ul>
           </li>
-          <li><a href="/static/downloads/test_neg_ppis.txt" target="_blank">Test Negative PPIs</a>
+          <li><a href="/static/data/allplants.labels.filt.negtest.20k_a" target="_blank">Test Negative PPIs</a>
               <ul>
                   <li>Description: List of test negative ppis used in protein complex discovery pipeline</li>
                   <li>Note: Since no truly non-interacting proteins exist, these are randomly sampled from observed proteinsin our data set</li>
-                  <li>Format: OrthogroupID OrthogroupID </li>
+                  <li>Format: OrthogroupID [tab] OrthogroupID </li>
               </ul>
           </li>
       </ul>
       <br>
       <h4>Elution table</h4>
       <ul>
-
           <li><a href="/static/data/virNOG_elut_norm_annot_wide_ordered.csv" target="_blank">Full elution profile</a>
               <ul>
                   <li>Description: Elution profile of normalized PSMS for all observed orthogroups </li>
                   <li>Format: OrthogroupID,[Fractions]</li>
               </ul>
           </li>
-          <li><a href="/static/data/allplants.elut.tidy" target="_blank">Tidy elution profile</a>
+          <li><a href="/static/data/virNOG_elut_norm.csv" target="_blank">Tidy elution profile</a>
               <ul>
                   <li>Description: Tidy elution of all proteins </li>
-                  <li>Format: OrthogroupID,FractionID,PSMs,Normalized PSM,...</li>
+                  <li>Includes a variety of abundance measurements and normalizations</li> 
+                  <li>fracnorm = normalized by each fraction</li>
+                  <li>expnorm = normalized by fractionation experiment</li>
+                  <li>Format: filename,ExperimentID,FractionID,ID,Total_PeptideCount,abundance_ppm,spec,fracnorm_PeptideCount,expnorm_PeptideCount,expnorm_ppm,fracexpnorm_PeptideCount</li>
               </ul>
           </li>
-
-
-
       </ul>   
 
       <h4>Feature Matrix</h4>
       <ul>
-          <li><a href="/static/downloads/feature_matrix.txt.gz" target="_blank">Feature Matrix (gz)</a>
+          <li><a href="/static/data/allplants_feature_matrix_missing1.featmat.labeled.gz" target="_blank">Feature Matrix (gz)</a>
               <ul>
-                  <li>Description: Pre-feature selection features from McWhite & Papoulas et al.</li>
-                  <li>Format: OrthogroupID,OrthogroupID,[features]</li>
+                  <li>Description: Pre-feature selection features with training labels from McWhite & Papoulas et al.</li>
+                  <li>Format: OrthogroupID1[space]OrthogroupID2,[features],OrthogroupID1,OrthogroupID2,label</li>
               </ul>
           </li>
       </ul>
+      <ul>
+          <li><a href="/static/data/allplants_feature_matrix_missing1.featmat.top100.labeled.gz" target="_blank">Feature Matrix (gz)</a>
+              <ul>
+                  <li>Description: Feature selected top 100 features with training labels from McWhite & Papoulas et al.</li>
+                  <li>Format: OrthogroupID1[space]OrthogroupID2,[features],label</li>
+                  <li>Note: Orthogroup1,Orthogroup2 are in alphatical order</li> 
+              </ul>
+          </li>
+      </ul>
+
+
+
       <br>
       <h4>Code</h4>
       <ul>
-          <li><a href="https://github.com/marcottelab/plant_complex_map" target="_blank">Plant Protein Complex Map (GitHub)</a>
-          </li>
-          <li><a href="https://github.com/marcottelab/MS_grouped_lookup" target="_blank">Peptide detection by orthogroup (GitHub)</a>
+          <li><a href="" target="_blank">Plant Protein Complex Map (Zenodo)</a></li>
+          <li>Notes: Zenodo repository contains all files, instructions to replicate, and internal scripts</li>
+          <li>Project makes use of following github repositories</li>
+          <li><a href="https://github.com/marcottelab/MS_grouped_lookup" target="_blank">Peptide detection by orthogroup (GitHub)</a></li>
+          <li><a href="https://github.com/marcottelab/protein_complex_maps" target="_blank">Scripts for calculating interaction networks</a></li>
+         
       </ul>
 
       <br>
