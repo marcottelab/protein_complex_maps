@@ -78,7 +78,6 @@ sparkline_fxn <- function(df, fracinfo, sel, specchoice = NULL, order = NULL, he
     }
 
 
-    #ID_order_quo <- enquo(ID_order)
     df_complete %>% mutate(ID = fct_relevel(ID, {{ ID_order }}))
 
     plt <- ggplot(df_complete, aes( x = fct_rev(fct_reorder(FractionID, FractionID_order)),
@@ -106,19 +105,11 @@ sparkline_fxn <- function(df, fracinfo, sel, specchoice = NULL, order = NULL, he
     clustid <- sel %>% pull(clustid) %>% head(1)
     clustid_set <- sel %>% pull(clustid_set) %>% head(1)
 
-    filename <- paste0("static/complexes/", clustid_set, "_", as.character(clustid), ".svg")
+    filename <- paste0("static/complex_images/", clustid_set, "_", as.character(clustid), ".svg")
     print(filename)
 
-    #if(length(selection) < 10){
-    #      height = 0.75 * length(selection)
-    #      }
-    #else{
-    #  height = 8
-    #}
-    #print(height)
 
-    plt %>% ggsave(filename, ., device = "svg", units = "in")
-    #return(plt)
+    plt %>% save_plot(filename, ., device = "svg")
 
 }
 
@@ -132,10 +123,7 @@ tissue_order <- c("green", "sprout", "dark", "nuclei", "seed")
 
 fraction_details <- read_csv("static/data/Fraction_Details.csv")
 
-# NEED to fix DSSO order when hopper is back
 experiment_order <- read_csv("static/data/Experiment_Order.csv")
-
-#experiment_translations <- read_csv("accessory_files/Experiment_translations.csv")
 
 species_attribs <- read_csv("static/data/Species_attribs.csv")
 
@@ -157,8 +145,6 @@ fraction_order <- virNOG_elut_norm %>% select(ExperimentID, FractionID) %>%
       ungroup
 
 
-#What is this line for?
-experiment_order  <- experiment_order %>% select(ExperimentID, ExperimentID_order, tissue, spec, experiment_name, experiment_type, experiment_type_short, tissue_short)
 
 all_fraction_info <- left_join(fraction_order, experiment_order, by= c("ExperimentID")) %>%
   left_join(species_attribs, by = "spec")
@@ -167,265 +153,11 @@ all_fraction_info <- left_join(fraction_order, experiment_order, by= c("Experime
 
 virNOG_elut_norm_annot <- virNOG_elut_norm  %>%
   left_join(all_fraction_info, by = c("FractionID", "ExperimentID", "spec"))
-# Should not change row numbers
-sss
+
 complex_info <- read_csv("clustid_key.csv")
 
-#Will go faster on hopper
 complex_info   %>%
-   #filter(clustid == 26) %>%
-#  filter(clustid > 88) %>%
   mutate(splitter = paste0(clustid_set, clustid)) %>%
   split(.$splitter) %>%
   map(~safe_sparklines(virNOG_elut_norm_annot, all_fraction_info, ., header = TRUE))
-
-#sparkline_fxn(virNOG_elut_norm_annot, all_fraction_info, sel, header = TRUE)
-
-#d_and_la_plot %>% ggsave("sparkline_d_and_la_plot.png", .,  device = "png", height = 2, width = 8, units = "in")
-
-# Reduced one for the main text
-#virNOG_elut_norm_ordered_dandlafilt <- virNOG_elut_norm_annot %>% filter(experiment_name %in% c("wheat_germ4", "cansa_seed1", "cocnu_nuc1", "braol_nuc1",  "maize_leaf1", "soybn_sprout2"))
-#all_fraction_info_dandlafilt <- all_fraction_info %>% filter(experiment_name %in% c("wheat_germ4", "cansa_seed1","cocnu_nuc1", "braol_nuc1",  "maize_leaf1", "soybn_sprout2"))
-
-d_and_la_filt_plot <- sparkline_fxn(virNOG_elut_norm_ordered_dandlafilt, all_fraction_info_dandlafilt, domino_and_la, order = c("LA1", "DOMINO1"))+ theme(axis.title.y = element_blank())
-
-
-
-##For species with uniprot proteomes
-#read_orthology <- function(filename, species, split = FALSE, order = NULL){
-#    orthology <- read_delim(filename, delim = "\t")
-#    if(split == TRUE){
-#        orthology <- orthology %>% separate(ProteinID, into = c("tmp", "ProteinID", "tmp2"), sep = "[|]") %>% select(ID, ProteinID)
-#    }
-#orthology$spec <- species
- #return(orthology)
-#}
-#
-##For species that aren't uniprot
-#read_orthology2 <- function(filename, species, split = FALSE){
-#    orthology <- read_delim(filename, delim = "\t")
-#    if(split == TRUE){
-#        orthology <- orthology %>% separate(ProteinID, into = c("tmp", "tmp2", "ProteinID"), sep = "[|]") %>% select(ID, ProteinID)
-#    }
-#orthology$spec <- species
-#return(orthology)
-#}
-
-#What is the difference between "_ordered" and "_annot"?
-#virNOG_elut_norm_ordered <- virNOG_elut_norm_annot  %>% select(-fracnorm_PeptideCount, -fracexpnorm_PeptideCount, -Total_PeptideCount, -abundance_ppm, -expnorm_ppm, -filename)
-
-
-#Big clustergram
-#wide <- virNOG_elut_norm_annot %>%
-#    arrange(spec_order, ExperimentID_order) %>%
-#    select(FractionID, ID, expnorm_PeptideCount) %>%
-#    mutate(FractionID = fct_inorder(FractionID)) %>%
-#    spread(FractionID, expnorm_PeptideCount, fill = 0 ) %>%
-#    filter(grepl("ENOG4", ID)) %>%
-#    filter(ID %in% obs_groups$ID)
-#
-#wide_tidy <- wide_ordered %>% gather(FractionID, value, -ID)
-#alldata_plot <-  wide_tidy %>%
-#     ggplot(aes( x = fct_inorder(FractionID), y = fct_rev(ID) , fill = value)) +
-#     geom_tile() +
-#
-#     scale_fill_gradient(low = "#ffff66", high = "blue") +
-#     #theme(axis.text.x = element_text(angle = 45, vjust=1, hjust  =1))
-#     theme_nothing()
-#
-#
-#
-## Known complexes
-#tidy_postclust_known_filt <- tidy_postclust %>%
-#
-#      mutate(EXP = case_when(experiment_name == "maize_leaf1" ~ "Maize leaf\nSize exclusion fractions \u2192", #unicode arrow right
-#                             experiment_name == "braol_nuc1" ~ "Broccoli nuclei\nIon exchange fractions \u2192"
-#                             )) %>%
-#
-#      mutate(set = case_when(
-#         ID %in% tset ~ "TSET\ncomplex",
-#         ID %in% eif2b ~ "EIF2B\ncomplex",
-#         ID %in% proteasome ~ "20S\nproteasome\ncomplex",
-#         ID %in% mccase ~ "MCCase\ncomplex",
-#        # ID %in% ahl ~ "AHL",
-#         #ID %in% ef1 ~ "EF1",
-#         #ID %in% nups ~ "NUP",
-#         #ID %in% fy_cpsf ~ "FY/CPSF",
-#         #ID %in% cyp1822 ~ "CYP18/22",
-#         ID %in% etf ~ "ETF",
-#         #ID %in% sec1331 ~ "SEC13/31",
-#         #ID %in% carb ~ "Carbamoyl synthase",
-#         ID %in% prefoldin ~ "prefoldin\ncomplex"
-#
-#
-#         #ID %in% cct ~ "CCT"
-#
-#      )) %>%
-#    filter(!is.na(set))
-#
-## Known complexes
-## Get example order in clustered heatmaps for fig 1d reasons
-#
-#tidy_postclust_known_filt %>%
-#     left_join(df_order_pearson_average, by = "ID") %>%
-#     select(ID, simplename, order_pearson_average) %>% unique %>% View
-##Proteasome is at 16,000/26,114 = 61% down
-##ETFA 20374 = 78% down
-#
-##PFD6 19208 =73.5%  down
-#
-#
-## amazing https://stackoverflow.com/questions/33221794/separate-palettes-for-facets-in-ggplot-facet-grid
-#
-#calloutdata_known_plot <- tidy_postclust_known_filt  %>% filter(experiment_name %in% c( "braol_nuc1",  "maize_leaf1")) %>%
-#      arrange(ExperimentID_order) %>%
-#      mutate(experiment_name = fct_inorder(experiment_name)) %>%
-#     #ggplot(aes( x = fct_inorder(FractionID), y = fct_rev(simplename) , fill = set, alpha = value)) +
-#    ggplot(aes( x = fct_inorder(FractionID), y = fct_rev(simplename) , fill = value)) +
-#     geom_tile(color= "grey50") +
-#     theme(axis.text.x = element_blank(),
-#           legend.position = "none",
-#           axis.title.x = element_blank(),
-#           axis.title.y = element_blank(),
-#           strip.text.x = element_text(hjust = 0, vjust = -1),
-#           strip.background = element_rect(fill = NA),
-#           axis.ticks.x = element_blank(),
-#           axis.text.y = element_text(size = 7),
-#           panel.spacing.x = unit(0.5, "lines"),
-#           panel.spacing.y = unit(0.0001, "lines"),
-#          strip.text.y = element_text(angle = 0, hjust = 0),
-#          plot.margin = margin(0,0,0,0),
-#          strip.placement = "outside") +
-#     facet_grid(set~EXP, scales = "free", space = "free_y") +
-#     scale_fill_gradient(low = "#ffff66", high = "blue") + #lighter #ffff7f, darker #ffff66, close to yellow #ffff4c
-#     # scale_fill_viridis(direction =  -1) +
-#    scale_x_discrete(position = "top") +
-#     #panel_border() +
-#      #scale_fill_manual(values = brewer.pal(name="Set1", n=9), guide="none") +
-#      #scale_alpha_continuous(range=c(0, 1)) +
-#    NULL
-#
-#
-#diffclust_annot <- read_csv("training/unscaled_top100/walktraps/annotation_walktrapfdr10_3step.csv") # Loaded in twice, do once at top of script
-#clusters_order <- diffclust_annot %>% select(ID) %>% rownames_to_column(var = "order")
-#
-#
-#wide_postclust <- wide %>% inner_join(clusters_order, by = "ID")
-#
-#
-#tidy_postclust <- wide_postclust %>%
-#   gather(FractionID, value, -ID, -order) %>%
-#   left_join(custom_genenames, by = "ID") %>%
-#   left_join(all_fraction_info, by = "FractionID") %>%
-#    arrange(order) %>%
-#    mutate(ID = fct_inorder(ID), simplename = fct_inorder(simplename))
-#
-#
-#tidy_postclust_multimer_filt <- tidy_postclust %>%
-#      mutate(EXP = case_when(experiment_name == "soybn_sprout1" ~ "Soy sprout\nSize exclusion fractions \u2192", #unicode arrow right
-#                             experiment_name == "maize_leaf1" ~ "Maize leaf\nSize exclusion fractions \u2192"#, #unicode arrow right
-#                             #experiment_name == "arath_sprout1" ~ "arath_sprout1 \u2192", #WWC
-#                             #experiment_name == "braol_nuc1" ~ " braol_nuc1\u2192", # WWC
-#                             #experiment_name == "wheat_germ2" ~ "wheat_germ2 \u2192" # SEC
-#
-#                             )) %>%
-#
-#      mutate(set = case_when(
-#         ID %in% csp ~ "CSP41", # dimer of trimers BAA - AAB
-#         ID %in% unchar_tri ~ "Uncharacterized", # Multimer
-#        # ID %in% hsp70 ~ "HSP70",
-#
-#         #ID %in% oxal ~ "oxal",
-#         #ID %in% cleanunchar ~ "cleanunchar",
-#         ID %in% apospory_unchar ~ "apospory_unchar", # Multimer
-#         ID %in% glycleav_unchar ~ "clycleave_unchar" # Multimer signal
-#
-#
-#         #ID %in% cct ~ "CCT"
-#
-#      )) %>%
-#    filter(!is.na(set))
-##
-#
-## amazing https://stackoverflow.com/questions/33221794/separate-palettes-for-facets-in-ggplot-facet-grid
-#
-#calloutdata_multimer_plot <- tidy_postclust_multimer_filt  %>%
-#    #filter(experiment_name %in% c( "soybn_sprout1",  "maize_leaf1")) %>%
-#    filter(!is.na(EXP)) %>%
-#
-#      arrange(ExperimentID_order) %>%
-#      mutate(experiment_name = fct_inorder(experiment_name)) %>%
-#    ggplot(aes( x = fct_inorder(FractionID), y = fct_rev(simplename) , fill = value)) +
-#     geom_tile(color= "grey50") +
-#     theme(axis.text.x = element_blank(),
-#           legend.position = "none",
-#           axis.title.x = element_blank(),
-#           axis.title.y = element_blank(),
-#           strip.text = element_text(hjust = 0, vjust = 0.9),
-#           strip.background = element_rect(fill = NA),
-#           axis.ticks.x = element_blank(),
-#           #axis.line.x = element_blank(),
-#           panel.spacing.x = unit(0.5, "lines"),
-#           panel.spacing.y = unit(0.0001, "lines"),
-#           strip.text.y = element_text(angle = 0, hjust = 0),
-#          strip.placement = "outside") +
-#     facet_grid(set~EXP, scales = "free", space = "free_y") +
-#     scale_fill_gradient(low = "yellow", high = "blue") +
-#     # scale_fill_viridis(direction =  -1) +
-#     scale_x_discrete(position = "top") +
-#     #panel_border() +
-#      #scale_fill_manual(values = brewer.pal(name="Set1", n=9), guide="none") +
-#      #scale_alpha_continuous(range=c(0, 1)) +
-#    NULL
-#calloutdata_multimer_plot
-## Size calibration shows that these aren't single large clusters
-#
-#
-#
-#
-#tidy_postclust_metabol_filt <- tidy_postclust %>%
-#      mutate(EXP = case_when(experiment_name == "soybn_sprout1" ~ "Soy sprout\nSize exclusion fractions \u2192", #unicode arrow right
-#                             experiment_name == "maize_leaf1" ~ "Maize leaf\nSize exclusion fractions \u2192" #unicode arrow right
-#                             )) %>%
-#      left_join(clusters) %>%
-#      filter(cut_1085.4 == 4) %>%
-#      mutate(set = cut_723.6) %>%
-#      filter(! set %in% single_member_clusters) %>%
-#      filter(set %in% c(17,45,61,71,80)) %>%
-#
-#    filter(!is.na(set))
-#
-#
-## amazing https://stackoverflow.com/questions/33221794/separate-palettes-for-facets-in-ggplot-facet-grid
-#
-#calloutdata_metabol_plot <- tidy_postclust_metabol_filt  %>%
-#    filter(experiment_name %in% c( "soybn_sprout1",  "maize_leaf1")) %>%
-#
-#      arrange(ExperimentID_order) %>%
-#      mutate(experiment_name = fct_inorder(experiment_name)) %>%
-#    ggplot(aes( x = fct_inorder(FractionID), y = fct_rev(simplename), fill = value)) +
-#     geom_tile(color= "grey50") +
-#     theme(axis.text.x = element_blank(),
-#           legend.position = "none",
-#           axis.title.x = element_blank(),
-#           axis.title.y = element_blank(),
-#           strip.text = element_text(hjust = 0, vjust = 0.9),
-#           strip.background = element_rect(fill = NA),
-#           axis.ticks.x = element_blank(),
-#           #axis.line.x = element_blank(),
-#           panel.spacing.x = unit(0.5, "lines"),
-#           panel.spacing.y = unit(0.0001, "lines"),
-#           strip.text.y = element_text(angle = 0, hjust = 0),
-#          strip.placement = "outside") +
-#     facet_grid(set~EXP, scales = "free", space = "free_y") +
-#     scale_fill_gradient(low = "yellow", high = "blue") +
-#
-#     scale_x_discrete(position = "top") +
-#
-#    NULL
-#
-#
-#
-#Domino1 and La1
-
 
