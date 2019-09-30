@@ -38,7 +38,7 @@
     <ul>
 
     <!-- https://www.uniprot.org/uniprot/?query=I1KDU3+OR+I1M368+OR+I1M369+OR+I1M370+OR+K7KX13&sort=score -->
-    <h4> Complexes ordered from most restrictive to most inclusive. Start with first listed complex for highest confidence complex membership. The last will be most inclusive, but in some cases too inclusive </h4>
+    <h4><i> Complexes ordered from most restrictive to most inclusive. Start with first listed complex for highest confidence complex membership. The last will be most inclusive, but in some cases too inclusive </i></h4>
     {% for comp in complexes | reverse %}
         <!--<h2>Complex: {{ comp.clustid_set }}</h2>-->
         <table class="table table-striped">
@@ -154,8 +154,8 @@
                         }
                       </script>                                                    
                   Click image to enlarge or download
-                     <a href="static/complexes/{{comp.clustid_set}}_{{comp.clustid}}.svg" target="_blank">
-                     <img src="static/complexes/{{comp.clustid_set}}_{{comp.clustid}}.svg" alt="Elution sparklines", width=100% height=100%>
+                     <a href="static/complex_images/{{comp.clustid_set}}_{{comp.clustid}}.svg" target="_blank">
+                     <img src="static/complexes_images/{{comp.clustid_set}}_{{comp.clustid}}.svg" alt="Elution sparklines", width=100% height=100%>
                      </a>
               </div>
 
