@@ -13,7 +13,7 @@ gunzip static/data/virNOG_collapse_annotations.txt.gz
 python scripts/load_orthoannot.py --annotation_file static/data/virNOG_collapse_annotations.txt 
 
 echo "Load CF-MS scores"
-gunzip static/data/allplants_feature_matrix_missing1.unscaled.top100.edges.top100k.gz
+#gunzip static/data/allplants_feature_matrix_missing1.unscaled.top100.edges.top100k.gz
 python scripts/load_scores.py --score_file static/data/allplants_feature_matrix_missing1.unscaled.top100.edges.top100k 
 
 echo "Load Orthogroup Protein conversion"

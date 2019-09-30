@@ -25,7 +25,7 @@ def main():
     with(open(args.annotation_file,"rb")) as annotation_table:
         
         for line in annotation_table.readlines():
-            if count == 1:
+            if "arath_genename" in line: # Header
                 continue 
 
 

@@ -41,7 +41,7 @@ def main():
     
                 OrthogroupID = split_line[0]
                 clustid_1 = split_line[7]
-                clustid_2 = split_line[9]
+                clustid_2 = split_line[10]
                 clustid_3 = split_line[12]
                 clustid_4 = split_line[16]
                 order = split_line[-1].strip()
