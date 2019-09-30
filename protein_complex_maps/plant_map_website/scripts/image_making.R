@@ -109,13 +109,13 @@ sparkline_fxn <- function(df, fracinfo, sel, specchoice = NULL, order = NULL, he
     print(filename)
 
 
-    plt %>% save_plot(filename, ., device = "svg")
+    plt %>% save_plot(filename, ., device = "svg", base_width = 12, base_asp = 0.8)
 
 }
 
 
 
-
+# If one errors doesn't break
 safe_sparklines <- safely(sparkline_fxn)
 
 tissue_order <- c("green", "sprout", "dark", "nuclei", "seed")
