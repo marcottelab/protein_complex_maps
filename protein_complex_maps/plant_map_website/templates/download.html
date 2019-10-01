@@ -30,25 +30,24 @@
       <h4>Plant Complex Map Files</h4>
       <ul>
 
-          <li><a href="/static/data/allplants_annotated_clusters.xlsx" target="_blank">Protein Complexes</a>
+          <li><a href="/static/data/allplants_annotated_clusters.xlsx" target="_blank">Protein Complexes (Excel format, with annotations and protein elution profiles)</a>
               <ul>
                   <li>Description: Annotated complexes generated from walktrap diffusion clustering of FDR <10% interactions (CF-MS score cutoff 0.504) </li>
               </ul>                                                                            
           </li>
-          <li><a href="/static/data/allplants_feature_matrix_missing1.unscaled.top100.edges.3steps.fdr10.threshold509.walktrap.csv" target="_blank">Protein Complexes</a>
+          <li><a href="/static/data/allplants_feature_matrix_missing1.unscaled.top100.edges.3steps.fdr10.threshold509.walktrap.csv" target="_blank">Protein Complexes (Text format, no annotations or elution profiles)</a>
               <ul>
                   <li>Description: Plain text complexes generated from walktrap diffusion clustering of FDR <10% interactions (CF-MS score cutoff 0.504) </li>
-                 <li>Note: leftmost columns are more inclusive clusters, rightmost are more harsh/restrictive </li>
-                 <li>More harsh clustering breaks complexes into subcomplexes</li>
-                 <li>Cluster numbers are only informative within the same column</li>
-                 <li>cut_844.2 cut_723.6 cut_542.7 cut_301.5 are cluster strengths displayed on this website</li>
+                 <li>Note: leftmost columns are more inclusive (larger) clusters, rightmost are more restrictive (smaller) </li>
+                 <li>More restrictive clustering tends to separate complexes into subcomplexes</li>
+                 <li>Cluster numbers give guidance as to which proteins are likely to belong to the same complex. Note that the numbers are only informative within the same column.</li>
               </ul>                                                                            
           </li>
 
-          <li><a href="/static/data/allplants_cfms_scores_annot.txt.gz" target="_blank">Protein Interaction Network with probability scores</a>
+          <li><a href="/static/data/allplants_cfms_scores_annot.txt.gz" target="_blank">All scored pairwise protein-protein interactions with CF-MS scores (3,076,999 unique pairwise interactions)</a>
               <ul>
                   <li>Description: Scores between Orthogroups with the corresponding CF-MS score and eggNOG generated orthogroup descriptions. </li>
-                  <li>Note: CF-MS score > 0.5 = 10% FDR, > 0.2 = 50% FDR</li>
+                  <li>Note: Only the highest scoring pairs are considered significant. A CF-MS score > 0.5 corresponds to 10% FDR, > 0.2 corresponds to 50% FDR</li>
                   <li>Format: OrthogroupID1 [tab] OrthogroupID2 [tab] Score [tab] Annotation1 [tab] Annotation2</li>
               </ul>
           </li>
@@ -61,14 +60,14 @@
                   <li>Description: Annotations for all orthogroups</li>
               </ul>
           </li>
-          <li><a href="/static/data/plant_virNOG_orthology.csv" target="_blank">Translation Table (used in pipeline)</a>
+          <li><a href="/static/data/plant_virNOG_orthology.csv" target="_blank">Translation Table (i.e., the precise orthogroup definitions used for this analysis)</a>
               <ul>
                   <li>Mapping of eggNOG virNOG OrthogroupID to ProteinIDs used in bioinformatics pipeline</li>
                   <li>Generated with EggNOG mapper against EggNOG4.0 orthogroups</li>
                   <li>Format: OrthogroupID1 [tab] ProteinID [tab] Species code </li>       
               </ul>
           </li>
-          <li><a href="/static/data/complete_orthology_w_atnums.csv" target="_blank">Translation Table (complete)</a>
+          <li><a href="/static/data/complete_orthology_w_atnums.csv" target="_blank">Translation Table (contains additional mappings used for web site queries)</a>
               <ul>
                   <li>Mapping of eggNOG virNOG OrthogroupID to different encodings of ProteinID</li>
                   <li>TAIR AT locus, uniprot Accession, uniprot Entry name, Rice locus, Arabidopsis gene name</li>
@@ -130,15 +129,15 @@
       <br>
       <h4>Elution table</h4>
       <ul>
-          <li><a href="/static/data/virNOG_elut_norm_annot_wide_ordered.csv" target="_blank">Full elution profile (125 MB)</a>
+          <li><a href="/static/data/virNOG_elut_norm_annot_wide_ordered.csv" target="_blank">Concatenated elution profiles (125 MB)</a>
               <ul>
-                  <li>Description: Wide elution profile of normalized PSMS for all observed orthogroups </li>
+                  <li>Description: Table of concatenated elution profiles reported per-fractionation-normalized peptide spectral matches (PSMs) for all observed orthogroups </li>
                   <li>Format: OrthogroupID,[Fractions]</li>
               </ul>
           </li>
           <li><a href="/static/data/virNOG_elut_norm.csv" target="_blank">Tidy elution profile (455MB)</a>
               <ul>
-                  <li>Description: Tidy elution of all proteins </li>
+                  <li>Description: Tidy format concatenated elution profiles of all orthogroups </li>
                   <li>Includes a variety of abundance measurements and normalizations</li> 
                   <li>fracnorm = normalized by each fraction</li>
                   <li>expnorm = normalized by fractionation experiment</li>
@@ -151,7 +150,7 @@
       <ul>
           <li><a href="/static/data/allplants_feature_matrix_missing1.featmat.labeled.gz" target="_blank">Feature Matrix (gz) (3GB)</a>
               <ul>
-                  <li>Description: Pre-feature selection features with training labels from McWhite & Papoulas et al.</li>
+                  <li>Description: All calculated features with training labels from McWhite & Papoulas et al.</li>
                   <li>Format: OrthogroupID1[space]OrthogroupID2,[features],OrthogroupID1,OrthogroupID2,label</li>
               </ul>
           </li>
@@ -159,7 +158,7 @@
       <ul>
           <li><a href="/static/data/allplants_feature_matrix_missing1.featmat.top100.labeled.gz" target="_blank">Feature Matrix (gz) (1.4GB)</a>
               <ul>
-                  <li>Description: Feature selected top 100 features with training labels from McWhite & Papoulas et al.</li>
+                  <li>Description: Feature-selected top 100 features with training labels from McWhite & Papoulas et al.</li>
                   <li>Format: OrthogroupID1[space]OrthogroupID2,[features],label</li>
                   <li>Note: Orthogroup1,Orthogroup2 are in alphatical order</li> 
               </ul>
@@ -182,7 +181,7 @@
       <br>
       <h4> License </h4>
       <ul>
-          <li><a href="http://www.dancohen.org/2013/11/26/cc0-by/" target="_blank">CC0 (+BY)</a>
+          <li><a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">CC BY 4.0</a>
           </li>
           <li>
           Data associated with this website are free to download and share.  They are governed by the <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank">Creative Commons Zero license</a>, which means that they are a part of the public domain, and every use of them is allowed.  If you make extensive use of data from this data set, please credit the authors and when appropriate the authors of the source data (see <a href="/about">about</a> for references).
