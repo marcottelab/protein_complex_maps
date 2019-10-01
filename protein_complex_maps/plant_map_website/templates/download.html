@@ -32,12 +32,12 @@
 
           <li><a href="/static/data/allplants_annotated_clusters.xlsx" target="_blank">Protein Complexes (Excel format, with annotations and protein elution profiles)</a>
               <ul>
-                  <li>Description: Annotated complexes generated from walktrap diffusion clustering of FDR <10% interactions (CF-MS score cutoff 0.504) </li>
+                  <li>Description: Annotated complexes generated from walktrap diffusion clustering of FDR < 10% interactions (CF-MS score cutoff 0.509) </li>
               </ul>                                                                            
           </li>
           <li><a href="/static/data/allplants_feature_matrix_missing1.unscaled.top100.edges.3steps.fdr10.threshold509.walktrap.csv" target="_blank">Protein Complexes (Text format, no annotations or elution profiles)</a>
               <ul>
-                  <li>Description: Plain text complexes generated from walktrap diffusion clustering of FDR <10% interactions (CF-MS score cutoff 0.504) </li>
+                  <li>Description: Plain text complexes generated from walktrap diffusion clustering of FDR <10% interactions (CF-MS score cutoff 0.509) </li>
                  <li>Note: leftmost columns are more inclusive (larger) clusters, rightmost are more restrictive (smaller) </li>
                  <li>More restrictive clustering tends to separate complexes into subcomplexes</li>
                  <li>Cluster numbers give guidance as to which proteins are likely to belong to the same complex. Note that the numbers are only informative within the same column.</li>
@@ -47,7 +47,7 @@
           <li><a href="/static/data/allplants_cfms_scores_annot.txt.gz" target="_blank">All scored pairwise protein-protein interactions with CF-MS scores (3,076,999 unique pairwise interactions)</a>
               <ul>
                   <li>Description: Scores between Orthogroups with the corresponding CF-MS score and eggNOG generated orthogroup descriptions. </li>
-                  <li>Note: Only the highest scoring pairs are considered significant. A CF-MS score > 0.5 corresponds to 10% FDR, > 0.2 corresponds to 50% FDR</li>
+                  <li>Note: Only the highest scoring pairs are considered significant. A CF-MS score >= 0.509 corresponds to 10% FDR, >= 0.207 corresponds to 50% FDR</li>
                   <li>Format: OrthogroupID1 [tab] OrthogroupID2 [tab] Score [tab] Annotation1 [tab] Annotation2</li>
               </ul>
           </li>
