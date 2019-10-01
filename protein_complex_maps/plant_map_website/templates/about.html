@@ -31,40 +31,29 @@
         <strong><h3>About</h3></strong>
       </div>
       <p>
-      Proteins interact with each other and organize themselves into macromolecular machines (ie. complexes) to carry out essential functions of the cell. 
+      Proteins interact with each other and organize themselves into macromolecular machines (i.e., complexes) to carry out essential functions of cells. 
       </p>
   
-      <ul>
    
-      <h5>Protein interactions</h5>
-    
-      <li>We derived protein interactions from co-fractionation mass spectrometry of 12 taxonomically diverse plant species</li>
-      <li>These are stable protein interactions conserved across plants</li>
-      <li>Interactions can be queried using either UniProt Entry, Entry name, or TAIR AT number.</li>
-      <li>False discovery rates of protein interactions above CF-MS score 0.5 are 10%, and above CF-MS score 0.2 are 50%</li>
-      <li>Interactions with CF-MS scores > 0.5 are descriptive of stable interactions, but a score above 0.2 is commonly descriptive of a more transient protein interactions</li>
-      </ul>
- 
-      <h5>Protein complexes</h5>
+      <h5>Protein pairwise interactions and complexes</h5>
+      
       <ul>
-      <li>Protein complexes were derived from interactions that pass high thresholds</li>
-      <li>Protein complexes are presented with four different levels of clustering stringency, from most restrictive to most inclusive</li>
+      <li>We measured stable protein-protein interactions based co-fractionation mass spectrometry of 12 taxonomically diverse plant species (and tested in a 13th species, maize)</li>
+      <li>Interactions can be queried using either UniProt Entry, Entry name, gene name, or TAIR AT locus ID.</li>
+      <li>Higher-order multiprotein complexes were derived by clustering the pairwise interactions, and are presented with four different levels of clustering stringency, from most restrictive (smallest clusters) to most inclusive (largest clusters)</li>
       </ul>
   
-      <h5>Orthology</h5>
+      <h5>A note on orthology:</h5>
       <ul>
-      <li>As protein complexes were derived from multi-species data, they are indexed by <a href = "http://eggnogdb.embl.de">eggNOG DB</a> plant-level orthogroupID</li>
+      <li>As protein complexes were derived from multi-species data, they are indexed by <a href = "http://eggnogdb.embl.de">eggNOG DB</a> plant-level (virNOG) orthogroupID</li>
       <li>These orthogroups take the form ENOG411XXXX, and can be searched at the <a href = "http://eggnogdb.embl.de">eggNOG website</a></li>
       <li>Due to gene expansions since the last common ancestor of plant, each orthogroup may contain more than one protein from a species</li>
       </ul> 
 
-      <br>For further details see paper <li><a href="" target="blank">PAPER LINK </a></li>
-
-      <h4>Citation</h4>
+      <br>For further details see the publication describing this work: 
       <ul>
           <li><a href="" target="blank">
-          PAPER CITATION   
-      </a></li>
+      A pan-plant protein complex map reveals deep conservation and novel assemblies, by Claire D. McWhite, Ophelia Papoulas, Kevin Drew, Rachael M. Cox, Viviana Oldfield-June, Oliver Xiaoou Dong, Taejoon Kwon, Cuihong Wan, Mari L. Salmi, Stan J. Roux, Jr., Karen S. Browning, Z. Jeffrey Chen, Pamela C. Ronald, Edward M. Marcotte (in preparation)</a></li>
       </ul>
 
 
@@ -84,6 +73,7 @@
 
       <h4>Contact</h4>
       &nbsp clairemcwhite (at) utexas.edu
+      &nbsp marcotte (at) icmb.utexas.edu
       <br>
 
 {% include 'footer.html' %}
