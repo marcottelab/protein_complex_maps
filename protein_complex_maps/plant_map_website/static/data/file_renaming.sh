@@ -1,0 +1,12 @@
+mv allComplexesCore_photo_euktovirNOG_expansion_merged09_size30_rmLrg_outsidesupport.test_ppis.txt.ordered panplant_pos_test_ppis.txt
+mv allComplexesCore_photo_euktovirNOG_expansion_merged09_size30_rmLrg_outsidesupport.train_ppis.txt.ordered panplant_pos_train_ppis.txt
+mv allplants_annotated_clusters.xlsx panplant_annotated_clusters.xlsx 
+mv allplants_cfms_scores_annot.txt.gz panplant_cfms_scores_annot.txt.gz
+mv allplants_feature_matrix_missing1.featmat.labeled.gz panplant_featmat_trainlabeled.csv.gz
+mv allplants_feature_matrix_missing1.featmat.top100.labeled.gz panplant_featmat_top100feats_trainlabeled.csv.gz
+mv allplants_feature_matrix_missing1.unscaled.top100.edges.3steps.fdr10.threshold509.walktrap.csv panplant_clusters.csv
+mv allplants.labels.filt.negtest.20k_a panplant_neg_test_ppis.txt
+mv allplants.labels.filt.negtrain.20k_a panplant_neg_train_ppis.txt
+mv virNOG_elut_norm_annot_wide_ordered.csv panplant_wide_elution_expnorm.csv
+mv virNOG_elut_norm.csv panplant_tidy_elution.csv
+mv complete_orthology_w_atnums.csv complete_orthogroup_protID_mapping.csv

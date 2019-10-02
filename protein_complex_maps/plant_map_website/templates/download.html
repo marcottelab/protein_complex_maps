@@ -30,12 +30,12 @@
       <h4>Plant Complex Map Files</h4>
       <ul>
 
-          <li><a href="/static/data/allplants_annotated_clusters.xlsx" target="_blank">Protein Complexes (Excel format, with annotations and protein elution profiles)</a>
+          <li><a href="/static/data/panplant_annotated_clusters.xlsx" target="_blank">Protein Complexes (Excel format, with annotations and protein elution profiles)</a>
               <ul>
                   <li>Description: Annotated complexes generated from walktrap diffusion clustering of FDR < 10% interactions (CF-MS score cutoff 0.509) </li>
               </ul>                                                                            
           </li>
-          <li><a href="/static/data/allplants_feature_matrix_missing1.unscaled.top100.edges.3steps.fdr10.threshold509.walktrap.csv" target="_blank">Protein Complexes (Text format, no annotations or elution profiles)</a>
+          <li><a href="/static/data/panplant_clusters.csv" target="_blank">Protein Complexes (Text format, no annotations or elution profiles)</a>
               <ul>
                   <li>Description: Plain text complexes generated from walktrap diffusion clustering of FDR <10% interactions (CF-MS score cutoff 0.509) </li>
                  <li>Note: leftmost columns are more inclusive (larger) clusters, rightmost are more restrictive (smaller) </li>
@@ -44,7 +44,7 @@
               </ul>                                                                            
           </li>
 
-          <li><a href="/static/data/allplants_cfms_scores_annot.txt.gz" target="_blank">All scored pairwise protein-protein interactions with CF-MS scores (3,076,999 unique pairwise interactions)</a>
+          <li><a href="/static/data/panplant_cfms_scores_annot.txt.gz" target="_blank">All scored pairwise protein-protein interactions with CF-MS scores (3,076,999 unique pairwise interactions)</a>
               <ul>
                   <li>Description: Scores between Orthogroups with the corresponding CF-MS score and eggNOG generated orthogroup descriptions. </li>
                   <li>Note: Only the highest scoring pairs are considered significant. A CF-MS score >= 0.509 corresponds to 10% FDR, >= 0.207 corresponds to 50% FDR</li>
@@ -67,7 +67,7 @@
                   <li>Format: OrthogroupID1 [tab] ProteinID [tab] Species code </li>       
               </ul>
           </li>
-          <li><a href="/static/data/complete_orthology_w_atnums.csv" target="_blank">Translation Table (contains additional mappings used for web site queries)</a>
+          <li><a href="/static/data/complete_orthogroup_protID_mapping.csv" target="_blank">Translation Table (contains additional mappings used for web site queries)</a>
               <ul>
                   <li>Mapping of eggNOG virNOG OrthogroupID to different encodings of ProteinID</li>
                   <li>TAIR AT locus, uniprot Accession, uniprot Entry name, Rice locus, Arabidopsis gene name</li>
@@ -98,27 +98,27 @@
       <h4>Test and training interactions</h4>
       Identifiers (OrthogroupIDs) are <a href="http://eggnogdb.embl.de/">eggNOG</a> <i>viridiplantae</i> orthogroup identifiers
       <ul>
-          <li><a href="/static/data/allComplexesCore_photo_euktovirNOG_expansion_merged09_size30_rmLrg_outsidesupport.train_ppis.txt.ordered" target="_blank">Train Positive PPIs</a>
+          <li><a href="/static/data/panplant_pos_train_ppis.txt" target="_blank">Train Positive PPIs</a>
               <ul>
                   <li>Description: List of training positive ppis used in protein complex discovery pipeline</li>
                   <li>Contain PPI from CORUM human protein complexes transfered to plant ortholog groups, as well as other supported PPI from TAIR</li>
                   <li>Format: OrthogroupID [tab] OrthogroupID </li>
               </ul>
           </li>
-          <li><a href="/static/data/allplants.labels.filt.negtrain.20k_a" target="_blank">Train Negative PPIs</a>
+          <li><a href="/static/data/panplant_neg_train_ppis.txt" target="_blank">Train Negative PPIs</a>
               <ul>
                   <li>Description: List of train negative ppis used in protein complex discovery pipeline</li>
                   <li>Note: Since no truly non-interacting proteins exist, these are randomly sampled from observed proteins in our data set</li>
                   <li>Format: OrthogroupID [tab] OrthogroupID </li>
               </ul>
           </li>
-          <li><a href="/static/data/allComplexesCore_photo_euktovirNOG_expansion_merged09_size30_rmLrg_outsidesupport.test_ppis.txt.ordered" target="_blank">Test Positive PPIs</a>
+          <li><a href="/static/data/panplant_pos_test_ppis.txt" target="_blank">Test Positive PPIs</a>
               <ul>
                   <li>Description: List of test positive ppis used in protein complex discovery pipeline</li>
                   <li>Format: OrthogroupID [tab] OrthogroupID </li>
               </ul>
           </li>
-          <li><a href="/static/data/allplants.labels.filt.negtest.20k_a" target="_blank">Test Negative PPIs</a>
+          <li><a href="/static/data/panplant_neg_test_ppis.txt" target="_blank">Test Negative PPIs</a>
               <ul>
                   <li>Description: List of test negative ppis used in protein complex discovery pipeline</li>
                   <li>Note: Since no truly non-interacting proteins exist, these are randomly sampled from observed proteinsin our data set</li>
@@ -129,13 +129,13 @@
       <br>
       <h4>Elution table</h4>
       <ul>
-          <li><a href="/static/data/virNOG_elut_norm_annot_wide_ordered.csv" target="_blank">Concatenated elution profiles (125 MB)</a>
+          <li><a href="/static/data/panplant_wide_elution_expnorm.csv" target="_blank">Concatenated elution profiles (125 MB)</a>
               <ul>
                   <li>Description: Table of concatenated elution profiles reported per-fractionation-normalized peptide spectral matches (PSMs) for all observed orthogroups </li>
                   <li>Format: OrthogroupID,[Fractions]</li>
               </ul>
           </li>
-          <li><a href="/static/data/virNOG_elut_norm.csv" target="_blank">Tidy elution profile (455MB)</a>
+          <li><a href="/static/data/panplant_tidy_elution.csv" target="_blank">Tidy elution profile (455MB)</a>
               <ul>
                   <li>Description: Tidy format concatenated elution profiles of all orthogroups </li>
                   <li>Includes a variety of abundance measurements and normalizations</li> 
@@ -148,7 +148,7 @@
 
       <h4>Feature Matrix</h4>
       <ul>
-          <li><a href="/static/data/allplants_feature_matrix_missing1.featmat.labeled.gz" target="_blank">Feature Matrix (gz) (3GB)</a>
+          <li><a href="/static/data/panplant_featmat_trainlabeled.csv.gz" target="_blank">Feature Matrix (gz) (3GB)</a>
               <ul>
                   <li>Description: All calculated features with training labels from McWhite & Papoulas et al.</li>
                   <li>Format: OrthogroupID1[space]OrthogroupID2,[features],OrthogroupID1,OrthogroupID2,label</li>
@@ -156,7 +156,7 @@
           </li>
       </ul>
       <ul>
-          <li><a href="/static/data/allplants_feature_matrix_missing1.featmat.top100.labeled.gz" target="_blank">Feature Matrix (gz) (1.4GB)</a>
+          <li><a href="/static/data/panplant_featmat_top100feats_trainlabeled.csv.gz" target="_blank">Feature Matrix (gz) (1.4GB)</a>
               <ul>
                   <li>Description: Feature-selected top 100 features with training labels from McWhite & Papoulas et al.</li>
                   <li>Format: OrthogroupID1[space]OrthogroupID2,[features],label</li>
