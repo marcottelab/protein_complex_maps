@@ -211,7 +211,6 @@ def getInteractionsForProteinID():
       
     else:   
         for score in OrthogroupID.Scores:
-            print(score.ScoreVal, score.InteractionID)
             interaction = db.session.query(cdb.Score).filter(cdb.Score.InteractionID == score.InteractionID).all()
             interactions.append(interaction)
         return render_template('getinteractions.html', form = form, interactions = interactions,  Species = Species, Input_ProteinID = Input_ProteinID, current_OrthogroupID = OrthogroupID_string, error = error)

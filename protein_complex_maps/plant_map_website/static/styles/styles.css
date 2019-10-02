@@ -37,29 +37,10 @@ table.dataframe, .dataframe th, .dataframe td {
   table-layout:fixed;
 }
 
-/*.ProtTbl th {
-    background-color: #9CBA7F;
-    color: white;
 
+hr {
+margin-left: auto;
+margin-right: auto;
+height: 8px !important;
+background-color:#666;
 }
-
-
-.GroupTbl th {
-    background-color: #9CBA7F;
-    color: white;
-}*/
-
-/*.ResultsTbl th {
-    background-color: #9CBA7F;
-    color: white;
-}*/
-
-/*.NodesTbl th {
-    background-color: #9CBA7F;
-    color: white;
-}*/
-
-
-/*tr:nth-child(odd)		{ background-color:#eee; }
-tr:nth-child(even)	{ background-color:#fff; }
-*/

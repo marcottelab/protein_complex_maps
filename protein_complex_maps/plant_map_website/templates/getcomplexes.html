@@ -35,12 +35,21 @@
         <h3>{{error}}</h3>
     {% endif %}
 
+    {% set clustid_labels = ['Most restrictive complex membership',
+                             'Second most restrictive complex membership',
+                             'Third most restrictive complex membership',
+                             'Most inclusive complex membership'] %}
+    {% set counter = 0 %}
     <ul>
+
 
     <!-- https://www.uniprot.org/uniprot/?query=I1KDU3+OR+I1M368+OR+I1M369+OR+I1M370+OR+K7KX13&sort=score -->
     <h4><i> Complexes ordered from most restrictive to most inclusive. Start with first listed complex for highest confidence complex membership. The last will be most inclusive, but in some cases will include multiple complexes. </i></h4>
+    <hr>
     {% for comp in complexes | reverse %}
-        <!--<h2>Complex: {{ comp.clustid_set }}</h2>-->
+        <strong><h3>{{ clustid_labels[loop.index -1]}}</h3></strong>
+        
+
         <table class="table table-striped">
             <thead>
             <tr>
@@ -144,13 +153,14 @@
 
             </tbody>
         </table>
+
                <a href="#Images{{comp.clustid_set}}" class="btn btn-default" data-toggle="collapse">Images</a>
 
               <div id="Images{{comp.clustid_set}}" class="collapse">
                       <button class="btn btn-default btn-xs" onclick="imageFunction()">?</button>
                       <script>
                         function imageFunction() {
-                        alert("Elution sparklines for complex. Raw data can be downloaded from the Downloads page: virNOG_elut_norm.csv");
+                        alert("Elution sparklines for complex. Raw data can be downloaded from the Downloads page: panplant_wide_elution_expnorm.csv. Meta data on each experiment can be found in Experiment_Order.csv.");
                         }
                       </script>                                                    
                   Click image to enlarge or download
@@ -159,7 +169,7 @@
                      </a>
               </div>
 
-
+        <hr>
 
                              </tr>
             {% else %}
