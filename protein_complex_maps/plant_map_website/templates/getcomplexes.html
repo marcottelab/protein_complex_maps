@@ -83,7 +83,6 @@
                         alert("Proteins in selected species contained in ortholog group (i.e. duplications since last common plant ancestor");
                         }
                       </script></th>
-                <th>TAIR Link(s)</th>
                 <th>Uniprot Link
                  <button class="btn btn-default btn-xs" onclick="uniprotFunction()">?</button>
                       <script>
@@ -91,6 +90,8 @@
                         alert("Uniprot link for all proteins in selected species in selected orthogroup. Not available for Ceratopteris (C-fern), coconut, hemp, and quinoa");
                         }
                       </script></th>
+
+                 <th>TAIR Link(s)</th>
                  </th>
             </tr>
         </thead>
@@ -139,13 +140,14 @@
                     <td>{{ Species }}</td>
 		    <td>{{ entrylist | join(' ') }}</td>
 
+                    <td><a href = https://www.uniprot.org/uniprot/?query=id:{{entrylist | join("+OR+id:") }}>Uniprot</a> </td>
+
                     <td>{% for locus in tairlist %}
                            <a href = https://www.arabidopsis.org/servlets/TairObject?type=locus&name={{ locus }}>{{ locus }}</a>
                        {% endfor %}</td>
 
                           
                         
-                    <td><a href = https://www.uniprot.org/uniprot/?query=id:{{entrylist | join("+OR+id:") }}>Uniprot</a> </td>
 
 
 
@@ -154,9 +156,9 @@
             </tbody>
         </table>
 
-               <a href="#Images{{comp.clustid_set}}" class="btn btn-default" data-toggle="collapse">Images</a>
+               <a href="#Elution profiles{{comp.clustid_set}}" class="btn btn-default" data-toggle="collapse">Images</a>
 
-              <div id="Images{{comp.clustid_set}}" class="collapse">
+              <div id="Elution profiles{{comp.clustid_set}}" class="collapse">
                       <button class="btn btn-default btn-xs" onclick="imageFunction()">?</button>
                       <script>
                         function imageFunction() {

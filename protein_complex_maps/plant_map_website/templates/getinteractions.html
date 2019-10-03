@@ -94,8 +94,6 @@
                        } 
                        </script></th> 
 
-                <th>TAIR Link(s) 1 </th>
-                <th>TAIR Link(s) 2 </th>
                 <th>Uniprot Link 1
                 <button class="btn btn-default btn-xs" onclick="uniprotFunction()">?</button> 
                        <script>
@@ -110,7 +108,8 @@
                          alert("Uniprot link for all proteins in selected species in selected orthogroup. Not available for Ceratopteris (C-fern), coconut, hemp, and quinoa"); 
                          }
                        </script></th>
-
+                <th>TAIR Link(s) 1 </th>
+                <th>TAIR Link(s) 2 </th>
            </tr>
         </thead>                                                                                                                <tbody>
     <tbody>
@@ -166,14 +165,16 @@
                     <td>{{ entrylist1 | join(' ') }}</td>
                     <td>{{ entrylist2 | join(' ') }}</td>
 
+                    <td><a href = https://www.uniprot.org/uniprot/?query=id:{{entrylist1 | join("+OR+id:") }}>Uniprot</a> </td>
+                    <td><a href = https://www.uniprot.org/uniprot/?query=id:{{entrylist2 | join("+OR+id:") }}>Uniprot</a> </td>
+
+
                <td>{% for locus in tairlist1 %}
                            <a href = https://www.arabidopsis.org/servlets/TairObject?type=locus&name={{ locus }}>{{ locus }}</a>
                {% endfor %}</td>
                <td>{% for locus in tairlist2 %}
                            <a href = https://www.arabidopsis.org/servlets/TairObject?type=locus&name={{ locus }}>{{ locus }}</a>
                {% endfor %}</td>
-                    <td><a href = https://www.uniprot.org/uniprot/?query=id:{{entrylist1 | join("+OR+id:") }}>Uniprot</a> </td>
-                    <td><a href = https://www.uniprot.org/uniprot/?query=id:{{entrylist2 | join("+OR+id:") }}>Uniprot</a> </td>
 
 
         </tr>
