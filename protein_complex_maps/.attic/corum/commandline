@@ -1,6 +1,0 @@
-#kdrew: proteasome
-python bicluster_driver.py --proteins P25786 P25787 P25788 P25789 P28066 P60900 O14818 P20618 P49721 P49720 P28070 P28074 P28072 Q99436 P62191 P35998 P17980 P43686 P62195 P62333 Q99460 O75832 O00231 O00232 Q9UNM6 O00487 Q13200 O43242 P55036 Q16401 Q15008 P51665 P48556 O00233 Q06323 Q9UL46 --iterations 1 --input_msds_pickle ../util/fractions/Hs_CB660_1105.prot_count_uniqpeps2_FDR0010_peptide_normalized.p
-
-
-#kdrew: loop over fractionations searching for exosome subcomplexes
-for i in `ls ../util/fractions/Hs_*zed.p`; do python bicluster_driver.py --proteins Q9Y2L1 Q9Y3B2 Q01780 Q13868 Q9NQT5 Q9NPD3 Q9NQT4 Q5RKV6 Q15024 Q96B26 Q06265 --iterations 1 --input_msds_pickle $i &> exosome_`basename $i`.out; done

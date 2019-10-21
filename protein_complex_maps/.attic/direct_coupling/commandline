@@ -1,3 +1,0 @@
-#kdrew: commandline requires output_msa_file but is not used
-python build_msa.py --proteins P25788 P25786 --orthologs --output_msa_file ~/tmp/
-
