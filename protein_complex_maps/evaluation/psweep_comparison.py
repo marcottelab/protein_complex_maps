@@ -174,7 +174,12 @@ def compare2goldstandard(parameter_dict):
             if id_delimin in seg:
                 ii = seg.split(id_delimin)[1]
 
-    cplx_compare = cc.ComplexComparison(gs_complexes, predicted_clusters, exclusion_complexes=ex_complexes, samples=samples, exact=exact, max_clique=max_clique, pseudocount=pseudocount, normalize_by_combinations=normalize_by_combinations)
+    try:
+        cplx_compare = cc.ComplexComparison(gs_complexes, predicted_clusters, exclusion_complexes=ex_complexes, samples=samples, exact=exact, max_clique=max_clique, pseudocount=pseudocount, normalize_by_combinations=normalize_by_combinations)
+    except cc.Gold_Standard_Overlap_Exception as e:
+        print e
+        #kdrew: think about whether these default error values are appropriate, maybe want to still calculate totalClusters and totalProteins, others?
+        return {'ii':ii, 'boot_iteration':boot_iteration, 'precision_list':[], 'recall_list':[], 'f1score_list':[], 'grand_f1score':None, 'cumulative_precision_list':[], 'cumulative_recall_list':[], 'numOfClusters':[], 'weighted_clique_precision':None, 'weighted_clique_recall':None, 'totalClusters':None, 'totalProteins':None}
     
     result_dict = cplx_compare.clique_comparison_metric()
     #print result_dict

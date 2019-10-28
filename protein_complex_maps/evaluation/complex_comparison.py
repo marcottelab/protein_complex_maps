@@ -33,6 +33,10 @@ class ComplexComparison(object):
         for x in clusters:
             self.cluster_proteins = self.cluster_proteins.union(x)
 
+        #kdrew: test if there are more than one protein shared between gold standard and predicted clusters
+        if len(self.cluster_proteins.intersection(self.gold_standard_proteins)) <= 1:
+            raise Gold_Standard_Overlap_Exception("ERROR: Gold Standard Overlap Warning: no pairs in clusters overlap with gold standard")
+
         if remove_non_gold_standard_proteins:
             self.remove_non_gold_standard_proteins()
 
