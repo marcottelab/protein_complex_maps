@@ -176,8 +176,9 @@ def compare2goldstandard(parameter_dict):
 
     try:
         cplx_compare = cc.ComplexComparison(gs_complexes, predicted_clusters, exclusion_complexes=ex_complexes, samples=samples, exact=exact, max_clique=max_clique, pseudocount=pseudocount, normalize_by_combinations=normalize_by_combinations)
-    except cc.Gold_Standard_Overlap_Exception as e:
-        print e
+    #except (cc.Gold_Standard_Overlap_Exception, cc.Exclusion_Complexes_Exception) as e:
+    except Exception as e:
+        print "%s in ii:%s" % (e, ii)
         #kdrew: think about whether these default error values are appropriate, maybe want to still calculate totalClusters and totalProteins, others?
         return {'ii':ii, 'boot_iteration':boot_iteration, 'precision_list':[], 'recall_list':[], 'f1score_list':[], 'grand_f1score':None, 'cumulative_precision_list':[], 'cumulative_recall_list':[], 'numOfClusters':[], 'weighted_clique_precision':None, 'weighted_clique_recall':None, 'totalClusters':None, 'totalProteins':None}
     
