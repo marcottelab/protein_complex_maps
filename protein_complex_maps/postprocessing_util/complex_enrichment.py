@@ -27,6 +27,8 @@ def main():
                                             help="Filename to output difference complexes")
     parser.add_argument("--correction_method", action="store", dest="correction_method", required=False, default='fdr', 
                                             help="Correction method for multiple hypothesis testing {gSCS,fdr,bonferroni}, default = fdr")
+    parser.add_argument("--resume_from_checkpoint", action="store_true", dest="resume_from_checkpoint", required=False, default=False, 
+                                            help="Option to resume from checkpointed file: results_checkpoint.pkl, default = False")
 
     args = parser.parse_args()
 
@@ -44,13 +46,23 @@ def main():
     complex_file = open(args.complex_filename,'rb')
     results_df = None
     index_count = 0
+
+    if args.resume_from_checkpoint:
+            results_pickle = open('results_checkpoint.pkl', 'rb')
+            results_df = pickle.load(results_pickle)
+            results_pickle.close()
+
+            index_count = max(results_df['index']) + 1
+            checkpoint_complex_id = max(results_df['complex_id'])
+
     for i, complex_line in enumerate(complex_file.readlines()):
-        #if args.output_filename != None:
-        #    output_file.write("complex: %s\n" % (i,))
-        #    output_file.write("""#  signf   corr. p-value   T   Q   Q&T Q&T/Q   Q&T/T   term ID     t type  t group    t name and depth in group        Q&T list\n""")
 
         print "complex: %s" % (i,)
-        #print """#  signf   corr. p-value   T   Q   Q&T Q&T/Q   Q&T/T   term ID     t type  t group    t name and depth in group        Q&T list"""
+        #kdrew: skip complexes if already from checkpoint
+        if args.resume_from_checkpoint:
+            if i <= checkpoint_complex_id:
+                print "skipping: resuming from checkpoint file"
+                continue
         
         if len(complex_line.split()) == 0:
             continue
@@ -87,6 +99,12 @@ def main():
                 results_df = pd.DataFrame.from_dict(res)
             else:
                 results_df = pd.concat([results_df, pd.DataFrame.from_dict(res)])
+
+        #kdrew: checkpoint just in case of failures
+        if i % 500 == 0:
+            results_pickle = open('results_checkpoint.pkl', 'wb')
+            pickle.dump(results_df, results_pickle)
+            results_pickle.close()
 
     results_df = results_df.set_index("index")
     print results_df
