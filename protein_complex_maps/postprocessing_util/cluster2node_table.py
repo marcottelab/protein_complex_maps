@@ -17,6 +17,8 @@ def main():
                                             help="map only to reviewed ids, default=False")
     parser.add_argument("--no_clusterid", action="store_true", dest="no_clusterid", required=False, default=False,
                                             help="Do not put in cluster id, default=False")
+    parser.add_argument("--contact_email", action="store", dest="contact_email", required=True, 
+                                            help="This script queries uniprot webservice which requires a contact email")
     args = parser.parse_args()
 
     protid_set = set()
@@ -28,7 +30,7 @@ def main():
         map( protid_set.add, line.split() )
 
     print "cluster2node_table: convert to ACC"
-    inputID2ACC_map = pu.map_protein_ids(list(protid_set), args.from_id, "ACC", reviewed=args.reviewed)
+    inputID2ACC_map = pu.map_protein_ids(list(protid_set), args.from_id, "ACC", args.contact_email, reviewed=args.reviewed)
     print "flatten_list"
     flatten_list = [item for sublist in inputID2ACC_map.values() for item in sublist]
     print "cluster2node_table: get genenames"
