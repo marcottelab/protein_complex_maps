@@ -28,6 +28,8 @@ def main():
                                             help="Convert ids in specified columns, outputting the remaining columns unchanged")
     parser.add_argument("--orig_id", action="store_true", dest="orig_id", required=False, default=False,
                                             help="Adds the original id instead of None if conversion fails")
+    parser.add_argument("--contact_email", action="store", dest="contact_email", required=True, 
+                                            help="This script queries uniprot webservice which requires a contact email")
 
     args = parser.parse_args()
 
@@ -61,9 +63,9 @@ def main():
             clusters.append(line.split())
 
     input_ids = list(set([x for cluster in clusters for x in cluster]))
-    inputID2ACC_map = pu.map_protein_ids(input_ids, args.from_id, "ACC", reviewed=args.reviewed)
+    inputID2ACC_map = pu.map_protein_ids(input_ids, args.from_id, "ACC", args.contact_email, reviewed=args.reviewed)
     flatten_list = [item for sublist in inputID2ACC_map.values() for item in sublist]
-    ACC2outputID_map = pu.map_protein_ids(flatten_list, "ACC", args.to_id, reviewed=args.reviewed)
+    ACC2outputID_map = pu.map_protein_ids(flatten_list, "ACC", args.to_id, args.contact_email, reviewed=args.reviewed)
 
     if not args.pairwise:
         output_string = ""
