@@ -78,7 +78,10 @@ def main():
                     'background':background_proteins,
                     }
                 )
+        #kdrew: does not return list in same order as input
         query_ids = r.json()['meta']['genes_metadata']['query']['query_1']['mapping'].keys()
+        print query_ids
+        ordered_query_ids = [x for x in complex_line.split() if x in query_ids]
         for res in r.json()['result']:
             res['index'] = index_count
             index_count += 1
@@ -87,7 +90,7 @@ def main():
             #kdrew: this field makes converting to a dataframe difficult
             #res['intersections'] = ' '.join(res['intersections'])
             #kdrew: convert so that we know which genes are annotated
-            res['intersection_genes'] = ' '.join([yy for j,yy in enumerate(query_ids) if len(res['intersections'][j]) > 0])
+            res['intersection_genes'] = ' '.join([yy for j,yy in enumerate(ordered_query_ids) if len(res['intersections'][j]) > 0])
             #kdrew: combine parents into a single string otherwise it gets separated into two entries, 
             #kdrew: put string back into list because pandas complains about all scalars and no index but can't set index through from_dict function
             res['parents'] = [' '.join(res['parents'])]
