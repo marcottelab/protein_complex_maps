@@ -7,7 +7,7 @@ from sqlalchemy import func, or_, and_
 import itertools as it
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db/test.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db/humap2.db'
 
 app.config['SECRET_KEY'] = 'please, tell nobody'
 
@@ -38,7 +38,7 @@ class Complex(db.Model):
     #kdrew: uses table name for ProteinComplexMapping class (annoying sqlalchemy magic)
     proteins = db.relationship('Protein', secondary='protein_complex_mapping', back_populates='complexes')
     enrichments = db.relationship('ComplexEnrichment')
-
+    top_rank = db.Column(db.Integer)
 
     def complex_link(self,):
         retstr = "<a href=displayComplexes?complex_key=%s>%s</a>" % (self.complex_id, self.complex_id)
@@ -132,21 +132,42 @@ class ComplexEnrichment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     complex_key = db.Column(db.Integer, db.ForeignKey('complex.id'))
     #  signf   corr. p-value   T   Q   Q&T Q&T/Q   Q&T/T   term ID     t type  t group    t name and depth in group        Q&T list
-    corr_pval = db.Column(db.Float)
-    t_count = db.Column(db.Integer)
-    q_count = db.Column(db.Integer)
-    qandt_count = db.Column(db.Integer)
-    qandt_by_q = db.Column(db.Float)
-    qandt_by_t = db.Column(db.Float)
-    term_id = db.Column(db.String(255))
-    t_type = db.Column(db.String(63))
-    t_group = db.Column(db.Integer)
-    t_name = db.Column(db.String(255))
-    depth_in_group = db.Column(db.Integer)
-    qandt_list = db.Column(db.String(255))
+    #index,complex_id,description,effective_domain_size,goshv,group_id,intersection_genes,intersection_size,name,native,p_value,parents,precision,query,query_size,recall,significant,source,source_order,term_size
+
+    description = db.Column(db.BLOB)
+    effective_domain_size = db.Column(db.Integer)
+    goshv = db.Column(db.Integer)
+    group_id = db.Column(db.Integer)
+    intersection_genes = db.Column(db.BLOB)
+    intersection_size = db.Column(db.Integer) 
+    name = db.Column(db.String(255)) 
+    native = db.Column(db.String(255))  
+    p_value = db.Column(db.Float)
+    parents = db.Column(db.String(255)) 
+    precision = db.Column(db.Float)
+    query = db.Column(db.String(255))  
+    query_size = db.Column(db.Integer) 
+    recall = db.Column(db.Float) 
+    significant = db.Column(db.String(255))  
+    source = db.Column(db.String(255))  
+    source_order = db.Column(db.Integer) 
+    term_size = db.Column(db.Integer) 
+
+    #corr_pval = db.Column(db.Float)
+    #t_count = db.Column(db.Integer)
+    #q_count = db.Column(db.Integer)
+    #qandt_count = db.Column(db.Integer)
+    #qandt_by_q = db.Column(db.Float)
+    #qandt_by_t = db.Column(db.Float)
+    #term_id = db.Column(db.String(255))
+    #t_type = db.Column(db.String(63))
+    #t_group = db.Column(db.Integer)
+    #t_name = db.Column(db.String(255))
+    #depth_in_group = db.Column(db.Integer)
+    #qandt_list = db.Column(db.String(255))
 
     def get_proteins(self,):
-        proteins = db.session.query(Protein).filter(Protein.uniprot_acc.in_(self.qandt_list.split(','))).all()
+        proteins = db.session.query(Protein).filter(Protein.uniprot_acc.in_(self.intersection_genes.split())).all()
         return proteins
 
 
