@@ -38,7 +38,8 @@ def main():
         proteinname = line[5].strip()
         uniprot_link = line[6]
 
-        p = cdb.get_or_create(db, cdb.Protein, gene_id = geneid, uniprot_acc=acc, genename=genename, proteinname=proteinname, uniprot_url=uniprot_link)
+        #p = cdb.get_or_create(db, cdb.Protein, gene_id = geneid, uniprot_acc=acc, genename=genename, proteinname=proteinname, uniprot_url=uniprot_link)
+        p = cdb.get_or_create(db, cdb.Protein, gene_id = geneid, uniprot_acc=acc, proteinname=proteinname, uniprot_url=uniprot_link)
         db.session.add(p)
 
         if clustid != '':
