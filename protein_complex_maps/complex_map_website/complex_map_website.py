@@ -3,12 +3,43 @@ import protein_complex_maps.complex_map_website.complex_db as cdb
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy import func, or_
 
+import mpmath as mpm
+#import scipy.misc as misc
+
 db = cdb.get_db()
 app = cdb.get_app()
 
 #from flask.ext.wtf import Form
 from flask_wtf import Form
 from wtforms.fields import StringField, SubmitField, TextAreaField
+
+#kdrew: from http://stackoverflow.com/questions/33468821/is-scipy-misc-comb-faster-than-an-ad-hoc-binomial-computation
+def choose(n, k):
+    """
+    A fast way to calculate binomial coefficients by Andrew Dalke (contrib).
+    """
+    if 0 <= k <= n:
+        ntok = 1
+        ktok = 1
+        for t in xrange(1, min(k, n - k) + 1):
+            ntok *= n
+            ktok *= t
+            n -= 1
+        return ntok // ktok
+    else:
+        return 0
+
+#kdrew: hypergeometric test, k = overlap, n = total number of genes input, m = total number of genes in complex, N = total number of genes in all complexes
+def pval(k,n,m,N):
+    pv = 0.0                                                 
+    #N_choose_m = 1.0*misc.comb(N,m)
+    for i in range(k,int(min(m,n)+1)):
+        pi = ( mpm.binomial(n,i) * mpm.binomial((N-n), (m-i)) ) / mpm.binomial(N,m)
+        #pi = ( misc.comb(n,i) * misc.comb((N-n), (m-i)) ) /  N_choose_m
+        #kdrew: somethings wrong with this implementation, returns 0 always (or the cases I've tried)
+        #pi = ( choose(n,i) * choose((N-n), (m-i)) ) / choose(N,m)
+        pv += pi
+    return pv
 
 
 class SearchForm(Form):
@@ -91,7 +122,7 @@ def displayComplexesForListOfGeneNames():
             #kdrew: input genename is not valid, flash message
             if error == None:
                 error = ""
-            error = error + "Could not find genename: %s\n" % genename
+            error = error + "Could not find genename: %s<br>" % genename
 
             #return render_template('index.html', form=form, complexes=[], error=error)
 
@@ -110,7 +141,7 @@ def displayComplexesForListOfGeneNames():
             if error == None:
                 error = ""
             #kdrew: input genename is not valid, flash message
-            error = error + "Could not find genename: %s\n" % gene.genename
+            error = error + "Could not find genename: %s<br>" % gene.genename
 
             #return render_template('index.html', form=form, complexes=[], error=error)
 
@@ -133,17 +164,32 @@ def displayComplexesForListOfGeneNames():
     if len(complexes) == 0:
         if error == None:
             error = ""
-        error = error + "No complexes found for genenames: %s\n" % ', '.join([g.genename for g in all_genes])
+        error = error + "No complexes found for genenames: %s<br>" % ', '.join([g.genename for g in all_genes])
     if len(error_proteins) > 0:
         if error == None:
             error = ""
-        error = error + "No complexes found for genenames: %s\n" % ', '.join([p.genename() for p in error_proteins])
+        error = error + "No complexes found for genenames: %s<br>" % ', '.join([p.genename() for p in error_proteins])
+
+
+    n = len(all_proteins)
+    N = db.session.query(cdb.Protein).distinct(cdb.Protein.gene_id).count()
+    pvalue_dict = dict()
+    for c in set(complexes):
+        k = complexes.count(c)
+        m = len(c.proteins) 
+        print "complex: %s k: %s n: %s m: %s N: %s" % (c.complex_id,k,n,m,N)
+        pvalue = pval(k=k,n=n,m=m,N=N)
+        pvalue_dict[c] = pvalue
+        
 
     #complexes = list(set(complexes))
-    complexes = [x[1] for x in sorted(((complexes.count(e), e) for e in set(complexes)), reverse=True)]
+    #complexes = [x[1] for x in sorted(((complexes.count(e), e) for e in set(complexes)), reverse=True)]
+    complexes = [x[1] for x in sorted((((complexes.count(e), -1*e.top_rank), e) for e in set(complexes)), reverse=True)]
+
+
 
     #print [p.id for p in all_proteins]
-    return render_template('index.html', form=form, complexes=complexes, prot_ids=[p.id for p in all_proteins], error=error)
+    return render_template('index.html', form=form, complexes=complexes, prot_ids=[p.id for p in all_proteins], pvalue_dict=pvalue_dict, error=error)
 
 @app.route("/displayComplexesForEnrichment")
 def displayComplexesForEnrichment():
