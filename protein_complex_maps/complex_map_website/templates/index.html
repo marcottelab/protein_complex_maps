@@ -9,7 +9,7 @@
     <meta name="author" content="">
     <link rel="icon" href="../bootstrap-3.3.6/docs/favicon.ico">
 
-    <title>hu.MAP</title>
+    <title>hu.MAP 2.0</title>
 
     <link href="../static/styles/test.css" rel="stylesheet">
 
@@ -48,7 +48,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="/">hu.MAP</a>
+          <a class="navbar-brand" href="/">hu.MAP 2.0</a>
         </div>
         <div id="navbar" class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
@@ -78,7 +78,7 @@
 
       <!-- Main jumbotron for a primary marketing message or call to action -->
       <div class="jumbotron">
-        <h1>hu.MAP</h1>
+        <h1>hu.MAP 2.0</h1>
         <p> 
             Human Protein Complex Map
         </p>
@@ -122,6 +122,30 @@
 
     {% for comp in complexes %}
         <h3>Complex: {{ comp.complex_link()|safe }} </h3>
+        <h4>Confidence: 
+            {% if comp.top_rank == 1 %}
+                <a href="#" class="label label-success" data-toggle="tooltip" title="Extremely High">Extremely High</a> &nbsp 
+            {% elif comp.top_rank == 2 %}
+                <a href="#" class="label label-primary" data-toggle="tooltip" title="Very High">Very High</a> &nbsp 
+            {% elif comp.top_rank == 3 %}
+                <a href="#" class="label label-info" data-toggle="tooltip" title="High">High</a> &nbsp 
+            {% elif comp.top_rank == 4 %}
+                <a href="#" class="label label-warning" data-toggle="tooltip" title="Medium High">Medium High</a> &nbsp 
+            {% elif comp.top_rank == 5 %}
+                <a href="#" class="label label-default" data-toggle="tooltip" title="Medium">Medium</a> &nbsp 
+            {% endif %}
+            <button class="btn btn-default btn-xs" onclick="complexConfidence()">?</button>
+            <script>
+                function complexConfidence() {
+                            alert("Complex Confidence");
+                                }
+            </script>  
+
+        </h4>
+        <h4>
+            Input enrichment p-value: {{pvalue_dict[comp]}}
+        </h4>
+
         <h3>Proteins:</h3>
         <table class="table table-striped">
             <thead>
