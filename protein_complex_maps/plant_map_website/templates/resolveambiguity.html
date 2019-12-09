@@ -33,8 +33,7 @@
 
 
 
-    <h3><b> Rarely, an <i>Arabidopsis</i> genename or TAIR AT locus will map to multiple uniprot proteins, and also match multiple ortholog groups.
-    Please try out each of the below Orthogroups to see data.</b></h4>
+    <h3><b> Search term did not uniquely identify a protein. Please select from matches below.</b>Rarely, an <i>Arabidopsis</i> genename or TAIR AT locus will map to multiple uniprot proteins, and also match multiple ortholog groups.</h3>
 
 	    <!-- https://www.uniprt.org/uniprot/?query=I1KDU3+OR+I1M368+OR+I1M369+OR+I1M370+OR+K7KX13&sort=score -->
 	    <table class="table table-striped">
@@ -47,7 +46,7 @@
 				alert("eggNOG4.0 virNOG (viridiplantae) orthogroup identifier http://eggnogdb.embl.de");
 				}
 			      </script></th>
-                 <th> Query </th>
+                 <th> Text match </th>
 			<th>Orthogroup Annotation
 			      <button class="btn btn-default btn-xs" onclick="orthoannotFunction()">?</button>
 			      <script>
@@ -119,7 +118,7 @@
 
 
                         {% endfor %} 
-                    <td>arath</td>
+                    <td>{{ prot.Spec }}</td>
                     <td>{{ entrylist | join(' ') }}</td>
 
 

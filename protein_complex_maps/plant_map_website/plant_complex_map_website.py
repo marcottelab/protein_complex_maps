@@ -70,7 +70,12 @@ def OrthogroupQuery(Input_OrthogroupID):
 
 
 def ProteinQuery(Input_ProteinID):
+    #cdb.ComplexEnrichment.t_name.like('%'+enrichment+'%')
     ProteinIDs = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.ProteinID) == func.upper(Input_ProteinID))).all()
+    if len(ProteinIDs) == 1:
+       return(ProteinIDs)
+    else:
+       ProteinIDs = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.ProteinID).like('%'+func.upper(Input_ProteinID.rstrip("*"))+'%'))).all()
     return(ProteinIDs)
 
 @app.route("/displayComplexesForProteinID")
@@ -80,6 +85,9 @@ def displayComplexesForProteinID():
     error=None 
    
     ProteinIDs = ProteinQuery(Input_ProteinID)
+    ProteinIDs.sort(key=lambda x: x.orthogroups.OrthogroupID)
+
+
     # Check quality of Input_ProteinID query
     if len(ProteinIDs) > 1:
         with_scores = []
@@ -89,8 +97,8 @@ def displayComplexesForProteinID():
                 with_scores.append(OID)
                 ProteinID = prot
                 OrthogroupID = OID
-        if len(with_scores) == 2:
-            
+        if len(with_scores) > 1:
+   
             return render_template('resolveambiguity.html', prots = ProteinIDs, form = form, error = error)
 
 
@@ -182,7 +190,7 @@ def getInteractionsForProteinID():
                 with_scores.append(OID)
                 ProteinID = prot
                 OrthogroupID = OID
-        if len(with_scores) == 2:
+        if len(with_scores) > 1:
             
             return render_template('resolveambiguity.html', prots = ProteinIDs, form = form, error = error)
 
