@@ -97,19 +97,34 @@
                 <th>Uniprot Link 1
                 <button class="btn btn-default btn-xs" onclick="uniprotFunction()">?</button> 
                        <script>
-                         function protFunction() {
+                         function uniprotFunction() {
                          alert("Uniprot link for all proteins in selected species in selected orthogroup. Not available for Ceratopteris (C-fern), coconut, hemp, and quinoa"); 
                          }
                        </script></th>
                 <th>Uniprot Link 2
                 <button class="btn btn-default btn-xs" onclick="uniprotFunction()">?</button> 
                        <script>
-                         function protFunction() {
+                         function uniprotFunction() {
                          alert("Uniprot link for all proteins in selected species in selected orthogroup. Not available for Ceratopteris (C-fern), coconut, hemp, and quinoa"); 
                          }
-                       </script></th>
+                         </script></th>
                 <th>TAIR Link(s) 1 </th>
                 <th>TAIR Link(s) 2 </th>
+
+                <th>EggNOG Link 1
+                <button class="btn btn-default btn-xs" onclick="eggnogFunction()">?</button> 
+                       <script>
+                         function eggnogFunction() {
+                         alert("Link to the eggNOG orthology site see all other orthogroup members"); 
+                         }
+                       </script></th>
+                <th>EggNOG Link 2
+                <button class="btn btn-default btn-xs" onclick="eggnogFunction()">?</button> 
+                       <script>
+                         function eggprotFunction() {
+                         alert("Link to the eggNOG orthology site see all other orthogroup members"); 
+                         }
+                       </script></th>
            </tr>
         </thead>                                                                                                                <tbody>
     <tbody>
@@ -123,7 +138,16 @@
                 {% else %}
                 <td>
                 {% endif %}
-                <a href = http://eggnogdb.embl.de/#/app/results?target_nogs={{ node.orthogroups.OrthogroupID }}>{{ node.orthogroups.OrthogroupID }}</a></td>{% endfor %}
+                         <form method="POST" action="/search">
+                             {{ form.csrf_token() }}
+                             {{ form.OrthogroupID(value = node.orthogroups.OrthogroupID, type = "hidden") }}
+
+                             {{ form.submit(value = node.orthogroups.OrthogroupID)  }}
+                         </form>
+
+
+            </td>
+            {% endfor %}
 
             {% for node in interaction %}
                 <td> {{ node.orthogroups.Orthoannots[0].EggnogAnnot }} </td>{% endfor %}
@@ -175,6 +199,16 @@
                <td>{% for locus in tairlist2 %}
                            <a href = https://www.arabidopsis.org/servlets/TairObject?type=locus&name={{ locus }}>{{ locus }}</a>
                {% endfor %}</td>
+
+            {% for node in interaction %}
+                {% if node.orthogroups.OrthogroupID == current_OrthogroupID %}
+                <td style="font-weight:bold">
+                {% else %}
+                <td>
+                {% endif %}
+                <a href = http://eggnogdb.embl.de/#/app/results?target_nogs={{ node.orthogroups.OrthogroupID }}>{{ node.orthogroups.OrthogroupID }}</a></td>{% endfor %}
+
+
 
 
         </tr>

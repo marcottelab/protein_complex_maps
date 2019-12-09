@@ -52,7 +52,7 @@ class SearchForm(FlaskForm):
     ProteinID = StringField(u'Protein ID')
     Species = SelectField(u'Species', choices = species_list, default = 'arath')
     submit = SubmitField(u'Search complexes')
-    submitinteractions = SubmitField(u'Get top interactions')
+    submitinteractions = SubmitField(u'Search top interactions')
  
    
 @app.route("/")
