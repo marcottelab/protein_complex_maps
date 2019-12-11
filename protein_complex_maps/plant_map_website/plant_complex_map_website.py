@@ -117,7 +117,6 @@ def displayComplexesForProteinID():
     Species = ProteinID.Spec
  
 
-    stop
     complexes = []
     orthogroup_clusters = (db.session.query(cdb.Orthogroup).filter(cdb.Orthogroup.id == OrthogroupID.id)).first()
     complexes = orthogroup_clusters.hiercomplexes
@@ -139,6 +138,7 @@ def displayComplexesForOrthogroupID():
 
     #CDM: See if orthogroup is a valid orthogroup ID
     OrthogroupID = OrthogroupQuery(Input_OrthogroupID)
+
     if not OrthogroupID:
         #kdrew: input genename is not valid, flash message
         error = "Could not find given virNOG orthogroup ID: %s" % Input_OrthogroupID
