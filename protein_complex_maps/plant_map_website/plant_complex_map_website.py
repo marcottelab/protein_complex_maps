@@ -115,7 +115,9 @@ def displayComplexesForProteinID():
     OrthogroupID_string = ProteinID.orthogroups.OrthogroupID
 
     Species = ProteinID.Spec
+ 
 
+    stop
     complexes = []
     orthogroup_clusters = (db.session.query(cdb.Orthogroup).filter(cdb.Orthogroup.id == OrthogroupID.id)).first()
     complexes = orthogroup_clusters.hiercomplexes
