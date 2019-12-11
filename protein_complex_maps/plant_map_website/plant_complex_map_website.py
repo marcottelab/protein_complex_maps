@@ -122,10 +122,10 @@ def displayComplexesForProteinID():
 
     if len(orthogroup_clusters.hiercomplexes) == 0:
         error = "No complexes found for given Protein ID %s and its virNOG orthogroup ID: %s. Try for Protein Interactions" % (Input_ProteinID, OrthogroupID.OrthogroupID)
-        return render_template('index.html', form = form, complexes = [], error = error)
+        #return render_template('index.html', form = form, complexes = [], Species = Species, Query = OrthogroupID, Input_ProteinID = Input_ProteinID, error = error)
        
         
-    return render_template('getcomplexes.html', form = form, complexes = complexes, Species = Species, current_OrthogroupID = OrthogroupID_string, Input_ProteinID = Input_ProteinID, error = error)
+    return render_template('getcomplexes.html', form = form, complexes = complexes, Species = Species, Query = OrthogroupID, Input_ProteinID = Input_ProteinID, error = error)
 
 
 @app.route("/displayComplexesForOrthogroupID")
@@ -151,7 +151,7 @@ def displayComplexesForOrthogroupID():
     if len(orthogroup_clusters.hiercomplexes) == 0:
         error = "No complexes found for given virNOG orthogroup ID: %s" % Input_OrthogroupID
 
-    return render_template('getcomplexes.html', form = form, complexes = complexes, Species = Species, current_OrthogroupID = Input_OrthogroupID, Input_OrthogroupID = Input_OrthogroupID, error = error)
+    return render_template('getcomplexes.html', form = form, complexes = complexes, Species = Species, Query = OrthogroupID, current_OrthogroupID = Input_OrthogroupID, Input_OrthogroupID = Input_OrthogroupID, error = error)
 
 @app.route("/getInteractionsForOrthogroupID")
 def getInteractionsForOrthogroupID():
@@ -170,7 +170,7 @@ def getInteractionsForOrthogroupID():
     for score in OrthogroupID.Scores:
         interaction = db.session.query(cdb.Score).filter(cdb.Score.InteractionID == score.InteractionID).all()
         interactions.append(interaction)
-    return render_template('getinteractions.html', form = form, interactions = interactions,  Species = Species, Input_OrthogroupID = Input_OrthogroupID, current_OrthogroupID = Input_OrthogroupID, error = error)
+    return render_template('getinteractions.html', form = form, interactions = interactions,  Species = Species, Query = OrthogroupID, Input_OrthogroupID = Input_OrthogroupID, current_OrthogroupID = Input_OrthogroupID, error = error)
 
 
 @app.route("/getInteractionsForProteinID")
@@ -215,7 +215,7 @@ def getInteractionsForProteinID():
         for score in OrthogroupID.Scores:
             interaction = db.session.query(cdb.Score).filter(cdb.Score.InteractionID == score.InteractionID).all()
             interactions.append(interaction)
-        return render_template('getinteractions.html', form = form, interactions = interactions,  Species = Species, Input_ProteinID = Input_ProteinID, current_OrthogroupID = OrthogroupID_string, error = error)
+        return render_template('getinteractions.html', form = form, interactions = interactions,  Species = Species, Query = OrthogroupID, Input_ProteinID = Input_ProteinID, current_OrthogroupID = OrthogroupID_string, error = error)
 
 
 
