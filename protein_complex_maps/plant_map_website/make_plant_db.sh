@@ -7,7 +7,7 @@ echo "Loading clusters"
 python scripts/load_clusters.py --cluster_table static/data/panplant_clusters.csv
 
 echo "Load orthogroup annotation"
-python scripts/load_orthoannot.py --annotation_file static/data/virNOG_collapse_annotations_w_abundance.txt
+python scripts/load_orthoannot.py --annotation_file static/data/orthogroup_annotations.txt
 
 echo "Load CF-MS scores"
 #gunzip static/data/allplants_feature_matrix_missing1.unscaled.top100.edges.top100k.gz

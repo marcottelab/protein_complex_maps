@@ -18,7 +18,7 @@ def main():
     annotation_table = open(args.annotation_file,"rb")
     complex_id = None
     count = 1
-
+#ID      tot_speccounts  arath_genenames arath_Protein_names     arath_GO        araport Annotation      has_interaction  in_complex 
 #ID      arath_genenames arath_Entries   arath_Entry_names       arath_Protein_names     disruptions     tair_disruptionslloyd2012_LOFs  arath_functions arath_misc      pathway unipathway      BioCyc  Reactome        BRENDA  kegg_pws       ec       arath_masses    arath_protein_names     arath_GO        devstages       tissues tair    araport Annotation     orysj_genenames  orysj_Entries   orysj_Entry_names       orysj_Protein_names     orysj_disruptions       orysj_functions
 #orysj_misc
 
@@ -37,11 +37,15 @@ def main():
                 OrthogroupID = split_line[0]
                 Counts = split_line[1]
                 ArathGenenames = split_line[2]
-                ArathGO = split_line[20].strip('\n')
-                EggnogAnnot = split_line[25]
-                Tair = split_line[24].strip("\n")
+                ArathProtnames =split_line[3]
+                ArathGO = split_line[4]
+                Tair = split_line[5]
+                EggnogAnnot = split_line[6]
+                HasInteraction = split_line[7]
+                InComplex = split_line[8].strip("\n")             
+
                 o = cdb.get_or_create(db, cdb.Orthogroup, OrthogroupID = OrthogroupID)
-                a = cdb.get_or_create(db, cdb.Orthoannot, OrthogroupID_key = o.id, Counts = Counts, EggnogAnnot = EggnogAnnot, Tair = Tair, ArathGenenames = ArathGenenames, ArathGO = ArathGO)
+                a = cdb.get_or_create(db, cdb.Orthoannot, OrthogroupID_key = o.id, Counts = Counts, EggnogAnnot = EggnogAnnot, Tair = Tair, ArathGenenames = ArathGenenames, ArathProtnames = ArathProtnames, ArathGO = ArathGO, HasInteraction = HasInteraction, InComplex = InComplex)
                 db.session.add(a)
                 db.session.commit()
             except Exception as e:

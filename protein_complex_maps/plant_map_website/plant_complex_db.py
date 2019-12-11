@@ -62,6 +62,7 @@ class Protein(db.Model):
     OrthogroupID_key = db.Column(db.Integer, db.ForeignKey('orthogroup.id') )
     orthogroups = db.relationship("Orthogroup", backref = "Proteins", lazy = "select")
 
+
 class Orthoannot(db.Model):
     """A single group"""
     # One orthoannotation to One orthogroup
@@ -72,6 +73,8 @@ class Orthoannot(db.Model):
     ArathProtnames = db.Column(db.String(63))
     ArathGO = db.Column(db.String(63))
     Counts = db.Column(db.Integer)
+    HasInteraction = db.Column(db.Boolean)
+    InComplex = db.Column(db.Boolean)
     # ADD ArathProteinNames
     OrthogroupID_key = db.Column(db.Integer, db.ForeignKey('orthogroup.id') )
     orthogroups = db.relationship("Orthogroup", backref = "Orthoannots", lazy = "select")
