@@ -69,6 +69,9 @@ class Orthoannot(db.Model):
     EggnogAnnot = db.Column(db.String(63))
     Tair = db.Column(db.String(63))
     ArathGenenames = db.Column(db.String(63))
+    ArathProtnames = db.Column(db.String(63))
+    ArathGO = db.Column(db.String(63))
+    Counts = db.Column(db.Integer)
     # ADD ArathProteinNames
     OrthogroupID_key = db.Column(db.Integer, db.ForeignKey('orthogroup.id') )
     orthogroups = db.relationship("Orthogroup", backref = "Orthoannots", lazy = "select")

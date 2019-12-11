@@ -6,7 +6,7 @@ def main():
 
     parser = argparse.ArgumentParser(description="Loads a annotation table")
     parser.add_argument("--annotation_file", action="store", dest="annotation_file", required=True,
-                                    help="At least 3 column tab-separated file of eggnogID Arath_genename, orthoannotation")
+                                    help="")
 
     args = parser.parse_args()
 
@@ -35,11 +35,13 @@ def main():
             split_line = line.split('\t')
             try:
                 OrthogroupID = split_line[0]
-                ArathGenenames = split_line[1]
-                EggnogAnnot = split_line[24]
-                Tair = split_line[23].strip("\n")
+                Counts = split_line[1]
+                ArathGenenames = split_line[2]
+                ArathGO = split_line[20].strip('\n')
+                EggnogAnnot = split_line[25]
+                Tair = split_line[24].strip("\n")
                 o = cdb.get_or_create(db, cdb.Orthogroup, OrthogroupID = OrthogroupID)
-                a = cdb.get_or_create(db, cdb.Orthoannot, OrthogroupID_key = o.id, EggnogAnnot = EggnogAnnot, Tair = Tair, ArathGenenames = ArathGenenames)
+                a = cdb.get_or_create(db, cdb.Orthoannot, OrthogroupID_key = o.id, Counts = Counts, EggnogAnnot = EggnogAnnot, Tair = Tair, ArathGenenames = ArathGenenames, ArathGO = ArathGO)
                 db.session.add(a)
                 db.session.commit()
             except Exception as e:
