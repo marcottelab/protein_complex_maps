@@ -43,7 +43,7 @@ def main():
                 EggnogAnnot = split_line[6]
                 HasInteraction = split_line[7]
                 InComplex = split_line[8].strip("\n")             
-
+                
                 o = cdb.get_or_create(db, cdb.Orthogroup, OrthogroupID = OrthogroupID)
                 a = cdb.get_or_create(db, cdb.Orthoannot, OrthogroupID_key = o.id, Counts = Counts, EggnogAnnot = EggnogAnnot, Tair = Tair, ArathGenenames = ArathGenenames, ArathProtnames = ArathProtnames, ArathGO = ArathGO, HasInteraction = HasInteraction, InComplex = InComplex)
                 db.session.add(a)
