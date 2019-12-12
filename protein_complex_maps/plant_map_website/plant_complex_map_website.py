@@ -67,7 +67,10 @@ def OrthogroupQuery(Input_OrthogroupID):
     print(OrthogroupID)
     return(OrthogroupID)
 
-
+def GOQuery(Input_GO):
+    OrthogroupID = db.session.query(cdb.Orthogroup).filter((func.upper(cdb.Orthoannot.ArathGO.like('%'+func.upper(Input_GO.rstrip("*"))+'%'))).all()
+    # OrthogroupID = 
+    return()
 
 def ProteinQuery(Input_ProteinID):
     #cdb.ComplexEnrichment.t_name.like('%'+enrichment+'%')
