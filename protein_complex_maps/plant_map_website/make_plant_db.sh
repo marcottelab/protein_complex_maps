@@ -11,7 +11,7 @@ python scripts/load_orthoannot.py --annotation_file static/data/orthogroup_annot
 
 echo "Load CF-MS scores"
 #gunzip static/data/allplants_feature_matrix_missing1.unscaled.top100.edges.top100k.gz
-python scripts/load_scores.py --score_file static/data/allplants_feature_matrix_missing1.unscaled.top100.edges.top100k
+python scripts/load_scores.py --score_file static/data/allplants_feature_matrix_missing1.unscaled.top100.edges.fdr70
 
 echo "Load Orthogroup Protein conversion"
 #gunzip static/data/complete_orthology_w_atnums.csv
