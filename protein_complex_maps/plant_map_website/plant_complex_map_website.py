@@ -85,46 +85,53 @@ def FullTextQuery(Input_FullText):
 
     return render_template('resolveambiguityortho.html', ogs = OrthogroupIDs, form = form, error = error)
 
-def ProteinQuery(Input_ProteinID):
+def ProteinQuery(Input_ProteinID, Species):
     ProteinIDs = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.ProteinID) == func.upper(Input_ProteinID))).all()
     OrthogroupIDs = []
     for prot in ProteinIDs:
         OrthogroupID = OrthogroupQuery(prot.orthogroups.OrthogroupID)
         OrthogroupIDs.append(OrthogroupID)
-
+    print(Species)
     OrthogroupIDs = list(set(OrthogroupIDs))
     if len(OrthogroupIDs) > 0:
        return(OrthogroupIDs)
- 
     #If not getting exact matches, try wildcard search
     else:
-       OrthogroupIDs = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.ProteinID).like('%'+func.upper(Input_ProteinID.rstrip("*"))+'%'))).all()
+       ProteinIDs = db.session.query(cdb.Protein).filter(func.upper(cdb.Protein.ProteinID).like('%'+func.upper(Input_ProteinID.rstrip("*"))+'%')).filter(func.upper(cdb.Protein.Spec) == func.upper("arath")).all()
+       OrthogroupIDs = []
+       for prot in ProteinIDs:
+           OrthogroupID = OrthogroupQuery(prot.orthogroups.OrthogroupID)
+           OrthogroupIDs.append(OrthogroupID)
 
+    OrthogroupIDs = list(set(OrthogroupIDs))
+    print(OrthogroupIDs)
     return(OrthogroupIDs)
 
 
-def ProteinQuery2(Input_ProteinID):
+def ProteinQuery2(Input_ProteinID, Species):
     #cdb.ComplexEnrichment.t_name.like('%'+enrichment+'%')
     ProteinIDs = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.ProteinID) == func.upper(Input_ProteinID))).all()
     if len(ProteinIDs) == 1:
        return(ProteinIDs)
     else:
-       ProteinIDs = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.ProteinID).like('%'+func.upper(Input_ProteinID.rstrip("*"))+'%'))).all()
+       #ProteinIDs = db.session.query(cdb.Protein).filter(func.upper(cdb.Protein.ProteinID).like('%'+func.upper(Input_ProteinID.rstrip("*"))+'%')).filter(cdb.Protein.Spec == Species).all()
+       ProteinIDs = db.session.query(cdb.Protein).filter(func.upper(cdb.Protein.ProteinID).like('%'+func.upper(Input_ProteinID.rstrip("*"))+'%')).all()
     return(ProteinIDs)
 
 @app.route("/displayComplexesForProteinID")
 
 def displayComplexesForProteinID():
+    Species = request.args.get('Species')
     Input_ProteinID = request.args.get('ProteinID').strip().upper()
     form = SearchForm()
     error=None 
    
-    OrthogroupIDs = ProteinQuery(Input_ProteinID)
+    OrthogroupIDs = ProteinQuery(Input_ProteinID, Species)
     #ProteinIDs = ProteinQuery(Input_ProteinID)
     #ProteinIDs.sort(key=lambda x: x.orthogroups.OrthogroupID)
 
     if len(OrthogroupIDs) > 1:
-            return render_template('resolveambiguityortho.html', og = OrthogroupIDs, form = form, error = error)
+        return render_template('resolveambiguityortho.html', ogs = OrthogroupIDs, Species = Species, form = form, error = error)
 
 
     # Check quality of Input_ProteinID query
