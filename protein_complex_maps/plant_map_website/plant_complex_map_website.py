@@ -67,12 +67,43 @@ def OrthogroupQuery(Input_OrthogroupID):
     print(OrthogroupID)
     return(OrthogroupID)
 
-def GOQuery(Input_GO):
-    OrthogroupID = db.session.query(cdb.Orthogroup).filter((func.upper(cdb.Orthoannot.ArathGO.like('%'+func.upper(Input_GO.rstrip("*"))+'%'))).all()
-    # OrthogroupID = 
-    return()
+def FullTextQuery(Input_FullText):
+
+    OrthogroupIDs = []
+    OrthogroupIDs.append(db.session.query(cdb.Orthogroup).filter((func.upper(cdb.Orthoannot.ArathGO.like('%'+func.upper(Input_GO.rstrip("*"))+'%'))).all()))
+    #ProteinIDs = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.ProteinID).like('%'+func.upper(Input_ProteinID.rstrip("*"))+'%'))).all()
+    if len(ProteinIDs) > 1:
+        for prot in ProteinIDs:
+           OID = OrthogroupQuery(prot.orthogroups.OrthogroupID)
+           if OID.Scores:
+                with_scores.append(OID)
+                ProteinID = prot
+                OrthogroupID = OID
+           OrthogroupIDs.append(OID)
+    if len(Orthogroups) > 1: 
+        return render_template('resolveambiguityortho.html', ogs = OrthogroupIDs, form = form, error = error)
+
+    return render_template('resolveambiguityortho.html', ogs = OrthogroupIDs, form = form, error = error)
 
 def ProteinQuery(Input_ProteinID):
+    ProteinIDs = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.ProteinID) == func.upper(Input_ProteinID))).all()
+    OrthogroupIDs = []
+    for prot in ProteinIDs:
+        OrthogroupID = OrthogroupQuery(prot.orthogroups.OrthogroupID)
+        OrthogroupIDs.append(OrthogroupID)
+
+    OrthogroupIDs = list(set(OrthogroupIDs))
+    if len(OrthogroupIDs) > 0:
+       return(OrthogroupIDs)
+ 
+    #If not getting exact matches, try wildcard search
+    else:
+       OrthogroupIDs = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.ProteinID).like('%'+func.upper(Input_ProteinID.rstrip("*"))+'%'))).all()
+
+    return(OrthogroupIDs)
+
+
+def ProteinQuery2(Input_ProteinID):
     #cdb.ComplexEnrichment.t_name.like('%'+enrichment+'%')
     ProteinIDs = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.ProteinID) == func.upper(Input_ProteinID))).all()
     if len(ProteinIDs) == 1:
@@ -82,12 +113,60 @@ def ProteinQuery(Input_ProteinID):
     return(ProteinIDs)
 
 @app.route("/displayComplexesForProteinID")
+
 def displayComplexesForProteinID():
     Input_ProteinID = request.args.get('ProteinID').strip().upper()
     form = SearchForm()
     error=None 
    
+    OrthogroupIDs = ProteinQuery(Input_ProteinID)
+    #ProteinIDs = ProteinQuery(Input_ProteinID)
+    #ProteinIDs.sort(key=lambda x: x.orthogroups.OrthogroupID)
+
+    if len(OrthogroupIDs) > 1:
+            return render_template('resolveambiguityortho.html', og = OrthogroupIDs, form = form, error = error)
+
+
+    # Check quality of Input_ProteinID query
+
+
+    if not OrthogroupIDs:##[0].orthogroups:
+        #kdrew: input ProteinID is not valid, flash message
+        error = "Could not find orthogroup for given Protein ID: %s.\n Try using a Uniprot.org Accession" % Input_ProteinID
+        return render_template('index.html', form = form, complexes = [], error = error)
+    else:
+        ProteinIDs = ProteinQuery2(Input_ProteinID)
+        ProteinID = ProteinIDs[0]
+
+        OrthogroupID_string = ProteinID.orthogroups.OrthogroupID
+        OrthogroupID = OrthogroupQuery(OrthogroupID_string)
+
+    #OrthogroupID_string = ProteinID.orthogroups.OrthogroupID
+
+    Species = ProteinID.Spec
+ 
+
+    complexes = []
+    orthogroup_clusters = (db.session.query(cdb.Orthogroup).filter(cdb.Orthogroup.id == OrthogroupID.id)).first()
+    complexes = orthogroup_clusters.hiercomplexes
+
+    if len(orthogroup_clusters.hiercomplexes) == 0:
+        error = "No complexes found for given Protein ID %s and its virNOG orthogroup ID: %s. Try for Protein Interactions" % (Input_ProteinID, OrthogroupID.OrthogroupID)
+        #return render_template('index.html', form = form, complexes = [], Species = Species, Query = OrthogroupID, Input_ProteinID = Input_ProteinID, error = error)
+       
+        
+    return render_template('getcomplexes.html', form = form, complexes = complexes, Species = Species, Query = OrthogroupID, Input_ProteinID = Input_ProteinID, error = error)
+
+
+
+
+def displayComplexesForProteinID2():
+    Input_ProteinID = request.args.get('ProteinID').strip().upper()
+    form = SearchForm()
+    error=None 
+   
     ProteinIDs = ProteinQuery(Input_ProteinID)
+    #ProteinIDs = ProteinQuery(Input_ProteinID)
     ProteinIDs.sort(key=lambda x: x.orthogroups.OrthogroupID)
 
 
