@@ -135,7 +135,7 @@
             <td> {{ interaction[0].ScoreVal|round(4)}} </td>
 
             {% for node in interaction %}
-                {% if node.orthogroups.OrthogroupID == current_OrthogroupID %}
+                {% if node.orthogroups.OrthogroupID == Query.OrthogroupID %}
                 <td style="font-weight:bold">
                 {% else %}
                 <td>

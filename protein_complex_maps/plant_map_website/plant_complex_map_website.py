@@ -50,6 +50,7 @@ class SearchForm(FlaskForm):
 
     OrthogroupID = StringField(u'virNOG Orthogroup:')
     ProteinID = StringField(u'Protein ID')
+    FullText = StringField(u'Full Text Search')
     Species = SelectField(u'Species', choices = species_list, default = 'arath')
     submit = SubmitField(u'Search complexes')
     submitinteractions = SubmitField(u'Search top interactions')
@@ -81,17 +82,24 @@ def FullTextQuery(Input_FullText):
                 OrthogroupID = OID
            OrthogroupIDs.append(OID)
     if len(Orthogroups) > 1: 
-        return render_template('resolveambiguityortho.html', ogs = OrthogroupIDs, form = form, error = error)
+        return render_template('resolveambiguityortho.html',  ogs = OrthogroupIDs, form = form, error = error)
 
     return render_template('resolveambiguityortho.html', ogs = OrthogroupIDs, form = form, error = error)
 
-def ProteinQuery(Input_ProteinID, Species):
+def ProteinQuery(Input_ProteinID, Species, Full = "False"):
     print(Input_ProteinID)
+    print("here", Full)
     if Species == "orysj":
        Input_ProteinID = re.sub('^LOC_', '', Input_ProteinID)
     print(Input_ProteinID)
+    
 
-    ProteinIDs = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.ProteinID) == func.upper(Input_ProteinID))).all()
+    if Full == "False":
+       ProteinIDs = db.session.query(cdb.Protein).filter(cdb.Protein.IDtype.in_(['genename','atnum', 'Entry', 'EntryName'])).filter(func.upper(cdb.Protein.ProteinID) == func.upper(Input_ProteinID)).all()
+    else:
+       ProteinIDs = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.ProteinID) == func.upper(Input_ProteinID))).all()
+      
+   
     OrthogroupIDs = []
     for prot in ProteinIDs:
         OrthogroupID = OrthogroupQuery(prot.orthogroups.OrthogroupID)
@@ -102,7 +110,13 @@ def ProteinQuery(Input_ProteinID, Species):
        return(OrthogroupIDs)
     #If not getting exact matches, try wildcard search
     else:
-       ProteinIDs = db.session.query(cdb.Protein).filter(func.upper(cdb.Protein.ProteinID).like('%'+func.upper(Input_ProteinID.rstrip("*"))+'%')).filter(func.upper(cdb.Protein.Spec) == func.upper(Species)).all()
+       if Full == "False":
+
+           ProteinIDs = db.session.query(cdb.Protein).filter(cdb.Protein.IDtype.in_(['genename','atnum', 'Entry', 'EntryName'])).filter(func.upper(cdb.Protein.ProteinID).like('%'+func.upper(Input_ProteinID.rstrip("*"))+'%')).filter(func.upper(cdb.Protein.Spec) == func.upper(Species)).all()
+       else:  
+           ProteinIDs = db.session.query(cdb.Protein).filter(func.upper(cdb.Protein.ProteinID).like('%'+func.upper(Input_ProteinID.rstrip("*"))+'%')).filter(func.upper(cdb.Protein.Spec) == func.upper(Species)).all()
+
+
        OrthogroupIDs = []
        for prot in ProteinIDs:
            OrthogroupID = OrthogroupQuery(prot.orthogroups.OrthogroupID)
@@ -124,39 +138,30 @@ def ProteinQuery2(Input_ProteinID, Species):
     return(ProteinIDs)
 
 @app.route("/displayComplexesForProteinID")
-
 def displayComplexesForProteinID():
     Species = request.args.get('Species')
     Input_ProteinID = request.args.get('ProteinID').strip().upper()
+    Full = request.args.get('Full')
     form = SearchForm()
     error=None 
     print(Species)
    
-    OrthogroupIDs = ProteinQuery(Input_ProteinID, Species)
+    OrthogroupIDs = ProteinQuery(Input_ProteinID, Species, Full )
     #ProteinIDs = ProteinQuery(Input_ProteinID)
     #ProteinIDs.sort(key=lambda x: x.orthogroups.OrthogroupID)
 
     if len(OrthogroupIDs) > 1:
-        return render_template('resolveambiguityortho.html', ogs = OrthogroupIDs, Species = Species, form = form, error = error)
+        return render_template('resolveambiguityortho.html', querytype = "complexes", ogs = OrthogroupIDs, Species = Species, form = form, error = error)
 
 
     # Check quality of Input_ProteinID query
 
 
     if not OrthogroupIDs:##[0].orthogroups:
-        #kdrew: input ProteinID is not valid, flash message
         error = "Could not find orthogroup for given Protein ID: %s.\n Try using a Uniprot.org Accession" % Input_ProteinID
         return render_template('index.html', form = form, complexes = [], error = error)
     else:
-        #ProteinIDs = ProteinQuery(Input_ProteinID, Species)
-        #ProteinID = ProteinIDs[0]
         OrthogroupID  = OrthogroupIDs[0]
-        #OrthogroupID_string = ProteinID.orthogroups.OrthogroupID
-        #OrthogroupID = OrthogroupQuery(OrthogroupID_string)
-
-    #OrthogroupID_string = ProteinID.orthogroups.OrthogroupID
-
-    #Species = ProteinID.Spec
  
 
     complexes = []
@@ -170,58 +175,6 @@ def displayComplexesForProteinID():
         
     return render_template('getcomplexes.html', form = form, complexes = complexes, Species = Species, Query = OrthogroupID, Input_ProteinID = Input_ProteinID, error = error)
 
-
-
-
-def displayComplexesForProteinID2():
-    Input_ProteinID = request.args.get('ProteinID').strip().upper()
-    form = SearchForm()
-    error=None 
-   
-    ProteinIDs = ProteinQuery(Input_ProteinID)
-    #ProteinIDs = ProteinQuery(Input_ProteinID)
-    ProteinIDs.sort(key=lambda x: x.orthogroups.OrthogroupID)
-
-
-    # Check quality of Input_ProteinID query
-    if len(ProteinIDs) > 1:
-        with_scores = []
-        for prot in ProteinIDs:
-           OID = OrthogroupQuery(prot.orthogroups.OrthogroupID)
-           if OID.Scores:
-                with_scores.append(OID)
-                ProteinID = prot
-                OrthogroupID = OID
-        if len(with_scores) > 1:
-   
-            return render_template('resolveambiguity.html', prots = ProteinIDs, form = form, error = error)
-
-
-    if not ProteinIDs:##[0].orthogroups:
-        #kdrew: input ProteinID is not valid, flash message
-        error = "Could not find orthogroup for given Protein ID: %s.\n Try using a Uniprot.org Accession" % Input_ProteinID
-        return render_template('index.html', form = form, complexes = [], error = error)
-
-    else:
-        ProteinID = ProteinIDs[0]
-        OrthogroupID_string = ProteinID.orthogroups.OrthogroupID
-        OrthogroupID = OrthogroupQuery(OrthogroupID_string)
-
-    OrthogroupID_string = ProteinID.orthogroups.OrthogroupID
-
-    Species = ProteinID.Spec
- 
-
-    complexes = []
-    orthogroup_clusters = (db.session.query(cdb.Orthogroup).filter(cdb.Orthogroup.id == OrthogroupID.id)).first()
-    complexes = orthogroup_clusters.hiercomplexes
-
-    if len(orthogroup_clusters.hiercomplexes) == 0:
-        error = "No complexes found for given Protein ID %s and its virNOG orthogroup ID: %s. Try for Protein Interactions" % (Input_ProteinID, OrthogroupID.OrthogroupID)
-        #return render_template('index.html', form = form, complexes = [], Species = Species, Query = OrthogroupID, Input_ProteinID = Input_ProteinID, error = error)
-       
-        
-    return render_template('getcomplexes.html', form = form, complexes = complexes, Species = Species, Query = OrthogroupID, Input_ProteinID = Input_ProteinID, error = error)
 
 
 @app.route("/displayComplexesForOrthogroupID")
@@ -250,6 +203,39 @@ def displayComplexesForOrthogroupID():
 
     return render_template('getcomplexes.html', form = form, complexes = complexes, Species = Species, Query = OrthogroupID, current_OrthogroupID = Input_OrthogroupID, Input_OrthogroupID = Input_OrthogroupID, error = error)
 
+@app.route("/getInteractionsForProteinID")
+def getInteractionsForProteinID():
+
+    print("here, right??")
+    Species = request.args.get('Species')
+    Input_ProteinID = request.args.get('ProteinID').strip().upper()
+    Full = request.args.get('Full')
+    form = SearchForm()
+    error=None
+
+
+    OrthogroupIDs = ProteinQuery(Input_ProteinID, Species, Full )
+
+    if len(OrthogroupIDs) > 1:
+        return render_template('resolveambiguityortho.html', querytype = "interactions", ogs = OrthogroupIDs, Species = Species, form = form, error = error)
+
+    if not OrthogroupIDs:##[0].orthogroups:
+        error = "Could not find orthogroup for given Protein ID: %s.\n Try using a Uniprot.org Accession" % Input_ProteinID
+        return render_template('index.html', form = form, complexes = [], error = error)
+    else:
+        OrthogroupID  = OrthogroupIDs[0]
+
+    interactions = []
+    if not OrthogroupID.Scores:
+        error = "No strong interactions found for given protein ID: %s" % Input_ProteinID
+        return render_template('index.html', form = form, complexes = [], error = error)
+      
+    else:   
+        for score in OrthogroupID.Scores:
+            interaction = db.session.query(cdb.Score).filter(cdb.Score.InteractionID == score.InteractionID).all()
+            interactions.append(interaction)
+        return render_template('getinteractions.html', form = form, interactions = interactions,  Species = Species, Query = OrthogroupID, Input_ProteinID = Input_ProteinID,  error = error)
+
 @app.route("/getInteractionsForOrthogroupID")
 def getInteractionsForOrthogroupID():
     Species = request.args.get('Species')
@@ -270,51 +256,6 @@ def getInteractionsForOrthogroupID():
     return render_template('getinteractions.html', form = form, interactions = interactions,  Species = Species, Query = OrthogroupID, Input_OrthogroupID = Input_OrthogroupID, current_OrthogroupID = Input_OrthogroupID, error = error)
 
 
-@app.route("/getInteractionsForProteinID")
-def getInteractionsForProteinID():
-    Input_ProteinID = request.args.get('ProteinID').strip().upper()
-    form = SearchForm()
-    error=None
-
-    ProteinIDs = ProteinQuery(Input_ProteinID)
-
-    # Check quality of Input_ProteinID query
-    if len(ProteinIDs) > 1:
-        with_scores = []
-        for prot in ProteinIDs:
-           OID = OrthogroupQuery(prot.orthogroups.OrthogroupID)
-           if OID.Scores:
-                with_scores.append(OID)
-                ProteinID = prot
-                OrthogroupID = OID
-        if len(with_scores) > 1:
-            
-            return render_template('resolveambiguity.html', prots = ProteinIDs, form = form, error = error)
-
-    if not ProteinIDs:##[0].orthogroups:
-        #kdrew: input ProteinID is not valid, flash message
-        error = "Could not find orthogroup for given Protein ID: %s.\n Try using a Uniprot.org Accession" % Input_ProteinID
-        return render_template('index.html', form = form, complexes = [], error = error)
-
-    else:
-        ProteinID = ProteinIDs[0]
-        OrthogroupID_string = ProteinID.orthogroups.OrthogroupID
-        OrthogroupID = OrthogroupQuery(OrthogroupID_string)
-
-    Species = ProteinID.Spec
-
-    interactions = []
-    if not OrthogroupID.Scores:
-        error = "No strong interactions found for given protein ID: %s" % Input_ProteinID
-        return render_template('index.html', form = form, complexes = [], error = error)
-      
-    else:   
-        for score in OrthogroupID.Scores:
-            interaction = db.session.query(cdb.Score).filter(cdb.Score.InteractionID == score.InteractionID).all()
-            interactions.append(interaction)
-        return render_template('getinteractions.html', form = form, interactions = interactions,  Species = Species, Query = OrthogroupID, Input_ProteinID = Input_ProteinID, current_OrthogroupID = OrthogroupID_string, error = error)
-
-
 
 @app.route(u'/search', methods = ['POST'])
 def searchComplexes():
@@ -331,8 +272,14 @@ def searchComplexes():
                 else:
                    return redirect(url_for('displayComplexesForOrthogroupID', OrthogroupID = form.OrthogroupID.data))
             elif len(form.ProteinID.data) > 0:
-                return redirect(url_for('displayComplexesForProteinID', ProteinID = form.ProteinID.data, Species = form.Species.data))
-        
+                return redirect(url_for('displayComplexesForProteinID', ProteinID = form.ProteinID.data, Species = form.Species.data, Full = "False"))
+
+            elif len(form.FullText.data) > 0:
+                return redirect(url_for('displayComplexesForProteinID', ProteinID = form.FullText.data, Species = form.Species.data, Full = "True"))
+
+
+
+         
         if form.submitinteractions.data == True:
             if len(form.OrthogroupID.data) > 0:
                 if len(form.Species.data) > 0:
@@ -341,8 +288,13 @@ def searchComplexes():
                 else:
                    return redirect(url_for('getInteractionsForOrthogroupID', OrthogroupID = form.OrthogroupID.data))
             elif len(form.ProteinID.data) > 0:
-                return redirect(url_for('getInteractionsForProteinID', ProteinID = form.ProteinID.data, Species = form.Species.data))
+                return redirect(url_for('getInteractionsForProteinID', ProteinID = form.ProteinID.data, Species = form.Species.data, Full = "False"))
+
+            elif len(form.FullText.data) > 0:
+                return redirect(url_for('getInteractionsForProteinID', ProteinID = form.FullText.data, Species = form.Species.data, Full = "True"))
+
  
+
     #kdrew: added hoping it would fix redirect problem on stale connections
     return render_template('index.html', form = form, complexes = complexes)
 
