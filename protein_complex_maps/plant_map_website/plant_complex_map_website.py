@@ -15,7 +15,7 @@ from wtforms.fields import StringField, SubmitField, SelectField
 from flask import make_response
 from flask import render_template
 from flask import url_for, redirect, request, jsonify
-
+import re
 app.jinja_env.add_extension('jinja2.ext.do') #Allow appending to list in html 
 
 
@@ -86,6 +86,11 @@ def FullTextQuery(Input_FullText):
     return render_template('resolveambiguityortho.html', ogs = OrthogroupIDs, form = form, error = error)
 
 def ProteinQuery(Input_ProteinID, Species):
+    print(Input_ProteinID)
+    if Species == "orysj":
+       Input_ProteinID = re.sub('^LOC_', '', Input_ProteinID)
+    print(Input_ProteinID)
+
     ProteinIDs = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.ProteinID) == func.upper(Input_ProteinID))).all()
     OrthogroupIDs = []
     for prot in ProteinIDs:
@@ -97,7 +102,7 @@ def ProteinQuery(Input_ProteinID, Species):
        return(OrthogroupIDs)
     #If not getting exact matches, try wildcard search
     else:
-       ProteinIDs = db.session.query(cdb.Protein).filter(func.upper(cdb.Protein.ProteinID).like('%'+func.upper(Input_ProteinID.rstrip("*"))+'%')).filter(func.upper(cdb.Protein.Spec) == func.upper("arath")).all()
+       ProteinIDs = db.session.query(cdb.Protein).filter(func.upper(cdb.Protein.ProteinID).like('%'+func.upper(Input_ProteinID.rstrip("*"))+'%')).filter(func.upper(cdb.Protein.Spec) == func.upper(Species)).all()
        OrthogroupIDs = []
        for prot in ProteinIDs:
            OrthogroupID = OrthogroupQuery(prot.orthogroups.OrthogroupID)
@@ -125,6 +130,7 @@ def displayComplexesForProteinID():
     Input_ProteinID = request.args.get('ProteinID').strip().upper()
     form = SearchForm()
     error=None 
+    print(Species)
    
     OrthogroupIDs = ProteinQuery(Input_ProteinID, Species)
     #ProteinIDs = ProteinQuery(Input_ProteinID)
@@ -142,15 +148,15 @@ def displayComplexesForProteinID():
         error = "Could not find orthogroup for given Protein ID: %s.\n Try using a Uniprot.org Accession" % Input_ProteinID
         return render_template('index.html', form = form, complexes = [], error = error)
     else:
-        ProteinIDs = ProteinQuery2(Input_ProteinID)
-        ProteinID = ProteinIDs[0]
-
-        OrthogroupID_string = ProteinID.orthogroups.OrthogroupID
-        OrthogroupID = OrthogroupQuery(OrthogroupID_string)
+        #ProteinIDs = ProteinQuery(Input_ProteinID, Species)
+        #ProteinID = ProteinIDs[0]
+        OrthogroupID  = OrthogroupIDs[0]
+        #OrthogroupID_string = ProteinID.orthogroups.OrthogroupID
+        #OrthogroupID = OrthogroupQuery(OrthogroupID_string)
 
     #OrthogroupID_string = ProteinID.orthogroups.OrthogroupID
 
-    Species = ProteinID.Spec
+    #Species = ProteinID.Spec
  
 
     complexes = []
@@ -224,7 +230,7 @@ def displayComplexesForOrthogroupID():
     Input_OrthogroupID = request.args.get('OrthogroupID').strip().upper()
     form = SearchForm()
     error=None
-
+    print(Species)
     #CDM: See if orthogroup is a valid orthogroup ID
     OrthogroupID = OrthogroupQuery(Input_OrthogroupID)
 
@@ -325,7 +331,7 @@ def searchComplexes():
                 else:
                    return redirect(url_for('displayComplexesForOrthogroupID', OrthogroupID = form.OrthogroupID.data))
             elif len(form.ProteinID.data) > 0:
-                return redirect(url_for('displayComplexesForProteinID', ProteinID = form.ProteinID.data))
+                return redirect(url_for('displayComplexesForProteinID', ProteinID = form.ProteinID.data, Species = form.Species.data))
         
         if form.submitinteractions.data == True:
             if len(form.OrthogroupID.data) > 0:
@@ -335,7 +341,7 @@ def searchComplexes():
                 else:
                    return redirect(url_for('getInteractionsForOrthogroupID', OrthogroupID = form.OrthogroupID.data))
             elif len(form.ProteinID.data) > 0:
-                return redirect(url_for('getInteractionsForProteinID', ProteinID = form.ProteinID.data))
+                return redirect(url_for('getInteractionsForProteinID', ProteinID = form.ProteinID.data, Species = form.Species.data))
  
     #kdrew: added hoping it would fix redirect problem on stale connections
     return render_template('index.html', form = form, complexes = complexes)
