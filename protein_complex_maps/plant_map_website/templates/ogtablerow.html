@@ -1,0 +1,86 @@
+ 
+
+                      <td> 
+                             <!--<form method="POST" action="/search">                                                                                                                {{ form.csrf_token() }}
+                             {{ form.OrthogroupID(value = og.OrthogroupID, type = "hidden") }}                                     
+                             {{ form.submit(value = og.OrthogroupID)  }}   
+                        </form> -->
+                           {{ og.OrthogroupID }}
+                           </td>                                      
+                       
+
+                    <td>{% for x in og.Orthoannots %}
+                            {% if x.InComplex == "TRUE" %}
+                                <form method="POST" action="/search"> 
+                                {{ form.csrf_token() }}
+                                {{ form.OrthogroupID(value = og.OrthogroupID, type = "hidden") }}          
+                                {{ form.submit(value = x.InComplex)  }}                                                                          </form>
+                             {% else %}
+                                 {{ x.InComplex }}
+                             {% endif %}
+                        {% endfor %} </td>
+      
+                    <td>{% for x in og.Orthoannots %}
+                            {% if x.HasInteraction == "TRUE" %}
+                                <form method="POST" action="/search"> 
+                                {{ form.csrf_token() }}
+                                {{ form.OrthogroupID(value = og.OrthogroupID, type = "hidden") }}          
+                                {{ form.submitinteractions(value = x.HasInteraction)  }}                                                                          </form>
+                             {% else %}
+                                 {{ x.HasInteractions }}
+                             {% endif %}
+                        {% endfor %} </td>
+ 
+                    <td>{% for x in og.Orthoannots %}
+                             {{ x.EggnogAnnot }}
+                        {% endfor %} </td>
+
+                    <td>{% for x in og.Orthoannots %}
+                             {{ x.ArathGenenames }}
+                        {% endfor %} </td>
+                    <td>{% for x in og.Orthoannots %}
+                             {{ x.ArathProtnames }}
+                        {% endfor %} </td>
+
+
+                        {% set entrylist = [] %}
+                        {% set entrynamelist = [] %}
+                        {% set tairlist = [] %}
+                        {% set protnamelist = [] %}
+
+                        {% for x in og.Proteins %}
+
+                           {% if x.Spec == Species %}
+                              {% if x.IDtype == "Entry" %}
+                                 {% do entrylist.append(x.ProteinID) %}
+                              {% endif %}
+                              {% if x.IDtype == "EntryName" %}
+                                {% do entrynamelist.append(x.ProteinID) %}
+                              {% endif %}
+                        {% endif %} 
+                        {% if x.IDtype == "atnum" %}
+                              {% do tairlist.append(x.ProteinID) %}
+                           {% endif %}
+
+
+                        {% endfor %} 
+
+                    <td>{{ Species }}</td>
+		    <td>{{ entrylist | join(' ') }}</td>
+
+                    <td>{% for x in og.Orthoannots %}
+                             {{ x.Counts }}
+                        {% endfor %} </td>
+
+
+                    <td><a href = https://www.uniprot.org/uniprot/?query=id:{{entrylist | join("+OR+id:") }}>Uniprot</a> </td>
+
+                    <td>{% for locus in tairlist %}
+                           <a href = https://www.arabidopsis.org/servlets/TairObject?type=locus&name={{ locus }}>{{ locus }}</a>
+                       {% endfor %}</td>
+
+                     <td><a href = http://eggnogdb.embl.de/#/app/results?target_nogs={{ og.OrthogroupID }}>{{ og.OrthogroupID }}</a></td>
+     
+                  
+
+
