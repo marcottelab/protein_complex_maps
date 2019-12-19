@@ -67,11 +67,12 @@ def main():
         if len(complex_line.split()) == 0:
             continue
 
+        complex_query_ids = list(set(complex_line.split()))
         r = requests.post(
                 url='https://biit.cs.ut.ee/gprofiler/api/gost/profile/',
                 json={
                     'organism':'hsapiens',
-                    'query':complex_line.split(),
+                    'query':complex_query_ids,
                     'no_iea':True,
                     'no_evidences':False,
                     'domain_scope':'custom',
@@ -81,7 +82,7 @@ def main():
         #kdrew: does not return list in same order as input
         query_ids = r.json()['meta']['genes_metadata']['query']['query_1']['mapping'].keys()
         print query_ids
-        ordered_query_ids = [x for x in complex_line.split() if x in query_ids]
+        ordered_query_ids = [x for x in complex_query_ids if x in query_ids]
         for res in r.json()['result']:
             res['index'] = index_count
             index_count += 1
