@@ -184,7 +184,8 @@ def displayComplexesForListOfGeneNames():
 
     #complexes = list(set(complexes))
     #complexes = [x[1] for x in sorted(((complexes.count(e), e) for e in set(complexes)), reverse=True)]
-    complexes = [x[1] for x in sorted((((complexes.count(e), -1*e.top_rank), e) for e in set(complexes)), reverse=True)]
+    #complexes = [x[1] for x in sorted((((complexes.count(e), -1*e.top_rank), e) for e in set(complexes)), reverse=True)]
+    complexes = [x[1] for x in sorted((((pvalue_dict[e], e.top_rank), e) for e in set(complexes)), reverse=False)]
 
 
 
