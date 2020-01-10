@@ -140,7 +140,7 @@
         </tr>
         </thead>
         <tbody>
-        {% for prot in comp.proteins %}
+        {% for prot in comp.sorted_proteins() %}
             <tr>
                 <td>{{ prot.genename() }}</td>
                 <td>
@@ -216,7 +216,7 @@
         </tr>
         </thead>
         <tbody>
-        {% for edge in comp.edges() %}
+        {% for edge in comp.all_edges() %}
             <tr>
                 <td>&nbsp {{ edge.get_proteins()[0].genename() }}</td>
                 <td>&nbsp {{ edge.get_proteins()[1].genename() }}</td>
