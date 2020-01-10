@@ -37,6 +37,8 @@ class Complex(db.Model):
     complex_id = db.Column(db.Integer, unique=True, index=True)
     #kdrew: uses table name for ProteinComplexMapping class (annoying sqlalchemy magic)
     proteins = db.relationship('Protein', secondary='protein_complex_mapping', back_populates='complexes')
+    #kdrew: uses table name for EdgeComplexMapping class (annoying sqlalchemy magic)
+    edges = db.relationship('Edge', secondary='edge_complex_mapping', back_populates='complexes')
     enrichments = db.relationship('ComplexEnrichment')
     top_rank = db.Column(db.Integer)
 
@@ -44,22 +46,26 @@ class Complex(db.Model):
         retstr = "<a href=displayComplexes?complex_key=%s>%s</a>" % (self.complex_id, self.complex_id)
         return retstr
 
+    def sorted_proteins(self,):
+        return sorted(self.proteins, key=lambda p: len([g for g in p.genenames]), reverse=True)
+            
+
     #kdrew: a bit of a bottleneck when serving pages, has to generate all combinations of proteins in complex and then search for combination in edge table
     #kdrew: seems like there should be a better way of doing this, either 1) combining protein keys as a single index or 2) storing mapping between complex and edges directly
-    def edges(self,):
-        es = []
-        for prot1, prot2 in it.combinations(self.proteins,2):
-            #kdrew: edge table enforces order
-            if prot2.id < prot1.id:
-                prot2, prot1 = prot1, prot2
-            edge = db.session.query(Edge).filter( and_(Edge.protein_key == prot1.id, Edge.protein_key2 == prot2.id) ).first()
-            if edge != None:
-                es.append(edge)
+    def all_edges(self,):
+        #es = []
+        #for prot1, prot2 in it.combinations(self.proteins,2):
+        #    #kdrew: edge table enforces order
+        #    if prot2.id < prot1.id:
+        #        prot2, prot1 = prot1, prot2
+        #    edge = db.session.query(Edge).filter( and_(Edge.protein_key == prot1.id, Edge.protein_key2 == prot2.id) ).first()
+        #    if edge != None:
+        #        es.append(edge)
 
         #edges = [db.session.query(Edge).filter((and_(Edge.protein_key == prot1.id, Edge.protein_key2 == prot2.id) | and_(Edge.protein_key == prot2.id,Edge.protein_key2 == prot1.id))).first() for prot1, prot2 in it.combinations(self.proteins,2)]
         #es = [e for e in edges if e != None]
 
-        return sorted(list(set(es)), key=lambda es: es.score, reverse=True)
+        return sorted(list(set(self.edges)), key=lambda es: es.score, reverse=True)
 
         
 class Gene(db.Model):
@@ -105,6 +111,8 @@ class Edge(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     protein_key = db.Column(db.Integer, db.ForeignKey('protein.id'), index=True )
     protein_key2 = db.Column(db.Integer, db.ForeignKey('protein.id'), index=True )
+    #kdrew: uses table name for EdgeComplexMapping class (annoying sqlalchemy magic)
+    complexes = db.relationship('Complex', secondary='edge_complex_mapping',  back_populates='edges')
     score = db.Column(db.Float)
 
     evidences = db.relationship('Evidence')
@@ -126,6 +134,13 @@ class ProteinComplexMapping(db.Model):
     __tablename__ = 'protein_complex_mapping'
     protein_key = db.Column(db.Integer, db.ForeignKey('protein.id'), primary_key=True)
     complex_key = db.Column(db.Integer, db.ForeignKey('complex.id'), primary_key=True)
+
+class EdgeComplexMapping(db.Model):
+    """A mapping between edges and complexes"""
+    __tablename__ = 'edge_complex_mapping'
+    edge_key = db.Column(db.Integer, db.ForeignKey('edge.id'), primary_key=True)
+    complex_key = db.Column(db.Integer, db.ForeignKey('complex.id'), primary_key=True)
+
 
 class ComplexEnrichment(db.Model):
     """Annotation Enrichment for a Complex"""
