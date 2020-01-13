@@ -114,8 +114,25 @@
 
     <p>
 
+    <!--
     {% if error %}
         <h3>{{error}}</h3>
+    {% endif %}
+    -->
+    {% if genename_cannotfind_errors|length > 0 %}
+        <p class="text-danger"> Could not find genenames: 
+            {% for gene_error in genename_cannotfind_errors %}
+                {{gene_error|safe}}
+            {% endfor %}
+        </p>
+    {% endif %}
+
+    {% if genename_nocomplex_errors|length > 0 %}
+        <p class="text-danger"> No complexes found for genenames:
+            {% for gene_error in genename_nocomplex_errors %}
+                {{gene_error|safe}}
+            {% endfor %}
+        </p>
     {% endif %}
 
     <ul>
@@ -142,9 +159,11 @@
             </script>  
 
         </h4>
+        {% if pvalue_dict %}
         <h4>
             Input enrichment p-value: {{pvalue_dict[comp]}}
         </h4>
+        {% endif %}
 
         <h3>Proteins:</h3>
         <table class="table table-striped">
