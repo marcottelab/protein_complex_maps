@@ -186,7 +186,7 @@
                         <em> No proteins</em>
                     {% endfor %}
                 </td>
-                <td> {{ enrichment.description|safe }}</td>
+                <td> {{ enrichment.name|safe }}</td>
             </tr>
         {% else %}
             &nbsp    <em> No enrichments</em>
@@ -218,8 +218,8 @@
         <tbody>
         {% for edge in comp.all_edges() %}
             <tr>
-                <td>&nbsp {{ edge.get_proteins()[0].genename() }}</td>
-                <td>&nbsp {{ edge.get_proteins()[1].genename() }}</td>
+                <td>&nbsp{{ edge.get_proteins()[0].genename() }}</td>
+                <td>&nbsp{{ edge.get_proteins()[1].genename() }}</td>
                 <td> {{ edge.score|safe }}</td>
                 <td>
                     {% for evidence in edge.evidences %}
