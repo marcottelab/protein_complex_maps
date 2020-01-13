@@ -37,7 +37,8 @@ def main():
                 group_id              = row.group_id,             
                 intersection_genes    = row.intersection_genes,    
                 intersection_size     = row.intersection_size,    
-                name                  = row.name,                 
+                #name                  = row.name, #kdrew: name is overloaded here and defaults to name of row rather than the column 'name'                
+                name                  = row['name'],                 
                 native                = row.native,               
                 p_value               = row.p_value,              
                 parents               = row.parents,              
