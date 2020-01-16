@@ -105,160 +105,162 @@
         <h3>{{error}}</h3>
     {% endif %}
 
-<ul>
-<h3>Complex: {{ comp.complex_link()|safe }}</h3>
-<h4>Confidence: 
-    {% if comp.top_rank == 1 %}
-        <a href="#" class="label label-success" data-toggle="tooltip" title="Extremely High">Extremely High</a> &nbsp 
-    {% elif comp.top_rank == 2 %}
-        <a href="#" class="label label-primary" data-toggle="tooltip" title="Very High">Very High</a> &nbsp 
-    {% elif comp.top_rank == 3 %}
-        <a href="#" class="label label-info" data-toggle="tooltip" title="High">High</a> &nbsp 
-    {% elif comp.top_rank == 4 %}
-        <a href="#" class="label label-warning" data-toggle="tooltip" title="Medium High">Medium High</a> &nbsp 
-    {% elif comp.top_rank == 5 %}
-        <a href="#" class="label label-default" data-toggle="tooltip" title="Medium">Medium</a> &nbsp 
-    {% endif %}
-    <button class="btn btn-default btn-xs" onclick="complexConfidence()">?</button>
-    <script>
-        function complexConfidence() {
-                    alert("Complex Confidence");
-                        }
-    </script>  
-
-</h4>
-
-<a href="#Proteins" class="btn btn-default" data-toggle="collapse">Proteins</a>
-<div id="Proteins" class="collapse in">
-    <table class="table table-striped">
-        <thead>
-        <tr>
-            <th>Genename</th>
-            <th>Complexes</th>
-            <th>Protein Name</th>
-            <th>Links</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for prot in comp.sorted_proteins() %}
-            <tr>
-                <td>{{ prot.genename() }}</td>
-                <td>
-                    {% for comp in prot.complexes %}
-                        {{ comp.complex_link()|safe }}
-                    {% else %}
-                    {% endfor %}
-                </td>
-                <td> {{prot.proteinname}}</td>
-                <td>{{ prot.uniprot_link()|safe }} &nbsp {{ prot.ncbi_link()|safe }}</td>
-            </tr>
-        {% else %}
-            <em> No proteins</em>
-        {% endfor %}
-        </tbody>
-    </table>
-</div>
-
-<br>
-<br>
-<a href="#Enrichments" class="btn btn-default" data-toggle="collapse">Enrichments</a>
-<div id="Enrichments" class="collapse">
-    <table class="table table-striped">
-        <thead>
-        <tr>
-            <th>Term ID</th>
-            <th>Corrected Pval</th>
-            <th>Fraction Complex Coverage</th>
-            <th>Proteins</th>
-            <th>Term Name</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for enrichment in comp.enrichments %}
-            <tr>
-                <td>&nbsp {{ enrichment.native|safe }}</td>
-                <td> {{ enrichment.p_value|safe }}</td>
-                <td> {{ enrichment.precision |safe }}</td>
-                <td>
-                    {% for protein in enrichment.get_proteins() %}
-                        {{ protein.genename() }}
-                    {% else %}
-                        <em> No proteins</em>
-                    {% endfor %}
-                </td>
-                <td> {{ enrichment.name|safe }}</td>
-            </tr>
-        {% else %}
-            &nbsp    <em> No enrichments</em>
-        {% endfor %}
-        </tbody>
-    </table>
-</div>
-
-<br>
-<br>
-<a href="#Edges" class="btn btn-default" data-toggle="collapse">Edges</a>
-<div id="Edges" class="collapse">
-    <table class="table table-striped">
-        <thead>
-        <tr>
-            <th>Protein 1 </th>
-            <th>Protein 2 </th>
-            <th>Score </th>
-            <th>Evidence <button class="btn btn-default btn-xs" onclick="evidenceFunction()">?</button>
+    {% if comp != None %}
+        <ul>
+        <h3>Complex: {{ comp.complex_link()|safe }}</h3>
+        <h4>Confidence: 
+            {% if comp.top_rank == 1 %}
+                <a href="#" class="label label-success" data-toggle="tooltip" title="Extremely High">Extremely High</a> &nbsp 
+            {% elif comp.top_rank == 2 %}
+                <a href="#" class="label label-primary" data-toggle="tooltip" title="Very High">Very High</a> &nbsp 
+            {% elif comp.top_rank == 3 %}
+                <a href="#" class="label label-info" data-toggle="tooltip" title="High">High</a> &nbsp 
+            {% elif comp.top_rank == 4 %}
+                <a href="#" class="label label-warning" data-toggle="tooltip" title="Medium High">Medium High</a> &nbsp 
+            {% elif comp.top_rank == 5 %}
+                <a href="#" class="label label-default" data-toggle="tooltip" title="Medium">Medium</a> &nbsp 
+            {% endif %}
+            <button class="btn btn-default btn-xs" onclick="complexConfidence()">?</button>
             <script>
-                function evidenceFunction() {
-                    alert("Edge Evidence Key\n\nbioplex = bait-prey relationship in Bioplex, bait(s) in parentheses\n\nhein = bait-prey relationship in Hein et al., bait(s) in parentheses\n\nbioplex_prey = prey-prey relationship in Bioplex\n\nhein_prey = prey-prey relationship in Hein et al.\n\nfraction = co-elution relationship in Wan et al.\n\nNote: Evidence listed does not necessiarily mean positive evidence but rather only means there is data for this particular pair of proteins");
-                }
+                function complexConfidence() {
+                            alert("Complex Confidence");
+                                }
+            </script>  
+
+        </h4>
+
+        <a href="#Proteins" class="btn btn-default" data-toggle="collapse">Proteins</a>
+        <div id="Proteins" class="collapse in">
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>Genename</th>
+                    <th>Complexes</th>
+                    <th>Protein Name</th>
+                    <th>Links</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for prot in comp.sorted_proteins() %}
+                    <tr>
+                        <td>{{ prot.genename() }}</td>
+                        <td>
+                            {% for comp in prot.complexes %}
+                                {{ comp.complex_link()|safe }}
+                            {% else %}
+                            {% endfor %}
+                        </td>
+                        <td> {{prot.proteinname}}</td>
+                        <td>{{ prot.uniprot_link()|safe }} &nbsp {{ prot.ncbi_link()|safe }}</td>
+                    </tr>
+                {% else %}
+                    <em> No proteins</em>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <br>
+        <br>
+        <a href="#Enrichments" class="btn btn-default" data-toggle="collapse">Enrichments</a>
+        <div id="Enrichments" class="collapse">
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>Term ID</th>
+                    <th>Corrected Pval</th>
+                    <th>Fraction Complex Coverage</th>
+                    <th>Proteins</th>
+                    <th>Term Name</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for enrichment in comp.enrichments %}
+                    <tr>
+                        <td>&nbsp {{ enrichment.native|safe }}</td>
+                        <td> {{ enrichment.p_value|safe }}</td>
+                        <td> {{ enrichment.precision |safe }}</td>
+                        <td>
+                            {% for protein in enrichment.get_proteins() %}
+                                {{ protein.genename() }}
+                            {% else %}
+                                <em> No proteins</em>
+                            {% endfor %}
+                        </td>
+                        <td> {{ enrichment.name|safe }}</td>
+                    </tr>
+                {% else %}
+                    &nbsp    <em> No enrichments</em>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <br>
+        <br>
+        <a href="#Edges" class="btn btn-default" data-toggle="collapse">Edges</a>
+        <div id="Edges" class="collapse">
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>Protein 1 </th>
+                    <th>Protein 2 </th>
+                    <th>Score </th>
+                    <th>Evidence <button class="btn btn-default btn-xs" onclick="evidenceFunction()">?</button>
+                    <script>
+                        function evidenceFunction() {
+                            alert("Edge Evidence Key\n\nbioplex = bait-prey relationship in Bioplex, bait(s) in parentheses\n\nhein = bait-prey relationship in Hein et al., bait(s) in parentheses\n\nbioplex_prey = prey-prey relationship in Bioplex\n\nhein_prey = prey-prey relationship in Hein et al.\n\nfraction = co-elution relationship in Wan et al.\n\nNote: Evidence listed does not necessiarily mean positive evidence but rather only means there is data for this particular pair of proteins");
+                        }
+                    </script>                                                    
+                    </th>
+
+                </tr>
+                </thead>
+                <tbody>
+                {% for edge in comp.all_edges() %}
+                    <tr>
+                        <td>&nbsp{{ edge.get_proteins()[0].genename() }}</td>
+                        <td>&nbsp{{ edge.get_proteins()[1].genename() }}</td>
+                        <td> {{ edge.score|safe }}</td>
+                        <td>
+                            {% for evidence in edge.evidences %}
+                                {{ evidence.evidence_type|safe }} &nbsp &nbsp 
+                            {% else %}
+                                <em> No Evidences</em>
+                            {% endfor %}
+                        </td>
+                    </tr>
+                {% else %}
+                    &nbsp    <em> No edges</em>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <br>
+        <!--
+        <br>
+        <a href="#Images" class="btn btn-default" data-toggle="collapse">Images</a>
+        <div id="Images" class="collapse">
+        <br>
+            <button class="btn btn-default btn-xs" onclick="imageFunction()">?</button>
+            <script>
+            function imageFunction() {
+            alert("ClusterMap shows raw data support across available experiments for given complex.\n\nPercentile Rank scores were calculated based on Bioplex zscore, Hein prey.bait.correlation and Wan spectral counts.\n\nOnly experiments for which one or more of the subunits are present are displayed");
+            }
             </script>                                                    
-            </th>
+        <br>
+        Click to enlarge
+        <br>
+        <a href="/static/images/clustermaps_humap2/bioplex_hein_wan_matrix_{{comp.complex_id}}.png" target="_blank">
+        <img src="/static/images/clustermaps_humap2/bioplex_hein_wan_matrix_{{comp.complex_id}}.png" alt="ClusterMap" width=100% height=100%> 
+        </div>
 
-        </tr>
-        </thead>
-        <tbody>
-        {% for edge in comp.all_edges() %}
-            <tr>
-                <td>&nbsp{{ edge.get_proteins()[0].genename() }}</td>
-                <td>&nbsp{{ edge.get_proteins()[1].genename() }}</td>
-                <td> {{ edge.score|safe }}</td>
-                <td>
-                    {% for evidence in edge.evidences %}
-                        {{ evidence.evidence_type|safe }} &nbsp &nbsp 
-                    {% else %}
-                        <em> No Evidences</em>
-                    {% endfor %}
-                </td>
-            </tr>
-        {% else %}
-            &nbsp    <em> No edges</em>
-        {% endfor %}
-        </tbody>
-    </table>
-</div>
+        <br>
+        -->
 
-<br>
-<!--
-<br>
-<a href="#Images" class="btn btn-default" data-toggle="collapse">Images</a>
-<div id="Images" class="collapse">
-<br>
-    <button class="btn btn-default btn-xs" onclick="imageFunction()">?</button>
-    <script>
-    function imageFunction() {
-    alert("ClusterMap shows raw data support across available experiments for given complex.\n\nPercentile Rank scores were calculated based on Bioplex zscore, Hein prey.bait.correlation and Wan spectral counts.\n\nOnly experiments for which one or more of the subunits are present are displayed");
-    }
-    </script>                                                    
-<br>
-Click to enlarge
-<br>
-<a href="/static/images/clustermaps_humap2/bioplex_hein_wan_matrix_{{comp.complex_id}}.png" target="_blank">
-<img src="/static/images/clustermaps_humap2/bioplex_hein_wan_matrix_{{comp.complex_id}}.png" alt="ClusterMap" width=100% height=100%> 
-</div>
-
-<br>
--->
-
-</ul>
+        </ul>
+    {% endif %}
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
