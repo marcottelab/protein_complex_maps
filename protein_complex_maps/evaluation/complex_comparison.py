@@ -104,22 +104,22 @@ class ComplexComparison(object):
 
     def precision_measure(self,topN=None):
         max_df = self.prediction_wise_max_matching_ratio_distribution(topN=topN)
-        #print max_df
+        print "precision_measure: %s" % max_df
         lengths = [len(x) for x in self.get_clusters()]
-        #print lengths
+        print "precision_measure: %s" % lengths
         sum_weighted_max = np.sum(lengths*max_df)
-        #print sum_weighted_max
+        print "precision_measure: %s" % sum_weighted_max
 
         precision_measure = sum_weighted_max / np.sum(lengths)
         return precision_measure
 
     def recall_measure(self,topN=None):
         max_df = self.max_matching_ratio_distribution(topN=topN)
-        #print max_df
+        print "recall_measure: %s" % max_df
         lengths = [len(x) for x in self.get_gold_standard()]
-        #print lengths
+        print "recall_measure: %s" % lengths
         sum_weighted_max = np.sum(lengths*max_df)
-        #print sum_weighted_max
+        print "recall_measure: %s" % sum_weighted_max
 
         recall_measure = sum_weighted_max / np.sum(lengths)
         return recall_measure
