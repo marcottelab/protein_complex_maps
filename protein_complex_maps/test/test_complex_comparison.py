@@ -167,7 +167,7 @@ class ComplexComparisonTest(unittest.TestCase):
         print ccobj.mmr_pwmmr_hmean()
         np.testing.assert_almost_equal( ccobj.mmr_pwmmr_hmean(), 0.51008064516129026)
 
-    def testComplexComparison_PrecsionMeasure(self, ):
+    def testComplexComparison_PrecisionMeasure(self, ):
         ccobj = cc.ComplexComparison(self.gold_standard, self.clusters, remove_non_gold_standard_proteins=True)
         print ccobj.precision_measure()
         np.testing.assert_almost_equal( ccobj.precision_measure(), 1.0)
@@ -176,6 +176,16 @@ class ComplexComparisonTest(unittest.TestCase):
         ccobj = cc.ComplexComparison(self.gold_standard, self.clusters, remove_non_gold_standard_proteins=True)
         print ccobj.precision_measure()
         np.testing.assert_almost_equal( ccobj.precision_measure(), 0.85)
+
+    def testComplexComparison_RecallMeasure(self, ):
+        ccobj = cc.ComplexComparison(self.gold_standard, self.clusters, remove_non_gold_standard_proteins=True)
+        print ccobj.recall_measure()
+        np.testing.assert_almost_equal( ccobj.recall_measure(), 1.0)
+
+        self.clusters.append(['a','d'])
+        ccobj = cc.ComplexComparison(self.gold_standard, self.clusters, remove_non_gold_standard_proteins=True)
+        print ccobj.recall_measure()
+        np.testing.assert_almost_equal( ccobj.recall_measure(), 0.85)
 
 
     def testCliqueComparison(self, ):
