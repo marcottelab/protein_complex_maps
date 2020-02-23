@@ -83,8 +83,8 @@ def main():
         evidence_dict['fraction'] = ('True' in split_line[3])
         evidence_dict['bioplex'] = ('True' in split_line[4])
         evidence_dict['hein'] = ('True' in split_line[5])
-        evidence_dict['bioplex_prey'] = ('True' in split_line[6])
-        evidence_dict['hein_prey'] = ('True' in split_line[7])
+        evidence_dict['bioplex_WMM'] = ('True' in split_line[6])
+        evidence_dict['hein_WMM'] = ('True' in split_line[7])
         evidence_dict['Guru'] = ('True' in split_line[8])
         evidence_dict['Malo'] = ('True' in split_line[9])
         evidence_dict['bioplex2'] = ('True' in split_line[10])
@@ -92,12 +92,12 @@ def main():
         evidence_dict['gupta_nonciliated'] = ('True' in split_line[12])
         evidence_dict['boldt'] = ('True' in split_line[13])
         evidence_dict['youn'] = ('True' in split_line[14])
-        evidence_dict['bioplex2_hygeo'] = ('True' in split_line[15])
-        evidence_dict['gupta_hygeo'] = ('True' in split_line[16])
-        evidence_dict['boldt_hygeo'] = ('True' in split_line[17])
-        evidence_dict['youn_hygeo'] = ('True' in split_line[18])
-        evidence_dict['treiber_hygeo'] = ('True' in split_line[19])
-        evidence_dict['hygeo_only'] = ('True' in split_line[20])
+        evidence_dict['bioplex2_WMM'] = ('True' in split_line[15])
+        evidence_dict['gupta_WMM'] = ('True' in split_line[16])
+        evidence_dict['boldt_WMM'] = ('True' in split_line[17])
+        evidence_dict['youn_WMM'] = ('True' in split_line[18])
+        evidence_dict['treiber_WMM'] = ('True' in split_line[19])
+        evidence_dict['WMM_only'] = ('True' in split_line[20])
     
 
         p1 = db.session.query(cdb.Protein).filter_by(gene_id=prot1).first()
@@ -163,14 +163,17 @@ def main():
                     kstr = k
                     if k == 'hein':
                         kstr+= ' (%s)' % (','.join(hein_baits))
-                    if k == 'bioplex':
-                        kstr+= ' (%s)' % (','.join(bioplex_baits))
+                    if k == 'bioplex' or k == 'bioplex2':
+                        kstr = 'bioplex (%s)' % (','.join(bioplex_baits))
+                    if k == 'bioplex_WMM' or k == 'bioplex2_WMM':
+                        kstr = 'bioplex_WMM' 
                     if k == 'boldt':
-                        kstr+= ' (%s)' % (','.join(boldt_baits))
+                        if len(boldt_baits) > 0:
+                            kstr+= ' (%s)' % (','.join(boldt_baits))
                     if k == 'youn':
                         kstr+= ' (%s)' % (','.join(youn_baits))
-                    if k == 'gupta':
-                        kstr+= ' (%s)' % (','.join(gupta_baits))
+                    if k == 'gupta_ciliated' or k == 'gupta_nonciliated':
+                        kstr = 'gupta (%s)' % (','.join(gupta_baits))
 
                     evidence = cdb.get_or_create(db, cdb.Evidence,
                                                     edge_key = edge.id,
