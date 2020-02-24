@@ -116,6 +116,10 @@ def displayComplexesForListOfGeneNames():
     #print listOfGenenames
 
     all_genes = []
+    complexes = []
+    all_proteins = []
+    error_proteins = []
+
     for genename in listOfGenenames:
         #print genename
         #kdrew: tests to see if genename is a valid genename
@@ -123,54 +127,53 @@ def displayComplexesForListOfGeneNames():
 
         if len(genes) == 0:
             #kdrew: input genename is not valid, flash message
-            #if error == None:
-            #    error = ""
-            #error = error + "Could not find genename: %s<br>" % genename
             genename_cannotfind_errors.append(genename)
 
-            #return render_template('index.html', form=form, complexes=[], error=error)
+        #all_genes = all_genes + genes
 
-        all_genes = all_genes + genes
+        #print [g.genename for g in all_genes]
 
-    #print [g.genename for g in all_genes]
-
-    complexes = []
-    all_proteins = []
-    error_proteins = []
-    for gene in all_genes:
-        try:
-            proteins = db.session.query(cdb.Protein).filter((cdb.Protein.gene_id == gene.gene_id)).all()
-
-        except NoResultFound:
-            if error == None:
-                error = ""
-            #kdrew: input genename is not valid, flash message
-            #error = error + "Could not find genename: %s<br>" % gene.genename
-            genename_cannotfind_errors.append(gene.genename)
-
-            #return render_template('index.html', form=form, complexes=[], error=error)
-
-        all_proteins = all_proteins + proteins
-
-        error_proteins_current = []
-        for protein in proteins:
-            if len(protein.complexes) == 0:
-                error_proteins_current.append(protein)
+        found_complexes_flag = False
+        for gene in genes:
+            print "current genename: %s" % gene.genename
             try:
-                complexes = complexes + protein.complexes
-                #kdrew: if found complexes for any of the proteins attached to gene then do not report error
-                error_proteins_current = []
+                #kdrew: why am I matching based on gene_id and not gene.protein_key == Protein.id, switched and can't see a problem
+                #proteins = db.session.query(cdb.Protein).filter((cdb.Protein.gene_id == gene.gene_id)).all()
+                proteins = db.session.query(cdb.Protein).filter((cdb.Protein.id == gene.protein_key)).all()
+
             except NoResultFound:
-                continue
+                if error == None:
+                    error = ""
+                #kdrew: input genename is not valid, flash message
+                genename_cannotfind_errors.append(gene.genename)
 
-        #kdrew: add proteins from this iteration that did not have complexes to the list of error proteins
-        error_proteins = error_proteins + error_proteins_current
+            all_proteins = all_proteins + proteins
 
-    if len(complexes) == 0:
-        if error == None:
-            error = ""
-        error = error + "No complexes found for genenames: %s<br>" % ', '.join([g.genename for g in all_genes])
-        genename_nocomplex_errors = genename_nocomplex_errors + [g.genename for g in all_genes]
+            error_proteins_current = []
+            for protein in proteins:
+                print "current protein: %s" % protein.genename()
+                print "current protein complexes: %s" % len(protein.complexes)
+                print "found_complexes_flag: %s" % found_complexes_flag
+                if len(protein.complexes) == 0 and not found_complexes_flag:
+                    error_proteins_current.append(protein)
+                else:
+                    try:
+                        complexes = complexes + protein.complexes
+                        #kdrew: if found complexes for any of the proteins attached to gene then do not report error
+                        error_proteins_current = []
+                        found_complexes_flag = True
+                    except NoResultFound:
+                        continue
+
+            #kdrew: add proteins from this iteration that did not have complexes to the list of error proteins
+            error_proteins = error_proteins + error_proteins_current
+            print "error_proteins: %s" % ' '.join([p.genename() for p in error_proteins])
+
+    #if len(complexes) == 0:
+    #    if error == None:
+    #        error = ""
+    #    error = error + "No complexes found for genenames: %s<br>" % ', '.join([g.genename for g in all_genes])
+    #    genename_nocomplex_errors = genename_nocomplex_errors + [g.genename for g in all_genes]
 
     if len(error_proteins) > 0:
         if error == None:
@@ -180,7 +183,8 @@ def displayComplexesForListOfGeneNames():
 
 
     n = len(all_proteins)
-    N = db.session.query(cdb.Protein).distinct(cdb.Protein.gene_id).count()
+    #kdrew: need to update to restrict to just proteins identified in complexes
+    N = db.session.query(cdb.ProteinComplexMapping).distinct(cdb.ProteinComplexMapping.protein_key).group_by(cdb.ProteinComplexMapping.protein_key).count()
     pvalue_dict = dict()
     for c in set(complexes):
         k = complexes.count(c)
