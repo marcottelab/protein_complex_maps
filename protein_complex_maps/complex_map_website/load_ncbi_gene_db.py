@@ -55,7 +55,8 @@ def main():
             for genename in ncbi_df.query("GeneID == @gene_id1")['Symbol'].unique():
                 print "%s %s" % (genename, gene_id1)
                 if genename != None:
-                    gene = cdb.get_or_create(db,cdb.Gene, gene_id = gene_id1, genename=genename, protein_key = p1.id)
+                    #gene = cdb.get_or_create(db,cdb.Gene, gene_id = gene_id1, genename=genename, protein_key = p1.id)
+                    gene = cdb.get_or_create(db,cdb.Gene, genename=genename, protein_key = p1.id)
                     db.session.add(gene)
                     db.session.commit()
         else:

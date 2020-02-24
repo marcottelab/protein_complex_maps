@@ -53,7 +53,8 @@ def main():
                 for genename in genename_map[acc]:
                     print genename
                     if genename != None:
-                        gene = cdb.get_or_create(db,cdb.Gene, gene_id = prot_id, genename=genename, protein_key = p1.id)
+                        #gene = cdb.get_or_create(db,cdb.Gene, gene_id = prot_id, genename=genename, protein_key = p1.id)
+                        gene = cdb.get_or_create(db,cdb.Gene, genename=genename, protein_key = p1.id)
                         db.session.add(gene)
                         db.session.commit()
         else:

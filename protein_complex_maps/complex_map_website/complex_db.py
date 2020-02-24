@@ -71,7 +71,7 @@ class Complex(db.Model):
 class Gene(db.Model):
     """A gene"""
     id = db.Column(db.Integer, primary_key=True)
-    gene_id = db.Column(db.String(63), index=True)
+    #gene_id = db.Column(db.String(63), index=True)
     genename = db.Column(db.String(255), index=True)
     protein_key = db.Column(db.Integer, db.ForeignKey('protein.id'))
 
