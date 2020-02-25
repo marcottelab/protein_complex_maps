@@ -119,13 +119,17 @@ def displayComplexesForListOfGeneNames():
     complexes = []
     all_proteins = []
     error_proteins = []
+    error_uniprot_proteins = []
 
     for genename in listOfGenenames:
         #print genename
         #kdrew: tests to see if genename is a valid genename
         genes = db.session.query(cdb.Gene).filter((func.upper(cdb.Gene.genename) == func.upper(genename))).all()
 
-        if len(genes) == 0:
+        uniprot_acc_proteins = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.uniprot_acc) == func.upper(genename))).all()
+        all_proteins = all_proteins + uniprot_acc_proteins
+
+        if len(genes) == 0 and len(uniprot_acc_proteins) == 0:
             #kdrew: input genename is not valid, flash message
             genename_cannotfind_errors.append(genename)
 
@@ -169,6 +173,24 @@ def displayComplexesForListOfGeneNames():
             error_proteins = error_proteins + error_proteins_current
             print "error_proteins: %s" % ' '.join([p.genename() for p in error_proteins])
 
+        #kdrew: making a small assumption here that genenames and uniprot accs do not overlap, I can't image that they would ever
+        found_complexes_flag = False
+        error_uniprot_proteins_current = []
+        for uniprot_acc_protein in uniprot_acc_proteins:
+            if len(uniprot_acc_protein.complexes) == 0 and not found_complexes_flag:
+                error_uniprot_proteins_current.append(uniprot_acc_protein)
+            else:
+                try:
+                    complexes = complexes + uniprot_acc_protein.complexes
+                    #kdrew: if found complexes for any of the proteins attached to gene then do not report error
+                    error_uniprot_proteins_current = []
+                    found_complexes_flag = True
+                except NoResultFound:
+                    continue
+
+        #kdrew: add proteins from this iteration that did not have complexes to the list of error proteins
+        error_uniprot_proteins = error_uniprot_proteins + error_uniprot_proteins_current
+
     #if len(complexes) == 0:
     #    if error == None:
     #        error = ""
@@ -181,9 +203,14 @@ def displayComplexesForListOfGeneNames():
         error = error + "No complexes found for genenames: %s<br>" % ', '.join([p.genename() for p in error_proteins])
         genename_nocomplex_errors = genename_nocomplex_errors + [p.genename() for p in error_proteins]
 
+    if len(error_uniprot_proteins) > 0:
+        if error == None:
+            error = ""
+        error = error + "No complexes found for genenames: %s<br>" % ', '.join([p.uniprot_acc for p in error_uniprot_proteins])
+        genename_nocomplex_errors = genename_nocomplex_errors + [p.uniprot_acc for p in error_uniprot_proteins]
+
 
     n = len(all_proteins)
-    #kdrew: need to update to restrict to just proteins identified in complexes
     N = db.session.query(cdb.ProteinComplexMapping).distinct(cdb.ProteinComplexMapping.protein_key).group_by(cdb.ProteinComplexMapping.protein_key).count()
     pvalue_dict = dict()
     for c in set(complexes):
@@ -226,6 +253,8 @@ def displayComplexesForEnrichment():
     if len(complexes) == 0:
         error = "No complexes found for given enrichment term: %s" % enrichment
 
+    complexes = [x[1] for x in sorted((((complexes.count(e), -1*e.top_rank), e) for e in set(complexes)), reverse=True)]
+
     #return render_template('index.html', form=form, complexes=complexes, error=error)
     return render_template('index.html', form=form, complexes=complexes, prot_ids=[], pvalue_dict=None, error=error)
 
@@ -251,6 +280,8 @@ def displayComplexesForProtein():
 
     if len(complexes) == 0:
         error = "No complexes found for given search term: %s" % protein_search
+
+    complexes = [x[1] for x in sorted((((complexes.count(e), -1*e.top_rank), e) for e in set(complexes)), reverse=True)]
 
     #return render_template('index.html', form=form, complexes=complexes, error=error)
     return render_template('index.html', form=form, complexes=complexes, prot_ids=[], pvalue_dict=None, error=error)
