@@ -135,7 +135,9 @@
                 <thead>
                 <tr>
                     <th>Genename</th>
+                    <!--
                     <th>Complexes</th>
+                    -->
                     <th>Protein Name</th>
                     <th>Links</th>
                 </tr>
@@ -144,12 +146,14 @@
                 {% for prot in comp.sorted_proteins() %}
                     <tr>
                         <td>{{ prot.genename() }}</td>
+                        <!--
                         <td>
                             {% for comp in prot.complexes %}
                                 {{ comp.complex_link()|safe }}
                             {% else %}
                             {% endfor %}
                         </td>
+                        -->
                         <td> {{prot.proteinname}}</td>
                         <td>{{ prot.uniprot_link()|safe }} &nbsp {{ prot.ncbi_link()|safe }}</td>
                     </tr>
@@ -238,6 +242,34 @@
         </div>
 
         <br>
+        <br>
+        <a href="#RelatedComplexes" class="btn btn-default" data-toggle="collapse">Related Complexes</a>
+        <div id="RelatedComplexes" class="collapse">
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>Genename</th>
+                    <th>Complexes</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for prot in comp.sorted_proteins() %}
+                    <tr>
+                        <td>{{ prot.genename() }}</td>
+                        <td>
+                            {% for comp in prot.complexes %}
+                                {{ comp.complex_link()|safe }}
+                            {% else %}
+                            {% endfor %}
+                        </td>
+                    </tr>
+                {% else %}
+                    <em> No proteins</em>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
         <!--
         <br>
         <a href="#Images" class="btn btn-default" data-toggle="collapse">Images</a>

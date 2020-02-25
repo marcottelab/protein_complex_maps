@@ -170,7 +170,7 @@
             <thead>
             <tr>
                 <th>Genename</th>
-                <th>Complexes</th>
+                <!-- <th>Complexes</th> -->
                 <th>Protein Name</th>
                 <th>Links</th>
             </tr>
@@ -181,6 +181,7 @@
                 {% if prot.id in prot_ids %}
                     <tr>
                         <td><strong>{{ prot.genename() }}</strong></td>
+                        <!--
                         <td>
                         {% for comp in prot.complexes %}
                             {{ comp.complex_link()|safe }}
@@ -190,6 +191,7 @@
                           -->
                         {% endfor %}
                         </td>
+                        -->
                         <td> {{prot.proteinname}}</td>
                         <td>{{ prot.uniprot_link()|safe }} &nbsp {{ prot.ncbi_link()|safe }}</td>
                     </tr>
@@ -202,6 +204,7 @@
                 {% if prot.id not in prot_ids %}
                     <tr>
                         <td>{{ prot.genename() }}</td>
+                        <!--
                         <td>
                             {% for comp in prot.complexes %}
                                 {{ comp.complex_link()|safe }}
@@ -211,6 +214,7 @@
                               -->
                             {% endfor %}
                         </td>
+                        -->
                         <td> {{prot.proteinname}}</td>
                         <td>{{ prot.uniprot_link()|safe }} &nbsp {{ prot.ncbi_link()|safe }}</td>
                     </tr>

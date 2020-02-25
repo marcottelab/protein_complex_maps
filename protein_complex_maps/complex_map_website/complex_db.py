@@ -35,6 +35,7 @@ class Complex(db.Model):
     """A single complex"""
     id = db.Column(db.Integer, primary_key=True)
     complex_id = db.Column(db.Integer, unique=True, index=True)
+    humap2_id = db.Column(db.String(63), unique=True, index=True)
     #kdrew: uses table name for ProteinComplexMapping class (annoying sqlalchemy magic)
     proteins = db.relationship('Protein', secondary='protein_complex_mapping', back_populates='complexes')
     #kdrew: uses table name for EdgeComplexMapping class (annoying sqlalchemy magic)
@@ -43,7 +44,8 @@ class Complex(db.Model):
     top_rank = db.Column(db.Integer)
 
     def complex_link(self,):
-        retstr = "<a href=displayComplexes?complex_key=%s>%s</a>" % (self.complex_id, self.complex_id)
+        #retstr = "<a href=displayComplexes?complex_key=%s>%s</a>" % (self.complex_id, self.complex_id)
+        retstr = "<a href=displayComplexes?complex_key=%s>%s</a>" % (self.humap2_id, self.humap2_id)
         return retstr
 
     def sorted_proteins(self,):

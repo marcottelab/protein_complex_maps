@@ -293,7 +293,8 @@ def displayComplexes():
     error=None
     #kdrew: do error checking
     try:
-        comp = db.session.query(cdb.Complex).filter_by(complex_id=complex_key).one()
+        #comp = db.session.query(cdb.Complex).filter_by(complex_id=complex_key).one()
+        comp = db.session.query(cdb.Complex).filter_by(humap2_id=complex_key).one()
     except NoResultFound:
         comp = None
 
