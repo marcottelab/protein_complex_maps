@@ -26,21 +26,21 @@
     <div class="container theme-showcase" role="main">
 
 {% include 'jumbotron.html' %}
+
 {% include 'introheader.html' %}  
 
 {% include 'protsearchform.html' %}
 
-
 {% include 'displayquery.html' %}
-    <p>
 
     {% if error %}
         <h5>{{error}}</h5>
     {% endif %}
 
-    <ul>
-    {% include 'interactionrow.html' %}
+        <table class="table table-striped">
+            <caption>Interactions</caption>                                                                                                                  <thead>
+        {% include 'interactionheader.html' %}
+        {% include 'interactionrow.html' %}
 
-    </ul>
 {% include 'footer.html' %}
 

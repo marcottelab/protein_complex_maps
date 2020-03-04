@@ -30,7 +30,6 @@
 {% include 'protsearchform.html' %}
 
 {% include 'displayquery.html' %}
-    <p>
 
     {% if error %}
         <h3>{{error}}</h3>
@@ -42,7 +41,6 @@
                              'Third most restrictive complex membership',
                              'Most inclusive complex membership'] %}
     {% set counter = 0 %}
-    <ul>
 
 
     <!-- https://www.uniprot.org/uniprot/?query=I1KDU3+OR+I1M368+OR+I1M369+OR+I1M370+OR+K7KX13&sort=score -->
@@ -103,11 +101,10 @@
 
       -->
 
-    </ul>
 
 
     {% endif %}
-
+    
 
 {% include 'footer.html' %}
 
