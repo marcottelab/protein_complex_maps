@@ -3,11 +3,18 @@ import protein_complex_maps.complex_map_website.complex_db as cdb
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy import func, or_
 
+import pandas as pd
+from flask import Flask, Response, send_file, session
+
 import mpmath as mpm
 #import scipy.misc as misc
+import StringIO as sio
+import tempfile as tf
+import datetime as dt
 
 db = cdb.get_db()
 app = cdb.get_app()
+db.create_all()
 
 #from flask.ext.wtf import Form
 from flask_wtf import Form
@@ -41,11 +48,61 @@ def pval(k,n,m,N):
         pv += pi
     return pv
 
+#kdrew: convert results into csv format
+def complexes_to_csv(complexes, prot_ids=[], pvalue_dict=None, genename_cannotfind_errors=None, genename_nocomplex_errors=None):
+    complexes_dict = dict()
+    complexes_dict['humap2_id'] = []
+    complexes_dict['rank'] = []
+    if pvalue_dict != None:
+        complexes_dict['pvalue'] = []
+    if len(prot_ids) > 0:
+        complexes_dict['searched_accs'] = []
+        complexes_dict['searched_genenames'] = []
+    complexes_dict['accs'] = []
+    complexes_dict['genenames'] = []
+
+    for comp in complexes:
+        complexes_dict['humap2_id'].append(comp.humap2_id)
+        complexes_dict['rank'].append(comp.top_rank)
+        if pvalue_dict != None:
+            complexes_dict['pvalue'].append(pvalue_dict[comp])
+        if len(prot_ids) > 0:
+            complexes_dict['searched_accs'].append(' '.join([prot.uniprot_acc for prot in comp.proteins if prot.id in prot_ids]))
+            complexes_dict['searched_genenames'].append(' '.join([prot.genename() for prot in comp.proteins if prot.id in prot_ids]))
+        complexes_dict['accs'].append(' '.join([prot.uniprot_acc for prot in comp.proteins]))
+        complexes_dict['genenames'].append(' '.join([prot.genename() for prot in comp.proteins]))
+            
+
+    if genename_cannotfind_errors != None:
+        complexes_dict['humap2_id'].append("COULD_NOT_FIND_GENENAMES")
+        complexes_dict['rank'].append(None)
+        if pvalue_dict != None:
+            complexes_dict['pvalue'].append(None)
+        if len(prot_ids) > 0:
+            complexes_dict['searched_accs'].append(None)
+            complexes_dict['searched_genenames'].append(' '.join(genename_cannotfind_errors))
+        complexes_dict['accs'].append(None)
+        complexes_dict['genenames'].append(None)
+
+    if genename_nocomplex_errors != None:
+        complexes_dict['humap2_id'].append("NO_COMPLEXES_FOR_GENENAMES")
+        complexes_dict['rank'].append(None)
+        if pvalue_dict != None:
+            complexes_dict['pvalue'].append(None)
+        if len(prot_ids) > 0:
+            complexes_dict['searched_accs'].append(None)
+            complexes_dict['searched_genenames'].append(' '.join(genename_nocomplex_errors))
+        complexes_dict['accs'].append(None)
+        complexes_dict['genenames'].append(None)
+
+    df = pd.DataFrame.from_dict(complexes_dict)
+    return df.to_csv()
+
 
 class SearchForm(Form):
     complex_id = StringField(u'Complex ID:')
     #genename = StringField(u'Gene Name (ex. OFD1):')
-    listOfGenenames = TextAreaField(u'List of Gene Names (ex. OFD1 PCM1 CSPP1):')
+    listOfGenenames = TextAreaField(u'List of Gene Names or Uniprot ACCs (ex. OFD1 PCM1 Q1MSJ5):')
     enrichment = StringField(u'Enrichment (ex. cilium):')
     protein = StringField(u'Protein (ex. Centrosomal protein):')
     submit = SubmitField(u'Search')
@@ -62,47 +119,15 @@ def root(complexes=[]):
     return render_template('index.html', form=form, complexes=complexes)
     #return render_template('index.html', form=form, complexes=complexes, prot_ids=[], pvalue_dict=dict(), error=error)
 
-#@app.route("/displayComplexesForGeneName")
-#def displayComplexesForGeneName():
-#    genename = request.args.get('genename')
-#    form = SearchForm()
-#
-#    complexes, error = getComplexesForGeneName(genename)
-#    return render_template('index.html', form=form, complexes=complexes, error=error)
-#
-#def getComplexesForGeneName(genename):
-#    #kdrew: do error checking
-#    error = ""
-#    complexes = []
-#
-#    #kdrew: tests to see if genename is a valid genename
-#    #protein = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.genename) == func.upper(genename))).one()
-#    genes = db.session.query(cdb.Gene).filter((func.upper(cdb.Gene.genename) == func.upper(genename))).all()
-#
-#    if len(genes) == 0:
-#        #kdrew: input genename is not valid, flash message
-#        error = "Could not find given genename: %s" % genename
-#        return complexes, error
-#
-#    for gene in genes:
-#        try:
-#            proteins = db.session.query(cdb.Protein).filter((cdb.Protein.gene_id == gene.gene_id)).all()
-#        except NoResultFound:
-#            #kdrew: input genename is not valid, flash message
-#            error = error + "Could not find given genename: %s" % genename
-#
-#        for protein in proteins:
-#            try:
-#                complexes = complexes + protein.complexes
-#            except NoResultFound:
-#                continue
-#
-#    if len(complexes) == 0:
-#        error = "No complexes found for given genename: %s" % genename
-#
-#    complexes = list(set(complexes))
-#
-#    return complexes, error
+
+@app.route("/getComplexesCSV/")
+def getComplexesCSV():
+    complex_csv_entry = db.session.query(cdb.SessionComplexCSV).filter(cdb.SessionComplexCSV.remote_addr == session['remote_addr'], cdb.SessionComplexCSV.query_id == session['query_id']).first()
+    return Response(
+            complex_csv_entry.complex_csv,
+            mimetype="text/csv",
+            headers={"Content-disposition":
+                     "attachment; filename=complexes.csv"})
 
 @app.route("/displayComplexesForListOfGeneNames")
 def displayComplexesForListOfGeneNames():
@@ -114,6 +139,10 @@ def displayComplexesForListOfGeneNames():
     genename_nocomplex_errors = []
 
     #print listOfGenenames
+
+    session['query_id'] = str(dt.datetime.now())
+    session['remote_addr'] = request.remote_addr
+
 
     all_genes = []
     complexes = []
@@ -213,29 +242,46 @@ def displayComplexesForListOfGeneNames():
     n = len(all_proteins)
     N = db.session.query(cdb.ProteinComplexMapping).distinct(cdb.ProteinComplexMapping.protein_key).group_by(cdb.ProteinComplexMapping.protein_key).count()
     pvalue_dict = dict()
+    pvalue_forsorting_dict = dict()
     for c in set(complexes):
         k = complexes.count(c)
         m = len(c.proteins) 
         print "complex: %s k: %s n: %s m: %s N: %s" % (c.complex_id,k,n,m,N)
         pvalue = pval(k=k,n=n,m=m,N=N)
-        pvalue_dict[c] = pvalue
+        pvalue_dict[c] = '{:.2e}'.format(float(pvalue))
+        pvalue_forsorting_dict[c] = pvalue
         
 
     #complexes = list(set(complexes))
     #complexes = [x[1] for x in sorted(((complexes.count(e), e) for e in set(complexes)), reverse=True)]
     #complexes = [x[1] for x in sorted((((complexes.count(e), -1*e.top_rank), e) for e in set(complexes)), reverse=True)]
-    complexes = [x[1] for x in sorted((((pvalue_dict[e], e.top_rank), e) for e in set(complexes)), reverse=False)]
+    complexes = [x[1] for x in sorted((((pvalue_forsorting_dict[e], e.top_rank), e) for e in set(complexes)), reverse=False)]
 
 
+    
+    complex_csv = complexes_to_csv(complexes=complexes, prot_ids=[p.id for p in all_proteins], pvalue_dict=pvalue_dict, genename_cannotfind_errors=genename_cannotfind_errors, genename_nocomplex_errors=genename_nocomplex_errors)
+    #kdrew: store in database request.remote_addr
+    cdb.SessionComplexCSV().delete_expired_entries()
+    complex_csv_entry = cdb.get_or_create(db, cdb.SessionComplexCSV, 
+                                remote_addr = session['remote_addr'],
+                                query_id = session['query_id'],
+                                complex_csv = complex_csv
+                                )
+    db.session.add(complex_csv_entry)
+    db.session.commit()
 
     #print [p.id for p in all_proteins]
-    return render_template('index.html', form=form, complexes=complexes, prot_ids=[p.id for p in all_proteins], pvalue_dict=pvalue_dict, error=error, genename_cannotfind_errors=genename_cannotfind_errors, genename_nocomplex_errors=genename_nocomplex_errors)
+    return render_template('index.html', form=form, complexes=complexes, prot_ids=[p.id for p in all_proteins], pvalue_dict=pvalue_dict, error=error, genename_cannotfind_errors=genename_cannotfind_errors, genename_nocomplex_errors=genename_nocomplex_errors) 
 
 @app.route("/displayComplexesForEnrichment")
 def displayComplexesForEnrichment():
     enrichment = request.args.get('enrichment')
     form = SearchForm()
     error=None
+
+    session['query_id'] = str(dt.datetime.now())
+    session['remote_addr'] = request.remote_addr
+
     #print enrichment
     #kdrew: do error checking
     try:
@@ -255,6 +301,17 @@ def displayComplexesForEnrichment():
 
     complexes = [x[1] for x in sorted((((complexes.count(e), -1*e.top_rank), e) for e in set(complexes)), reverse=True)]
 
+    complex_csv = complexes_to_csv(complexes=complexes, prot_ids=[], pvalue_dict=None, genename_cannotfind_errors=None, genename_nocomplex_errors=None)
+    #kdrew: store in database request.remote_addr
+    cdb.SessionComplexCSV().delete_expired_entries()
+    complex_csv_entry = cdb.get_or_create(db, cdb.SessionComplexCSV, 
+                                remote_addr = session['remote_addr'],
+                                query_id = session['query_id'],
+                                complex_csv = complex_csv
+                                )
+    db.session.add(complex_csv_entry)
+    db.session.commit()
+
     #return render_template('index.html', form=form, complexes=complexes, error=error)
     return render_template('index.html', form=form, complexes=complexes, prot_ids=[], pvalue_dict=None, error=error)
 
@@ -263,6 +320,10 @@ def displayComplexesForProtein():
     protein_search = request.args.get('protein')
     form = SearchForm()
     error = None
+
+    session['query_id'] = str(dt.datetime.now())
+    session['remote_addr'] = request.remote_addr
+
     #print protein
     #kdrew: do error checking
     complexes = []
@@ -282,6 +343,17 @@ def displayComplexesForProtein():
         error = "No complexes found for given search term: %s" % protein_search
 
     complexes = [x[1] for x in sorted((((complexes.count(e), -1*e.top_rank), e) for e in set(complexes)), reverse=True)]
+
+    complex_csv = complexes_to_csv(complexes=complexes, prot_ids=[], pvalue_dict=None, genename_cannotfind_errors=None, genename_nocomplex_errors=None)
+    #kdrew: store in database request.remote_addr
+    cdb.SessionComplexCSV().delete_expired_entries()
+    complex_csv_entry = cdb.get_or_create(db, cdb.SessionComplexCSV, 
+                                remote_addr = session['remote_addr'],
+                                query_id = session['query_id'],
+                                complex_csv = complex_csv
+                                )
+    db.session.add(complex_csv_entry)
+    db.session.commit()
 
     #return render_template('index.html', form=form, complexes=complexes, error=error)
     return render_template('index.html', form=form, complexes=complexes, prot_ids=[], pvalue_dict=None, error=error)
