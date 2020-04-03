@@ -4,6 +4,8 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func, or_, and_
 
+import datetime as dt
+
 import itertools as it
 
 app = Flask(__name__)
@@ -187,7 +189,19 @@ class ComplexEnrichment(db.Model):
         proteins = db.session.query(Protein).filter(Protein.uniprot_acc.in_(self.intersection_genes.split())).all()
         return proteins
 
+class SessionComplexCSV(db.Model):
+    """Temporary storage for session data"""
+    id = db.Column(db.Integer, primary_key=True)
+    remote_addr = db.Column(db.String(255))
+    query_id = db.Column(db.String(255))
+    #store_date = db.Column(db.TimeStamp)
+    store_date = db.Column(db.DateTime(timezone=True), server_default=func.now())
+    complex_csv = db.Column(db.Text)
 
 
+    def delete_expired_entries(self):
+        yesterdays_datetime = dt.datetime.now() - dt.timedelta(days=1)
+        #print dt.datetime() - 1
+        db.session.query(SessionComplexCSV).filter(SessionComplexCSV.store_date < yesterdays_datetime ).delete(synchronize_session=False)
 
 
