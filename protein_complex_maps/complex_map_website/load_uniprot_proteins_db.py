@@ -46,6 +46,17 @@ def main():
                     db.session.commit()
 
 
+        #kdrew: some entries in uniprot annotation file do not have geneid so cannot map protein in database exactly, just search based on uniprot acc instead
+        if len(geneids) == 1:
+            protein = db.session.query(cdb.Protein).filter_by(uniprot_acc=ACC).first()
+            if protein:
+                for genename in genenames:
+                    #kdrew: do a little clean up
+                    gname = genename.split(';')[0]
+                    gene = cdb.get_or_create(db,cdb.Gene, genename=gname, protein_key = protein.id)
+                    db.session.add(gene)
+                    db.session.commit()
+
 
 
     #kdrew: get all proteins in database
