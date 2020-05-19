@@ -1,10 +1,10 @@
 #! /usr/bin/env python
-
+from __future__ import print_function
 import numpy as np
 import pandas as pd
 import itertools as it
 
-from functions import features, resampling
+from .functions import features, resampling
 
 
 class Elut():
@@ -87,7 +87,7 @@ class Elut():
         len_before = len(self.df)
         self.df = self.df[ self.df["sum"] >= thresh ]
         self.df.drop("sum",axis=1,inplace=True)
-        print "Dropped {} rows".format(len_before - len(self.df))
+        print("Dropped {} rows".format(len_before - len(self.df)))
         self.is_thresholded = True
         
     def make_tidy(self,just_return=False):
@@ -107,7 +107,7 @@ class Elut():
     def _get_info(self):
         '''Output simple info on the stored elution profiles'''
         if self.df is None:
-            print "No loaded data"
+            print("No loaded data")
             return
         
         self.row_sums = self.df.sum(axis=1)
@@ -203,7 +203,7 @@ class ElutFeatures(Elut,features.FeatureFunctions,resampling.FeatureResampling):
             self._analysis["normalize"] = 'norm' + "".join(normalize)
         
         if feature in ["jensen_shannon","kullback_leibler"]:
-            print "Adding pseudocounts and re-normalizing for JS or KL divergence"
+            print("Adding pseudocounts and re-normalizing for JS or KL divergence")
             self.df = self.df + 1
             self.normalize(by='row_max')
             
