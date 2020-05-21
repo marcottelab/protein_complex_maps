@@ -63,6 +63,8 @@ def main():
 def alphabetize_df(df, columns2alphabetize):
 
     intermediate_df =  df[df.columns[columns2alphabetize]].apply(sorted,axis=1)
+    print(intermediate_df)
+
     df[df.columns[columns2alphabetize]] = intermediate_df
    
     return df
