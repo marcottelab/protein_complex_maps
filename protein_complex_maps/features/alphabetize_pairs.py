@@ -62,11 +62,19 @@ def main():
 
 def alphabetize_df(df, columns2alphabetize):
 
-    intermediate_df =  df[df.columns[columns2alphabetize]].apply(sorted,axis=1)
-    print(intermediate_df)
+    try:
+       intermediate_df =  df[df.columns[columns2alphabetize]].apply(sorted,axis=1, broadcast = True)
+
+    except Exception as E:
+       #Pandas 0.18 doesn't have the broadcast option, but returns dataframe by default from this command
+       intermediate_df =  df[df.columns[columns2alphabetize]].apply(sorted,axis=1)
+   
 
     df[df.columns[columns2alphabetize]] = intermediate_df
    
+
+
+
     return df
 
 
