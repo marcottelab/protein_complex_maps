@@ -41,7 +41,7 @@ def main():
     args = parser.parse_args()
 
 
-    pos_ppis = pd.DataFrame(pd.read_table(args.positives, sep=args.ppi_sep, header=None, converters={0: str, 1: str}))
+    pos_ppis = pd.DataFrame(pd.read_table(args.positives, sep=args.ppi_sep, header=None, engine="python", converters={0: str, 1: str}))
     pos_ppis.columns = ['ID1','ID2']
     if not ap.alphabetized_check(pos_ppis, ['ID1','ID2']):
         print("alphabetizing positives ppis")
@@ -56,9 +56,9 @@ def main():
     pos_ppis['label'] = 1
     pos_ppis['ID'] = pos_ppis['ID1'] + args.id_sep + pos_ppis['ID2']
 
-    neg_ppis = pd.DataFrame(pd.read_table(args.negatives, sep=args.ppi_sep, header=None,converters={0: str, 1: str}))
+    neg_ppis = pd.DataFrame(pd.read_table(args.negatives, sep=args.ppi_sep, header=None, engine="python", converters={0: str, 1: str}))
     neg_ppis.columns = ['ID1','ID2']
-    if not ap.alphabetized_check(neg_ppis, ['ID1','ID2']):
+    if not ap.alphabetized_check(neg_ppis, ['ID1','ID2'], 10):
         print("alphabetizing negatives ppis")
         neg_ppis = ap.alphabetize_df(neg_ppis, [list(neg_ppis.columns).index(x) for x in ['ID1','ID2']])
         if not ap.alphabetized_check(neg_ppis, ['ID1','ID2']):
@@ -78,7 +78,7 @@ def main():
     all_ppis = all_ppis.set_index(['ID'])
     print(all_ppis.head)
   
-    feature_table = pd.DataFrame(pd.read_table(args.feature_matrix, sep=args.sep))
+    feature_table = pd.DataFrame(pd.read_table(args.feature_matrix, sep=args.sep, engine="python"))
     #feature_table['ID'] = feature_table['ID'].apply(ast.literal_eval)
     #feature_table['ID'] = feature_table['ID'].apply(" ".join)
 
