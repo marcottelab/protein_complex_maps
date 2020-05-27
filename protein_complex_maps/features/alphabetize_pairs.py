@@ -42,9 +42,9 @@ def main():
     args = parser.parse_args()
 
     if args.header == True:
-        df = pd.read_table(args.df, sep=args.sep, header=0)
+        df = pd.read_table(args.df, sep=args.sep, header=0, engine="python")
     if args.header == False:
-        df = pd.read_table(args.df, sep=args.sep, header=None)
+        df = pd.read_table(args.df, sep=args.sep, header=None, engine="python")
 
 
     print(df)
