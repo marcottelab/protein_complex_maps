@@ -66,12 +66,13 @@ def main():
     print(neg_ppis)
     neg_ppis['label'] = -1
     neg_ppis['ID'] = neg_ppis['ID1'] + args.id_sep + neg_ppis['ID2']
-
+   
     
     print("size of neg_ppis: %s" % len(neg_ppis))
 
     
     all_ppis = pd.DataFrame(pd.concat([pos_ppis, neg_ppis]))
+    all_ppis = all_ppis.drop(['ID1', 'ID2'], axis=1)
     print(all_ppis)
     print(type(all_ppis))
 
