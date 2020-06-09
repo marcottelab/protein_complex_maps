@@ -216,6 +216,10 @@ def shared_bait_feature(feature_table, bait_id_column, id_column, abundance_colu
                 output_dict2['neg_ln_pval_corr'].append(np.nan)
 
     output_df = pd.DataFrame(output_dict2)
+
+    output_df['fset_ids'] = [frozenset(x) for x in output_df[['gene_id1','gene_id2']].values]
+    output_df = output_df.groupby(output_df.fset_ids).first()
+    output_df = output_df[['gene_id1','gene_id2','neg_ln_pval','pair_count','pval']]
     return output_df
 
 
