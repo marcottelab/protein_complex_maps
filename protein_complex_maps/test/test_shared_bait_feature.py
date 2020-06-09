@@ -32,10 +32,10 @@ class SharedBaitFeatureTest(unittest.TestCase):
         #print result_table[(result_table['gene_id1'] == '2') & (result_table['gene_id2'] == '3')].pair_count
         assert((result_table[(result_table['gene_id1'] == '2') & (result_table['gene_id2'] == '3')].pair_count == 3).all())
         np.testing.assert_almost_equal(result_table[(result_table['gene_id1'] == '2') & (result_table['gene_id2'] == '3')].neg_ln_pval.values[0], 2.302585, decimal=6 )
-        np.testing.assert_almost_equal(result_table[(result_table['gene_id1'] == 'B') & (result_table['gene_id2'] == '2')].neg_ln_pval.values[0], 0.510826, decimal=6 )
+        np.testing.assert_almost_equal(result_table[(result_table['gene_id1'] == '2') & (result_table['gene_id2'] == 'B')].neg_ln_pval.values[0], 0.510826, decimal=6 )
         np.testing.assert_almost_equal(result_table[(result_table['gene_id1'] == '5') & (result_table['gene_id2'] == 'C')].neg_ln_pval.values[0], 1.609438, decimal=6 )
-        np.testing.assert_almost_equal(result_table[(result_table['gene_id1'] == 'E') & (result_table['gene_id2'] == '8')].pval.values[0], 0.4 )
-        np.testing.assert_almost_equal(result_table[(result_table['gene_id1'] == '2') & (result_table['gene_id2'] == 'A')].pair_count.values[0], 1 )
+        np.testing.assert_almost_equal(result_table[(result_table['gene_id1'] == '8') & (result_table['gene_id2'] == 'E')].pval.values[0], 0.4 )
+        np.testing.assert_almost_equal(result_table[(result_table['gene_id1'] == 'A') & (result_table['gene_id2'] == '2')].pair_count.values[0], 1 )
 
         #print result_table.query("gene_id1 == '2' and gene_id2 == '3'")
         np.testing.assert_almost_equal( result_table.query("gene_id1 == '2' and gene_id2 == '3'").neg_ln_pval.values, 2.302585 )
@@ -49,10 +49,10 @@ class SharedBaitFeatureTest(unittest.TestCase):
 
         assert((result_table[(result_table['gene_id1'] == '2') & (result_table['gene_id2'] == '3')].pair_count == 3).all())
         np.testing.assert_almost_equal(result_table[(result_table['gene_id1'] == '2') & (result_table['gene_id2'] == '3')].neg_ln_pval.values[0], 2.302585, decimal=6 )
-        np.testing.assert_almost_equal(result_table[(result_table['gene_id1'] == 'B') & (result_table['gene_id2'] == '2')].neg_ln_pval.values[0], 0.510826, decimal=6 )
+        np.testing.assert_almost_equal(result_table[(result_table['gene_id1'] == '2') & (result_table['gene_id2'] == 'B')].neg_ln_pval.values[0], 0.510826, decimal=6 )
         np.testing.assert_almost_equal(result_table[(result_table['gene_id1'] == '5') & (result_table['gene_id2'] == 'C')].neg_ln_pval.values[0], 1.609438, decimal=6 )
-        np.testing.assert_almost_equal(result_table[(result_table['gene_id1'] == 'E') & (result_table['gene_id2'] == '8')].pval.values[0], 0.4 )
-        np.testing.assert_almost_equal(result_table[(result_table['gene_id1'] == '2') & (result_table['gene_id2'] == 'A')].pair_count.values[0], 1 )
+        np.testing.assert_almost_equal(result_table[(result_table['gene_id1'] == '8') & (result_table['gene_id2'] == 'E')].pval.values[0], 0.4 )
+        np.testing.assert_almost_equal(result_table[(result_table['gene_id1'] == 'A') & (result_table['gene_id2'] == '2')].pair_count.values[0], 1 )
 
         #print result_table.query("gene_id1 == '2' and gene_id2 == '3'")
         np.testing.assert_almost_equal( result_table.query("gene_id1 == '2' and gene_id2 == '3'").neg_ln_pval.values, 2.302585 )
