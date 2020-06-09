@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-
+from __future__ import print_function
 import argparse
 import functools
 import numpy as np
@@ -22,7 +22,7 @@ if __name__ == '__main__':
     files_processed = []
     is_first = True
     for ind,f in enumerate(args.infiles):
-        print "Reading in {}".format(f)
+        print("Reading in {}".format(f))
         if args.in_pickle:
             df = pd.read_pickle(f)
             assert len(df.columns) == 3, "Pickled infiles should have 3 columns: ID1, ID2, feature"
@@ -66,7 +66,7 @@ if __name__ == '__main__':
                 "min": functools.partial( merged.min )}
     
     for avg in args.average_type:
-        print "Performing {}".format(avg)
+        print("Performing {}".format(avg))
         merged["{}_{}".format(avg,feature)] = avgFuncD[avg](axis=1)
         
     if args.retain_columns == False:
