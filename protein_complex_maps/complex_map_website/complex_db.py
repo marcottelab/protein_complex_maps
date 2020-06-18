@@ -88,6 +88,7 @@ class Protein(db.Model):
     #genename = db.Column(db.String(255))
     proteinname = db.Column(db.String(255))
     uniprot_url = db.Column(db.String(255))
+    annotation_score = db.Column(db.Integer)
     #kdrew: uses table name for ProteinComplexMapping class (annoying sqlalchemy magic)
     complexes = db.relationship('Complex', secondary='protein_complex_mapping',  back_populates='proteins')
     genenames = db.relationship('Gene')
@@ -132,7 +133,6 @@ class Evidence(db.Model):
     edge_key = db.Column(db.Integer, db.ForeignKey('edge.id'))
     evidence_type = db.Column(db.String(255))
     
-
 class ProteinComplexMapping(db.Model):
     """A mapping between proteins and complexes"""
     __tablename__ = 'protein_complex_mapping'
@@ -187,7 +187,8 @@ class ComplexEnrichment(db.Model):
 
     def get_proteins(self,):
         proteins = db.session.query(Protein).filter(Protein.uniprot_acc.in_(self.intersection_genes.split())).all()
-        return proteins
+        c_proteins = db.session.query(Complex).filter(Complex.id == self.complex_key).first().proteins
+        return set(proteins).intersection(c_proteins)
 
 class SessionComplexCSV(db.Model):
     """Temporary storage for session data"""
