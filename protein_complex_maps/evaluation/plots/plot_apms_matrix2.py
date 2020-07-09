@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 import numpy as np
 import matplotlib as mpl
@@ -14,7 +15,7 @@ import scipy.spatial as sp, scipy.cluster.hierarchy as hc
 
 from matplotlib import rcParams
 rcParams.update({'figure.autolayout': True})
-rcParams.update({'grid': False})
+#rcParams.update({'grid': False})
 mpl.rc('pdf', fonttype=42)
 import seaborn as sns
 sns.set_style("white")
@@ -45,20 +46,26 @@ def main():
                                             help="Stagger y labels for each experiment, default=False")
     parser.add_argument("--clustering_metric", action="store", dest="clustering_metric", required=False, default='correlation', 
                                             help="Clustering metric, default=correlation")
+    parser.add_argument("--plot_protein_per_exp_limit", action="store", type=int, dest="plot_protein_per_exp_limit", required=False, default=1, 
+                                            help="Limit (int) of proteins per experiment to be plotted (default = 1)")
 
     args = parser.parse_args()
 
     #kdrew: read in raw percentile data
-    data_df = pd.read_csv(args.data_filename,dtype={'experiment_id':str})
+    data_df = pd.read_csv(args.data_filename,dtype={'geneid':str,'experiment_id':str})
 
     #kdrew: updating "unnamed" column name to "id"
     data_df.columns = ['id'] + [x for x in data_df.columns[1:]]
-    print data_df.columns
+    print(data_df.columns)
+    #print(data_df)
 
-    cfile = open(args.cluster_file,"rb")
+    cfile = open(args.cluster_file,"r")
     clusters = []
     for line in cfile.readlines():
         clusters.append(line.split())
+
+    #print("clusters")
+    #print(clusters)
 
 
     #kdrew: clusters_df is a dataframe which holds the percentile data for the user specified clusters
@@ -68,8 +75,8 @@ def main():
         cluster_df['clusterid'] = i
         clusters_df = pd.concat([clusters_df,cluster_df])
 
-    #print "clusters_df"
-    #print clusters_df
+    print("clusters_df")
+    print(clusters_df)
 
     #clusters_df['experiment_id'] = clusters_df['experiment_id'].astype(int).astype(str)
 
@@ -83,51 +90,62 @@ def main():
         mapping_df['geneid_map'] = mapping_df['geneid_set'].apply(lambda k: k.split(';')[0])
         mapping_df['genename'] = mapping_df['genename_set'].apply(lambda k: k.split(' ')[0])
 
+        print("mapping_df")
+        print(mapping_df)
+
         #kdrew: merge with clusters dataframe
         clusters_df_merge = clusters_df.merge(mapping_df, how="left", left_on="geneid", right_on="geneid_map")
         #kdrew: set id to be index for merging 
         clusters_df_merge.set_index('id', inplace=True)
 
-        #print "clusters_df_merge"
-        #print clusters_df_merge
+        print("clusters_df_merge")
+        print(clusters_df_merge)
 
         df_list = []
         for ds in args.map_datasets:
-            #print "ds: %s\n" % ds
-            #print clusters_df.columns
-            #print mapping_df.columns
-            #print "clusters_df ds:"
-            #print clusters_df[(clusters_df.dataset == ds)]
+            print( "ds: %s\n" % ds)
+            print(clusters_df.columns)
+            #print(mapping_df.columns)
+            #print("clusters_df ds:")
+            #print(clusters_df[(clusters_df.dataset == ds)])
+
             #kdrew: for each inputted dataset, merge mapping
             clusters_df_exp_merge = clusters_df[(clusters_df.dataset == ds)].merge(mapping_df, how="left", left_on="experiment_id", right_on="geneid_map")
 
-            #print "clusters_df_exp_merge"
-            #print clusters_df_exp_merge
+            #print("clusters_df_exp_merge")
+            #print(clusters_df_exp_merge)
 
-            clusters_df_exp_merge = clusters_df_exp_merge[['id','genename']].drop_duplicates()
+            clusters_df_exp_merge = clusters_df_exp_merge[['id','genename']].drop_duplicates(subset='id')
             #kdrew: set id to be index for updating full matrix
             clusters_df_exp_merge.set_index('id', inplace=True)
 
             #kdrew: slice out current dataset
-            clusters_df_merge_ds = clusters_df_merge[clusters_df_merge['dataset'] == ds]
+            clusters_df_merge_ds = clusters_df_merge[clusters_df_merge['dataset'] == ds].drop_duplicates()
+            print("clusters_df_merge_ds")
+            print(clusters_df_merge_ds)
+            print("clusters_df_exp_merge")
+            print(clusters_df_exp_merge)
+            print(len(clusters_df_exp_merge.index.values))
+            print(len(set([x for x in clusters_df_exp_merge.index.values])))
             #kdrew: update experiment_id in full matrix to be genename
             clusters_df_merge_ds['experiment_id'].update(clusters_df_exp_merge['genename'])
             pd.set_option('display.max_rows', len(clusters_df_exp_merge))
-            #print clusters_df_merge_ds
+            #print(clusters_df_merge_ds)
             pd.reset_option('display.max_rows')
             df_list.append(clusters_df_merge_ds)
 
         #kdrew: recombine individual datasets
         clusters_df_merge = pd.concat(df_list)
-        print clusters_df_merge
+        print(clusters_df_merge)
 
         #pd.set_option('display.max_rows', len(clusters_df_merge))
         #pd.set_option('display.max_columns', 500)
-        #print clusters_df_merge
+        #print(clusters_df_merge)
         #pd.reset_option('display.max_rows')
         #pd.reset_option('display.max_columns')
         #kdrew: make pivot with genename as index
-        clusters_pivot = pd.pivot_table(clusters_df_merge, values='abundance',rows=['clusterid','genename'],cols=['dataset','experiment_id'])
+        #clusters_pivot = pd.pivot_table(clusters_df_merge, values='abundance',rows=['clusterid','genename'],cols=['dataset','experiment_id'])
+        clusters_pivot = pd.pivot_table(clusters_df_merge, values='abundance',index=['clusterid','genename'],columns=['dataset','experiment_id'])
 
     else:
         clusters_pivot = pd.pivot_table(clusters_df, values='abundance',rows=['clusterid','geneid'],cols=['dataset','experiment_id'])
@@ -142,13 +160,17 @@ def main():
     #kdrew: sort columns by sum (there has to be an easier way to do this) 
     clusters_pivotT = clusters_pivot.T
     clusters_pivotT['exp_sum'] = clusters_pivot.sum()
-    clusters_pivot =  clusters_pivotT.sort('exp_sum',ascending=False).T
+    clusters_pivot =  clusters_pivotT.sort_values('exp_sum',ascending=False).T
     clusters_pivot.drop('exp_sum', inplace=True)
+
+    #kdrew: only show experiments that have a certain limit of positive entries, limit set by user
+    clusters_pivot = clusters_pivot.iloc[:,((clusters_pivot > 0.0).sum() >= args.plot_protein_per_exp_limit).values]
 
     #kdrew: setup colors for rows and columns based on clusterid and dataset respectively
     #current_palette = sns.color_palette("Paired")
     #current_palette = sns.color_palette(['#d6604d','#fddbc7','#d1e5f0','#4393c3','#053061'])
-    current_palette = sns.color_palette(['#da534a','#58a5a7','#dbb429','#4393c3','#053061'])
+    #current_palette = sns.color_palette(['#da534a','#58a5a7','#dbb429','#4393c3','#053061','#61055f','#010304','#c37243'])
+    current_palette = sns.color_palette(['#da534a','#58a5a7','#dbb429','#c34394','#b243c3','#61055f','#010304','#c37243'])
 
     if len(args.map_datasets) > 0:
         col_colors = [current_palette[args.map_datasets.index(x[0])] for x in clusters_pivot.T.index]
@@ -165,8 +187,12 @@ def main():
     #cmap = sns.cubehelix_palette(as_cmap=True)
 
     #kdrew: plot clustermap
-    print clusters_pivot
-    cm = sns.clustermap(clusters_pivot, col_cluster=False, cmap=cmap, col_colors=col_colors, row_colors=row_colors, row_cluster=True, cbar_kws={"label": "Rank Percentile"}, metric=args.clustering_metric, figsize=(20, 10))
+    print("clusters_pivot")
+    #print(clusters_pivot)
+    print(clusters_pivot.iloc[:,((clusters_pivot > 0.0).sum() > 1).values])
+
+    #cm = sns.clustermap(clusters_pivot, col_cluster=False, cmap=cmap, col_colors=col_colors, row_colors=row_colors, row_cluster=True, cbar_kws={"label": "Rank Percentile"}, metric=args.clustering_metric, figsize=(20, 10))
+    cm = sns.clustermap(clusters_pivot, col_cluster=True, cmap=cmap, col_colors=col_colors, row_colors=row_colors, row_cluster=True, cbar_kws={"label": "Rank Percentile"}, metric=args.clustering_metric, figsize=(20, 10))
     #cm = sns.clustermap(clusters_pivot, col_cluster=False, cmap=cmap, col_colors=col_colors, row_colors=row_colors, row_cluster=True, cbar_kws={"label": "Rank Percentile"}, metric=args.clustering_metric, figsize=(len(clusters_pivot.columns)/10,len(clusters_pivot.index))) 
     #cm = sns.clustermap(clusters_pivot, col_cluster=False, cmap=cmap, col_colors=col_colors, row_colors=row_colors, row_cluster=True, cbar_kws={"label": "Rank Percentile"}, metric=args.clustering_metric)
 
@@ -190,14 +216,14 @@ def main():
     plt.setp(cm.ax_heatmap.get_yticklabels(), rotation=0)
     cm.ax_heatmap.yaxis.tick_left()
 
-    print "####"
+    print("####")
     for x in cm.ax_heatmap.xaxis.get_majorticklabels():
-        print x.get_text() 
-    print "####"
+        print(x.get_text())
+    print("####")
 
     #kdrew: relabel columns
     xlabels = [x.get_text().split('-')[1] for x in cm.ax_heatmap.xaxis.get_majorticklabels()]
-    print Counter(xlabels)
+    #print(Counter(xlabels))
     #kdrew: only show labels for baits that were also in clusters
     if args.baits_in_cluster_only:
         xlabels = [x if x in ylabels else ' ' for x in xlabels]
@@ -226,10 +252,10 @@ def main():
         empties_in_row = 0
         labels_in_row = 0
         for i,x in enumerate(cm.ax_heatmap.xaxis.get_majorticklocs()):
-            #print "stagger, empties, labels"
-            #print stagger
-            #print empties_in_row
-            #print labels_in_row
+            #print("stagger, empties, labels")
+            #print(stagger)
+            #print(empties_in_row)
+            #print(labels_in_row)
             if xlabels[i] != ' ':
                 empties_in_row = 0
                 #cm.ax_heatmap.annotate(xlabels[i], xy=(x, 0), xytext=(x, -0.5-stagger), rotation=90, fontsize=4,)
@@ -260,7 +286,7 @@ def main():
     #plt.gcf().subplots_adjust(bottom=0.45)
 
     if args.plot_filename is None:
-        print "plot_filename is None"
+        print("plot_filename is None")
         plt.show()
     else:
         #plt.savefig(args.plot_filename, dpi=300)
