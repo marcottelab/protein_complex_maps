@@ -1,7 +1,10 @@
 
 #kdrew: this file is for utilities for querying features about proteins
+from __future__ import print_function
 
-import urllib, urllib2 
+#import urllib, urllib2 
+import urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse
+
 import requests
 import difflib
 import Bio.Seq as Seq
@@ -43,7 +46,7 @@ def get_sequences_uniprot( protein_ids, seqrecord=False ):
                 s = Seq.Seq(seq_map[key], ba.generic_protein)
                 sr = SeqRecord.SeqRecord(s, id=key, description=organism_map[key])
                 #sr = SeqRecord.SeqRecord(Seq.Seq(seq_map[key], ba.generic_protein), id=key, description=organism_map[key])
-                #print sr
+                #print(sr)
                 return_seq_map[key] = sr
         return return_seq_map
 
@@ -60,15 +63,15 @@ def get_from_uniprot( protein_ids, keyword, return_list=False ):
     protein_ids = protein_ids + cleaned_protein_ids
 
     #kdrew: break up query into chunks so as not to get 414 error
-    for i in xrange( (len(protein_ids)/ACC_QUERY_LENGTH)+1 ):
+    for i in range( (len(protein_ids)/ACC_QUERY_LENGTH)+1 ):
         start_splice = i*ACC_QUERY_LENGTH
         stop_splice = (i+1)*ACC_QUERY_LENGTH
         report_query = "https://www.uniprot.org/uniprot/?format=tab&query=accession:(%s)&columns=id,%s" % ("+or+".join(protein_ids[start_splice:stop_splice]), keyword)
-        #print report_query
+        #print(report_query)
         try:
-            f = urllib2.urlopen(report_query)
-        except urllib2.HTTPError, msg:
-            print msg
+            f = urllib.request.urlopen(report_query)
+        except urllib.error.HTTPError as msg:
+            print(msg)
             continue
 
         for line in f.readlines():
@@ -104,18 +107,18 @@ def get_from_uniprot_by_genename( gene_ids, organism="", gene_prefix="gene_exact
         reviewed_str = "+and+reviewed:yes"
 
     #kdrew: break up query into chunks so as not to get 414 error
-    for i in xrange( (len(gene_ids)/ACC_QUERY_LENGTH)+1 ):
+    for i in range( (len(gene_ids)/ACC_QUERY_LENGTH)+1 ):
         start_splice = i*ACC_QUERY_LENGTH
         stop_splice = (i+1)*ACC_QUERY_LENGTH                                                                                 
         genes_formatted = ["%s:%s" % (gene_prefix, id1,) for id1 in gene_ids[start_splice:stop_splice]]
         report_query = "https://www.uniprot.org/uniprot/?format=tab&query=organism:(%s)+and+(%s)%s" % (organism, "+or+".join(genes_formatted), reviewed_str )
-        print report_query
+        print(report_query)
         try:
             #f = urllib2.urlopen(encoded_query)
             f = requests.get(report_query)
-            #print f.text
+            #print(f.text)
             for line in f.text.split('\n'):
-                print line
+                print(line)
                 #kdrew: the returned line has a bunch of extra gene names (and other info), finding the intersection of the gene ids and the line returns the original queried gene id
                 intersection = list(set(line.split()).intersection(gene_ids_case_incensitive))
                 if intersection:
@@ -123,8 +126,8 @@ def get_from_uniprot_by_genename( gene_ids, organism="", gene_prefix="gene_exact
                         return_dict[intersection[0]].append(line.split()[0])
                     except:
                         return_dict[intersection[0]] = [line.split()[0],] 
-        except urllib2.HTTPError, e:
-            print e, e.read()
+        except urllib.error.HTTPError as e:
+            print(e) #, e.read()
             continue
 
 
@@ -145,19 +148,19 @@ def map_protein_ids( id_list, from_id, to_id, contact_email, reviewed=False ):
         #kdrew: noticed a TypeError exception in join but not sure why
     }
 
-    print query_str
+    print(query_str)
 
-    data = urllib.urlencode(params)
-    print data
-    request = urllib2.Request(url, data)
+    data = urllib.parse.urlencode(params)
+    print(data)
+    request = urllib.request.Request(url, data)
     contact = contact_email
     request.add_header('User-Agent', 'Python %s' % contact)
-    response = urllib2.urlopen(request)
+    response = urllib.request.urlopen(request)
 
     #kdrew: put resulting map into dictionary of lists (one to many)
     return_dict = {}
     for line in response.readlines():
-        print line
+        print(line)
         if line.split()[0] != "From":
             try:
                 if len(line.split()) > 2:
@@ -173,7 +176,7 @@ def map_protein_ids( id_list, from_id, to_id, contact_email, reviewed=False ):
 
     for i in id_list:
         if i not in return_dict.keys():
-            print "No id match for %s, adding empty list" % i
+            print("No id match for %s, adding empty list" % i)
             return_dict[i] = []
 
     if reviewed:
