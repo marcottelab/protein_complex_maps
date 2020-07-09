@@ -101,34 +101,34 @@ def main():
         feature_table = feature_table.fillna(float(args.fillna))
 
 
-    labeled_feature_table = feature_table.join(all_ppis, how="left", rsuffix="_x")   
+    feature_table = feature_table.join(all_ppis, how="left", rsuffix="_x")   
 
     print("pos/neg")
-    #print(labeled_feature_table[labeled_feature_table['label']==-1])
-    #print(labeled_feature_table[labeled_feature_table['label']==1])
-    #print(labeled_feature_table[labeled_feature_table['label']=='1'])
-    #print(labeled_feature_table[labeled_feature_table['label']==-'1'])
+    #print(feature_table[feature_table['label']==-1])
+    #print(feature_table[feature_table['label']==1])
+    #print(feature_table[feature_table['label']=='1'])
+    #print(feature_table[feature_table['label']==-'1'])
 
 
 
-    labeled_feature_table['label'] = labeled_feature_table['label'].fillna(0)
+    feature_table['label'] = feature_table['label'].fillna(0)
 
 
     #kdrew: weird extra column gets added, remove so it does not cause problems later
     #CDM probably unnecessary now
-    if 'Unnamed: 0.1' in labeled_feature_table.columns:
-        labeled_feature_table = labeled_feature_table.drop('Unnamed: 0.1',axis=1) 
+    if 'Unnamed: 0.1' in feature_table.columns:
+        feature_table = feature_table.drop('Unnamed: 0.1',axis=1) 
 
 
-    labeled_feature_table = labeled_feature_table.reset_index()
+    feature_table = feature_table.reset_index()
     if args.cols:
         print(args.cols)
         collist = args.cols.split(' ')
-        labeled_feature_table = labeled_feature_table[collist]
+        feature_table = feature_table[collist]
 
 
 
-    labeled_feature_table.to_csv(args.out_filename,sep=args.sep, index=False)
+    feature_table.to_csv(args.out_filename,sep=args.sep, index=False)
 
 if __name__ == "__main__":
     main()
