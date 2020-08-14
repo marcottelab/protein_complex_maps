@@ -1,4 +1,5 @@
-#from __future__ import print_function
+from __future__ import print_function
+import os
 import argparse
 import pandas as pd
 import numpy as np
@@ -39,27 +40,35 @@ def main():
                                     help="List of columns (positions) to alphabetize, default = 0,1")
     parser.add_argument("--header", action="store", dest="header", required=False, default=True, 
                                     help="Do input pairs files have headers?")
+    parser.add_argument("--chunksize", action="store", dest="chunksize", type=int, required=False, default=100000, 
+                                    help="Chunksize for processing, default = 100000")
+
 
     args = parser.parse_args()
 
-    if args.header == True:
-        df = pd.read_table(args.df, sep=args.sep, header=0, engine="python")
-    if args.header == False:
-        df = pd.read_table(args.df, sep=args.sep, header=None, engine="python")
-
-
-    print(df)
-
-
-    df = alphabetize_df(df, args.columns2alphabetize)
     if args.sep == '\\t':
            args.sep = '\t'
-  
+ 
     if args.header == True:
-        df.to_csv(args.outfile, header=True, index=False, sep=args.sep)
+        iterator = pd.read_csv(args.df, sep=args.sep, header=0, engine="python",  chunksize=args.chunksize, iterator = True)
     if args.header == False:
-        df.to_csv(args.outfile, header=False, index=False, sep=args.sep)
+        iterator  = pd.read_csv(args.df, sep=args.sep, header=None, engine="python", chunksize=args.chunksize, iterator = True)
 
+
+    firstpass = True
+    for df in iterator:
+        alphabetized_df = alphabetize_df(df, args.columns2alphabetize)
+
+        if firstpass == True:
+            if args.header == True:
+                alphabetized_df.to_csv(args.outfile, header=True, index=False, sep=args.sep)
+            if args.header == False:
+                alphabetized_df.to_csv(args.outfile, header=False, index=False, sep=args.sep)
+
+        else: # append without writing the header
+            alphabetized_df.to_csv(args.outfile, mode='a', index=False, header=False, sep=args.sep)
+        firstpass = False
+  
 
 def alphabetize_df(df, columns2alphabetize):
 
@@ -70,12 +79,8 @@ def alphabetize_df(df, columns2alphabetize):
        #Pandas 0.18 doesn't have the broadcast option, but returns dataframe by default from this command
        intermediate_df =  df[df.columns[columns2alphabetize]].apply(sorted,axis=1)
    
-
     df[df.columns[columns2alphabetize]] = intermediate_df
    
-
-
-
     return df
 
 

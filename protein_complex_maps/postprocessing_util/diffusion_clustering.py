@@ -1,6 +1,6 @@
 import argparse
-from itertools import izip
-from igraph import Graph
+#from itertools import izip
+#from igraph import Graph
 import pandas as pd
 import rpy2.robjects.packages as rpackages
 utils = rpackages.importr('utils')
@@ -30,8 +30,18 @@ def main():
                                     help="Base name of outfile. will write both .xlsx and .csv") 
     parser.add_argument("--sep", action="store", dest="sep", required=False, default='\t',
                                     help="Separator for input edge table, default=\t")
-    parser.add_argument("--header", action="store_true", dest="header", required=False,
-                                    help="Flag if input has header") 
+    parser.add_argument("--id_cols", action="store", nargs="+", dest="id_cols", required=False, default =["ID1", "ID2"],
+                                    help="What column(s) contain identifiers. If both are in one column, provide id_sep argument, default='P1 P2'")
+ 
+    parser.add_argument("--id_sep", action="store", dest="id_sep", required=False,
+                                    help="If both identifiers are in one column with a separator")
+    parser.add_argument("--weight_col", action="store", dest="weight_col", required=False,
+                                    help="Column that contains column to weight network by. Higher value is stronger connection.")
+    parser.add_argument("--export_excel", action = "store_true", required = False, default = False,
+                                    help = "Optional flag to export an xlsx formatted sheet, may fail with encoding error")
+
+    parser.add_argument("--header", action="store_true", dest="header", required=False, default=True,
+                                    help="Flag if input has header, if no header first two columns must be identfiers") 
     parser.add_argument("--cutoff", action="store", dest="cutoff", type = int, required=False,
                                     help="Take only first N rows")
     parser.add_argument("--threshold", action="store", dest="threshold", required=False, type = float, 
@@ -43,55 +53,72 @@ def main():
                                     help="Use scores in clustering if scores present, default=True")
     parser.add_argument("--steps", action="store", dest="steps", required=False, type=int, default=4, 
                                     help="Number of steps fo walktrap to take, default=4")
-    #parser.add_argument("--write_distance_matrix", action="store", dest="write_distance_matrix", required=False, default=True, 
-    #                                help="Write table of pairwise distances")
     parser.add_argument("--tree_cutoff_fractions", action="store", dest="tree_cutoff_fractions", required=False, default=[0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2,0.1], 
                                     help="Positions for cutting the hierarchical tree (proportion of tree height), default=[0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2,0.1]")
     parser.add_argument("--input_elution", action="store", dest="input_elution", required=False, 
-                                    help="Optional: If present, annotate with dendrogram order information(.csv format)")
-    parser.add_argument("--path_to_annotations", action='store', dest='path_to_annotations', required=False, default=None, 
+                                    help="Optional: If present, this elutions will be annotated with dendrogram order (.csv format)")
+    parser.add_argument("--annotation_file", dest='annotation_file', required=False,  nargs='?', const='', 
                                     help="Optional: Path to annotations file. A tab-delimited file with protein ids in first column and annotations in second")
  
     args = parser.parse_args()
 
 
     if args.header == True:
-         scores_nodups = pd.read_csv(args.input_edges, sep=args.sep)
+        scores_nodups = pd.read_csv(args.input_edges, sep=args.sep)
+
+        if len(args.id_cols) == 1:
+           if not args.id_sep:
+              print("If both identifiers are in one column, args.id_sep must be provided")
+              return
+           else:
+              scores_nodups[["ID1", "ID2"]] = scores_nodups[args.id_cols[0]].str.split(' ', expand=True)
+              scores_nodups = scores_nodups.drop(args.id_cols, axis = 1 )
+
+
+        elif len(args.id_cols) == 2:
+              scores_nodups['ID1','ID2'] = scores_nodups[args.id_cols]
+
+        else: 
+             print("No more than two columns of identifiers accepted")
+             return
+
+    if args.weight_col:
+            scores_nodups['weight'] = scores_nodups[args.weight_col]
+            scores_nodups = scores_nodups.drop([args.weight_col], axis = 1)           
+ 
 
     else:    
          scores_nodups = pd.read_csv(args.input_edges, sep=args.sep, header=None)
+         if len(scores_nodups.columns) == 2:
+             scores_nodups.columns = ['ID1', 'ID2'] 
+         elif  len(scores_nodups.columns) == 3:   
+             scores_nodups.columns = ['ID1', 'ID2', 'weight']  
+         else:
+             print("Files provided with no header cannot have more than 3 columns (ID1, ID2, optional weight")
+             return   
 
-    if len(scores_nodups.columns) == 3:
-        scores_nodups.columns = ['ID1', 'ID2', 'weight']    
-        print(scores_nodups.head)
-        if args.threshold:
+   
+
+    if args.threshold:
              print(args.threshold)
              scores_nodups = scores_nodups[scores_nodups['weight'] >= args.threshold]
-        if args.method == "shortest_path":
+
+    if args.method == "shortest_path":
              #This is necessary because the weight must be treated as a distance, where closer is better
              #Inverse to fix, following suggestion in https://toreopsahl.com/tnet/weighted-networks/shortest-paths/
              print("Inverting weights to distances for shortest path. Not necessary for walktrap, 'weights: The edge weights. Larger edge weights increase the probability that an edge is selected by the random walker. In other words, larger edge weights correspond to stronger connections.'")
  
              scores_nodups['weight'] = 1/scores_nodups['weight']
 
-        if args.use_scores == False:
-             scores_nodups['weight'] = 1
-         
-
-    elif len(scores_nodups.columns) == 2:
-         scores_nodups.columns = ['ID1', 'ID2']
+    if args.use_scores == False:
          scores_nodups['weight'] = 1
-
-    else:
-         print("Edge table must be either two columns (ID1\tID2) or three columns with numeric score (ID1\tID2\tweight)")   
-         return
-
-    print(scores_nodups.head)
-
+         
     if args.cutoff:
         scores_nodups = scores_nodups.head(args.cutoff)
 
-    print(scores_nodups)   
+
+    print(scores_nodups.head)
+
     #CDM: There is some problem with the python igraph dendrograms. Can't retrieve tip names or cut the dendrogram
     #graph = Graph.TupleList(scores_nodups.itertuples(index=False), weights=True, directed=False)
     #dendrogram = graph.community_walktrap(weights = 'weight')
@@ -176,14 +203,14 @@ def main():
 
     print("Combine to output table")
     outdf = pd_cut_clusters
-    print(outdf)
-    if args.path_to_annotations != None:
+    print(args.annotation_file)
+    if args.annotation_file:
         print("Adding annotations")
-        annots = pd.read_table(args.path_to_annotations, index_col = 0)
+        annots = pd.read_table(args.annotation_file, index_col = 0)
         outdf = outdf.join(annots, how = 'left')
 
 
-    if args.input_elution != None:
+    if args.input_elution:
         print("Adding input elution data")
         elution = pd.read_csv(args.input_elution, index_col = 0)
         elution = elution.fillna(0)
@@ -196,9 +223,11 @@ def main():
     print("Writing csv file")
     csv_outfile = args.outfile + '.csv'
     outdf.to_csv(csv_outfile)
-    print("Writing excel file, might give weird encoding error")
-    excel_outfile = args.outfile + '.xlsx'
-    outdf.to_excel(excel_outfile)
+
+    if args.export_excel == True:
+        print("Writing excel file, potentially will fail with encoding error")
+        excel_outfile = args.outfile + '.xlsx'
+        outdf.to_excel(excel_outfile)
 
 if __name__ == "__main__":
     main()

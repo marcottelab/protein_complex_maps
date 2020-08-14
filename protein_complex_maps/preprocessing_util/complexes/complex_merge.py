@@ -1,4 +1,4 @@
-    
+from __future__ import print_function 
 import numpy as np
 import pandas as pd
 import pickle as p
@@ -54,7 +54,7 @@ def merge_complexes(in_predicted_clusters, merge_threshold, complex_size = None,
                 if not any([len(c.intersection(lrgC))>0 for lrgC in [largeC for largeC in in_predicted_clusters if len(largeC) > complex_size]]):
                     in_predicted_clusters_subcomplex_trim.append(c)
                 else:
-                    print "Removing %s" % c
+                    print("Removing %s" % c)
 
             in_predicted_clusters_trim = in_predicted_clusters_subcomplex_trim
 
@@ -70,7 +70,7 @@ def merge_complexes(in_predicted_clusters, merge_threshold, complex_size = None,
     while True:
         merged_clusters = set()
 
-        print "predicted_clusters count: %s" % (len(predicted_clusters))
+        print("predicted_clusters count: %s" % (len(predicted_clusters)))
 
         was_merged = set()
 
@@ -102,7 +102,7 @@ def merge_complexes(in_predicted_clusters, merge_threshold, complex_size = None,
 
                     break
 
-        print "was_merged count: %s" % (len(was_merged))
+        print("was_merged count: %s" % (len(was_merged)))
         for cluster in predicted_clusters:
             #kdrew: if wasn't merged add to set
             if frozenset(cluster) not in was_merged:
@@ -110,7 +110,7 @@ def merge_complexes(in_predicted_clusters, merge_threshold, complex_size = None,
 
 
         #kdrew: test for convergence and reset counter
-        print "merged_count: %s" % (merged_count)
+        print("merged_count: %s" % (merged_count))
         if merged_count == 0:
             final_clusters = list(merged_clusters)
             break
@@ -124,7 +124,6 @@ def jaccard_index(x, y):
     sx = set(x)
     sy = set(y)
     return 1.0 * len(sx.intersection(sy)) / len(sx.union(sy))
-
 
 
 if __name__ == "__main__":

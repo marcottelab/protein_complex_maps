@@ -32,6 +32,8 @@ def main():
                                     help="If ID is stored in one column, give the spacing used between pairs ie. id1_id2")
     parser.add_argument("--sel_columns", action="store", dest="cols", type=str, required=False, default=None, 
                                     help="Optional columns to save")
+    parser.add_argument("--check_alphabetized", action="store_true", required=False, default=False, 
+                                    help="Whether to perform check that input IDs are alphabetized")
     
    
     #parser.add_argument("--int_convert", action="store_true", dest="int_convert", required=False, default=False, 
@@ -43,11 +45,14 @@ def main():
 
     pos_ppis = pd.DataFrame(pd.read_table(args.positives, sep=args.ppi_sep, header=None, engine="python", converters={0: str, 1: str}))
     pos_ppis.columns = ['ID1','ID2']
-    if not ap.alphabetized_check(pos_ppis, ['ID1','ID2']):
-        print("alphabetizing positives ppis")
-        pos_ppis = ap.alphabetize_df(pos_ppis, [list(pos_ppis.columns).index(x) for x in ['ID1','ID2']])
-        if not ap.alphabetized_check(pos_ppis, ['ID1','ID2']):
-            sys.exit("ERROR: input_positives are not alphabetized, please run alphabetize_pairs.py")
+    print(pos_ppis)
+
+    if args.check_alphabetized:
+       if not ap.alphabetized_check(pos_ppis, ['ID1','ID2']):
+         print("alphabetizing positives ppis")
+         pos_ppis = ap.alphabetize_df(pos_ppis, [list(pos_ppis.columns).index(x) for x in ['ID1','ID2']])
+         if not ap.alphabetized_check(pos_ppis, ['ID1','ID2']):
+             sys.exit("ERROR: input_positives are not alphabetized, please run alphabetize_pairs.py")
 
     print(pos_ppis)
     print(pos_ppis['ID1'])
@@ -58,11 +63,11 @@ def main():
 
     neg_ppis = pd.DataFrame(pd.read_table(args.negatives, sep=args.ppi_sep, header=None, engine="python", converters={0: str, 1: str}))
     neg_ppis.columns = ['ID1','ID2']
-    if not ap.alphabetized_check(neg_ppis, ['ID1','ID2'], 10):
-        print("alphabetizing negatives ppis")
-        neg_ppis = ap.alphabetize_df(neg_ppis, [list(neg_ppis.columns).index(x) for x in ['ID1','ID2']])
-        if not ap.alphabetized_check(neg_ppis, ['ID1','ID2']):
-            sys.exit("ERROR: input_negatives are not alphabetized, please run alphabetize_pairs.py")
+    #if not ap.alphabetized_check(neg_ppis, ['ID1','ID2'], 10):
+    #print("alphabetizing negatives ppis")
+    #    neg_ppis = ap.alphabetize_df(neg_ppis, [list(neg_ppis.columns).index(x) for x in ['ID1','ID2']])
+       # if not ap.alphabetized_check(neg_ppis, ['ID1','ID2']):
+       #     sys.exit("ERROR: input_negatives are not alphabetized, please run alphabetize_pairs.py")
     print(neg_ppis)
     neg_ppis['label'] = -1
     neg_ppis['ID'] = neg_ppis['ID1'] + args.id_sep + neg_ppis['ID2']
@@ -83,11 +88,11 @@ def main():
     #feature_table['ID'] = feature_table['ID'].apply(ast.literal_eval)
     #feature_table['ID'] = feature_table['ID'].apply(" ".join)
 
-    if not ap.alphabetized_check(feature_table, args.id_column):
-        print("alphabetizing feature matrix")
-        feature_table = ap.alphabetize_df(feature_table, [list(feature_table.columns).index(x) for x in args.id_column])
-        if not ap.alphabetized_check(feature_table, args.id_column):
-            sys.exit("ERROR: feature_matrix is not alphabetized, please run alphabetize_pairs.py")
+    #if not ap.alphabetized_check(feature_table, args.id_column):
+    #    print("alphabetizing feature matrix")
+    #    feature_table = ap.alphabetize_df(feature_table, [list(feature_table.columns).index(x) for x in args.id_column])
+    #    if not ap.alphabetized_check(feature_table, args.id_column):
+    #        sys.exit("ERROR: feature_matrix is not alphabetized, please run alphabetize_pairs.py")
 
 
     #kdrew: if multiple ids were passed in, combine into a string

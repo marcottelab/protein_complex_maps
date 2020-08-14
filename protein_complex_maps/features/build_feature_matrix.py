@@ -27,6 +27,10 @@ def build_matrix():
                                     help="Filename of output file")
     parser.add_argument("--header", action="store", dest="header", required=False, default=True, 
                                     help="Do input pairs files have headers?")
+    parser.add_argument("--jointype", action="store", dest="jointype", required=False, default="outer", choices= ["outer", "left", "right", "inner"], 
+                                    help="Allow other types of joins")
+    parser.add_argument("--mod_featname", action="store", required=False, default=True, 
+                                    help="If True, will cut input feature file names two periods back as follows: x.y.z -> x")
 
     args = parser.parse_args()
     
@@ -57,12 +61,16 @@ def build_matrix():
     if args.pairs_file_list:
            pairs_files = pd.read_csv(args.pairs_file_list, header = None, names = ["filenames"])["filenames"].tolist()
 
-
+    print(args.pairs_file_list)    
 
     print(pairs_files)
     for i, filename in enumerate(pairs_files):
         print(i, filename)
-        value_name = '.'.join(os.path.basename(filename).split('.')[:-2])
+
+        if args.mod_featname == True:
+           value_name = '.'.join(os.path.basename(filename).split('.')[:-2])
+        else:
+           value_name = filename
         out_columns.append(value_name)
      
         if args.header == True:
@@ -84,7 +92,7 @@ def build_matrix():
         
         df = df.set_index(['ID'])
         print(df.shape)
-        dfall_intermediate = dfall.join(df, how='outer', rsuffix=('_%s' % (i) ))
+        dfall_intermediate = dfall.join(df, how=args.jointype, rsuffix=('_%s' % (i) ))
         dfall = None
         dfall = dfall_intermediate
         dfall_intermediate = None
