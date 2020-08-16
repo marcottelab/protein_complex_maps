@@ -83,7 +83,7 @@ def alphabetize_df(df, columns2alphabetize):
   
        try:
            #Sytax for pandas post 0.23
-           intermediate_df =  df[df.columns[columns2alphabetize]].apply(sorted, axis=1, result_type=’broadcast’)
+           intermediate_df =  df[df.columns[columns2alphabetize]].apply(sorted, axis=1, result_type='broadcast')
        except Exception as E:
            #Pandas 0.18 doesn't have the broadcast option, but returns dataframe by default from this command
            print(E)
