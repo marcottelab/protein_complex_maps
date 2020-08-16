@@ -77,6 +77,8 @@ def alphabetize_df(df, columns2alphabetize):
 
     except Exception as E:
        #Pandas 0.18 doesn't have the broadcast option, but returns dataframe by default from this command
+       print(E)
+       print("Exception in apply, trying alternate way for pre-broadcast pandas installations")
        intermediate_df =  df[df.columns[columns2alphabetize]].apply(sorted,axis=1)
    
     df[df.columns[columns2alphabetize]] = intermediate_df
