@@ -72,14 +72,23 @@ def main():
 
 def alphabetize_df(df, columns2alphabetize):
 
+    # These try and except due to pandas apply returning a dataframe or not in various pandas verions 
     try:
-       intermediate_df =  df[df.columns[columns2alphabetize]].apply(sorted,axis=1, broadcast = True)
+       # Syntax for 0.18 through 0.23
+       intermediate_df =  df[df.columns[columns2alphabetize]].apply(sorted, axis=1, broadcast = True)
 
     except Exception as E:
-       #Pandas 0.18 doesn't have the broadcast option, but returns dataframe by default from this command
        print(E)
-       print("Exception in apply, trying alternate way for pre-broadcast pandas installations")
-       intermediate_df =  df[df.columns[columns2alphabetize]].apply(sorted,axis=1)
+       print("Exception in apply, trying alternate broadcast syntax for different pandas versions")
+  
+       try:
+           #Sytax for pandas post 0.23
+           intermediate_df =  df[df.columns[columns2alphabetize]].apply(sorted, axis=1, result_type=’broadcast’)
+       except Exception as E:
+           #Pandas 0.18 doesn't have the broadcast option, but returns dataframe by default from this command
+           print(E)
+           print("Exception in apply, trying alternate broadcast syntax for different pandas versions")
+           intermediate_df =  df[df.columns[columns2alphabetize]].apply(sorted,axis=1)
    
     df[df.columns[columns2alphabetize]] = intermediate_df
    
