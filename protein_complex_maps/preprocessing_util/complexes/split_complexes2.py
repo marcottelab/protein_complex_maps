@@ -61,47 +61,47 @@ def main():
     #kdrew: write sets to outfiles
     test_list_out = open(test_list_clean_filename,"wb")
     for c in test_list_clean:
-        test_list_out.write(" ".join(c)+"\n")
+        test_list_out.write(b" ".join(c)+b"\n")
     test_list_out.close()
 
     train_list_out = open(train_list_clean_filename,"wb")
     for c in train_list_clean:
-        train_list_out.write(" ".join(c)+"\n")
+        train_list_out.write(b" ".join(c)+b"\n")
     train_list_out.close()
 
     test_out = open(test_ppis_clean_filename,"wb")
     for ppi in test_ppis_clean:
         #test_out.write("%s\t%s\n" % (list(ppi)[0], list(ppi)[1]))
-        test_out.write("%s\t%s\n" % (tuple(sorted(ppi))))
+        test_out.write(b"%s\t%s\n" % (tuple(sorted(ppi))))
     test_out.close()
 
     train_out = open(train_ppis_clean_filename,"wb")
     for ppi in train_ppis_clean:
         #train_out.write("%s\t%s\n" % (list(ppi)[0], list(ppi)[1]))
-        train_out.write("%s\t%s\n" % (tuple(sorted(ppi))))
+        train_out.write(b"%s\t%s\n" % (tuple(sorted(ppi))))
     train_out.close()
 
     neg_test_out = open(neg_test_ppis_clean_filename,"wb")
     for ppi in neg_test_ppis_clean:
         #neg_test_out.write("%s\t%s\n" % (list(ppi)[0], list(ppi)[1]))
-        neg_test_out.write("%s\t%s\n" % (tuple(sorted(ppi))))
+        neg_test_out.write(b"%s\t%s\n" % (tuple(sorted(ppi))))
     neg_test_out.close()
 
     neg_train_out = open(neg_train_ppis_clean_filename,"wb")
     for ppi in neg_train_ppis_clean:
         #neg_train_out.write("%s\t%s\n" % (list(ppi)[0], list(ppi)[1]))
-        neg_train_out.write("%s\t%s\n" % (tuple(sorted(ppi))))
+        neg_train_out.write(b"%s\t%s\n" % (tuple(sorted(ppi))))
     neg_train_out.close()
 
     # This is the only difference
     all_test_out = open(test_list_filename,"wb")
     for c in test_list:
-        all_test_out.write(" ".join(c)+"\n")
+        all_test_out.write(b" ".join(c)+b"\n")
     all_test_out.close()
 
     all_train_out = open(train_list_filename,"wb")
     for c in train_list:
-        all_train_out.write(" ".join(c)+"\n")
+        all_train_out.write(b" ".join(c)+b"\n")
     all_train_out.close()
 
 
@@ -112,7 +112,7 @@ def split_complexes(complexes, size_threshold=None, threshold_fraction=None, rem
 
     #kdrew: randomly shuffle complexes 
     np.random.shuffle(complexes)
-    split_id = len(complexes)/2
+    split_id = int(len(complexes)/2)
     test_list = complexes[:split_id]
     train_list = complexes[split_id:]
     
@@ -122,13 +122,13 @@ def split_complexes(complexes, size_threshold=None, threshold_fraction=None, rem
     test_out2 = open('alltest_clean1.txt',"wb")
     for c in test_list_clean:
         #test_out.write("%s\t%s\n" % (list(ppi)[0], list(ppi)[1]))
-        test_out2.write(" ".join(c)+"\n")
+        test_out2.write(b" ".join(c)+b"\n")
     test_out2.close()
 
     train_out2 = open('alltrain_clean1.txt',"wb")
     for c in train_list_clean:
         #train_out.write("%s\t%s\n" % (list(ppi)[0], list(ppi)[1]))
-        train_out2.write(" ".join(c)+"\n")
+        train_out2.write(b" ".join(c)+b"\n")
     train_out2.close()
 
 
@@ -303,7 +303,7 @@ def remove_intersection_random(ppi_set1, ppi_set2):
     np.random.shuffle(intersection)
     
     #kdrew: split shuffled intersection in half
-    split_id = len(intersection)/2
+    split_id = int(len(intersection)/2)
     intersection1 = intersection[:split_id]
     intersection2 = intersection[split_id:]
     #print "intersection1"
