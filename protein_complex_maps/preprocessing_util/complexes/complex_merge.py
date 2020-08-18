@@ -34,7 +34,7 @@ def main():
     final_clusters = merge_complexes(in_predicted_clusters, args.merge_threshold, args.complex_size, args.remove_largest, args.remove_large_subcomplexes)
     outfile = open(args.output_filename,"wb")
     for cluster in final_clusters:
-        outfile.write(b" ".join(cluster) + '\n')
+        outfile.write(b" ".join(cluster) + b'\n')
 
     outfile.close()
                 
