@@ -1,4 +1,4 @@
-
+from __future__ import print_function
 import argparse
 import pickle
 import numpy as np
@@ -29,7 +29,7 @@ def main():
     args = parser.parse_args()
 
     if args.random_seed != None:
-        print "setting random seed"
+        print("setting random seed")
         np.random.seed(args.random_seed)
 
     #kdrew: origin of this code is from ipython notebook: corum_test_train_revisit, heavily refactored and modified
@@ -42,7 +42,7 @@ def main():
             complexes.add(frozenset(line.split()))
 
     merged_complexes = cm.merge_complexes(complexes, args.merge_threshold, remove_largest=args.remove_largest)
-
+)
     test_list_clean, train_list_clean, test_ppis_clean, train_ppis_clean, neg_test_ppis_clean, neg_train_ppis_clean, test_list, train_list = split_complexes(merged_complexes, size_threshold=args.size_threshold, threshold_fraction=args.threshold_fraction, remove_large_complexes=args.remove_large_complexes, input_complexes=complexes)
 
     test_list_clean_filename = '.'.join(args.complex_filename.split('.')[:-1]) + '.test.txt'
@@ -194,7 +194,7 @@ def split_complexes(complexes, size_threshold=None, threshold_fraction=None, rem
             #print test_ppi
             if test_ppi in [set(x) for x in it.combinations(clust,2)]:
                 test_ppis_overlap.add(test_ppi)
-    print "removing test_ppis overlapped with training clusters: %s" % len(test_ppis_overlap)
+    print("removing test_ppis overlapped with training clusters: %s" % len(test_ppis_overlap))
     test_ppis_clean = test_ppis_clean - test_ppis_overlap
 
     #kdrew: remove train_ppis that show up in test list
@@ -205,7 +205,7 @@ def split_complexes(complexes, size_threshold=None, threshold_fraction=None, rem
             #print train_ppi
             if train_ppi in [set(x) for x in it.combinations(clust,2)]:
                 train_ppis_overlap.add(train_ppi)
-    print "removing train_ppis overlapped with test clusters: %s" % len(train_ppis_overlap)
+    print("removing train_ppis overlapped with test clusters: %s" % len(train_ppis_overlap))
     train_ppis_clean = train_ppis_clean - train_ppis_overlap
 
 
@@ -244,7 +244,7 @@ def split_complexes(complexes, size_threshold=None, threshold_fraction=None, rem
 
     #kdrew: if input_complexes is set then remove all pairs from the negative ppis
     if input_complexes != None:
-        print "removing intersection with pre-merged input_complexes"
+        print("removing intersection with pre-merged input_complexes")
         full_input_pairs = set([frozenset(z) for y in input_complexes for z in it.combinations(y,2)])
         neg_test_ppis_clean = remove_intersection(neg_test_ppis_clean, full_input_pairs)
         neg_train_ppis_clean = remove_intersection(neg_train_ppis_clean, full_input_pairs)
@@ -288,7 +288,7 @@ def remove_intersection(ppi_set1, ppi_set2):
     #kdrew: find intersection between ppi_set1 and ppi_set2
     intersection = list(ppi_set1.intersection(ppi_set2))
 
-    print "removing %s" % (len(set(intersection)))
+    print("removing %s" % (len(set(intersection))))
     #kdrew: remove intersection from ppis_set1
     ppi_set1_clean = ppi_set1 - set(intersection)
 
