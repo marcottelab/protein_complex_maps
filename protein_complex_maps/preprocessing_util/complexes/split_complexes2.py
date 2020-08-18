@@ -42,7 +42,7 @@ def main():
             complexes.add(frozenset(line.split()))
 
     merged_complexes = cm.merge_complexes(complexes, args.merge_threshold, remove_largest=args.remove_largest)
-)
+
     test_list_clean, train_list_clean, test_ppis_clean, train_ppis_clean, neg_test_ppis_clean, neg_train_ppis_clean, test_list, train_list = split_complexes(merged_complexes, size_threshold=args.size_threshold, threshold_fraction=args.threshold_fraction, remove_large_complexes=args.remove_large_complexes, input_complexes=complexes)
 
     test_list_clean_filename = '.'.join(args.complex_filename.split('.')[:-1]) + '.test.txt'
