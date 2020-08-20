@@ -196,6 +196,7 @@ def main():
     r_cut_clusters = r_cut_dend(r_dendrogram, args.tree_cutoff_fractions)
 
     print("Convert back to pandas objects")
+    print(dir(pandas2ri))
     pd_cut_clusters =  pandas2ri.ri2py_dataframe(r_cut_clusters)
     pd_cut_clusters = pd_cut_clusters.set_index(['ID'])
     pd_order = pandas2ri.ri2py_dataframe(r_order)
