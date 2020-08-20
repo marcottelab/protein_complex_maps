@@ -126,8 +126,8 @@ def main():
     #Gave up and imported working R code, also from igraph
     
     #Test comment out
-    #igraph = importr('igraph')
-    #dendextend = importr('dendextend')
+    igraph = importr('igraph')
+    dendextend = importr('dendextend')
     dplyr = importr('dplyr', on_conflict="warn")
 
     #Load custom R functions
