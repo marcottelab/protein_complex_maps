@@ -236,7 +236,7 @@ def main():
     print(args.annotation_file)
     if args.annotation_file:
         print("Adding annotations")
-        annots = pd.read_table(args.annotation_file, index_col = 0)
+        annots = pd.read_table(args.annotation_file, index_col = 0, encoding= 'unicode_escape')
         outdf = outdf.join(annots, how = 'left')
 
 
