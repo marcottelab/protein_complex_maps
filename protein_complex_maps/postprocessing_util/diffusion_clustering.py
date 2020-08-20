@@ -124,9 +124,10 @@ def main():
     #dendrogram = graph.community_walktrap(weights = 'weight')
     #dendrogram = fix_dendrogram(graph, dendrogram)
     #Gave up and imported working R code, also from igraph
-
-    igraph = importr('igraph')
-    dendextend = importr('dendextend')
+    
+    #Test comment out
+    #igraph = importr('igraph')
+    #dendextend = importr('dendextend')
     dplyr = importr('dplyr', on_conflict="warn")
 
     #Load custom R functions
