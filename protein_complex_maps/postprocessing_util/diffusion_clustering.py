@@ -197,9 +197,17 @@ def main():
 
     print("Convert back to pandas objects")
     print(dir(pandas2ri))
-    pd_cut_clusters =  pandas2ri.ri2py_dataframe(r_cut_clusters)
+    try:
+       pd_cut_clusters =  pandas2ri.ri2py_dataframe(r_cut_clusters)
+    except Exception as e:
+       # Attribute to convert from r to py was renamed
+       pd_cut_clusters =  pandas2ri.rpy2py_dataframe(r_cut_clusters)
     pd_cut_clusters = pd_cut_clusters.set_index(['ID'])
-    pd_order = pandas2ri.ri2py_dataframe(r_order)
+    try:
+        pd_order = pandas2ri.ri2py_dataframe(r_order)
+    except Exception as e:
+        pd_order = pandas2ri.rpy2py_dataframe(r_order)
+
     pd_order = pd_order.set_index(['ID'])
 
 
