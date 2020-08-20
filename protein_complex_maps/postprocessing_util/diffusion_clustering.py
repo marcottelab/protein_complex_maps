@@ -12,14 +12,14 @@ from rpy2.robjects.packages import importr
 
  
 # select a mirror for R packages
-utils.chooseCRANmirror(ind=1) # select the first mirror in the list
+#utils.chooseCRANmirror(ind=1) # select the first mirror in the list
 
 # R package names
-packnames = ('igraph', 'dendextend', 'dplyr')
+#packnames = ('igraph', 'dendextend', 'dplyr')
    
-names_to_install = [x for x in packnames if not rpackages.isinstalled(x)]
-if len(names_to_install) > 0:
-    utils.install_packages(StrVector(names_to_install))
+#names_to_install = [x for x in packnames if not rpackages.isinstalled(x)]
+#if len(names_to_install) > 0:
+#    utils.install_packages(StrVector(names_to_install))
 
 def main():
 
@@ -28,8 +28,7 @@ def main():
                                     help="Filename of edge table must be either two columns (ID1\tID2) or three columns with numeric score (ID1\tID2\tweight)(Higher score = better edge)(Default no header)")
     parser.add_argument("--outfile", action="store", dest="outfile", required=True, 
                                     help="Base name of outfile. will write both .xlsx and .csv") 
-    parser.add_argument("--sep", action="store", dest="sep", required=False, default='\t',
-                                    help="Separator for input edge table, default=\t")
+    parser.add_argument("--sep", action="store", dest="sep", required=False, default='\t',                                                                                        help="Separator for input edge table, default=\t")
     parser.add_argument("--id_cols", action="store", nargs="+", dest="id_cols", required=False, default =["ID1", "ID2"],
                                     help="What column(s) contain identifiers. If both are in one column, provide id_sep argument, default='P1 P2'")
  
@@ -71,6 +70,7 @@ def main():
               print("If both identifiers are in one column, args.id_sep must be provided")
               return
            else:
+              print(scores_nodups)
               scores_nodups[["ID1", "ID2"]] = scores_nodups[args.id_cols[0]].str.split(' ', expand=True)
               scores_nodups = scores_nodups.drop(args.id_cols, axis = 1 )
 
