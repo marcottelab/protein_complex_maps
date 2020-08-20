@@ -10,6 +10,8 @@ from rpy2.robjects import pandas2ri
 pandas2ri.activate()
 from rpy2.robjects.packages import importr
 
+import rpy2.robjects as ro
+from rpy2.robjects.conversion import localconverter
  
 # select a mirror for R packages
 #utils.chooseCRANmirror(ind=1) # select the first mirror in the list
@@ -126,10 +128,16 @@ def main():
     #Gave up and imported working R code, also from igraph
     
     #Test comment out
-    igraph = importr('igraph')
-    dendextend = importr('dendextend')
-    dplyr = importr('dplyr', on_conflict="warn")
-
+    try:
+        igraph = importr('igraph')
+        dendextend = importr('dendextend')
+        dplyr = importr('dplyr', on_conflict="warn")
+    except Exception as e:
+        print(e)
+        print("Make sure igraph, dendextend, and dplyr are installed in your local R environment")
+        print("Install at command line with for example:")
+        print("R -e \"install.packages('igraph')\"")
+        exit(1)
     #Load custom R functions
     robjects.r('''
     get_dend <- function(df, method, steps=4){
@@ -197,16 +205,28 @@ def main():
 
     print("Convert back to pandas objects")
     print(dir(pandas2ri))
+    print(r_cut_clusters)
     try:
        pd_cut_clusters =  pandas2ri.ri2py_dataframe(r_cut_clusters)
     except Exception as e:
-       # Attribute to convert from r to py was renamed
-       pd_cut_clusters =  pandas2ri.rpy2py_dataframe(r_cut_clusters)
+       # Method to convert from r to py was changed
+       with localconverter(ro.default_converter + pandas2ri.converter):
+          pd_cut_clusters = ro.conversion.rpy2py(r_cut_clusters)
+
+
+
+       #pd_cut_clusters =  pandas2ri.rpy2py_dataframe(r_cut_clusters)
     pd_cut_clusters = pd_cut_clusters.set_index(['ID'])
+
+   
     try:
         pd_order = pandas2ri.ri2py_dataframe(r_order)
     except Exception as e:
-        pd_order = pandas2ri.rpy2py_dataframe(r_order)
+       with localconverter(ro.default_converter + pandas2ri.converter):
+          pd_order = ro.conversion.rpy2py(r_order)
+
+
+        #pd_order = pandas2ri.rpy2py_dataframe(r_order)
 
     pd_order = pd_order.set_index(['ID'])
 
