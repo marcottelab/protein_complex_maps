@@ -91,20 +91,34 @@ def main():
     std_fractions = [float(x) for x in args.standard_fractions]
     f, axarr = plt.subplots(len(uids), sharex=True)
     for i, uid in enumerate(uids):
+        print uid
         x = np.linspace(1,linspace_max,num=linspace_max)
         #print x
-        try:
-            max_val = max([max(file_dict[label].loc[uid].values) for label in file_dict.keys()])
-        except KeyError:
-            continue
+        max_val = 0.0
+        for label in file_dict.keys():
+            try:
+                #max_val = max([max(file_dict[label].loc[uid].values) for label in file_dict.keys()])
+                max_val_tmp = max(file_dict[label].loc[uid].values)
+            except KeyError:
+                print "max_val error"
+                max_val_tmp = 0.0
+            max_val = max(max_val, max_val_tmp)
         for j, label in enumerate(file_dict.keys()):
+            print label
             if args.parse_fraction_name != None:
-                x = [int(c.split(args.fraction_name_sep)[args.parse_fraction_name.index('fraction')]) for c in df.columns]
+                try:
+                    x = [int(c.split(args.fraction_name_sep)[args.parse_fraction_name.index('fraction')]) for c in df.columns]
+                except ValueError:
+                    #kdrew: some fraction names have the subindex appended to the fraction number, i.e. 10a
+                    #kdrew: this just is a hacky fix to deal with that situation
+                    x = [int(c.split(args.fraction_name_sep)[args.parse_fraction_name.index('fraction')][:-1]) for c in df.columns]
+
 
             #kdrew: try to see if id is in data frame
             try:
                 #kdrew: try to plot multiple axes
                 try:
+                    print file_dict[label].loc[uid].values
                     axarr[i].plot(x,file_dict[label].loc[uid].values, color=list(it.islice(it.cycle(args.colors),j+1))[j], label=label)
                     #kdrew: only annotate with standards on the first plot
                     if j == 0:
