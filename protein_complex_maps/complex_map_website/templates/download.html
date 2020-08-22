@@ -97,22 +97,18 @@
                   <li>Confidence maps to complexes identified in 5 individual clusterings. 1=Extremely High, 2=Very High, 3=High, 4=Medium High, 5=Medium</li>
               </ul>                                                                            
           </li>
-     </ul>
-      <!--
-          <li><a href="/static/downloads/pairsWprob.txt" target="_blank">Protein Interaction Network with probability scores</a>
+          <br>
+          <li>Protein Interaction Network with probability scores <a href="/static/downloads/humap2/humap2_ppis_ACC_20200821.pairsWprob.gz" target="_blank">(Uniprot gzip)</a>,
+          <a href="/static/downloads/humap2/humap2_ppis_geneid_20200821.pairsWprob.gz" target="_blank">(geneid gzip)</a>,
+          <a href="/static/downloads/humap2/humap2_ppis_genename_20200821.pairsWprob.gz" target="_blank">(genename gzip)</a>
               <ul>
-                  <li>Description: Co-complex protein pairs that are observed in the protein complex map with the corresponding svm probability score. </li>
-                  <li>Format: geneid [tab] geneid [tab] score</li>
-              </ul>
-          </li>
-          <li><a href="/static/downloads/genename_pairsWprob.txt" target="_blank">Protein Interaction Network with probability scores (genenames)</a>
-              <ul>
-                  <li>Description: Co-complex protein pairs that are observed in the protein complex map with the corresponding svm probability score. </li>
-                  <li>Format: genename [tab] genename [tab] score</li>
-                  <li>Note: ids that did not map properly have original geneid or ensembl id</li>
+                  <li>Description: All protein pair predictions with the corresponding svm probability score. </li>
+                  <li>Format: protein_id [tab] protein_id [tab] score</li>
               </ul>
           </li>
       </ul>
+
+      <!--
       <br>
       <h4>Additional database input files</h4>
       <ul>
@@ -135,13 +131,34 @@
               </ul>
           </li>
       </ul>
+      -->
       <br>
       <h4>Cytoscape Network</h4>
       <ul>
-          <li><a href="/static/downloads/human_protein_complex_map.cys" target="_blank">Cytoscape Network</a></li>
+          <li><a href="/static/downloads/humap2/humap2_protein_complex_map_20200821.cys" target="_blank">Cytoscape Network</a>
+              <ul>
+                  <li>Description: Cytoscape network of hu.MAP 2.0</li>
+                  <li>Node colors represent complex confidence
+                    <ul>
+                        <li>Extremely High = Green</li>
+                        <li>Very High = Blue</li>
+                        <li>High = Teal</li>
+                        <li>Medium High = Yellow</li>
+                        <li>Medium = Gray</li>
+                    </ul>
+                  </li>
+                  <li>Edge colors represent gold standard edges
+                    <ul>
+                        <li>Positive Test = Green</li>
+                        <li>Positive Train = Blue</li>
+                        <li>Negative Test = Yellow</li>
+                        <li>Negative Train = Red</li>
+                    </ul>
+                  </li>
+              </ul>                                                                                                   
+          </li>
       </ul>
       <br>
-      -->
 
       <h4>Test and training data</h4>
       <ul>
@@ -192,7 +209,7 @@
 
       <h4>Feature Matrix</h4>
       <ul>
-          <li><a href="/static/downloads/humap2/humap2_feature_matrix_20200820.featmat.gz" target="_blank">Feature Matrix (geneid) (gz)</a>
+          <li><a href="/static/downloads/humap2/humap2_feature_matrix_20200820.featmat.gz" target="_blank">Feature Matrix (geneid gzip)</a>
               <ul>
                   <li>Description: Table of features from integrated datasets for pairs of proteins (geneids). Also includes Weighted Matrix Model features</li>
                   <li>Format: protein_id,protein_id,[features]</li>
