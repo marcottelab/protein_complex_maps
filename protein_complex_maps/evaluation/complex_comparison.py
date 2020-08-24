@@ -86,6 +86,52 @@ class ComplexComparison(object):
     #kdrew: different metrics for comparing complexes and clusters
 
     #kdrew: Song and Singh Bioinformatics 2009
+
+    def jaccard_measure(self, topN=None):
+        jac_dict = dict()
+        jac_i_max_dict = dict()
+        jac_j_max_dict = dict()
+        for i, gs in enumerate(self.gold_standard):
+            for j, c in enumerate(self.clusters):
+                #kdrew: compute jaccard coef for this cluster / complex pair
+                jac_val = 1.0*len(gs.intersection(c))/len(gs.union(c))
+                #kdrew: assign jaccard coef to matrix
+                jac_dict[(i,j)] = jac_val
+
+                #kdrew: if jaccard coef is the largest seen for complex i, make it the max for complex i
+                try:
+                    jac_i_max_dict[i] = max(jac_i_max_dict[i],jac_val)
+                except KeyError:
+                    jac_i_max_dict[i] = jac_val
+
+                #kdrew: if jaccard coef is the largest seen for cluster j, make it the max for cluster j
+                try:
+                    jac_j_max_dict[j] = max(jac_j_max_dict[j],jac_val)
+                except KeyError:
+                    jac_j_max_dict[j] = jac_val
+
+
+        #kdrew: normalize 
+        jac_i_weighted_sum = 0.0
+        jac_i_sum = 0.0
+        for i, gs in enumerate(self.gold_standard):
+            jac_i_weighted_sum = jac_i_weighted_sum + jac_i_max_dict[i]*len(gs)
+            jac_i_sum = jac_i_sum + len(gs)
+
+        jac_j_weighted_sum = 0.0
+        jac_j_sum = 0.0
+        for j, c in enumerate(self.clusters):
+            jac_j_weighted_sum = jac_j_weighted_sum + jac_j_max_dict[j]*len(c)
+            jac_j_sum = jac_j_sum + len(c)
+
+        jac_i = jac_i_weighted_sum / jac_i_sum
+        jac_j = jac_j_weighted_sum / jac_j_sum
+
+
+        #kdrew: return measure
+        return jac_i, jac_j
+
+
     #kdrew: similar to mmr_pwmmr_hmean but weights each complex evaluation by the size of the complex
     def precision_recall_product(self,topN=None):
         pm = self.precision_measure(topN=topN)

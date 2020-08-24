@@ -60,12 +60,26 @@ class ComplexComparisonTest(unittest.TestCase):
         self.clusters9 = [['a','b'],['e','f'],['i','j']]
         self.clusters9a = [['a','b','c','d']]
 
+        self.gold_standard10 = [['P1','P2'],['P2','P3'],['P4','P5','P6','P7'],['P4','P6'],['P8','P9','P10']]
+        self.clusters10= [['P1','P2','P3'],['P4','P5','P6','P7'],['P4','P6'],['P8','P9','P10']]
+
     def testComplexComparison(self, ):
         ccobj = cc.ComplexComparison(self.gold_standard, self.clusters)
         np.testing.assert_almost_equal( ccobj.sensitivity(), 0.75)
         np.testing.assert_almost_equal( ccobj.ppv(), 8.0/13.0)
         np.testing.assert_almost_equal( ccobj.acc(), 0.6793662204867574)
 
+        print ccobj.sensitivity()
+        print ccobj.ppv()
+        print ccobj.acc()
+
+    def testComplexComparison10(self, ):
+        ccobj = cc.ComplexComparison(self.gold_standard10, self.clusters10)
+        np.testing.assert_almost_equal( ccobj.sensitivity(), 1.0)
+        #np.testing.assert_almost_equal( ccobj.ppv(), .846)
+        #np.testing.assert_almost_equal( ccobj.acc(), .92)
+
+        print "testComplexComparison10"
         print ccobj.sensitivity()
         print ccobj.ppv()
         print ccobj.acc()
