@@ -9,7 +9,7 @@
     <meta name="author" content="">
     <link rel="icon" href="../bootstrap-3.3.6/docs/favicon.ico">
 
-    <title>hu.MAP</title>
+    <title>Protein Complex Maps</title>
 
     <link href="../static/styles/test.css" rel="stylesheet">
 
@@ -48,13 +48,15 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="/">hu.MAP</a>
+          <a class="navbar-brand" href="/">Protein Complex Maps</a>
         </div>
         <div id="navbar" class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
             <li class="active"><a href="/">Home</a></li>
             <li><a href="/about">About</a></li>
+	<!--
             <li><a href="/download">Download</a></li>
+	-->
             <!--
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Dropdown <span class="caret"></span></a>
@@ -77,17 +79,51 @@
     <div class="container theme-showcase" role="main">
 
       <!-- Main jumbotron for a primary marketing message or call to action -->
-      <div class="jumbotron">
+	<a href="http://humap2.proteincomplexes.org">
+      <div class="jumbotron" style="padding-top:15px;padding-bottom:15px;margin-bottom:30px;color:#333">
+        <h1>hu.MAP 2.0</h1>
+        <p> 
+            Human Protein Complex Map 2.0
+        </p>
+      </div>
+	</a>
+
+	<a href="http://rna.proteincomplexes.org">
+      <div class="jumbotron" style="background-color:#eba5a5;padding-top:15px;padding-bottom:15px;margin-bottom:30px;color:#333">
+        <h1>rna.MAP</h1>
+        <p> 
+		Ribonucleoprotein Complex Map
+        </p>
+      </div>
+	</a>
+
+	<a href="http://plants.proteincomplexes.org">
+      <div class="jumbotron" style="background-color:#b6d99e;padding-top:15px;padding-bottom:15px;margin-bottom:30px;color:#333">
+        <h1>plant.MAP</h1>
+        <p> 
+		Plant Complex Map
+        </p>
+      </div>
+	</a>
+
+	<p>
+	<h1>Previous Maps</h1>
+	</p>
+	<a href="http://hu1.proteincomplexes.org">
+      <div class="jumbotron" style="padding-top:15px;padding-bottom:15px;margin-bottom:30px;color:#333">
         <h1>hu.MAP</h1>
         <p> 
             Human Protein Complex Map
         </p>
       </div>
+	</a>
+      </div>
 
-
+	<!--
       <div class="page-header">
         <h1>Search for a protein</h1>
       </div>
+	-->
     <!--kdrew: problem with stale CSRF tokens, this prints error message
     {% if form.errors %}
         {{ form.errors }}
@@ -97,7 +133,7 @@
     
 
 
-
+	<!-- 
     <form method="POST" action="/search">
         {{ form.hidden_tag() }}
         {{ form.genename.label }} {{ form.genename(size=50) }}
@@ -118,6 +154,9 @@
         <h3>{{error}}</h3>
     {% endif %}
 
+	<!--
+
+	<!--
     <ul>
 
     {% for comp in complexes %}
@@ -140,9 +179,11 @@
                         {% for comp in prot.complexes %}
                             {{ comp.complex_link()|safe }}
                         {% else %}
+	-->
                         <!--
                             <em> No complexes</em>
                           -->
+	<!--
                         {% endfor %}
                     </td>
                     <td> {{prot.proteinname}}</td>
@@ -155,12 +196,15 @@
         </table>
         <br>
     {% else %}
+	-->
     <!--
         <em>No complexes</em>
       -->
+	<!--
     {% endfor %}
 
     </ul>
+	-->
 
 
     <!-- Bootstrap core JavaScript
