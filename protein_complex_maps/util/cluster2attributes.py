@@ -3,7 +3,7 @@
 import argparse
 import itertools as it
 
-import protein_complex_maps.protein_util as pu
+import protein_complex_maps.util.protein_util as pu
 
 def main():
 

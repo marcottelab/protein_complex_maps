@@ -6,7 +6,8 @@ import timeit
 #from tqdm import tqdm
 #python ../../scripts/alphabetize_pairs.py --feature_pairs arathtraesorysjbraolselml_euNOG_corum_train_labeled.libsvm1.scale.resultsWprob_c32_g0078125_pairs_noself_nodups_wprob.txt --outfile old_arathtraesorysjbraolselml_interactions.tmp
 
-def alphabetized_check(df, column_ids, sample_size=1000):
+def alphabetized_check(df, column_ids, sample_size=100):
+    print(column_ids)
     #kdrew: sample a portion of the passed in dataframe
     df_sample = df.sample(sample_size)
     #kdrew: alphabetize the passed in columns and record the first column in 'alpha_id1'
@@ -34,30 +35,39 @@ def main():
                                     help="Filename of comma separated output")
     parser.add_argument("--sep", action = "store",dest='sep' , default=' ', required=False)
     parser.add_argument("--columns", nargs='+', action="store", type=int, dest="columns2alphabetize", required=False, default=[0,1], 
-                                    help="List of columns to alphabetize, default = 0,1")
+                                    help="List of columns (positions) to alphabetize, default = 0,1")
+    parser.add_argument("--header", action="store", dest="header", required=False, default=True, 
+                                    help="Do input pairs files have headers?")
+
     args = parser.parse_args()
-    df = pd.read_table(args.df, sep=args.sep, header=None)
+
+    if args.header == True:
+        df = pd.read_table(args.df, sep=args.sep, header=0)
+    if args.header == False:
+        df = pd.read_table(args.df, sep=args.sep, header=None)
+
+
     print(df)
 
 
-    #sorted is faster than np.sort
+    df = alphabetize_df(df, args.columns2alphabetize)
+    if args.sep == '\\t':
+           args.sep = '\t'
+  
+    if args.header == True:
+        df.to_csv(args.outfile, header=True, index=False, sep=args.sep)
+    if args.header == False:
+        df.to_csv(args.outfile, header=False, index=False, sep=args.sep)
 
-    #df[df.columns[args.columns2alphabetize]] = df[df.columns[args.columns2alphabetize]].apply(sorted,axis=1)
- 
-    #For troubleshooting speed of the apply function
-    #tqdm.pandas(desc="Progress of alphabetization")
 
-    #Saving as intermediate variable is necessary for large dataframes (at least over 9 million rows)
-    #For troubleshooting, progress_apply gives a progress bar, but needs tqdm package
-    #x =  df[df.columns[args.columns2alphabetize]].progress_apply(sorted,axis=1)
-    intermediate_df =  df[df.columns[args.columns2alphabetize]].apply(sorted,axis=1)
-    df[df.columns[args.columns2alphabetize]] = intermediate_df
+def alphabetize_df(df, columns2alphabetize):
 
-    #print(df)
- 
+    intermediate_df =  df[df.columns[columns2alphabetize]].apply(sorted,axis=1)
+    print(intermediate_df)
 
-    df.to_csv(args.outfile, header=False, index=False, sep=args.sep)
-
+    df[df.columns[columns2alphabetize]] = intermediate_df
+   
+    return df
 
 
 

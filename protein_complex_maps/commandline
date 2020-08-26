@@ -1,4 +1,0 @@
-
-#kdrew: bicluster DNA synthesome complex
-python coclustering.py --input_msds_pickle ./util/HS_ms2_elutions_msds_peptide_ns_mapped.p --proteins  P12004 P09884 Q14181 P28340 P49005 Q15054 Q07864 P56282 Q9NRF9 Q9NR33 P49642 P35251 P27694 P11387 P11388 Q02880 --numOfClusters 10 --plot_filename ~/public_html/test/1099_bicluster.pdf --plot_threshold -10.0
-

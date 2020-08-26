@@ -8,12 +8,13 @@ app = cdb.get_app()
 
 #from flask.ext.wtf import Form
 from flask_wtf import Form
-from wtforms.fields import StringField, SubmitField
+from wtforms.fields import StringField, SubmitField, TextAreaField
 
 
 class SearchForm(Form):
     complex_id = StringField(u'Complex ID:')
     genename = StringField(u'Gene Name (ex. OFD1):')
+    listOfGenenames = TextAreaField(u'List of Gene Names (ex. OFD1 PCM1 CSPP1):')
     enrichment = StringField(u'Enrichment (ex. cilium):')
     protein = StringField(u'Protein (ex. Centrosomal protein):')
     submit = SubmitField(u'Search')
@@ -33,8 +34,14 @@ def root(complexes=[]):
 def displayComplexesForGeneName():
     genename = request.args.get('genename')
     form = SearchForm()
+
+    complexes, error = getComplexesForGeneName(genename)
+    return render_template('index.html', form=form, complexes=complexes, error=error)
+
+def getComplexesForGeneName(genename):
     #kdrew: do error checking
-    error=None
+    error = ""
+    complexes = []
 
     #kdrew: tests to see if genename is a valid genename
     #protein = db.session.query(cdb.Protein).filter((func.upper(cdb.Protein.genename) == func.upper(genename))).one()
@@ -43,20 +50,14 @@ def displayComplexesForGeneName():
     if len(genes) == 0:
         #kdrew: input genename is not valid, flash message
         error = "Could not find given genename: %s" % genename
+        return complexes, error
 
-        return render_template('index.html', form=form, complexes=[], error=error)
-
-
-    complexes = []
     for gene in genes:
         try:
             proteins = db.session.query(cdb.Protein).filter((cdb.Protein.gene_id == gene.gene_id)).all()
-
         except NoResultFound:
             #kdrew: input genename is not valid, flash message
-            error = "Could not find given genename: %s" % genename
-
-            return render_template('index.html', form=form, complexes=[], error=error)
+            error = error + "Could not find given genename: %s" % genename
 
         for protein in proteins:
             try:
@@ -69,7 +70,80 @@ def displayComplexesForGeneName():
 
     complexes = list(set(complexes))
 
-    return render_template('index.html', form=form, complexes=complexes, error=error)
+    return complexes, error
+
+@app.route("/displayComplexesForListOfGeneNames")
+def displayComplexesForListOfGeneNames():
+    listOfGenenames = request.args.get('listOfGenenames').split()
+    form = SearchForm()
+    #kdrew: do error checking
+    error=None
+
+    #print listOfGenenames
+
+    all_genes = []
+    for genename in listOfGenenames:
+        #print genename
+        #kdrew: tests to see if genename is a valid genename
+        genes = db.session.query(cdb.Gene).filter((func.upper(cdb.Gene.genename) == func.upper(genename))).all()
+
+        if len(genes) == 0:
+            #kdrew: input genename is not valid, flash message
+            if error == None:
+                error = ""
+            error = error + "Could not find genename: %s\n" % genename
+
+            #return render_template('index.html', form=form, complexes=[], error=error)
+
+        all_genes = all_genes + genes
+
+    #print [g.genename for g in all_genes]
+
+    complexes = []
+    all_proteins = []
+    error_proteins = []
+    for gene in all_genes:
+        try:
+            proteins = db.session.query(cdb.Protein).filter((cdb.Protein.gene_id == gene.gene_id)).all()
+
+        except NoResultFound:
+            if error == None:
+                error = ""
+            #kdrew: input genename is not valid, flash message
+            error = error + "Could not find genename: %s\n" % gene.genename
+
+            #return render_template('index.html', form=form, complexes=[], error=error)
+
+        all_proteins = all_proteins + proteins
+
+        error_proteins_current = []
+        for protein in proteins:
+            if len(protein.complexes) == 0:
+                error_proteins_current.append(protein)
+            try:
+                complexes = complexes + protein.complexes
+                #kdrew: if found complexes for any of the proteins attached to gene then do not report error
+                error_proteins_current = []
+            except NoResultFound:
+                continue
+
+        #kdrew: add proteins from this iteration that did not have complexes to the list of error proteins
+        error_proteins = error_proteins + error_proteins_current
+
+    if len(complexes) == 0:
+        if error == None:
+            error = ""
+        error = error + "No complexes found for genenames: %s\n" % ', '.join([g.genename for g in all_genes])
+    if len(error_proteins) > 0:
+        if error == None:
+            error = ""
+        error = error + "No complexes found for genenames: %s\n" % ', '.join([p.genename() for p in error_proteins])
+
+    #complexes = list(set(complexes))
+    complexes = [x[1] for x in sorted(((complexes.count(e), e) for e in set(complexes)), reverse=True)]
+
+    #print [p.id for p in all_proteins]
+    return render_template('index.html', form=form, complexes=complexes, prot_ids=[p.id for p in all_proteins], error=error)
 
 @app.route("/displayComplexesForEnrichment")
 def displayComplexesForEnrichment():
@@ -144,6 +218,8 @@ def searchComplexes():
     if form.validate_on_submit():
         if len(form.genename.data) > 0:
             return redirect(url_for('displayComplexesForGeneName', genename=form.genename.data))
+        elif len(form.listOfGenenames.data) > 0:
+            return redirect(url_for('displayComplexesForListOfGeneNames', listOfGenenames=form.listOfGenenames.data))
         elif len(form.enrichment.data) > 0:
             return redirect(url_for('displayComplexesForEnrichment', enrichment=form.enrichment.data))
         elif len(form.protein.data) > 0:

@@ -136,7 +136,10 @@
 	<!-- 
     <form method="POST" action="/search">
         {{ form.hidden_tag() }}
-        {{ form.genename.label }} {{ form.genename(size=50) }}
+        <!-- {{ form.genename.label }} {{ form.genename(size=50) }}
+        <br>
+        <br>-->
+        {{ form.listOfGenenames.label }} {{ form.listOfGenenames(size=50) }}
         <br>
         <br>
         {{ form.enrichment.label }} {{ form.enrichment(size=50) }}
@@ -172,10 +175,12 @@
             </tr>
         </thead>
         <tbody>
+            <!-- kdrew: list searched genes first -->
             {% for prot in comp.proteins %}
-                <tr>
-                    <td>{{ prot.genename() }}</td>
-                    <td>
+                {% if prot.id in prot_ids %}
+                    <tr>
+                        <td><strong>{{ prot.genename() }}</strong></td>
+                        <td>
                         {% for comp in prot.complexes %}
                             {{ comp.complex_link()|safe }}
                         {% else %}
@@ -185,10 +190,32 @@
                           -->
 	<!--
                         {% endfor %}
-                    </td>
-                    <td> {{prot.proteinname}}</td>
-                    <td>{{ prot.uniprot_link()|safe }} &nbsp {{ prot.ncbi_link()|safe }}</td>
-                </tr>
+                        </td>
+                        <td> {{prot.proteinname}}</td>
+                        <td>{{ prot.uniprot_link()|safe }} &nbsp {{ prot.ncbi_link()|safe }}</td>
+                    </tr>
+                {% endif %}
+            {% else %}
+                <em> No proteins</em>
+            {% endfor %}
+            <!-- kdrew: list the non-searched genes -->
+            {% for prot in comp.proteins %}
+                {% if prot.id not in prot_ids %}
+                    <tr>
+                        <td>{{ prot.genename() }}</td>
+                        <td>
+                            {% for comp in prot.complexes %}
+                                {{ comp.complex_link()|safe }}
+                            {% else %}
+                            <!--
+                                <em> No complexes</em>
+                              -->
+                            {% endfor %}
+                        </td>
+                        <td> {{prot.proteinname}}</td>
+                        <td>{{ prot.uniprot_link()|safe }} &nbsp {{ prot.ncbi_link()|safe }}</td>
+                    </tr>
+                {% endif %}
             {% else %}
                 <em> No proteins</em>
             {% endfor %}
