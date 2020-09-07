@@ -10,25 +10,25 @@ import itertools as it
 import protein_complex_maps.features.alphabetize_pairs as ap
 
 
-def load_ppis(positives, negatives, ppi_sep):
+def load_ppis(positives, negatives, ppi_sep, id_sep):
 
     pos_ppis = pd.DataFrame(pd.read_table(positives, sep=ppi_sep, header=None, engine="python", converters={0: str, 1: str}))
     pos_ppis.columns = ['ID1','ID2']
     print(pos_ppis)
 
-    if args.check_alphabetized:
-       if not ap.alphabetized_check(pos_ppis, ['ID1','ID2']):
-         print("alphabetizing positives ppis")
-         pos_ppis = ap.alphabetize_df(pos_ppis, [list(pos_ppis.columns).index(x) for x in ['ID1','ID2']])
-         if not ap.alphabetized_check(pos_ppis, ['ID1','ID2']):
-             sys.exit("ERROR: input_positives are not alphabetized, please run alphabetize_pairs.py")
+    #if args.check_alphabetized:
+    #   if not ap.alphabetized_check(pos_ppis, ['ID1','ID2']):
+    #     print("alphabetizing positives ppis")
+    #     pos_ppis = ap.alphabetize_df(pos_ppis, [list(pos_ppis.columns).index(x) for x in ['ID1','ID2']])
+    #     if not ap.alphabetized_check(pos_ppis, ['ID1','ID2']):
+    #         sys.exit("ERROR: input_positives are not alphabetized, please run alphabetize_pairs.py")
 
     print(pos_ppis)
     print(pos_ppis['ID1'])
     print(pos_ppis['ID2'])
     print("size of pos_pos_ppis: %s" % len(pos_ppis))
     pos_ppis['label'] = 1
-    pos_ppis['ID'] = pos_ppis['ID1'] + args.id_sep + pos_ppis['ID2']
+    pos_ppis['ID'] = pos_ppis['ID1'] + id_sep + pos_ppis['ID2']
 
     neg_ppis = pd.DataFrame(pd.read_table(negatives, sep=ppi_sep, header=None, engine="python", converters={0: str, 1: str}))
     neg_ppis.columns = ['ID1','ID2']
@@ -39,7 +39,7 @@ def load_ppis(positives, negatives, ppi_sep):
        #     sys.exit("ERROR: input_negatives are not alphabetized, please run alphabetize_pairs.py")
     print(neg_ppis)
     neg_ppis['label'] = -1
-    neg_ppis['ID'] = neg_ppis['ID1'] + args.id_sep + neg_ppis['ID2']
+    neg_ppis['ID'] = neg_ppis['ID1'] + id_sep + neg_ppis['ID2']
    
     
     print("size of neg_ppis: %s" % len(neg_ppis))
@@ -66,7 +66,7 @@ def label_table(feature_table, id_column, id_sep, all_ppis, fillna, cols):
         collist = cols.split(' ')
         labeled_feature_table = labeled_feature_table[collist]
 
-    if args.fillna != None:
+    if fillna != None:
         feature_table = feature_table.fillna(float(fillna))
 
 
