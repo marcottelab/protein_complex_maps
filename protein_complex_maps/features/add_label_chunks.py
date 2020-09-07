@@ -107,7 +107,7 @@ def main():
    
     args = parser.parse_args()
 
-    all_ppis = load_ppis(args.positives, args.negatives, args.ppi_sep)
+    all_ppis = load_ppis(args.positives, args.negatives, args.ppi_sep, args.id_sep)
 
     #iterator = pd.read_csv(args.df, sep=args.sep, header=0, engine="python",  chunksize=args.chunksize, iterator = True)
     #feature_table = pd.DataFrame(pd.read_table(args.feature_matrix, sep=args.sep, engine="python"))
