@@ -116,7 +116,7 @@ def main():
 
     firstpass = True
     for feature_table in iterator:
-        labeled_feature_table(feature_table, args.id_column, args.id_sep, all_ppis, args.fillna, args.cols)
+        labeled_feature_table = label_table(feature_table, args.id_column, args.id_sep, all_ppis, args.fillna, args.cols)
 
         if firstpass == True:
             #alphabetized_df.to_csv(args.outfile, header=True, index=False, sep=args.sep)
