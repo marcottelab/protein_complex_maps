@@ -111,7 +111,7 @@ def main():
 
     #iterator = pd.read_csv(args.df, sep=args.sep, header=0, engine="python",  chunksize=args.chunksize, iterator = True)
     #feature_table = pd.DataFrame(pd.read_table(args.feature_matrix, sep=args.sep, engine="python"))
-    iterator = pd.read_table(args.feature_matrix, sep=args.sep, engine="python", chunks = args.chunksize, iterator = True)
+    iterator = pd.read_table(args.feature_matrix, sep=args.sep, engine="python", chunksize = args.chunksize, iterator = True)
 
 
     firstpass = True
