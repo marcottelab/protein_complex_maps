@@ -182,10 +182,16 @@ def main():
  
     cut_dend <- function(dendrogram, cuts){
         #Function to cut the dendrogram at particular heights
+        print("Get height")
         ht <- max(get_nodes_attr(dendrogram, "height"))   
+
         cut_clusters <- data.frame(ID = as.character())
         for (c in cuts){
-        cut_clusters <- merge(cut_clusters, cut_df(dendrogram, c*ht), all=TRUE)
+          print(c)
+          print(dim(cut_clusters))
+          cut_dend <- cut_df(dendrogram, c*ht)
+          print(cut_dend)
+          cut_clusters <- merge(cut_clusters, cut_dend, all=TRUE)
    
          }
        return(cut_clusters)
