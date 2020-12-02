@@ -157,6 +157,13 @@ def main():
         print "len(recall): %s" % len(recall)
         print "len(thresholds): %s" % len(thresholds)
 
+        for threshold_marker in [float(x) for x in args.threshold_markers]:
+            try:
+                j = next(i for i,x in enumerate(thresholds) if x >= threshold_marker) 
+                print "threshold: %s, precision: %s" % (threshold_marker, precision[j])
+            except StopIteration:
+                pass
+
 
         #if args.plot_thresholds:
         #    #kdrew: set the index of the entry >= to threshold
