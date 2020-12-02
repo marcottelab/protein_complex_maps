@@ -78,7 +78,8 @@ def main():
     if args.start_collecting != None or args.stop_collecting != None or args.collection_period != None:
         fraction_mins = np.arange(args.start_collecting, args.stop_collecting, args.collection_period)
         ax3 = ax.twiny()
-        ax3.plot(fraction_mins, visible=False)
+        #ax3.plot(fraction_mins, visible=False)
+        ax3.plot(range(int(df['Time (min)'].values[0]),int(df['Time (min)'].values[-1])), visible=False)
         ax3.set_xticks(fraction_mins[::10])
         ax3.set_xticklabels(range(len(fraction_mins))[::10])
         ax3.set_xlabel("Fractions")
