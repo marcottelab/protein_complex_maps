@@ -9,17 +9,19 @@ import scipy
 import math
 import logging 
 import multiprocessing as mp
-from rpy2.robjects.packages import importr
-from rpy2.robjects.vectors import FloatVector
+#kdrew: crapping out for python3, only used for bh correction
+#from rpy2.robjects.packages import importr
+#from rpy2.robjects.vectors import FloatVector
 from functools import partial
 
 import mpmath as mpm
 
+print("after imports")
 
-pd.set_option('display.height', 1000)
-pd.set_option('display.max_rows', 500)
-pd.set_option('display.max_columns', 500)
-pd.set_option('display.width', 1000)
+#pd.set_option('display.height', 1000)
+#pd.set_option('display.max_rows', 500)
+#pd.set_option('display.max_columns', 500)
+#pd.set_option('display.width', 1000)
 
 def pval(k,n,m,N):
     pv = 0.0
@@ -137,6 +139,7 @@ def main():
 
     setup_log(args.logname)
 
+    print("reading in dataframe")
     feature_table = pd.DataFrame(pd.read_csv(args.feature_matrix, sep=args.sep, converters={args.id_column: str, args.bait_id_column: str }))
     print("Thresholding %s >= %s" % (args.abundance_column, args.abundance_threshold))
     feature_table = feature_table[feature_table[args.abundance_column] >= args.abundance_threshold]
