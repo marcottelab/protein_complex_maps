@@ -10,7 +10,7 @@ import os.path
 
 def main():
 
-    parser = argparse.ArgumentParser(description="Selects multiiple selections of columns from a list")
+    parser = argparse.ArgumentParser(description="Selects multiple selections of columns from a list. This was for libsvm...")
     parser.add_argument("--libsvm1_scaled", action="store", dest= "df1", required=True)
     parser.add_argument("--feature_columns", action="store", required=True)
     parser.add_argument("--feature_header", action="store", required=True)
@@ -20,10 +20,8 @@ def main():
 
     with open(args.feature_header, "r") as fh:
         feature_tmp = fh.read().rstrip()
-        print(feature_tmp)
         feature_names = feature_tmp.split(",")
     head= keep + feature_names
-    print(head)
  
     print("opening df1")
     df1 = pd.read_table(args.df1, sep=" ", header=None)
@@ -47,34 +45,6 @@ def main():
                  outfile = f_file.replace(".csv", "") + "_" + args.df1     
                  outdf.to_csv(outfile, index=False, header=False, sep=" ")
  
-
-#    print(df1)
-#    df1['pairset'] = map(frozenset, zip( df1['ID1'].values, df1['ID2'].values ))
-#    print("df1 index setting")
-#    df1 = df1.set_index(['pairset'])
-#    print("opening df2")
-#    df2 = pd.read_table(args.df2, sep=",")
-#    print(df2)
-#    df2['pairset'] = map(frozenset, zip( df2['ID1'].values, df2['ID2'].values ))
-#    print("df2 index set")
-#
-#    df1 = df1.drop(['ID1', 'ID2'], 1)
-#    df2 = df2.drop(['ID1', 'ID2'], 1)
-#
-#    dfall = df1.join(df2, how='outer')
-#
-#
-
-    #dfall = dfall.reset_index()
-    #dfall['ID1'] = [list(x)[0] for x in dfall['pairset'].values]
-    #dfall['ID2'] = [list(x)[1] for x in dfall['pairset'].values]
-
- 
-    #dfall = dfall.drop('pairset', 1)
-
-    #dfall.to_csv( args.out_filename, index=False)
-    
-
 
 
 if __name__ == "__main__":

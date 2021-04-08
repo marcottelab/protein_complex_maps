@@ -4,7 +4,6 @@ import pandas as pd
 import numpy as np
 import timeit
 #from tqdm import tqdm
-#python ../../scripts/alphabetize_pairs.py --feature_pairs arathtraesorysjbraolselml_euNOG_corum_train_labeled.libsvm1.scale.resultsWprob_c32_g0078125_pairs_noself_nodups_wprob.txt --outfile old_arathtraesorysjbraolselml_interactions.tmp
 
 def alphabetized_check(df, column_ids, sample_size=1000):
     print(column_ids)

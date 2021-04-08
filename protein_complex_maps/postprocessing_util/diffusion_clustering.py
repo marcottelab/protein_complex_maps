@@ -1,5 +1,4 @@
 import argparse
-from itertools import izip
 from igraph import Graph
 import pandas as pd
 import rpy2.robjects.packages as rpackages
@@ -9,6 +8,12 @@ from rpy2 import robjects
 from rpy2.robjects import pandas2ri
 pandas2ri.activate()
 from rpy2.robjects.packages import importr
+
+# Is this needed?
+#try:
+#    from itertools import izip as zip
+#except ImportError: # will be 3.x series
+#    pass
 
  
 # select a mirror for R packages
@@ -45,7 +50,7 @@ def main():
                                     help="Number of steps fo walktrap to take, default=4")
     #parser.add_argument("--write_distance_matrix", action="store", dest="write_distance_matrix", required=False, default=True, 
     #                                help="Write table of pairwise distances")
-    parser.add_argument("--tree_cutoff_fractions", action="store", dest="tree_cutoff_fractions", required=False, default=[0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2,0.1], 
+    parser.add_argument("--tree_cutoff_fractions", type = float, nargs = '+', action="store", dest="tree_cutoff_fractions", required=False, default=[0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2,0.1], 
                                     help="Positions for cutting the hierarchical tree (proportion of tree height), default=[0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2,0.1]")
     parser.add_argument("--input_elution", action="store", dest="input_elution", required=False, 
                                     help="Optional: If present, annotate with dendrogram order information(.csv format)")
@@ -53,7 +58,7 @@ def main():
                                     help="Optional: Path to annotations file. A tab-delimited file with protein ids in first column and annotations in second")
  
     args = parser.parse_args()
-
+    print(args.tree_cutoff_fractions)
 
     if args.header == True:
          scores_nodups = pd.read_csv(args.input_edges, sep=args.sep)
