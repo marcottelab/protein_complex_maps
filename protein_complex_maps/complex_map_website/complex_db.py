@@ -119,6 +119,7 @@ class Edge(db.Model):
     #kdrew: uses table name for EdgeComplexMapping class (annoying sqlalchemy magic)
     complexes = db.relationship('Complex', secondary='edge_complex_mapping',  back_populates='edges')
     score = db.Column(db.Float)
+    precision = db.Column(db.Float)
 
     evidences = db.relationship('Evidence')
 

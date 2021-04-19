@@ -210,6 +210,13 @@
                     <th>Protein 1 </th>
                     <th>Protein 2 </th>
                     <th>Score </th>
+                    <th>Precision <button class="btn btn-default btn-xs" onclick="precisionFunction()">?</button>
+                        <script>
+                            function precisionFunction() {
+                                alert("Edge Precision is empirically determined from a benchmark set of literature curated co-complex interactions from the CORUM database. See Test_Positive_PPIs and Test_Negative_PPIs on Downloads page for the test set used.\n\nThe precision value is calculated by the equation TP/(TP+FP) for all edges >= the individual edge's confidence score, where TP is true positive and FP is false positive.\n\nAs an example, a precision of 0.9 means that 9 out of 10 edges were correct according to the benchmark. Likewise, a precision of 0.1 means that 1 out of 10 edges were correct.");
+                            }
+                        </script>                                                    
+                    </th>
                     <th>Evidence <button class="btn btn-default btn-xs" onclick="evidenceFunction()">?</button>
                     <script>
                         function evidenceFunction() {
@@ -226,6 +233,19 @@
                         <td>&nbsp{{ edge.get_proteins()[0].genename() }}</td>
                         <td>&nbsp{{ edge.get_proteins()[1].genename() }}</td>
                         <td> {{ edge.score|safe }}</td>
+
+                        {% if edge.precision > 0.8 %}
+                            <td><span style="color:007c80;">{{ edge.precision|safe }}</span>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</td>
+                        {% elif edge.precision > 0.6 %}
+                            <td><span style="color:57C4AD;">{{ edge.precision|safe }}</span>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</td>
+                        {% elif edge.precision > 0.4 %}
+                            <td><span style="color:E1AD01;">{{ edge.precision|safe }}</span>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</td>
+                        {% elif edge.precision > 0.2 %}
+                            <td><span style="color:E98F20;">{{ edge.precision|safe }}</span>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</td>
+                        {% else %}
+                            <td> <span style="color:DB4325;">{{ edge.precision|safe }}</span>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</td>
+                        {% endif %}
+
                         <td>
                             {% for evidence in edge.evidences %}
                                 {{ evidence.evidence_type|safe }} &nbsp &nbsp 
