@@ -44,6 +44,8 @@ class Complex(db.Model):
     edges = db.relationship('Edge', secondary='edge_complex_mapping', back_populates='complexes')
     enrichments = db.relationship('ComplexEnrichment')
     top_rank = db.Column(db.Integer)
+    average_precision = db.Column(db.Float)
+    average_precision_rank = db.Column(db.Integer)
 
     def complex_link(self,):
         #retstr = "<a href=displayComplexes?complex_key=%s>%s</a>" % (self.complex_id, self.complex_id)

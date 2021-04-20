@@ -263,6 +263,28 @@
 
         <br>
         <br>
+        <a href="#Images" class="btn btn-default" data-toggle="collapse">Images</a>
+        <div id="Images" class="collapse">
+        <br>
+            <button class="btn btn-default btn-xs" onclick="imageFunction()">?</button>
+            <script>
+            function imageFunction() {
+            alert("The plot shows the distribution of edge precision values for the complex (blue). Precision values are empirically determined using a benchmark of literature curated complexes from the CORUM database. The average of edge precision values for the complex is shown as a red triangle. For comparison, a distribution of edge precision values for random pairs of proteins (orange) is also shown.");
+            }
+            </script>                                                    
+        <br>
+        <br>
+        Click to enlarge
+        <br>
+        <a href="/static/images/complex_precision_distribution_plots/complex_precision_distribution_{{comp.humap2_id}}-1.png" target="_blank">
+        <img src="/static/images/complex_precision_distribution_plots/complex_precision_distribution_{{comp.humap2_id}}-1.png" alt="ComplexPrecisionDistribution" width=45% height=50%> 
+    </a>
+        <br>
+        This complex has an average edge precision of {{ comp.average_precision }} which is ranked {{ comp.average_precision_rank }} out of all 6976 complexes.
+        </div>
+
+        <br>
+        <br>
         <a href="#RelatedComplexes" class="btn btn-default" data-toggle="collapse">Related Complexes</a>
         <div id="RelatedComplexes" class="collapse">
             <table class="table table-striped">
@@ -290,26 +312,8 @@
             </table>
         </div>
 
-        <!--
-        <br>
-        <a href="#Images" class="btn btn-default" data-toggle="collapse">Images</a>
-        <div id="Images" class="collapse">
-        <br>
-            <button class="btn btn-default btn-xs" onclick="imageFunction()">?</button>
-            <script>
-            function imageFunction() {
-            alert("ClusterMap shows raw data support across available experiments for given complex.\n\nPercentile Rank scores were calculated based on Bioplex zscore, Hein prey.bait.correlation and Wan spectral counts.\n\nOnly experiments for which one or more of the subunits are present are displayed");
-            }
-            </script>                                                    
-        <br>
-        Click to enlarge
-        <br>
-        <a href="/static/images/clustermaps_humap2/bioplex_hein_wan_matrix_{{comp.complex_id}}.png" target="_blank">
-        <img src="/static/images/clustermaps_humap2/bioplex_hein_wan_matrix_{{comp.complex_id}}.png" alt="ClusterMap" width=100% height=100%> 
-        </div>
 
         <br>
-        -->
 
         </ul>
     {% endif %}
