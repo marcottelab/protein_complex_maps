@@ -46,6 +46,8 @@ class Complex(db.Model):
     top_rank = db.Column(db.Integer)
     average_precision = db.Column(db.Float)
     average_precision_rank = db.Column(db.Integer)
+    average_window_precision = db.Column(db.Float)
+    average_window_precision_rank = db.Column(db.Integer)
 
     def complex_link(self,):
         #retstr = "<a href=displayComplexes?complex_key=%s>%s</a>" % (self.complex_id, self.complex_id)
@@ -121,7 +123,10 @@ class Edge(db.Model):
     #kdrew: uses table name for EdgeComplexMapping class (annoying sqlalchemy magic)
     complexes = db.relationship('Complex', secondary='edge_complex_mapping',  back_populates='edges')
     score = db.Column(db.Float)
+    #kdrew: precision should be calculated from sklearn precision_recall_curve
     precision = db.Column(db.Float)
+    #kdrew: window_precision should be calculated for a window surrounding the given edge's svm confidence score
+    window_precision = db.Column(db.Float)
 
     evidences = db.relationship('Evidence')
 

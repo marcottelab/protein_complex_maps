@@ -209,11 +209,18 @@
                 <tr>
                     <th>Protein 1 </th>
                     <th>Protein 2 </th>
-                    <th>Score </th>
+                    <th>Score <button class="btn btn-default btn-xs" onclick="scoreFunction()">?</button> 
+                        <script>
+                            function scoreFunction() {
+                                alert("Edge Score is a confidence value of the pair of proteins interacting based on the evidence. The value ranges from 0.0 to 1.0 and is calculated by the SVM classifier during the prediction process.\n\nThe score is independent of the edge precision value as it is only calculated based on cross-validated training data.");
+                            }
+                        </script> 
+                    
+                    </th>                                                   
                     <th>Precision <button class="btn btn-default btn-xs" onclick="precisionFunction()">?</button>
                         <script>
                             function precisionFunction() {
-                                alert("Edge Precision is empirically determined from a benchmark set of literature curated co-complex interactions from the CORUM database. See Test_Positive_PPIs and Test_Negative_PPIs on Downloads page for the test set used.\n\nThe precision value is calculated by the equation TP/(TP+FP) for all edges >= the individual edge's confidence score, where TP is true positive and FP is false positive.\n\nAs an example, a precision of 0.9 means that 9 out of 10 edges were correct according to the benchmark. Likewise, a precision of 0.1 means that 1 out of 10 edges were correct.");
+                                alert("Edge Precision is empirically determined from a benchmark set of literature curated co-complex interactions from the CORUM database. (See Test_Positive_PPIs and Test_Negative_PPIs on Downloads page for the test set used.)\n\nThe precision value is calculated by the equation TP/(TP+FP) for a window of edges with similar confidence scores to the individual edge's confidence score. TP is defined as true positive and FP is false positive. The value ranges from 0.0 to 1.0.\n\nIndividual edge precisions are calculated using this localized approach (i.e. on a window of similar scored benchmark edges) to provide a better estimate of precision for the individual edge.\n\nFor example, a precision of 0.9 means that 9 out of 10 edges with a similar confidence score were correct according to the benchmark. Likewise, a precision of 0.1 means that 1 out of 10 edges were correct.\n\nIt is *important* to remember that the calculation of an individual edge precision is independent of its participation in the complex and therefore an edge may be more likely to be correct when viewed within the context of the complex.");
                             }
                         </script>                                                    
                     </th>
@@ -232,18 +239,18 @@
                     <tr>
                         <td>&nbsp{{ edge.get_proteins()[0].genename() }}</td>
                         <td>&nbsp{{ edge.get_proteins()[1].genename() }}</td>
-                        <td> {{ edge.score|safe }}</td>
+                        <td> {{ edge.score|round(3)|safe }}</td>
 
-                        {% if edge.precision > 0.8 %}
-                            <td><span style="color:007c80;">{{ edge.precision|safe }}</span>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</td>
-                        {% elif edge.precision > 0.6 %}
-                            <td><span style="color:57C4AD;">{{ edge.precision|safe }}</span>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</td>
-                        {% elif edge.precision > 0.4 %}
-                            <td><span style="color:E1AD01;">{{ edge.precision|safe }}</span>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</td>
-                        {% elif edge.precision > 0.2 %}
-                            <td><span style="color:E98F20;">{{ edge.precision|safe }}</span>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</td>
+                        {% if edge.window_precision > 0.8 %}
+                            <td><span style="color:007c80;">{{ edge.window_precision|safe }}</span>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</td>
+                        {% elif edge.window_precision > 0.6 %}
+                            <td><span style="color:57C4AD;">{{ edge.window_precision|safe }}</span>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</td>
+                        {% elif edge.window_precision > 0.4 %}
+                            <td><span style="color:E1AD01;">{{ edge.window_precision|safe }}</span>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</td>
+                        {% elif edge.window_precision > 0.2 %}
+                            <td><span style="color:E98F20;">{{ edge.window_precision|safe }}</span>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</td>
                         {% else %}
-                            <td> <span style="color:DB4325;">{{ edge.precision|safe }}</span>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</td>
+                            <td> <span style="color:DB4325;">{{ edge.window_precision|safe }}</span>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</td>
                         {% endif %}
 
                         <td>
@@ -276,11 +283,11 @@
         <br>
         Click to enlarge
         <br>
-        <a href="/static/images/complex_precision_distribution_plots/complex_precision_distribution_{{comp.humap2_id}}-1.png" target="_blank">
-        <img src="/static/images/complex_precision_distribution_plots/complex_precision_distribution_{{comp.humap2_id}}-1.png" alt="ComplexPrecisionDistribution" width=45% height=50%> 
+        <a href="/static/images/complex_window_precision_distribution_plots/complex_window_precision_distribution_{{comp.humap2_id}}-1.png" target="_blank">
+        <img src="/static/images/complex_window_precision_distribution_plots/complex_window_precision_distribution_{{comp.humap2_id}}-1.png" alt="ComplexPrecisionDistribution" width=45% height=50%> 
     </a>
         <br>
-        This complex has an average edge precision of {{ comp.average_precision }} which is ranked {{ comp.average_precision_rank }} out of all 6976 complexes.
+        Complex {{ comp.humap2_id }} has an average edge precision of {{ comp.average_window_precision|round(3) }} which is ranked {{ comp.average_window_precision_rank }} out of all 6965 complexes.
         </div>
 
         <br>
