@@ -75,7 +75,7 @@ def main():
 
     #kdrew: set axis for fraction numbers
     fraction_mins = None
-    if args.start_collecting != None or args.stop_collecting != None or args.collection_period != None:
+    if args.start_collecting != None and args.stop_collecting != None and args.collection_period != None:
         fraction_mins = np.arange(args.start_collecting, args.stop_collecting, args.collection_period)
         ax3 = ax.twiny()
         #ax3.plot(fraction_mins, visible=False)
@@ -83,7 +83,6 @@ def main():
         ax3.set_xticks(fraction_mins[::10])
         ax3.set_xticklabels(range(len(fraction_mins))[::10])
         ax3.set_xlabel("Fractions")
-
 
 
     std_times = [float(x) for x in args.standard_time]
