@@ -12,6 +12,8 @@ import itertools as it
 
 from sklearn.metrics import precision_recall_curve
 from sklearn.metrics import average_precision_score
+from sklearn.metrics import auc
+
 
 from matplotlib import rcParams
 rcParams.update({'figure.autolayout': True})
@@ -103,6 +105,12 @@ def main():
         prob_array = []
         neg_list = []
         pos_list = []
+
+        label = args.results_wprob[i]
+        if args.labels != None:
+            label = args.labels[i]
+        print("label: %s" % label)
+
         for result_pair in results_dict.keys():
             #kdrew: add a tiny bit of noise to scores so that predictions with all of the same scores are separated, should fix straight line at end of pr plots
             if args.add_tiny_noise:
@@ -121,6 +129,7 @@ def main():
 
         if args.complete_benchmark:
             for ppi in set(ppis) - set(results_dict.keys()):
+                print "complete_benchmark pos: %s" % ppi
                 true_array.append(1)
                 if args.add_tiny_noise:
                     tiny_noise = np.random.random()/1000000
@@ -151,20 +160,28 @@ def main():
         print len(prob_array)
 
         precision, recall, thresholds = precision_recall_curve(true_array, prob_array) 
-        #average_precision = average_precision_score(true_array, prob_array)
+        average_precision = average_precision_score(true_array, prob_array)
+        area_under_curve = auc(recall, precision)
 
         #print "precision: %s" % (list(precision),)
         #print "recall: %s" % (list(recall),)
         print len(precision)
         print len(recall)
         print len(thresholds)
+        print("average_precision: %s" % average_precision)
+        print("area_under_curve: %s" % area_under_curve)
 
         #kdrew: from https://www.geeksforgeeks.org/python-find-closest-number-to-k-in-given-list/ 
 
         for x in args.precision_markers:
             closest_prec = precision[min(range(len(precision)), key = lambda i: abs(precision[i]-float(x)))]
             index_of_prec = list(precision).index(closest_prec)
-            print "precision: %s, closest_precision: %s, recall: %s, threshold: %s" % (x, closest_prec, recall[index_of_prec], thresholds[index_of_prec])
+            try:
+                print "precision: %s, closest_precision: %s, recall: %s, threshold: %s" % (x, closest_prec, recall[index_of_prec], thresholds[index_of_prec])
+            except IndexError, e:
+                print e
+                continue
+
 
 
         if args.plot_thresholds:
@@ -190,9 +207,6 @@ def main():
                 print "recall: %s" % recall[threshold_indices[threshold_marker]]
 
 
-        label = args.results_wprob[i]
-        if args.labels != None:
-            label = args.labels[i]
         line, = plt.plot(recall, precision, label=label)
         if args.plot_thresholds:
             plt.scatter(threshold_recalls, threshold_precisions, color=line.get_color())
