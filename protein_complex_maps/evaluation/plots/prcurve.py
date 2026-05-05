@@ -13,6 +13,8 @@ import itertools as it
 from sklearn.metrics import precision_recall_curve
 from sklearn.metrics import average_precision_score
 from sklearn.metrics import auc
+#from sklearn.metrics import _binary_clf_curve
+from sklearn.metrics.ranking import _binary_clf_curve
 
 
 from matplotlib import rcParams
@@ -21,6 +23,30 @@ rcParams.update({'figure.autolayout': True})
 mpl.rc('pdf', fonttype=42)
 import seaborn as sns
 sns.set_style("white")
+
+
+def precision_recall_curve_weighted(y_true, probas_pred, pos_label=None,sample_weight=None, weight_pos=1.0):
+
+    fps, tps, thresholds = _binary_clf_curve(y_true, probas_pred,
+                                         pos_label=pos_label,
+                                         sample_weight=sample_weight)
+
+    precision = (tps * weight_pos) / ((tps * weight_pos) + fps)
+    recall = tps / tps[-1]
+
+    print("tps")
+    print(tps)
+    print("tps * weight_pos")
+    print(tps*weight_pos)
+    print("precision")
+    print(precision)
+
+    # stop when full recall attained
+    # and reverse the outputs so recall is decreasing
+    last_ind = tps.searchsorted(tps[-1])
+    sl = slice(last_ind, None, -1)
+    return np.r_[precision[sl], 1], np.r_[recall[sl], 0], thresholds[sl]
+
 
 def main():
 
@@ -47,7 +73,9 @@ def main():
                                     help="Use the complete benchmark and set the probablility to 0.0, default=False")
     parser.add_argument("--add_tiny_noise", action="store_true", dest="add_tiny_noise", required=False, default=False,
                                     help="Add tiny bit of noise to scores of each prediction to separate predictions with same score, default=False")
-
+    parser.add_argument("--weight_positives", action="store", type=float, dest="weight_positives", required=False, 
+                                    help="Weight positives differently from negatives, eg. 0.01")
+ 
     args = parser.parse_args()
 
     results_dict_list = []
@@ -159,8 +187,14 @@ def main():
         print len(true_array)
         print len(prob_array)
 
-        precision, recall, thresholds = precision_recall_curve(true_array, prob_array) 
-        average_precision = average_precision_score(true_array, prob_array)
+        
+        if args.weight_positives != None:
+            precision, recall, thresholds = precision_recall_curve_weighted(true_array, prob_array, weight_pos = args.weight_positives) 
+        else:
+            precision, recall, thresholds = precision_recall_curve(true_array, prob_array) 
+            average_precision = average_precision_score(true_array, prob_array)
+            print("average_precision: %s" % average_precision)
+
         area_under_curve = auc(recall, precision)
 
         #print "precision: %s" % (list(precision),)
@@ -168,7 +202,6 @@ def main():
         print len(precision)
         print len(recall)
         print len(thresholds)
-        print("average_precision: %s" % average_precision)
         print("area_under_curve: %s" % area_under_curve)
 
         #kdrew: from https://www.geeksforgeeks.org/python-find-closest-number-to-k-in-given-list/ 
