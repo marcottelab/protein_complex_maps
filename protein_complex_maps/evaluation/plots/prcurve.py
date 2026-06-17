@@ -1,5 +1,6 @@
 
 import numpy as np
+np.random.seed(1234)
 import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.mlab as mlab
@@ -75,8 +76,11 @@ def main():
                                     help="Add tiny bit of noise to scores of each prediction to separate predictions with same score, default=False")
     parser.add_argument("--weight_positives", action="store", type=float, dest="weight_positives", required=False, 
                                     help="Weight positives differently from negatives, eg. 0.01")
+    parser.add_argument("--tp_values_file", action="store", dest="tp_values_filename", required=False, default=None,
+                                    help="Filename to store true and probability values (default=None)")
  
     args = parser.parse_args()
+
 
     results_dict_list = []
     for filename in args.results_wprob:
@@ -128,9 +132,12 @@ def main():
                 neg_ppis.add(ppi_str)
 
 
+    tp_df = None
+
     for i, results_dict in enumerate(results_dict_list):
         true_array = []
         prob_array = []
+        pair_array = []
         neg_list = []
         pos_list = []
 
@@ -150,13 +157,16 @@ def main():
                     true_array.append(1)
                     prob_array.append(results_dict[result_pair]+tiny_noise)
                     pos_list.append((result_pair, results_dict[result_pair]))
+                    pair_array.append(result_pair)
                 elif result_pair in neg_ppis:
                     true_array.append(-1)
                     prob_array.append(results_dict[result_pair]+tiny_noise)
                     neg_list.append((result_pair, results_dict[result_pair]))
+                    pair_array.append(result_pair)
 
         if args.complete_benchmark:
             for ppi in set(ppis) - set(results_dict.keys()):
+                #kdrew: these are positive ppis that were not predicted, make them have a small random score
                 print "complete_benchmark pos: %s" % ppi
                 true_array.append(1)
                 if args.add_tiny_noise:
@@ -164,6 +174,7 @@ def main():
                     prob_array.append(tiny_noise)
                 else:
                     prob_array.append(0.0)
+                pair_array.append(ppi)
             for neg_ppi in set(neg_ppis) - set(results_dict.keys()):
                 true_array.append(-1)
                 if args.add_tiny_noise:
@@ -171,6 +182,8 @@ def main():
                     prob_array.append(tiny_noise)
                 else:
                     prob_array.append(0.0)
+
+                pair_array.append(neg_ppi)
 
 
         sorted_neg_list = sorted(neg_list, key=lambda k: k[1])
@@ -186,6 +199,19 @@ def main():
             print "pos: %s:%s" % (k[0], k[1])
         print len(true_array)
         print len(prob_array)
+        print len(pair_array)
+
+        if tp_df is None:
+            tp_df = pd.DataFrame()
+            tp_df['true_'+label] = true_array
+            tp_df['prob_'+label] = prob_array
+            tp_df.index = pair_array
+        else:
+            tmp_df = pd.DataFrame()
+            tmp_df['true_'+label] = true_array
+            tmp_df['prob_'+label] = prob_array
+            tmp_df.index = pair_array
+            tp_df = tp_df.join(tmp_df)
 
         
         if args.weight_positives != None:
@@ -197,11 +223,19 @@ def main():
 
         area_under_curve = auc(recall, precision)
 
-        #print "precision: %s" % (list(precision),)
-        #print "recall: %s" % (list(recall),)
+
         print len(precision)
         print len(recall)
         print len(thresholds)
+        print len([0] + list(thresholds))
+
+        #prt_df['precision'+label] = precision
+        #prt_df['recall'+label] = recall
+        #prt_df['threshold'+label] = [0] + list(thresholds)
+
+        #print "precision: %s" % (list(precision),)
+        #print "recall: %s" % (list(recall),)
+
         print("area_under_curve: %s" % area_under_curve)
 
         #kdrew: from https://www.geeksforgeeks.org/python-find-closest-number-to-k-in-given-list/ 
@@ -257,6 +291,9 @@ def main():
     plt.legend(loc="upper right",fontsize=8)
 
     plt.savefig(args.output_file)
+
+    if args.tp_values_filename is not None:
+        tp_df.to_csv(args.tp_values_filename)
 
 
 if __name__ == "__main__":
